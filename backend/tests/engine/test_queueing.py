@@ -113,3 +113,45 @@ def test_eff_svc_ignores_zero_qty_items():
     # A product with qty=0 must not affect the result
     mix = [(5.0, 10.0), (0.0, 60.0)]
     assert abs(effective_service_time(mix, 5.0) - 10.0) < 1e-9
+
+
+# ── staffing recommendation end-to-end ───────────────────────────────────────
+# These tests exercise the full path from arrival rate + product mix → staff count,
+# matching the calculation the /hourly-analytics endpoint performs.
+
+def test_staffing_cafe_peak_hour():
+    # Busy café: 20 customers/hr, 5-min service each → μ=12/hr
+    # raw = 20 / (12 × 0.85) = 1.96 → 2 staff
+    assert min_servers(20, 5) == 2
+
+
+def test_staffing_weighted_mix_spa():
+    # Spa with product mix: 4 massages (60 min) + 2 express (10 min) in one hour
+    # effective_service_time = (4×60 + 2×10) / 6 = 260/6 ≈ 43.3 min
+    # μ = 60 / 43.3 ≈ 1.385/hr; λ = 6/hr; raw = 6 / (1.385 × 0.85) ≈ 5.1 → 6 staff
+    mix = [(4.0, 60.0), (2.0, 10.0)]
+    eff = effective_service_time(mix, 5.0)
+    assert abs(eff - (4 * 60 + 2 * 10) / 6) < 1e-9
+    assert min_servers(6, eff) == 6
+
+
+def test_staffing_mixed_service_times_fewer_staff_than_flat_average():
+    # If most customers take a short service time, weighted mix gives fewer staff
+    # than the naive long-service-time estimate would.
+    # 9 quick (5 min) + 1 long (50 min) out of 10 customers
+    # eff = (9×5 + 1×50) / 10 = 95/10 = 9.5 min
+    # Flat 50-min estimate for λ=10: min_servers(10, 50) >> min_servers(10, 9.5)
+    mix = [(9.0, 5.0), (1.0, 50.0)]
+    eff = effective_service_time(mix, 5.0)
+    assert abs(eff - 9.5) < 1e-9
+    assert min_servers(10, eff) < min_servers(10, 50.0)
+
+
+def test_staffing_default_only_business_no_product_overrides():
+    # A business that doesn't set per-product times just uses the default.
+    # mix of (qty, None) should give same staff count as passing default directly.
+    mix = [(5.0, None), (3.0, None), (2.0, None)]
+    default_svc = 8.0
+    eff = effective_service_time(mix, default_svc)
+    assert eff == default_svc
+    assert min_servers(10, eff) == min_servers(10, default_svc)

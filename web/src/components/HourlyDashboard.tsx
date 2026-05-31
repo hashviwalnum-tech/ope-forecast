@@ -103,30 +103,93 @@ export default function HourlyDashboard() {
   const chartData = data.hours.map(h => ({
     name: fmtHour(h.hour),
     avg: h.avg_taps,
+    staff: h.recommended_staff,
   }))
 
   return (
     <div className="space-y-6">
 
-      {/* ── Summary strip ── */}
-      <div className="bg-white rounded-2xl border border-teal-100 px-6 py-5 shadow-sm">
-        <p className="text-xs text-slate-400 mb-1">
-          Based on {data.n_days_data} days of tap data
-          · {data.avg_service_time_minutes} min per customer
-          · change in <strong>Settings</strong>
+      {/* ── Busiest-hour staffing callout ── */}
+      <div className="bg-teal-600 rounded-2xl px-6 py-5 text-white shadow-sm">
+        <p className="text-xs font-medium text-teal-200 uppercase tracking-wide mb-2">
+          At your busiest
         </p>
-        <p className="text-base text-slate-700 leading-snug">
-          Your busiest hour is typically{' '}
-          <strong className="text-teal-700">
-            {fmtHour(busiestHour.hour)}–{fmtHour(busiestHour.hour + 1)}
-          </strong>{' '}
-          with about{' '}
-          <strong className="text-teal-700">
-            {busiestHour.avg_taps.toFixed(1)}
-          </strong>{' '}
-          customers on average.
+        <p className="text-2xl font-bold leading-tight">
+          {fmtHour(busiestHour.hour)}–{fmtHour(busiestHour.hour + 1)}
+          {': schedule '}
+          <span className="text-teal-200">
+            {busiestHour.recommended_staff}{' '}
+            {busiestHour.recommended_staff === 1 ? 'person' : 'people'}
+          </span>
+        </p>
+        <p className="text-sm text-teal-200 mt-1">
+          ~{busiestHour.avg_taps.toFixed(1)} customers arriving · {data.avg_service_time_minutes} min avg to serve each one
+        </p>
+        <p className="text-xs text-teal-300 mt-3">
+          Based on {data.n_days_data} days of data · adjust "minutes per customer" in{' '}
+          <strong className="text-teal-100">Settings</strong>
         </p>
       </div>
+
+      {/* ── Staffing by hour ── */}
+      <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-800 mb-1">
+          Staffing schedule
+        </h2>
+        <p className="text-xs text-slate-400 mb-5 leading-relaxed">
+          How many people you need each hour to keep queues short.
+          Keeps everyone below 85% capacity so service stays smooth.
+        </p>
+        <div className="space-y-2">
+          {data.hours.map(h => {
+            const isBusiest = h.hour === busiestHour.hour
+            return (
+              <div
+                key={h.hour}
+                className={`flex items-center justify-between gap-4 px-4 py-3.5 rounded-xl
+                  ${isBusiest
+                    ? 'bg-teal-50 border border-teal-200'
+                    : 'bg-slate-50 hover:bg-slate-100'}`}
+              >
+                {/* Left: plain-language recommendation */}
+                <div className="flex items-center gap-2 min-w-0">
+                  {isBusiest && (
+                    <span className="shrink-0 text-xs bg-teal-100 text-teal-700 font-semibold
+                                     px-2 py-0.5 rounded-full">
+                      Busiest
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className={`text-sm font-semibold leading-tight
+                      ${isBusiest ? 'text-teal-800' : 'text-slate-700'}`}>
+                      {h.label}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      ~{h.avg_taps.toFixed(1)} customers/hr
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right: staff count */}
+                <div className="shrink-0 text-right">
+                  <span className={`text-3xl font-bold tabular-nums
+                    ${isBusiest ? 'text-teal-600' : 'text-slate-500'}`}>
+                    {h.recommended_staff}
+                  </span>
+                  <span className="block text-xs text-slate-400">
+                    {h.recommended_staff === 1 ? 'person' : 'people'}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        <p className="mt-4 text-xs text-slate-400 leading-relaxed">
+          To adjust, set "minutes per customer" in{' '}
+          <strong>Settings</strong>. Quick counter service: 2–3 min.
+          Sit-down appointments: 20–60 min.
+        </p>
+      </section>
 
       {/* ── Hourly traffic chart ── */}
       <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
@@ -134,7 +197,7 @@ export default function HourlyDashboard() {
           Average customers per hour
         </h2>
         <p className="text-xs text-slate-400 mb-5 leading-relaxed">
-          Each bar is the average number of customer taps in that hour, across all your recorded days.
+          Each bar is the average number of customers in that hour, across all your recorded days.
         </p>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
@@ -155,63 +218,14 @@ export default function HourlyDashboard() {
             <Tooltip
               contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
               labelStyle={{ color: '#334155', fontWeight: 600 }}
-              formatter={(v) => [
+              formatter={(v, name) => [
                 typeof v === 'number' ? v.toFixed(1) : v,
-                'avg customers',
+                name === 'staff' ? 'staff needed' : 'avg customers',
               ]}
             />
             <Bar dataKey="avg" fill="#14b8a6" radius={[4, 4, 0, 0]} maxBarSize={44} />
           </BarChart>
         </ResponsiveContainer>
-      </section>
-
-      {/* ── Staffing recommendations ── */}
-      <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-800 mb-1">
-          Staffing recommendations
-        </h2>
-        <p className="text-xs text-slate-400 mb-5 leading-relaxed">
-          Based on your traffic and how long it takes to serve one customer.
-          Keeps everyone below 85% busy so queues stay short.
-        </p>
-        <div className="space-y-2">
-          {data.hours.map(h => {
-            const isBusiest = h.hour === busiestHour.hour
-            return (
-              <div
-                key={h.hour}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl transition-colors
-                  ${isBusiest
-                    ? 'bg-teal-50 border border-teal-100'
-                    : 'bg-slate-50 hover:bg-teal-50/40'}`}
-              >
-                <div className="flex items-center gap-3">
-                  {isBusiest && (
-                    <span className="text-xs bg-teal-100 text-teal-700 font-medium px-2 py-0.5 rounded-full shrink-0">
-                      Busiest
-                    </span>
-                  )}
-                  <div>
-                    <span className="text-sm font-medium text-slate-700">
-                      {fmtHour(h.hour)}–{fmtHour(h.hour + 1)}
-                    </span>
-                    <span className="ml-2 text-xs text-slate-400">
-                      ~{h.avg_taps.toFixed(1)} customers/hr
-                    </span>
-                  </div>
-                </div>
-                <span className={`text-sm font-semibold ${isBusiest ? 'text-teal-700' : 'text-slate-700'}`}>
-                  {h.recommended_staff} {h.recommended_staff === 1 ? 'person' : 'people'}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-        <p className="mt-4 text-xs text-slate-400 leading-relaxed">
-          To adjust these numbers, change the "minutes per customer" setting in{' '}
-          <strong>Settings</strong>. A quick-service counter might be 2–3 min;
-          a sit-down appointment might be 20–30 min.
-        </p>
       </section>
 
     </div>
