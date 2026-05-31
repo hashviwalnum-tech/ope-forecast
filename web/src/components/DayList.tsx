@@ -23,6 +23,7 @@ export default function DayList({ refreshKey }: Props) {
   const [editCustomers, setEditCustomers] = useState('')
   const [editSales, setEditSales]     = useState<Record<number, string>>({})
   const [saving, setSaving]           = useState(false)
+  const [editError, setEditError]     = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -46,6 +47,7 @@ export default function DayList({ refreshKey }: Props) {
 
   function startEdit(day: DayRecordRead) {
     setEditId(day.id)
+    setEditError(null)
     setEditCustomers(String(day.customers))
     const current: Record<number, string> = {}
     for (const s of allSales.filter(s => s.day_record_id === day.id)) {
@@ -76,7 +78,7 @@ export default function DayList({ refreshKey }: Props) {
       setEditId(null)
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed')
+      setEditError(err instanceof Error ? err.message : 'Save failed')
     } finally {
       setSaving(false)
     }
@@ -158,21 +160,36 @@ export default function DayList({ refreshKey }: Props) {
                       />
                     </td>
                   ))}
-                  <td className="py-2">
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => saveEdit(day)} disabled={saving}
-                        className="text-teal-600 hover:underline font-medium disabled:opacity-50"
-                      >
-                        {saving ? '…' : 'Save'}
-                      </button>
-                      <button
-                        onClick={() => setEditId(null)}
-                        className="text-slate-400 hover:underline"
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                  <td className="py-2" colSpan={editError ? productList.length + 3 : 1}>
+                    {editError ? (
+                      <div className="flex flex-col gap-2">
+                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200
+                                      rounded-lg px-3 py-2 leading-relaxed max-w-xs">
+                          {editError}
+                        </p>
+                        <button
+                          onClick={() => { setEditId(null); setEditError(null) }}
+                          className="text-xs text-slate-400 hover:underline text-left"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => saveEdit(day)} disabled={saving}
+                          className="text-teal-600 hover:underline font-medium disabled:opacity-50"
+                        >
+                          {saving ? '…' : 'Save'}
+                        </button>
+                        <button
+                          onClick={() => { setEditId(null); setEditError(null) }}
+                          className="text-slate-400 hover:underline"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               )

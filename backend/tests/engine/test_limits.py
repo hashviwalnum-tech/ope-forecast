@@ -6,6 +6,7 @@ import pytest
 from app.engine.limits import (
     FREE_HISTORY_DAYS,
     FREE_PERIODS_LIMIT,
+    check_entry_timing,
     history_cutoff,
     check_history,
     check_periods,
@@ -103,3 +104,81 @@ def test_free_periods_limit_constant_is_2():
 def test_free_history_days_constant_in_range():
     """Spec says '6 months to 1 year' — 365 is within that range."""
     assert 180 <= FREE_HISTORY_DAYS <= 365
+
+
+# ── check_entry_timing ────────────────────────────────────────────────────────
+
+TODAY = date(2026, 6, 1)
+OPEN = 9    # 9 am
+CLOSE = 18  # 6 pm
+
+
+def test_past_date_always_allowed():
+    # Any day before today is fine regardless of the current hour or hours config.
+    yesterday = TODAY - timedelta(days=1)
+    check_entry_timing(yesterday, TODAY, 14, OPEN, CLOSE)          # during hours
+    check_entry_timing(yesterday, TODAY, 7, OPEN, CLOSE)           # before opening
+    check_entry_timing(yesterday, TODAY, 22, OPEN, CLOSE)          # after closing
+
+
+def test_past_date_no_hours_configured():
+    yesterday = TODAY - timedelta(days=1)
+    check_entry_timing(yesterday, TODAY, 14, None, None)
+
+
+def test_today_no_hours_configured_always_allowed():
+    # When opening/closing hours are not set, today is never blocked.
+    check_entry_timing(TODAY, TODAY, 14, None, None)
+    check_entry_timing(TODAY, TODAY, 14, None, CLOSE)
+    check_entry_timing(TODAY, TODAY, 14, OPEN, None)
+
+
+def test_today_after_closing_allowed():
+    # At or after closing_hour — day is finished, allow.
+    check_entry_timing(TODAY, TODAY, CLOSE, OPEN, CLOSE)
+    check_entry_timing(TODAY, TODAY, CLOSE + 1, OPEN, CLOSE)
+    check_entry_timing(TODAY, TODAY, 23, OPEN, CLOSE)
+
+
+def test_today_during_open_hours_blocked():
+    # During opening hours → business still open → block.
+    with pytest.raises(ValueError, match="still open"):
+        check_entry_timing(TODAY, TODAY, OPEN, OPEN, CLOSE)       # exactly at open
+    with pytest.raises(ValueError, match="still open"):
+        check_entry_timing(TODAY, TODAY, OPEN + 1, OPEN, CLOSE)   # mid-day
+    with pytest.raises(ValueError, match="still open"):
+        check_entry_timing(TODAY, TODAY, CLOSE - 1, OPEN, CLOSE)  # one hour before close
+
+
+def test_today_before_opening_hour_blocked():
+    # Before opening_hour → day hasn't started → block.
+    with pytest.raises(ValueError, match="hasn't started"):
+        check_entry_timing(TODAY, TODAY, 0, OPEN, CLOSE)
+    with pytest.raises(ValueError, match="hasn't started"):
+        check_entry_timing(TODAY, TODAY, OPEN - 1, OPEN, CLOSE)
+
+
+def test_blocked_message_contains_closing_hour():
+    # The error message names the closing time so the owner knows when to return.
+    with pytest.raises(ValueError) as exc:
+        check_entry_timing(TODAY, TODAY, OPEN + 2, OPEN, CLOSE)
+    assert "6 pm" in str(exc.value)
+
+
+def test_blocked_before_open_message_contains_opening_hour():
+    with pytest.raises(ValueError) as exc:
+        check_entry_timing(TODAY, TODAY, 7, OPEN, CLOSE)
+    assert "9 am" in str(exc.value)
+
+
+def test_midnight_closing_hour_blocks_all_day():
+    # closing_hour=24 means "closes at midnight" — any hour during the day is blocked.
+    with pytest.raises(ValueError):
+        check_entry_timing(TODAY, TODAY, 23, 0, 24)
+
+
+def test_same_open_and_close_hour_blocked_during_that_hour():
+    # Degenerate but valid: opening=closing means the "open window" is zero-width.
+    # current_hour < opening_hour → "not started" block
+    with pytest.raises(ValueError, match="hasn't started"):
+        check_entry_timing(TODAY, TODAY, 8, 9, 9)

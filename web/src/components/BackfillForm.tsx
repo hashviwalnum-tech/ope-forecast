@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { dayRecords, products, sales, saleEvents } from '../api/client'
-import type { ProductRead } from '../api/types'
+import { businesses, dayRecords, products, sales, saleEvents } from '../api/client'
+import type { BusinessRead, ProductRead } from '../api/types'
 
 function localToday(): string {
   const d = new Date()
@@ -22,10 +22,19 @@ function fmtHour(h: number): string {
 
 interface Props { onSaved: () => void }
 
+function isTodayLocked(biz: BusinessRead | null): boolean {
+  if (!biz) return false
+  const oh = biz.settings.opening_hour
+  const ch = biz.settings.closing_hour
+  if (typeof oh !== 'number' || typeof ch !== 'number') return false
+  return new Date().getHours() < ch
+}
+
 export default function BackfillForm({ onSaved }: Props) {
   const [date, setDate]           = useState(localYesterday)
   const [customers, setCustomers] = useState('')
   const [productList, setProductList] = useState<ProductRead[]>([])
+  const [biz, setBiz]             = useState<BusinessRead | null>(null)
   const [unitsSold, setUnitsSold] = useState<Record<number, string>>({})
   const [saving, setSaving]       = useState(false)
   const [feedback, setFeedback]   = useState<{ ok: boolean; msg: string } | null>(null)
@@ -36,6 +45,7 @@ export default function BackfillForm({ onSaved }: Props) {
 
   useEffect(() => {
     products.list().then(setProductList).catch(() => {})
+    businesses.me().then(setBiz).catch(() => {})
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -90,13 +100,15 @@ export default function BackfillForm({ onSaved }: Props) {
         <input
           type="date" required
           value={date}
-          max={localToday()}
+          max={isTodayLocked(biz) ? localYesterday() : localToday()}
           onChange={e => setDate(e.target.value)}
           className="w-full border border-slate-300 rounded-xl px-3 py-3 text-slate-900
                      focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
         <p className="text-xs text-slate-400 mt-1.5">
-          Click the field to open a calendar. Future dates are blocked.
+          {isTodayLocked(biz)
+            ? "Today is still in progress — you can log it after closing. Future dates are blocked."
+            : "Click the field to open a calendar. Future dates are blocked."}
         </p>
       </div>
 

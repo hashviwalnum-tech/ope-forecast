@@ -1,10 +1,10 @@
-from datetime import date
+from datetime import date, datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
-from app.engine.limits import check_history, history_cutoff
+from app.engine.limits import check_entry_timing, check_history, history_cutoff
 from app.engine.outliers import detect_outliers
 from app.models import Business, DayRecord
 from app.schemas.day_record import (
@@ -17,6 +17,19 @@ from app.schemas.day_record import (
 router = APIRouter(prefix="/day-records", tags=["Day Records"])
 
 _MIN_FOR_DETECTION = 14  # mirror analytics.MIN_RECORDS
+
+
+def _timing_check(record_date: date, biz: Business) -> None:
+    """Raise HTTPException 422 if entry-timing rules block this date."""
+    settings = biz.settings or {}
+    raw_open = settings.get("opening_hour")
+    raw_close = settings.get("closing_hour")
+    opening = int(raw_open) if raw_open is not None else None
+    closing = int(raw_close) if raw_close is not None else None
+    try:
+        check_entry_timing(record_date, date.today(), datetime.now().hour, opening, closing)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 def _get_or_404(db: Session, record_id: int, biz_id: int) -> DayRecord:
@@ -65,6 +78,7 @@ def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db), biz:
         check_history(biz.tier, body.date, date.today())
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
+    _timing_check(body.date, biz)
     row = DayRecord(business_id=biz.id, **body.model_dump())
     db.add(row)
     db.commit()
@@ -82,6 +96,7 @@ def get_day_record(record_id: int, db: Session = Depends(get_db), biz: Business 
 @router.put("/{record_id}", response_model=DayRecordRead)
 def update_day_record(record_id: int, body: DayRecordUpdate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     row = _get_or_404(db, record_id, biz.id)
+    _timing_check(row.date, biz)
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(row, field, value)
     db.commit()

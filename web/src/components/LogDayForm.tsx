@@ -1,10 +1,30 @@
 import { useEffect, useState } from 'react'
-import { dayRecords, products, sales } from '../api/client'
-import type { ProductRead } from '../api/types'
+import { businesses, dayRecords, products, sales } from '../api/client'
+import type { BusinessRead, ProductRead } from '../api/types'
 
 function localToday(): string {
   const d = new Date()
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
+}
+
+function fmtHour(h: number): string {
+  if (h === 0)  return 'midnight'
+  if (h === 12) return 'noon'
+  if (h < 12)   return `${h} am`
+  return `${h - 12} pm`
+}
+
+function todayLockReason(biz: BusinessRead | null): string | null {
+  if (!biz) return null
+  const oh = biz.settings.opening_hour
+  const ch = biz.settings.closing_hour
+  if (typeof oh !== 'number' || typeof ch !== 'number') return null
+  const now = new Date().getHours()
+  if (now >= ch) return null  // day is finished — allow
+  if (now < oh) {
+    return `Today hasn't started yet (opens at ${fmtHour(oh)}). Come back after closing (${fmtHour(ch)}) to log today's numbers.`
+  }
+  return `Your business is still open until ${fmtHour(ch)}. Log today's totals after you close — that way the count will be complete.`
 }
 
 interface Props { onSaved: () => void }
@@ -12,12 +32,14 @@ interface Props { onSaved: () => void }
 export default function LogDayForm({ onSaved }: Props) {
   const [customers, setCustomers] = useState('')
   const [productList, setProductList] = useState<ProductRead[]>([])
+  const [biz, setBiz]             = useState<BusinessRead | null>(null)
   const [unitsSold, setUnitsSold] = useState<Record<number, string>>({})
   const [saving, setSaving]       = useState(false)
   const [feedback, setFeedback]   = useState<{ ok: boolean; msg: string } | null>(null)
 
   useEffect(() => {
     products.list().then(setProductList).catch(() => {})
+    businesses.me().then(setBiz).catch(() => {})
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -47,6 +69,27 @@ export default function LogDayForm({ onSaved }: Props) {
     } finally {
       setSaving(false)
     }
+  }
+
+  const lockReason = todayLockReason(biz)
+  if (lockReason) {
+    return (
+      <div className="max-w-sm rounded-2xl border border-amber-200 bg-amber-50 px-5 py-5 space-y-2">
+        <div className="flex items-start gap-3">
+          <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Not ready to log yet</p>
+            <p className="text-sm text-amber-700 mt-1 leading-relaxed">{lockReason}</p>
+          </div>
+        </div>
+        <p className="text-xs text-amber-600 pl-8">
+          Need to fix an earlier day? Use <strong>Past Days</strong> instead.
+        </p>
+      </div>
+    )
   }
 
   return (

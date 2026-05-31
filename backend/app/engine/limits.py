@@ -6,6 +6,17 @@ directly and reused from any API route.
 """
 from datetime import date, timedelta
 
+
+def _fmt_hour(h: int) -> str:
+    """Friendly label: 0→'midnight', 12→'noon', 9→'9 am', 17→'5 pm'."""
+    if h == 0:
+        return "midnight"
+    if h == 12:
+        return "noon"
+    if h < 12:
+        return f"{h} am"
+    return f"{h - 12} pm"
+
 FREE_HISTORY_DAYS = 365
 FREE_PERIODS_LIMIT = 2
 
@@ -30,6 +41,45 @@ def check_history(tier: str, record_date: date, today: date) -> None:
             f"The date {record_date} is older than that. "
             f"Upgrade to premium to log and access more history."
         )
+
+
+def check_entry_timing(
+    record_date: date,
+    today: date,
+    current_hour: int,
+    opening_hour: int | None,
+    closing_hour: int | None,
+) -> None:
+    """Raise ValueError if today's record cannot be logged or edited yet.
+
+    Only today is ever gated.  Past dates are always allowed — that is the
+    "genuinely past days remain editable" exception from the spec.
+
+    If the business has not configured opening/closing hours (either value is
+    None), the check is skipped entirely so no-hours businesses are unaffected.
+
+    Blocking conditions for today:
+    - current_hour < opening_hour  → day hasn't started yet
+    - opening_hour ≤ current_hour < closing_hour → business is still open
+    Allowed when current_hour >= closing_hour (day is finished).
+    """
+    if record_date != today:
+        return  # past dates always allowed
+    if opening_hour is None or closing_hour is None:
+        return  # no hours configured — nothing to enforce
+    if current_hour >= closing_hour:
+        return  # business is closed for the day — allow
+
+    close_str = _fmt_hour(closing_hour)
+    if current_hour < opening_hour:
+        raise ValueError(
+            f"Today hasn't started yet (your opening hour is {_fmt_hour(opening_hour)}). "
+            f"Come back after closing ({close_str}) to log today's numbers."
+        )
+    raise ValueError(
+        f"Your business is still open until {close_str}. "
+        f"Log today's totals after you close — that way the count will be complete."
+    )
 
 
 def check_periods(tier: str, current_count: int) -> None:
