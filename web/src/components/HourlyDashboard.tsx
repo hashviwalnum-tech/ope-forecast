@@ -140,45 +140,64 @@ export default function HourlyDashboard() {
           How many people you need each hour to keep queues short.
           Keeps everyone below 85% capacity so service stays smooth.
         </p>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {data.hours.map(h => {
             const isBusiest = h.hour === busiestHour.hour
+            const waitLabel = h.expected_wait_minutes < 0.5
+              ? 'No queue'
+              : `~${h.expected_wait_minutes.toFixed(0)} min wait`
+            const queueLabel = h.queue_length < 0.5
+              ? ''
+              : ` · ~${h.queue_length.toFixed(1)} in line`
             return (
               <div
                 key={h.hour}
-                className={`flex items-center justify-between gap-4 px-4 py-3.5 rounded-xl
-                  ${isBusiest
-                    ? 'bg-teal-50 border border-teal-200'
-                    : 'bg-slate-50 hover:bg-slate-100'}`}
+                className={`rounded-xl overflow-hidden
+                  ${isBusiest ? 'border border-teal-200' : 'border border-slate-100'}`}
               >
-                {/* Left: plain-language recommendation */}
-                <div className="flex items-center gap-2 min-w-0">
-                  {isBusiest && (
-                    <span className="shrink-0 text-xs bg-teal-100 text-teal-700 font-semibold
-                                     px-2 py-0.5 rounded-full">
-                      Busiest
+                {/* Top row: recommendation + staff count */}
+                <div
+                  className={`flex items-center justify-between gap-4 px-4 py-3
+                    ${isBusiest ? 'bg-teal-50' : 'bg-slate-50'}`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {isBusiest && (
+                      <span className="shrink-0 text-xs bg-teal-100 text-teal-700 font-semibold
+                                       px-2 py-0.5 rounded-full">
+                        Busiest
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <p className={`text-sm font-semibold leading-tight
+                        ${isBusiest ? 'text-teal-800' : 'text-slate-700'}`}>
+                        {h.label}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        ~{h.avg_taps.toFixed(1)} customers/hr
+                        {' · '}
+                        <span className={h.expected_wait_minutes < 0.5 ? 'text-teal-500' : 'text-amber-500'}>
+                          {waitLabel}{queueLabel}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <span className={`text-3xl font-bold tabular-nums
+                      ${isBusiest ? 'text-teal-600' : 'text-slate-500'}`}>
+                      {h.recommended_staff}
                     </span>
-                  )}
-                  <div className="min-w-0">
-                    <p className={`text-sm font-semibold leading-tight
-                      ${isBusiest ? 'text-teal-800' : 'text-slate-700'}`}>
-                      {h.label}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      ~{h.avg_taps.toFixed(1)} customers/hr
-                    </p>
+                    <span className="block text-xs text-slate-400">
+                      {h.recommended_staff === 1 ? 'person' : 'people'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Right: staff count */}
-                <div className="shrink-0 text-right">
-                  <span className={`text-3xl font-bold tabular-nums
-                    ${isBusiest ? 'text-teal-600' : 'text-slate-500'}`}>
-                    {h.recommended_staff}
-                  </span>
-                  <span className="block text-xs text-slate-400">
-                    {h.recommended_staff === 1 ? 'person' : 'people'}
-                  </span>
+                {/* Bottom row: marginal note */}
+                <div className={`px-4 py-2 border-t
+                  ${isBusiest ? 'border-teal-100 bg-teal-50/40' : 'border-slate-100 bg-white'}`}>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    {h.marginal_note}
+                  </p>
                 </div>
               </div>
             )

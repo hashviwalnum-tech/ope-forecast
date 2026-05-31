@@ -257,6 +257,9 @@ export interface HourlySlotAvg {
   n_days: number
   recommended_staff: number
   label: string
+  expected_wait_minutes: number
+  queue_length: number
+  marginal_note: string
 }
 
 export interface HourlyAnalyticsResponse {
@@ -301,4 +304,39 @@ export interface HourlyBackfillSlot {
 
 export interface HourlyBackfillResponse {
   inserted: number
+}
+
+// ── per-product demand forecast ───────────────────────────────────────────────
+
+export interface ProductForecastDay {
+  date: string          // "YYYY-MM-DD"
+  weekday: string
+  predicted_units: number
+  interval_low: number
+  interval_high: number
+}
+
+export interface ProductForecastItem {
+  product_id: number
+  name: string
+  unit: string
+  status: string        // "ok" | "not_enough_data"
+  message?: string
+  days: ProductForecastDay[]
+  avg_daily_demand: number
+  forecast_demand_over_lead_time: number
+  lead_time_days: number
+  safety_stock_units: number
+  reorder_point: number
+  suggested_order_qty: number
+  current_stock?: number
+  order_now: boolean
+  eoq?: number
+  n_days_data: number
+}
+
+export interface ProductForecastResponse {
+  status: string
+  message?: string
+  products: ProductForecastItem[]
 }

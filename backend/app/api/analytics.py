@@ -11,7 +11,7 @@ import math
 from datetime import date, datetime, timedelta
 from statistics import mean, median, stdev
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
@@ -29,7 +29,14 @@ from app.engine.ordering import (
     service_level_z,
 )
 from app.engine.outliers import detect_outliers
-from app.engine.queueing import effective_service_time, min_servers
+from app.engine.product_forecast import build_product_demand_series
+from app.engine.queueing import (
+    effective_service_time,
+    expected_wait_minutes,
+    marginal_note,
+    min_servers,
+    queue_length,
+)
 from app.engine.seasonality import seasonal_naive_forecast
 from app.models import Business, DayRecord, ForecastRun, Period, Product, SaleEvent, SaleRecord
 from app.schemas.analytics import (
@@ -49,6 +56,9 @@ from app.schemas.analytics import (
     OutlierFlag,
     OutlierListResponse,
     PeriodLift,
+    ProductForecastDay,
+    ProductForecastItem,
+    ProductForecastResponse,
     WeekdayAvg,
     WeekdayAvgResponse,
 )
@@ -774,6 +784,9 @@ def get_hourly_analytics(
             n_days=n,
             recommended_staff=staff,
             label=f"For {time_range}, schedule {staff} {word}",
+            expected_wait_minutes=round(expected_wait_minutes(avg_taps, eff_svc, staff), 1),
+            queue_length=round(queue_length(avg_taps, eff_svc, staff), 2),
+            marginal_note=marginal_note(avg_taps, eff_svc, staff),
         ))
 
     return HourlyAnalyticsResponse(
@@ -824,3 +837,199 @@ def get_monthly_summary(
             HistoryPoint(date=d, customers=v) for d, v in day_data
         ],
     )
+
+
+# ── /product-forecast ─────────────────────────────────────────────────────────
+
+MIN_PRODUCT_RECORDS = 7  # one full week of tracked sales
+
+
+@router.get("/product-forecast", response_model=ProductForecastResponse)
+def get_product_forecast(
+    product_id: int | None = Query(None, description="Filter to a single product"),
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """Per-product 7-day demand forecast and ordering advice.
+
+    Applies the same ensemble engine as /forecast to each product's daily
+    unit-sales history (SaleRecord + SaleEvent data merged).  Ordering advice
+    uses the forecast mean over the lead time rather than the historical mean,
+    giving more responsive reorder-point estimates.
+
+    Pass ?product_id=N to restrict the response to one product.
+    """
+    q = db.query(Product).filter_by(business_id=biz.id)
+    if product_id is not None:
+        q = q.filter(Product.id == product_id)
+    products_list = q.order_by(Product.name).all()
+
+    if not products_list:
+        msg = (
+            "Product not found." if product_id is not None
+            else "No products defined yet. Add products via My Products."
+        )
+        return ProductForecastResponse(status="no_products", message=msg, products=[])
+
+    # Clean-record backbone (period-excluded, tier-filtered, outlier-handled)
+    clean_records = _clean_records(db, biz)
+
+    # Aggregate tap (SaleEvent) data by (product_id, date) — fallback when no
+    # manual SaleRecord exists for a day
+    all_events = (
+        db.query(SaleEvent)
+        .filter_by(business_id=biz.id)
+        .all()
+    )
+    tap_by_prod_date: dict[tuple[int, date], float] = {}
+    for se in all_events:
+        if se.product_id is None:
+            continue
+        key = (se.product_id, se.timestamp.date())
+        tap_by_prod_date[key] = tap_by_prod_date.get(key, 0.0) + se.quantity
+
+    today = date.today()
+    open_days = _open_days(biz)
+    z = service_level_z(_SERVICE_LEVEL)
+    ids_and_dates = [(r.id, r.date) for r in clean_records]
+
+    result: list[ProductForecastItem] = []
+
+    for prod in products_list:
+        # ── build demand series ───────────────────────────────────────────────
+        sale_records = (
+            db.query(SaleRecord)
+            .join(DayRecord, SaleRecord.day_record_id == DayRecord.id)
+            .filter(DayRecord.business_id == biz.id, SaleRecord.product_id == prod.id)
+            .all()
+        )
+        sr_by_day: dict[int, float] = {
+            sr.day_record_id: float(sr.units_sold) for sr in sale_records
+        }
+
+        # For days in the backbone with no manual SaleRecord, fall back to tap data
+        enriched: dict[int, float] = dict(sr_by_day)
+        for r in clean_records:
+            if r.id not in enriched:
+                tap = tap_by_prod_date.get((prod.id, r.date), 0.0)
+                if tap > 0:
+                    enriched[r.id] = tap
+
+        demands, dates = build_product_demand_series(ids_and_dates, enriched)
+        n_data = len(demands)
+
+        if n_data < MIN_PRODUCT_RECORDS:
+            n_need = MIN_PRODUCT_RECORDS - n_data
+            if n_data == 0:
+                msg = (
+                    f"No sales recorded for {prod.name} yet. "
+                    f"Log some sales to see a demand forecast."
+                )
+            else:
+                msg = (
+                    f"Log about {n_need} more day{'s' if n_need != 1 else ''} "
+                    f"of {prod.name} sales for a reliable forecast "
+                    f"({n_data} recorded so far)."
+                )
+            result.append(ProductForecastItem(
+                product_id=prod.id, name=prod.name, unit=prod.unit,
+                status="not_enough_data", message=msg,
+                lead_time_days=prod.lead_time_days,
+                current_stock=prod.current_stock,
+                n_days_data=n_data,
+            ))
+            continue
+
+        # ── ensemble forecast ─────────────────────────────────────────────────
+        wds = [d.weekday() for d in dates]
+        holdout = _holdout_errors(demands, wds, n_per_weekday=4)
+
+        forecast_days: list[ProductForecastDay] = []
+        for offset in range(1, 8):
+            target = today + timedelta(days=offset)
+            wd = target.weekday()
+            if open_days is not None and wd not in open_days:
+                continue
+
+            preds: dict[str, float] = {}
+            maes: dict[str, float] = {}
+
+            try:
+                preds["seasonal_naive"] = seasonal_naive_forecast(demands, wds, wd)
+                errs = holdout["seasonal_naive"].get(wd, [])
+                maes["seasonal_naive"] = mad([abs(e) for e in errs]) if errs else 1.0
+            except ValueError:
+                pass
+
+            p = _wma_for_weekday(demands, wds, wd)
+            if p is not None:
+                preds["wma"] = p
+                errs = holdout["wma"].get(wd, [])
+                maes["wma"] = mad([abs(e) for e in errs]) if errs else 1.0
+
+            p = _exp_for_weekday(demands, wds, wd)
+            if p is not None:
+                preds["exp_smoothing"] = p
+                errs = holdout["exp_smoothing"].get(wd, [])
+                maes["exp_smoothing"] = mad([abs(e) for e in errs]) if errs else 1.0
+
+            if not preds:
+                continue
+
+            weights = model_weights(list(maes.values()))
+            fval = max(0.0, blend(list(preds.values()), weights))
+
+            all_wd_errs: list[float] = []
+            for m_errs in holdout.values():
+                all_wd_errs.extend(m_errs.get(wd, []))
+
+            lo, hi = prediction_interval(fval, all_wd_errs) if len(all_wd_errs) >= 2 else (fval, fval)
+
+            forecast_days.append(ProductForecastDay(
+                date=target,
+                weekday=target.strftime("%A"),
+                predicted_units=round(fval, 2),
+                interval_low=round(max(0.0, lo), 2),
+                interval_high=round(max(0.0, hi), 2),
+            ))
+
+        # ── ordering advice (forecast-based) ─────────────────────────────────
+        avg_daily = mean(demands)
+        sigma_daily = stdev(demands) if n_data > 1 else 0.0
+        sigma_lt = sigma_daily * math.sqrt(prod.lead_time_days)
+        ss = safety_stock(z, sigma_lt)
+
+        # Demand over lead time: use forecast mean if available, else historical mean
+        avg_forecast = mean([d.predicted_units for d in forecast_days]) if forecast_days else avg_daily
+        forecast_demand_lt = avg_forecast * prod.lead_time_days
+        rop = forecast_demand_lt + ss
+
+        eoq_val: float | None = None
+        if prod.order_cost and prod.holding_cost and avg_daily > 0:
+            try:
+                eoq_val = round(economic_order_quantity(avg_daily * 365, prod.order_cost, prod.holding_cost), 1)
+            except ValueError:
+                pass
+
+        suggested_qty = eoq_val if eoq_val is not None else round(forecast_demand_lt + ss, 1)
+        order_now = prod.current_stock is not None and prod.current_stock <= rop
+
+        result.append(ProductForecastItem(
+            product_id=prod.id,
+            name=prod.name,
+            unit=prod.unit,
+            status="ok",
+            days=forecast_days,
+            avg_daily_demand=round(avg_daily, 2),
+            forecast_demand_over_lead_time=round(forecast_demand_lt, 1),
+            lead_time_days=prod.lead_time_days,
+            safety_stock_units=round(ss, 1),
+            reorder_point=round(rop, 1),
+            suggested_order_qty=round(suggested_qty, 1),
+            current_stock=prod.current_stock,
+            order_now=order_now,
+            eoq=eoq_val,
+            n_days_data=n_data,
+        ))
+
+    return ProductForecastResponse(status="ok", products=result)

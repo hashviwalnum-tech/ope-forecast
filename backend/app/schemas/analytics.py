@@ -130,6 +130,9 @@ class HourlySlotAvg(BaseModel):
     n_days: int             # days in the dataset used to compute the average
     recommended_staff: int  # min servers from M/M/c engine
     label: str              # plain-language: "For 9–10 am, schedule 2 people"
+    expected_wait_minutes: float   # average queue wait at recommended staffing
+    queue_length: float            # average customers waiting at recommended staffing
+    marginal_note: str             # what adding/removing 1 worker does
 
 
 class HourlyAnalyticsResponse(BaseModel):
@@ -163,3 +166,39 @@ class MonthlyResponse(BaseModel):
     n_total_days: int = 0
     months: list[MonthSummary] = []
     history_points: list[HistoryPoint] = []  # all clean daily points for the history chart
+
+
+# ── per-product demand forecast ───────────────────────────────────────────────
+
+class ProductForecastDay(BaseModel):
+    date: date
+    weekday: str
+    predicted_units: float
+    interval_low: float
+    interval_high: float
+
+
+class ProductForecastItem(BaseModel):
+    product_id: int
+    name: str
+    unit: str
+    status: str                           # "ok" | "not_enough_data"
+    message: Optional[str] = None
+    days: list[ProductForecastDay] = []
+    # ordering advice (populated when status == "ok")
+    avg_daily_demand: float = 0.0
+    forecast_demand_over_lead_time: float = 0.0
+    lead_time_days: int = 1
+    safety_stock_units: float = 0.0
+    reorder_point: float = 0.0
+    suggested_order_qty: float = 0.0      # EOQ if costs known, else ROP-based
+    current_stock: Optional[float] = None
+    order_now: bool = False
+    eoq: Optional[float] = None
+    n_days_data: int = 0
+
+
+class ProductForecastResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+    products: list[ProductForecastItem]

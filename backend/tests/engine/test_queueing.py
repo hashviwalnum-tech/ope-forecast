@@ -1,5 +1,16 @@
 """Known-answer tests for engine.queueing."""
-from app.engine.queueing import effective_service_time, min_servers, utilisation, UTILISATION_CAP
+import pytest
+from app.engine.queueing import (
+    effective_service_time,
+    erlang_c,
+    expected_wait_minutes,
+    marginal_note,
+    min_servers,
+    queue_length,
+    utilisation,
+    OVERLOADED,
+    UTILISATION_CAP,
+)
 
 
 # ── min_servers ───────────────────────────────────────────────────────────────
@@ -155,3 +166,145 @@ def test_staffing_default_only_business_no_product_overrides():
     eff = effective_service_time(mix, default_svc)
     assert eff == default_svc
     assert min_servers(10, eff) == min_servers(10, default_svc)
+
+
+# ── erlang_c ──────────────────────────────────────────────────────────────────
+
+def test_erlang_c_overloaded_returns_one():
+    # ρ ≥ 1 → every customer waits
+    assert erlang_c(100, 5, 1) == 1.0   # λ=100, μ=12, ρ=100/12 >> 1
+
+
+def test_erlang_c_zero_arrivals():
+    assert erlang_c(0, 5, 2) == 0.0
+
+
+def test_erlang_c_in_range():
+    # λ=20/hr, svc=5min → μ=12/hr, c=2, ρ=20/24≈0.833 → C should be ∈ (0,1)
+    c = erlang_c(20, 5, 2)
+    assert 0.0 < c < 1.0
+
+
+def test_erlang_c_more_servers_lower_probability():
+    # With more servers the probability of waiting decreases
+    assert erlang_c(20, 5, 3) < erlang_c(20, 5, 2)
+
+
+def test_erlang_c_single_server_equals_utilisation():
+    # For M/M/1, Erlang C = ρ  (when c=1, ρ<1)
+    # Verify: λ=6, svc=5 → μ=12, ρ=0.5; C(1,0.5) should ≈ 0.5
+    lam, svc, c = 6.0, 5.0, 1
+    mu = 60.0 / svc
+    rho = lam / (c * mu)
+    assert abs(erlang_c(lam, svc, c) - rho) < 1e-9
+
+
+# ── expected_wait_minutes ─────────────────────────────────────────────────────
+
+def test_expected_wait_overloaded():
+    # Overloaded system → OVERLOADED sentinel
+    assert expected_wait_minutes(100, 5, 1) == OVERLOADED
+
+
+def test_expected_wait_zero_arrivals():
+    assert expected_wait_minutes(0, 5, 2) == 0.0
+
+
+def test_expected_wait_positive():
+    # Busy café: λ=20, svc=5, c=2 (ρ≈0.83) → some positive wait
+    w = expected_wait_minutes(20, 5, 2)
+    assert w > 0.0
+    assert w < OVERLOADED
+
+
+def test_expected_wait_more_servers_reduces_wait():
+    # Adding servers always reduces (or keeps equal) expected wait
+    w2 = expected_wait_minutes(20, 5, 2)
+    w3 = expected_wait_minutes(20, 5, 3)
+    assert w3 < w2
+
+
+def test_expected_wait_low_traffic_near_zero():
+    # Very light traffic → wait approaches zero
+    w = expected_wait_minutes(1, 5, 5)
+    assert w < 0.1
+
+
+def test_expected_wait_cafe_known_case():
+    # λ=20, svc=5min, c=2: verify against hand-computed value
+    # μ=12, a=20/12=1.667, ρ=0.833
+    # C ≈ 0.757, Wq_hours = 0.757/(2*12-20) = 0.757/4 = 0.189 hr = 11.3 min
+    w = expected_wait_minutes(20, 5, 2)
+    assert abs(w - 11.3) < 0.2
+
+
+# ── queue_length ──────────────────────────────────────────────────────────────
+
+def test_queue_length_overloaded():
+    assert queue_length(100, 5, 1) == OVERLOADED
+
+
+def test_queue_length_zero_arrivals():
+    assert queue_length(0, 5, 2) == 0.0
+
+
+def test_queue_length_positive():
+    lq = queue_length(20, 5, 2)
+    assert lq > 0.0
+    assert lq < OVERLOADED
+
+
+def test_queue_length_littles_law():
+    # Lq = λ · Wq_hours  ↔  Lq = λ/60 · Wq_min  (λ in per-hour, Wq in min)
+    lam, svc, c = 20.0, 5.0, 2
+    lq = queue_length(lam, svc, c)
+    wq_min = expected_wait_minutes(lam, svc, c)
+    assert abs(lq - lam * wq_min / 60.0) < 1e-6
+
+
+def test_queue_length_more_servers_shorter_queue():
+    assert queue_length(20, 5, 3) < queue_length(20, 5, 2)
+
+
+# ── marginal_note ─────────────────────────────────────────────────────────────
+
+def test_marginal_note_mentions_adding():
+    # The note should always explain what happens when you add 1 person
+    note = marginal_note(20, 5, 2)
+    assert "3rd" in note or "adding" in note.lower() or "3" in note
+
+
+def test_marginal_note_mentions_removing_when_c_gt_1():
+    # For c>1 the note also addresses removing 1 person
+    note = marginal_note(20, 5, 2)
+    assert "fewer" in note.lower() or "1 fewer" in note.lower() or "overload" in note.lower()
+
+
+def test_marginal_note_no_remove_when_c_equals_1():
+    # When c=1 there is nothing to remove — note should not mention "fewer"
+    note = marginal_note(5, 5, 1)
+    assert "fewer" not in note.lower()
+
+
+def test_marginal_note_overload_warning():
+    # When removing 1 person would overload, the note must warn
+    # λ=20, svc=5 → c=2 is minimum recommended; c-1=1 gives ρ=20/12>1
+    note = marginal_note(20, 5, 2)
+    assert "overload" in note.lower() or "keep at least" in note.lower()
+
+
+def test_marginal_note_short_queue_message():
+    # Very light traffic (c well above minimum) → note flags short queue
+    note = marginal_note(1, 5, 5)
+    assert "short" in note.lower() or "little effect" in note.lower() or "already" in note.lower()
+
+
+def test_marginal_note_no_data():
+    note = marginal_note(0, 5, 2)
+    assert "not enough" in note.lower() or "data" in note.lower()
+
+
+def test_marginal_note_cuts_wait_phrasing():
+    # A well-loaded system with room to add staff should use "cuts" phrasing
+    note = marginal_note(20, 5, 2)
+    assert "cut" in note.lower() or "from" in note.lower()
