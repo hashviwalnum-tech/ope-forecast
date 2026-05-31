@@ -164,7 +164,7 @@ function HourlyChart({ hours }: { hours: HourSlot[] }) {
           <Tooltip
             contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
             labelStyle={{ color: '#334155', fontWeight: 600 }}
-            formatter={(v: number) => [v, 'taps']}
+            formatter={(v) => [typeof v === 'number' ? v : 0, 'taps']}
           />
           <Bar dataKey="taps" fill="#14b8a6" radius={[4, 4, 0, 0]} />
         </BarChart>
@@ -352,7 +352,7 @@ export default function TapSellPanel() {
       </section>
 
       {/* ── recent taps list ── */}
-      {summary && (summary.recent_taps?.length ?? 0) > 0 && (
+      {summary && summary.recent_taps && summary.recent_taps.length > 0 && (
         <RecentTapsList
           taps={summary.recent_taps}
           onDelete={handleDeleteTap}
