@@ -267,6 +267,31 @@ export interface HourlyAnalyticsResponse {
   hours: HourlySlotAvg[]
 }
 
+// ── monthly / longer history ──────────────────────────────────────────────────
+
+export interface HistoryPoint {
+  date: string        // "YYYY-MM-DD"
+  customers: number   // effective value (outlier-replaced)
+}
+
+export interface MonthSummary {
+  year: number
+  month: number
+  month_label: string          // "Jan 2024"
+  total_customers: number
+  logged_days: number
+  avg_daily_customers: number
+  mom_pct_change: number | null  // null for first month
+}
+
+export interface MonthlyResponse {
+  status: string
+  message?: string
+  n_total_days: number
+  months: MonthSummary[]
+  history_points: HistoryPoint[]
+}
+
 // ── hourly backfill ───────────────────────────────────────────────────────────
 
 export interface HourlyBackfillSlot {

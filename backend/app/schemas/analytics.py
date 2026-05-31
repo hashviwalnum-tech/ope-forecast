@@ -138,3 +138,28 @@ class HourlyAnalyticsResponse(BaseModel):
     n_days_data: int = 0
     avg_service_time_minutes: float = 5.0
     hours: list[HourlySlotAvg] = []
+
+
+# ── monthly / longer-history view ─────────────────────────────────────────────
+
+class HistoryPoint(BaseModel):
+    date: date
+    customers: float  # effective value (outlier-replaced where applicable)
+
+
+class MonthSummary(BaseModel):
+    year: int
+    month: int
+    month_label: str           # e.g. "Jan 2024"
+    total_customers: float
+    logged_days: int
+    avg_daily_customers: float
+    mom_pct_change: Optional[float]  # None for first month; + = up, - = down
+
+
+class MonthlyResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+    n_total_days: int = 0
+    months: list[MonthSummary] = []
+    history_points: list[HistoryPoint] = []  # all clean daily points for the history chart

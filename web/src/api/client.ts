@@ -6,6 +6,7 @@ import type {
   HourlyAnalyticsResponse,
   HourlyBackfillSlot,
   HourlyBackfillResponse,
+  MonthlyResponse,
   DayRecordRead,
   DayRecordUpdate,
   ForecastHistoryResponse,
@@ -137,6 +138,7 @@ export const analytics = {
   forecastHistory:  () => GET<ForecastHistoryResponse>('/forecast-history'),
   lift:             () => GET<LiftResponse>('/lift'),
   hourlyAnalytics:  () => GET<HourlyAnalyticsResponse>('/hourly-analytics'),
+  monthlySummary:   () => GET<MonthlyResponse>('/monthly-summary'),
 }
 
 export const periods = {

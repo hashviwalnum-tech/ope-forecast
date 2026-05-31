@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_business
 from app.db import get_db
 from app.engine.accuracy import forecast_errors, mad, mape, mse, tracking_signal
+from app.engine.monthly import monthly_summary
 from app.engine.ensemble import blend, model_weights, prediction_interval
 from app.engine.forecasting import exponential_smoothing, weighted_moving_average
 from app.engine.live_sales import hourly_averages, hourly_product_mix
@@ -36,9 +37,12 @@ from app.schemas.analytics import (
     ForecastHistoryPoint,
     ForecastHistoryResponse,
     ForecastResponse,
+    HistoryPoint,
     HourlyAnalyticsResponse,
     HourlySlotAvg,
     LiftResponse,
+    MonthlyResponse,
+    MonthSummary,
     OrderingResponse,
     OrderingRow,
     OutlierFlag,
@@ -773,4 +777,46 @@ def get_hourly_analytics(
         n_days_data=n_days,
         avg_service_time_minutes=avg_svc,
         hours=hours,
+    )
+
+
+# ── /monthly-summary ──────────────────────────────────────────────────────────
+
+@router.get("/monthly-summary", response_model=MonthlyResponse)
+def get_monthly_summary(
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """Monthly aggregation of clean customer data for the trends view.
+
+    Applies the same cleaning rules as the forecasting engine:
+    - event/ad periods excluded
+    - outlier 'excluded'/'event' records dropped
+    - closed weekdays excluded
+    - unreviewed 'flagged' outliers replaced with their weekday median
+    - missing days are simply absent (never zero-filled)
+    """
+    records = _clean_records(db, biz)
+
+    if not records:
+        return MonthlyResponse(
+            status="not_enough_data",
+            message=(
+                "No data logged yet. Start adding daily customer counts "
+                "and monthly trends will appear here."
+            ),
+        )
+
+    obs = _effective_obs(records)
+    day_data = [(r.date, v) for r, v in zip(records, obs)]
+
+    months_raw = monthly_summary(day_data)
+
+    return MonthlyResponse(
+        status="ok",
+        n_total_days=len(records),
+        months=[MonthSummary(**m) for m in months_raw],
+        history_points=[
+            HistoryPoint(date=d, customers=v) for d, v in day_data
+        ],
     )

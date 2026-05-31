@@ -8,6 +8,7 @@ import CsvImport from './components/CsvImport'
 import DayList from './components/DayList'
 import ForecastDashboard from './components/ForecastDashboard'
 import HourlyDashboard from './components/HourlyDashboard'
+import TrendsView from './components/TrendsView'
 import LogDayForm from './components/LogDayForm'
 import OutlierBanner from './components/OutlierBanner'
 import PeriodsPanel from './components/PeriodsPanel'
@@ -20,12 +21,13 @@ import type { BusinessRead } from './api/types'
 
 const FREE_BUSINESS_LIMIT = 2
 
-type Tab = 'log' | 'backfill' | 'history' | 'import' | 'forecast' | 'events' | 'products' | 'sell' | 'hours' | 'settings'
+type Tab = 'log' | 'backfill' | 'history' | 'import' | 'forecast' | 'events' | 'products' | 'sell' | 'hours' | 'trends' | 'settings'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'forecast',  label: 'This Week'       },
   { id: 'sell',      label: 'Record a Sale'   },
   { id: 'hours',     label: 'Busy Hours'      },
+  { id: 'trends',    label: 'Monthly'         },
   { id: 'events',    label: 'Promos & Events' },
   { id: 'products',  label: 'My Products'     },
   { id: 'log',       label: 'Add Today'       },
@@ -39,6 +41,7 @@ const TAB_TITLES: Record<Tab, string> = {
   forecast:  "What's coming this week",
   sell:      "Record today's sales",
   hours:     'Busy hours & staffing',
+  trends:    'Monthly trends & history',
   events:    'Promos & Events',
   products:  'My Products',
   log:       "Log today's numbers",
@@ -280,6 +283,7 @@ export default function App() {
         {tab === 'forecast'  && <ForecastDashboard refreshKey={refreshKey} />}
         {tab === 'sell'      && <TapSellPanel />}
         {tab === 'hours'     && <HourlyDashboard />}
+        {tab === 'trends'    && <TrendsView />}
         {tab === 'events'    && <PeriodsPanel />}
         {tab === 'products'  && <ProductsPanel />}
         {tab === 'log'       && <LogDayForm onSaved={refresh} />}
