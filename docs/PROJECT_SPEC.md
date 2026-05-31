@@ -65,8 +65,27 @@ Concrete decisions:
 
 **Honest risk note:** hosting and cloud auth are materially harder to debug than local work because the app no longer runs on a machine the owner controls. Corporate networks may also block unfamiliar sites — whether the work computer can reach the hosted app is a "try it and see." Keep local-run working as a fallback throughout.
 
-### Phase 3 — Premium
-Billing; unlimited history; monthly view; hourly busiest-hour analytics; **staffing recommendations (how many workers/registers per shift)** and the queueing module (expected wait time and registers/staff needed at peak); ARIMA as an advanced model.
+### Phase 3 — Polish, forecasting quality & premium *limits*
+**This phase is mostly about making Ope genuinely good, not adding gated features.** Two corrections to earlier assumptions, per the owner:
+
+1. **Hourly analytics, busiest-hour, staffing recommendations, monthly view, and the queueing module are NOT premium — they are core features for all users.** Everyone gets the full toolset and the full forecasting brain. Free is not a crippled version.
+2. **Premium = removing limits only, not unlocking features.** Specifically:
+   - **Data history cap** — free keeps up to ~6 months to 1 year of history; premium keeps more / unlimited.
+   - **Action caps** — free allows a limited number of logged ads/events (e.g. 2); premium allows more / unlimited.
+   - Premium is therefore mostly counting + gating logic (a simple per-account flag and limit checks), not separate feature builds. This should be the *easy* part.
+
+**The hard, important work of this phase (where effort should go):**
+- **Business logic fix (do first):** on login, auto-load the user's existing business and go straight in — never re-prompt for a business name, never lock a user out for forgetting it. Naming happens only when creating a genuinely new business. Allow adding multiple businesses (count gated by free/premium limit, set generously for now).
+- **Full UX polish:** make the app look and feel like a finished product — consistent calm blue-green design throughout, plain language, big friendly controls, smooth flows, good empty/loading/error states. The "looks and interacts like the final product" goal.
+- **Forecasting quality:** make sure predictions are actually good — validate against real data, tune the ensemble, confirm the self-correction, outlier handling, missing-day and closed-day logic all behave well together. This is the core value of the app.
+- **Edge cases / unique problems:** surface and tackle the odd situations (sparse data, weird patterns, sudden shifts, partial days) as they show up in real use.
+
+Build features (hourly, staffing, monthly) one at a time, test-first where math is involved, then polish. Premium *limits* layer on near the end. **Payments/billing are deferred to a later phase** (see below) — build the free/premium *gating concept* now (a flag + limit checks), but defer real Stripe billing until there are paying users.
+
+### Phase 3.5 — Monetization (deferred until real users)
+- **Subscription billing** (Stripe on web) layered onto the premium-limit gating built in Phase 3.
+- **Ad placement** as an additional revenue stream — to be designed later. Note: keep ads tasteful and never compromise the calm, trustworthy feel for small-business owners.
+- For mobile, App Store / Play in-app purchases are usually **required** for digital subscriptions and take a 15–30% cut with their own rules — design the premium flow with that in mind.
 
 ### Phase 4 — Mobile
 React Native (Expo) app reusing the same backend API and a shared TypeScript package (types + API client).
@@ -209,9 +228,10 @@ Do not compare raw sales during a promo to a random baseline. Instead: have the 
 
 ## 10. Free vs premium gating
 
-- **Free:** up to 1 year of stored history; daily + weekly views; core forecasting, accuracy, and ordering.
-- **Premium:** unlimited history; monthly view; hourly breakdown + busiest-hour; queueing module; advanced models (ARIMA); (future) POS integrations.
-- Enforce the data cap **server-side** (Phase 2+), never only in the client.
+**Premium lifts limits; it does not unlock features.** All users get the full feature set (hourly, busiest-hour, staffing, monthly view, queueing, full forecasting). The difference is caps only:
+- **Free:** history capped (~6 months to 1 year); limited number of logged ads/events (e.g. 2 active); otherwise the complete app.
+- **Premium:** extended/unlimited history; more/unlimited ads/events; (future) POS integrations.
+- Enforce caps **server-side** (never only in the client). Implement as a simple per-account tier flag plus limit checks. Billing itself is deferred (Phase 3.5) — build the gating now, charge later.
 
 ## 11. Engineering conventions
 

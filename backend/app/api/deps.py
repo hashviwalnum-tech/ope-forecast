@@ -47,13 +47,20 @@ def get_current_user(request: Request) -> str:
 
 
 def get_business(
+    request: Request,
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ) -> Business:
-    biz = db.query(Business).filter(Business.user_id == user_id).first()
+    query = db.query(Business).filter(Business.user_id == user_id)
+    biz_id_header = request.headers.get("X-Business-Id")
+    if biz_id_header is not None:
+        try:
+            biz = query.filter(Business.id == int(biz_id_header)).first()
+            if biz:
+                return biz
+        except ValueError:
+            pass
+    biz = query.order_by(Business.id).first()
     if not biz:
-        raise HTTPException(
-            status_code=404,
-            detail="No business yet. Create one to get started.",
-        )
+        raise HTTPException(status_code=404, detail="No business yet. Create one to get started.")
     return biz

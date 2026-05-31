@@ -26,11 +26,19 @@ import type {
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
+let _activeBusinessId: number | null = null
+export function setActiveBusinessId(id: number | null): void {
+  _activeBusinessId = id
+}
+
 async function authHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession()
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`
+  }
+  if (_activeBusinessId !== null) {
+    headers['X-Business-Id'] = String(_activeBusinessId)
   }
   return headers
 }
@@ -71,6 +79,7 @@ async function PATCH<T>(path: string, body: unknown): Promise<T> {
 }
 
 export const businesses = {
+  list:   ()             => GET<BusinessRead[]>('/businesses'),
   me:     ()             => GET<BusinessRead>('/businesses/me'),
   create: (name: string) => POST<BusinessRead>('/businesses', { name }),
   updateSettings: (settings: { opening_days?: number[]; opening_hour?: number; closing_hour?: number }) =>

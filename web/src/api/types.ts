@@ -4,6 +4,7 @@ export interface BusinessRead {
   id: number
   name: string
   settings: Record<string, unknown>
+  tier: string
 }
 
 // ── Analytics ──────────────────────────────────────────────────────────────
