@@ -50,3 +50,19 @@ class TodaySummaryResponse(BaseModel):
     product_totals: list[ProductTap]   # running totals per product — feeds button badges
     hours: list[HourSlot]              # hourly breakdown for the end-of-day chart
     recent_taps: list[RecentTap]       # last 10 individual events, newest first
+
+
+# ── hourly backfill (past-day entry from register logs) ───────────────────────
+
+class HourlySlot(BaseModel):
+    hour: int = Field(..., ge=0, le=23)
+    customers: float = Field(..., gt=0)
+
+
+class HourlyBackfillRequest(BaseModel):
+    date: date_type
+    hours: list[HourlySlot] = Field(..., min_length=1)
+
+
+class HourlyBackfillResponse(BaseModel):
+    inserted: int

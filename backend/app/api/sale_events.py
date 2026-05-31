@@ -18,6 +18,8 @@ from app.db import get_db
 from app.engine.live_sales import rollup_by_hour
 from app.models import Business, Product, SaleEvent
 from app.schemas.sale_event import (
+    HourlyBackfillRequest,
+    HourlyBackfillResponse,
     HourSlot,
     ProductTap,
     RecentTap,
@@ -53,6 +55,40 @@ def create_sale_event(body: SaleEventCreate, db: Session = Depends(get_db), biz:
     db.commit()
     db.refresh(row)
     return row
+
+
+@router.post("/backfill-hourly", response_model=HourlyBackfillResponse, status_code=201)
+def backfill_hourly(
+    body: HourlyBackfillRequest,
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """Record hourly customer counts for a past day from register logs.
+
+    Replaces any existing SaleEvents for that date so re-submitting is safe.
+    Creates one SaleEvent per hour slot with quantity = customers; the
+    hourly-analytics engine sums quantities to get arrival-rate λ.
+    """
+    day_start = datetime.combine(body.date, datetime.min.time())
+    day_end = datetime.combine(body.date, datetime.max.time())
+    db.query(SaleEvent).filter(
+        SaleEvent.business_id == biz.id,
+        SaleEvent.timestamp >= day_start,
+        SaleEvent.timestamp <= day_end,
+    ).delete()
+
+    for slot in body.hours:
+        ts = datetime.combine(body.date, datetime.min.time()).replace(
+            hour=slot.hour, minute=0, second=0, microsecond=0
+        )
+        db.add(SaleEvent(
+            business_id=biz.id,
+            product_id=None,
+            timestamp=ts,
+            quantity=slot.customers,
+        ))
+    db.commit()
+    return HourlyBackfillResponse(inserted=len(body.hours))
 
 
 @router.get("/today", response_model=TodaySummaryResponse)

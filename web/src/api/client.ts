@@ -4,6 +4,8 @@ import type {
   BusinessRead,
   DayRecordCreate,
   HourlyAnalyticsResponse,
+  HourlyBackfillSlot,
+  HourlyBackfillResponse,
   DayRecordRead,
   DayRecordUpdate,
   ForecastHistoryResponse,
@@ -108,6 +110,8 @@ export const saleEvents = {
   tap:      (body: SaleEventCreate)  => POST<SaleEventRead>('/sale-events', body),
   today:    ()                       => GET<TodaySummaryResponse>('/sale-events/today'),
   undo:     (id: number)             => DELETE(`/sale-events/${id}`),
+  backfillHourly: (date: string, hours: HourlyBackfillSlot[]) =>
+    POST<HourlyBackfillResponse>('/sale-events/backfill-hourly', { date, hours }),
 }
 
 export const products = {

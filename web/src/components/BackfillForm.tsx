@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { dayRecords, products, sales } from '../api/client'
+import { dayRecords, products, sales, saleEvents } from '../api/client'
 import type { ProductRead } from '../api/types'
 
 function localToday(): string {
@@ -13,6 +13,13 @@ function localYesterday(): string {
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
 }
 
+function fmtHour(h: number): string {
+  if (h === 0)  return '12 am'
+  if (h < 12)  return `${h} am`
+  if (h === 12) return '12 pm'
+  return `${h - 12} pm`
+}
+
 interface Props { onSaved: () => void }
 
 export default function BackfillForm({ onSaved }: Props) {
@@ -22,6 +29,10 @@ export default function BackfillForm({ onSaved }: Props) {
   const [unitsSold, setUnitsSold] = useState<Record<number, string>>({})
   const [saving, setSaving]       = useState(false)
   const [feedback, setFeedback]   = useState<{ ok: boolean; msg: string } | null>(null)
+
+  // hourly breakdown (optional)
+  const [showHourly, setShowHourly] = useState(false)
+  const [hourlyData, setHourlyData] = useState<Record<number, string>>({})
 
   useEffect(() => {
     products.list().then(setProductList).catch(() => {})
@@ -41,8 +52,20 @@ export default function BackfillForm({ onSaved }: Props) {
           await sales.create({ day_record_id: day.id, product_id: p.id, units_sold: val })
         }
       }
+
+      // Optional hourly breakdown — submit if any hour was filled in
+      if (showHourly) {
+        const slots = Object.entries(hourlyData)
+          .map(([h, v]) => ({ hour: parseInt(h), customers: parseFloat(v) }))
+          .filter(s => !isNaN(s.customers) && s.customers > 0)
+        if (slots.length > 0) {
+          await saleEvents.backfillHourly(date, slots)
+        }
+      }
+
       setCustomers('')
       setUnitsSold({})
+      setHourlyData({})
       setDate(localYesterday())
       setFeedback({ ok: true, msg: 'Saved!' })
       onSaved()
@@ -109,6 +132,51 @@ export default function BackfillForm({ onSaved }: Props) {
           </div>
         </fieldset>
       )}
+
+      {/* ── Optional hourly breakdown ── */}
+      <div className="border border-slate-200 rounded-2xl overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowHourly(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-3
+                     text-sm font-medium text-slate-600 hover:bg-slate-50
+                     transition-colors text-left"
+        >
+          <span>Add hourly breakdown <span className="text-slate-400 font-normal">(optional)</span></span>
+          <svg
+            className={`w-4 h-4 text-slate-400 transition-transform ${showHourly ? 'rotate-180' : ''}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {showHourly && (
+          <div className="border-t border-slate-100 px-4 pb-4 pt-3 space-y-3 bg-slate-50/50">
+            <p className="text-xs text-slate-500 leading-relaxed">
+              If you have a breakdown by hour (e.g. from your register), enter it here.
+              It feeds the <strong>Busy Hours</strong> and staffing features.
+              Leave any hour blank to skip it.
+            </p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 max-w-xs">
+              {Array.from({ length: 24 }, (_, h) => (
+                <div key={h} className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 w-11 shrink-0 text-right tabular-nums">
+                    {fmtHour(h)}
+                  </span>
+                  <input
+                    type="number" min="0" placeholder="—"
+                    value={hourlyData[h] ?? ''}
+                    onChange={e => setHourlyData(prev => ({ ...prev, [h]: e.target.value }))}
+                    className="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-sm
+                               bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {feedback && (
         <p className={`text-sm rounded-xl px-3 py-2.5 ${feedback.ok

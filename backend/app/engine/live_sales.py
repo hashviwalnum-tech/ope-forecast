@@ -75,10 +75,10 @@ def hourly_averages(
     if n_days == 0:
         return []
 
-    hour_totals: dict[int, int] = defaultdict(int)
-    for day, hour, _pid, _qty in events:
+    hour_totals: dict[int, float] = defaultdict(float)
+    for day, hour, _pid, qty in events:
         if open_hours is None or hour in open_hours:
-            hour_totals[hour] += 1
+            hour_totals[hour] += qty
 
     return [
         (hour, round(hour_totals[hour] / n_days, 2), n_days)

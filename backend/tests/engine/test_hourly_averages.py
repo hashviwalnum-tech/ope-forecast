@@ -87,3 +87,17 @@ def test_all_events_outside_open_hours_returns_empty():
     events = [(D1, 7, 1, 1.0), (D1, 8, 1, 1.0)]
     result = hourly_averages(events, open_hours={9, 10, 11})
     assert result == []
+
+
+def test_backfill_quantity_is_summed_not_counted():
+    # Backfill creates 1 SaleEvent with qty=12 for a day with 12 customers at hour 9.
+    # avg should be 12.0, not 1.0.
+    result = hourly_averages([(D1, 9, None, 12.0)])
+    assert result == [(9, 12.0, 1)]
+
+
+def test_backfill_two_days_averages_correctly():
+    # Day1: 1 backfill event qty=8; Day2: 1 backfill event qty=4 → avg = 12/2 = 6.0
+    events = [(D1, 10, None, 8.0), (D2, 10, None, 4.0)]
+    result = hourly_averages(events)
+    assert result == [(10, 6.0, 2)]

@@ -266,3 +266,14 @@ export interface HourlyAnalyticsResponse {
   avg_service_time_minutes: number
   hours: HourlySlotAvg[]
 }
+
+// ── hourly backfill ───────────────────────────────────────────────────────────
+
+export interface HourlyBackfillSlot {
+  hour: number        // 0–23
+  customers: number
+}
+
+export interface HourlyBackfillResponse {
+  inserted: number
+}
