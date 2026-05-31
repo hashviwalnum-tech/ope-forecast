@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+python-dotenv
+PyJWT[crypto]
+pydantic
+numpy
+pandas
+scipy
+statsmodels
+pytest
+httpx

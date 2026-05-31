@@ -1,0 +1,18 @@
+# Python
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/ops_forecast.db
+
+# Node
+web/node_modules/
+web/dist/
+
+# Secrets — never commit
+backend/.env
+web/.env
+
+# Claude Code local settings (contains machine-specific paths)
+.claude/settings.local.json

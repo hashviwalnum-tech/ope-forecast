@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--color-teal-100); }
+#root { min-height: 100vh; }

@@ -1,0 +1,127 @@
+import { supabase } from '../lib/supabase'
+import type {
+  AccuracyResponse,
+  BusinessRead,
+  DayRecordCreate,
+  DayRecordRead,
+  DayRecordUpdate,
+  ForecastHistoryResponse,
+  ForecastResponse,
+  LiftResponse,
+  OrderingResponse,
+  OutlierListResponse,
+  PeriodCreate,
+  PeriodRead,
+  ProductCreate,
+  ProductRead,
+  ProductUpdate,
+  SaleCreate,
+  SaleEventCreate,
+  SaleEventRead,
+  SaleRead,
+  SaleUpdate,
+  TodaySummaryResponse,
+  WeekdayAvgResponse,
+} from './types'
+
+const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`
+  }
+  return headers
+}
+
+async function GET<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+async function POST<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST', headers: await authHeaders(), body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+async function PUT<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'PUT', headers: await authHeaders(), body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+async function DELETE(path: string): Promise<void> {
+  const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: await authHeaders() })
+  if (!res.ok) throw new Error(await res.text())
+}
+
+async function PATCH<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'PATCH', headers: await authHeaders(), body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
+
+export const businesses = {
+  me:     ()             => GET<BusinessRead>('/businesses/me'),
+  create: (name: string) => POST<BusinessRead>('/businesses', { name }),
+  updateSettings: (settings: { opening_days?: number[]; opening_hour?: number; closing_hour?: number }) =>
+    PATCH<BusinessRead>('/businesses/me/settings', settings),
+}
+
+export const dayRecords = {
+  list: ()                              => GET<DayRecordRead[]>('/day-records'),
+  create: (body: DayRecordCreate)       => POST<DayRecordRead>('/day-records', body),
+  update: (id: number, b: DayRecordUpdate) => PUT<DayRecordRead>(`/day-records/${id}`, b),
+  resolveOutlier: (id: number, action: 'keep' | 'excluded' | 'event') =>
+    PATCH<DayRecordRead>(`/day-records/${id}/outlier`, { action }),
+  delete: (id: number)                  => DELETE(`/day-records/${id}`),
+}
+
+export const outliers = {
+  list: () => GET<OutlierListResponse>('/outliers'),
+}
+
+export const saleEvents = {
+  tap:      (body: SaleEventCreate)  => POST<SaleEventRead>('/sale-events', body),
+  today:    ()                       => GET<TodaySummaryResponse>('/sale-events/today'),
+  undo:     (id: number)             => DELETE(`/sale-events/${id}`),
+}
+
+export const products = {
+  list:   ()                                    => GET<ProductRead[]>('/products'),
+  create: (body: ProductCreate)                 => POST<ProductRead>('/products', body),
+  update: (id: number, body: ProductUpdate)     => PUT<ProductRead>(`/products/${id}`, body),
+  delete: (id: number)                          => DELETE(`/products/${id}`),
+}
+
+export const sales = {
+  list:   (dayRecordId?: number) =>
+    GET<SaleRead[]>(dayRecordId ? `/sales?day_record_id=${dayRecordId}` : '/sales'),
+  create: (body: SaleCreate)           => POST<SaleRead>('/sales', body),
+  update: (id: number, b: SaleUpdate)  => PUT<SaleRead>(`/sales/${id}`, b),
+  delete: (id: number)                 => DELETE(`/sales/${id}`),
+}
+
+export const analytics = {
+  forecast:        () => GET<ForecastResponse>('/forecast'),
+  accuracy:        () => GET<AccuracyResponse>('/accuracy'),
+  weekdayAverages: () => GET<WeekdayAvgResponse>('/weekday-averages'),
+  ordering:        () => GET<OrderingResponse>('/ordering'),
+  forecastHistory: () => GET<ForecastHistoryResponse>('/forecast-history'),
+  lift:            () => GET<LiftResponse>('/lift'),
+}
+
+export const periods = {
+  list:   ()                          => GET<PeriodRead[]>('/periods'),
+  create: (body: PeriodCreate)        => POST<PeriodRead>('/periods', body),
+  delete: (id: number)                => DELETE(`/periods/${id}`),
+}

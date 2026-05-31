@@ -1,0 +1,67 @@
+# CLAUDE.md — Operations Forecasting App
+
+Short, always-loaded project context. Full design lives in @docs/PROJECT_SPEC.md — read it before working on the engine or data model.
+
+## How to work with me (important)
+I am not a programmer and cannot debug or fill in gaps — do the whole job and verify it yourself.
+- Be token-efficient: keep replies short, don't paste full file contents unless I ask, and run commands/tests yourself — report only pass/fail plus any errors.
+- Explain decisions in one or two plain-language sentences, no jargon.
+- Work one milestone at a time. After each, stop and tell me in plain steps how to check it runs.
+- Before anything large or not in the plan (new dependency, deleting code, changing architecture), ask me first in one sentence.
+- If commands change, update the Commands section below.
+
+## What this is
+A forecasting tool for customer-facing businesses. Owners log daily customers and per-product sales; the app predicts demand by day of week (hour/month for premium), recommends how much to order, measures ad/event lift, and re-weights its own models against actual results so accuracy improves over time.
+
+## Architecture (do not deviate without updating the spec)
+API-first. All logic and math live in a Python/FastAPI backend behind a JSON API. The React web app is one client; a React Native app (Phase 4) will be another. **No forecasting logic in any frontend** — it belongs in `backend/app/engine/` so mobile inherits it for free.
+
+## Stack
+- Backend: Python 3.11+, FastAPI, SQLAlchemy, Pydantic, numpy/pandas/scipy/statsmodels.
+- DB: SQLite (dev/Phase 1) → Postgres (Phase 2+).
+- Web: React + Vite + TypeScript + Tailwind + Recharts.
+- Mobile (Phase 4): React Native (Expo), reusing the backend + a shared TS package.
+
+## Build order
+Phase 1 = MVP, **no login / no billing / single local user**. Prove the forecasting first. See the roadmap in the spec, section 3. Don't build auth, billing, hourly, queueing, or ARIMA until their phase.
+
+## Hard rules
+- `backend/app/engine/` is **pure functions** (no DB, no framework) and is **test-driven**: every formula gets a known-answer unit test (see spec section 12) — write the test alongside the function.
+- Route handlers are thin: validate → call engine → return. No math in handlers.
+- Use `statsmodels`/`scipy` for Holt-Winters, ARIMA, and regression — do not hand-roll them.
+- Do not hard-code forecast weights. The ensemble learns them from recent per-weekday error (spec section 2).
+- Exclude event/ad periods from the "normal" baseline when training.
+- Strong typing both sides (Pydantic + TypeScript).
+
+## Commands
+
+**One-time setup (already done — skip if venv and node_modules exist):**
+```
+# Backend
+cd backend
+python -m venv venv
+venv\Scripts\pip install -r requirements.txt
+
+# Web (HUJI network needs strict-ssl disabled)
+npm config set strict-ssl false
+cd web
+npm install
+```
+
+**Backend dev server** (runs on http://localhost:8000, docs at /docs):
+```
+cd backend
+venv\Scripts\uvicorn app.main:app --reload
+```
+
+**Backend tests:**
+```
+cd backend
+venv\Scripts\pytest
+```
+
+**Web dev server** (runs on http://localhost:5173):
+```
+cd web
+npm run dev
+```
