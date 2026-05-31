@@ -18,6 +18,10 @@ export default function BusinessSettings() {
   const [saving,         setSaving]         = useState(false)
   const [feedback,       setFeedback]       = useState<{ ok: boolean; msg: string } | null>(null)
 
+  const [currentTier,   setCurrentTier]   = useState<string>('free')
+  const [tierSaving,    setTierSaving]    = useState(false)
+  const [tierFeedback,  setTierFeedback]  = useState<{ ok: boolean; msg: string } | null>(null)
+
   useEffect(() => {
     businesses.me().then(biz => {
       const s = biz.settings as Record<string, unknown>
@@ -25,8 +29,23 @@ export default function BusinessSettings() {
       if (typeof s.opening_hour === 'number')        setOpeningHour(s.opening_hour)
       if (typeof s.closing_hour === 'number')        setClosingHour(s.closing_hour)
       if (typeof s.avg_service_time_minutes === 'number') setAvgServiceTime(s.avg_service_time_minutes)
+      setCurrentTier(biz.tier ?? 'free')
     }).catch(() => {})
   }, [])
+
+  async function handleSetTier(tier: 'free' | 'premium') {
+    setTierSaving(true)
+    setTierFeedback(null)
+    try {
+      const biz = await businesses.setTier(tier)
+      setCurrentTier(biz.tier)
+      setTierFeedback({ ok: true, msg: `Switched to ${biz.tier} plan.` })
+    } catch {
+      setTierFeedback({ ok: false, msg: 'Could not change plan — please try again.' })
+    } finally {
+      setTierSaving(false)
+    }
+  }
 
   function toggleDay(d: number) {
     setOpenDays(prev =>
@@ -164,6 +183,49 @@ export default function BusinessSettings() {
       >
         {saving ? 'Saving…' : 'Save settings'}
       </button>
+
+      {/* ── Plan / tier ─────────────────────────────────────────────── */}
+      <div className="border-t border-slate-100 pt-6">
+        <p className="text-sm font-medium text-slate-700 mb-1">Your plan</p>
+        <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+          {currentTier === 'premium'
+            ? 'Premium — unlimited history and ads/events.'
+            : 'Free — up to 1 year of history, up to 2 saved ads or events. All features included.'}
+        </p>
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            disabled={tierSaving || currentTier === 'free'}
+            onClick={() => handleSetTier('free')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors
+              ${currentTier === 'free'
+                ? 'bg-teal-600 text-white border-teal-600'
+                : 'border-slate-200 text-slate-500 hover:border-teal-300 hover:text-teal-700'}`}
+          >
+            Free
+          </button>
+          <button
+            type="button"
+            disabled={tierSaving || currentTier === 'premium'}
+            onClick={() => handleSetTier('premium')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors
+              ${currentTier === 'premium'
+                ? 'bg-teal-600 text-white border-teal-600'
+                : 'border-slate-200 text-slate-500 hover:border-teal-300 hover:text-teal-700'}`}
+          >
+            Premium
+          </button>
+        </div>
+
+        {tierFeedback && (
+          <p className={`mt-3 text-sm rounded-xl px-3 py-2.5 ${tierFeedback.ok
+            ? 'text-emerald-700 bg-emerald-50'
+            : 'text-red-600 bg-red-50'}`}>
+            {tierFeedback.msg}
+          </p>
+        )}
+      </div>
     </form>
   )
 }

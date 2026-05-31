@@ -20,8 +20,12 @@ class BusinessRead(BaseModel):
     id: int
     name: str
     settings: dict
-    tier: str = "free"
+    tier: str
     model_config = {"from_attributes": True}
+
+
+class TierUpdate(BaseModel):
+    tier: str
 
 
 class BusinessSettingsUpdate(BaseModel):
@@ -81,3 +85,29 @@ def create_business(
     db.commit()
     db.refresh(biz)
     return biz
+
+
+@router.patch("/me/tier", response_model=BusinessRead)
+def set_tier(
+    body: TierUpdate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user),
+):
+    """Set the account tier for all of this user's businesses.
+
+    Accepts 'free' or 'premium'. Use this during testing to switch tiers
+    without going through billing. Billing in Phase 3.5 will own this field.
+    """
+    if body.tier not in ("free", "premium"):
+        raise HTTPException(400, "tier must be 'free' or 'premium'")
+    all_biz = db.query(Business).filter(Business.user_id == user_id).all()
+    if not all_biz:
+        raise HTTPException(404, "No businesses found for this account")
+    for biz in all_biz:
+        settings = dict(biz.settings or {})
+        settings["tier"] = body.tier
+        biz.settings = settings
+        flag_modified(biz, "settings")
+    db.commit()
+    first = db.query(Business).filter(Business.user_id == user_id).order_by(Business.id).first()
+    return first

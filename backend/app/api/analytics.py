@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_business
 from app.db import get_db
 from app.engine.accuracy import forecast_errors, mad, mape, mse, tracking_signal
+from app.engine.limits import history_cutoff
 from app.engine.monthly import monthly_summary
 from app.engine.ensemble import blend, model_weights, prediction_interval
 from app.engine.forecasting import exponential_smoothing, weighted_moving_average
@@ -84,11 +85,13 @@ def _clean_records(db: Session, biz: Business) -> list[DayRecord]:
     - Records the user resolved as 'excluded' (fluke) or 'event'.
     - Records whose weekday is a configured closed day (spec: closed days
       are excluded from forecasting entirely, not treated as zero).
+    - Records older than the tier's history cap (free: 365 days).
     Records with outlier_status='flagged' (unreviewed) ARE included; their
     values are down-weighted by _effective_obs() rather than discarded.
     Un-logged open days are simply absent — never filled with zero.
     """
     open_days = _open_days(biz)
+    cutoff = history_cutoff(biz.tier, date.today())
 
     periods = db.query(Period).filter_by(business_id=biz.id).all()
     blocked: set[date] = set()
@@ -98,12 +101,13 @@ def _clean_records(db: Session, biz: Business) -> list[DayRecord]:
             blocked.add(d)
             d += timedelta(days=1)
 
+    query = db.query(DayRecord).filter_by(business_id=biz.id)
+    if cutoff is not None:
+        query = query.filter(DayRecord.date >= cutoff)
+
     return [
         r
-        for r in db.query(DayRecord)
-        .filter_by(business_id=biz.id)
-        .order_by(DayRecord.date)
-        .all()
+        for r in query.order_by(DayRecord.date).all()
         if r.date not in blocked
         and r.outlier_status not in ("excluded", "event")
         and (open_days is None or r.date.weekday() in open_days)

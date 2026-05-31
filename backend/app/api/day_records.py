@@ -1,8 +1,10 @@
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
+from app.engine.limits import check_history, history_cutoff
 from app.engine.outliers import detect_outliers
 from app.models import Business, DayRecord
 from app.schemas.day_record import (
@@ -50,16 +52,19 @@ def _auto_flag_outliers(db: Session, business_id: int) -> None:
 
 @router.get("", response_model=list[DayRecordRead])
 def list_day_records(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    return (
-        db.query(DayRecord)
-        .filter_by(business_id=biz.id)
-        .order_by(DayRecord.date)
-        .all()
-    )
+    query = db.query(DayRecord).filter_by(business_id=biz.id)
+    cutoff = history_cutoff(biz.tier, date.today())
+    if cutoff is not None:
+        query = query.filter(DayRecord.date >= cutoff)
+    return query.order_by(DayRecord.date).all()
 
 
 @router.post("", response_model=DayRecordRead, status_code=201)
 def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+    try:
+        check_history(biz.tier, body.date, date.today())
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     row = DayRecord(business_id=biz.id, **body.model_dump())
     db.add(row)
     db.commit()

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
+from app.engine.limits import check_periods
 from app.models import Business, Period
 from app.schemas.period import PeriodCreate, PeriodRead, PeriodUpdate
 
@@ -23,6 +24,11 @@ def list_periods(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
 @router.post("", response_model=PeriodRead, status_code=201)
 def create_period(body: PeriodCreate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+    count = db.query(Period).filter_by(business_id=biz.id).count()
+    try:
+        check_periods(biz.tier, count)
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     row = Period(business_id=biz.id, **body.model_dump())
     db.add(row)
     db.commit()

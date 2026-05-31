@@ -47,9 +47,21 @@ async function authHeaders(): Promise<Record<string, string>> {
   return headers
 }
 
+// Extract a readable message from a failed response.
+// FastAPI wraps errors as {"detail": "..."} — pull that out so the UI
+// shows the plain-language message rather than raw JSON.
+async function extractError(res: Response): Promise<string> {
+  const text = await res.text()
+  try {
+    const json = JSON.parse(text)
+    if (typeof json.detail === 'string') return json.detail
+  } catch { /* fall through */ }
+  return text
+}
+
 async function GET<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { headers: await authHeaders() })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw new Error(await extractError(res))
   return res.json()
 }
 
@@ -57,7 +69,7 @@ async function POST<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST', headers: await authHeaders(), body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw new Error(await extractError(res))
   return res.json()
 }
 
@@ -65,20 +77,20 @@ async function PUT<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'PUT', headers: await authHeaders(), body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw new Error(await extractError(res))
   return res.json()
 }
 
 async function DELETE(path: string): Promise<void> {
   const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: await authHeaders() })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw new Error(await extractError(res))
 }
 
 async function PATCH<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'PATCH', headers: await authHeaders(), body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await res.text())
+  if (!res.ok) throw new Error(await extractError(res))
   return res.json()
 }
 
@@ -92,6 +104,7 @@ export const businesses = {
     closing_hour?: number
     avg_service_time_minutes?: number
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
+  setTier: (tier: 'free' | 'premium') => PATCH<BusinessRead>('/businesses/me/tier', { tier }),
 }
 
 export const dayRecords = {
