@@ -20,3 +20,5 @@ class Product(Base):
     holding_cost: Mapped[Optional[float]] = mapped_column(nullable=True)
     order_cost: Mapped[Optional[float]] = mapped_column(nullable=True)
     service_time_minutes: Mapped[Optional[float]] = mapped_column(nullable=True)
+    storage_capacity: Mapped[Optional[float]] = mapped_column(nullable=True)
+    shelf_life_days: Mapped[Optional[int]] = mapped_column(nullable=True)

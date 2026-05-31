@@ -13,6 +13,8 @@ class ProductCreate(BaseModel):
     holding_cost: Optional[float] = Field(None, ge=0)
     order_cost: Optional[float] = Field(None, ge=0)
     service_time_minutes: Optional[float] = Field(None, gt=0)
+    storage_capacity: Optional[float] = Field(None, gt=0)
+    shelf_life_days: Optional[int] = Field(None, ge=1)
 
 
 class ProductUpdate(BaseModel):
@@ -23,6 +25,8 @@ class ProductUpdate(BaseModel):
     holding_cost: Optional[float] = Field(None, ge=0)
     order_cost: Optional[float] = Field(None, ge=0)
     service_time_minutes: Optional[float] = Field(None, gt=0)
+    storage_capacity: Optional[float] = Field(None, gt=0)
+    shelf_life_days: Optional[int] = Field(None, ge=1)
 
 
 class ProductRead(BaseModel):
@@ -35,5 +39,7 @@ class ProductRead(BaseModel):
     holding_cost: Optional[float]
     order_cost: Optional[float]
     service_time_minutes: Optional[float]
+    storage_capacity: Optional[float]
+    shelf_life_days: Optional[int]
 
     model_config = {"from_attributes": True}

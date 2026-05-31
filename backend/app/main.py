@@ -12,9 +12,25 @@ from app.models import Base
 from app.api import businesses, day_records, products, sale_events, sales, periods, analytics
 
 
+def _migrate_sqlite_products(eng) -> None:
+    """Add new optional columns to the products table if they don't exist yet."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(eng)
+    if "products" not in inspector.get_table_names():
+        return
+    existing = {col["name"] for col in inspector.get_columns("products")}
+    with eng.connect() as conn:
+        if "storage_capacity" not in existing:
+            conn.execute(text("ALTER TABLE products ADD COLUMN storage_capacity REAL"))
+        if "shelf_life_days" not in existing:
+            conn.execute(text("ALTER TABLE products ADD COLUMN shelf_life_days INTEGER"))
+        conn.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(engine)
+    _migrate_sqlite_products(engine)
     yield
 
 

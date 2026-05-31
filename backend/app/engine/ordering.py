@@ -64,6 +64,52 @@ def economic_order_quantity(
     return math.sqrt(2 * annual_demand * order_cost / holding_cost_per_unit)
 
 
+def apply_order_constraints(
+    base_order: float,
+    *,
+    storage_capacity: float | None = None,
+    current_stock: float | None = None,
+    shelf_life_days: int | None = None,
+    avg_daily_demand: float | None = None,
+) -> tuple[float, list[str]]:
+    """Cap a base order recommendation by storage and shelf-life constraints.
+
+    Returns (capped_order, notes) where notes contains a plain-language message
+    for each constraint that is actually binding.  When neither constraint is set,
+    the order passes through unchanged and notes is empty.
+
+    Args:
+        base_order: unconstrained recommended order quantity.
+        storage_capacity: max units that physically fit (None = no cap).
+        current_stock: units already on hand (defaults to 0 when None).
+        shelf_life_days: days before the product spoils (None = no cap).
+        avg_daily_demand: average daily units sold — required when shelf_life_days
+                          is set; ignored otherwise.
+    """
+    order = base_order
+    notes: list[str] = []
+
+    if storage_capacity is not None:
+        stock = current_stock if current_stock is not None else 0.0
+        available_space = max(0.0, storage_capacity - stock)
+        if order > available_space:
+            order = available_space
+            notes.append(
+                f"Capped at {available_space:.0f} — your storage limit."
+            )
+
+    if shelf_life_days is not None and avg_daily_demand is not None:
+        sellable = avg_daily_demand * shelf_life_days
+        if order > sellable:
+            order = min(order, sellable)
+            notes.append(
+                f"Capped at {sellable:.0f} — more would spoil before selling "
+                f"(shelf life: {shelf_life_days} days)."
+            )
+
+    return order, notes
+
+
 def service_level_z(service_level: float) -> float:
     """Normal-distribution z-score for a given service level (e.g. 0.95 → 1.645).
 

@@ -4,6 +4,7 @@ Known-answer tests for engine/ordering.py — spec section 12 cases plus edge ca
 import math
 import pytest
 from app.engine.ordering import (
+    apply_order_constraints,
     demand_over_lead_time,
     safety_stock,
     reorder_point,
@@ -131,3 +132,120 @@ def test_service_level_z_boundary():
         service_level_z(1.0)
     with pytest.raises(ValueError):
         service_level_z(1.5)
+
+
+# ---------------------------------------------------------------------------
+# apply_order_constraints
+# ---------------------------------------------------------------------------
+
+def test_no_constraints_passthrough():
+    """No storage_capacity or shelf_life_days → order unchanged, no notes."""
+    order, notes = apply_order_constraints(100.0)
+    assert order == pytest.approx(100.0)
+    assert notes == []
+
+
+def test_storage_cap_is_binding():
+    """Order exceeds available storage space → capped with a note."""
+    order, notes = apply_order_constraints(
+        200.0, storage_capacity=150.0, current_stock=0.0
+    )
+    assert order == pytest.approx(150.0)
+    assert len(notes) == 1
+    assert "storage" in notes[0].lower()
+
+
+def test_storage_cap_accounts_for_existing_stock():
+    """Available space = capacity − current_stock."""
+    order, notes = apply_order_constraints(
+        200.0, storage_capacity=150.0, current_stock=50.0
+    )
+    assert order == pytest.approx(100.0)
+    assert "storage" in notes[0].lower()
+
+
+def test_storage_cap_none_current_stock_treated_as_zero():
+    """current_stock=None should default to 0, so space = capacity."""
+    order, notes = apply_order_constraints(
+        200.0, storage_capacity=150.0, current_stock=None
+    )
+    assert order == pytest.approx(150.0)
+
+
+def test_storage_not_binding_no_note():
+    """Order fits within storage → no cap applied, no notes."""
+    order, notes = apply_order_constraints(
+        80.0, storage_capacity=150.0, current_stock=0.0
+    )
+    assert order == pytest.approx(80.0)
+    assert notes == []
+
+
+def test_shelf_life_cap_is_binding():
+    """Order exceeds what can sell before spoilage → capped with a note."""
+    # avg daily demand 10, shelf life 7 days → sellable = 70
+    order, notes = apply_order_constraints(
+        120.0, shelf_life_days=7, avg_daily_demand=10.0
+    )
+    assert order == pytest.approx(70.0)
+    assert len(notes) == 1
+    assert "spoil" in notes[0].lower()
+
+
+def test_shelf_life_not_binding_no_note():
+    """Order is less than the sellable window → no cap, no notes."""
+    order, notes = apply_order_constraints(
+        50.0, shelf_life_days=7, avg_daily_demand=10.0
+    )
+    assert order == pytest.approx(50.0)
+    assert notes == []
+
+
+def test_both_constraints_binding():
+    """When both caps are tighter than the base order, both notes appear."""
+    # storage cap: 80 (capacity=100, stock=20 → space=80)
+    # shelf life cap: 70 (demand=10, days=7)
+    # tighter cap = shelf life = 70
+    order, notes = apply_order_constraints(
+        200.0,
+        storage_capacity=100.0,
+        current_stock=20.0,
+        shelf_life_days=7,
+        avg_daily_demand=10.0,
+    )
+    assert order == pytest.approx(70.0)
+    assert len(notes) == 2
+
+
+def test_both_constraints_only_storage_binding():
+    """Only storage binds; shelf life is looser."""
+    # storage: 50 (capacity=80, stock=30 → space=50)
+    # shelf life: 100 (demand=10, days=10) — not binding at 50
+    order, notes = apply_order_constraints(
+        90.0,
+        storage_capacity=80.0,
+        current_stock=30.0,
+        shelf_life_days=10,
+        avg_daily_demand=10.0,
+    )
+    assert order == pytest.approx(50.0)
+    assert len(notes) == 1
+    assert "storage" in notes[0].lower()
+
+
+def test_shelf_life_ignored_without_avg_demand():
+    """shelf_life_days set but avg_daily_demand not provided → no shelf cap."""
+    order, notes = apply_order_constraints(
+        200.0, shelf_life_days=7, avg_daily_demand=None
+    )
+    assert order == pytest.approx(200.0)
+    assert notes == []
+
+
+def test_stock_full_order_zero():
+    """If stock already fills storage, recommended order collapses to 0."""
+    order, notes = apply_order_constraints(
+        50.0, storage_capacity=100.0, current_stock=100.0
+    )
+    assert order == pytest.approx(0.0)
+    assert "storage" in notes[0].lower()
