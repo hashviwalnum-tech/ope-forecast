@@ -45,3 +45,24 @@ def utilisation(
         return 0.0
     mu = 60.0 / avg_service_time_minutes
     return arrivals_per_hour / (servers * mu)
+
+
+def effective_service_time(
+    product_mix: list[tuple[float, float | None]],
+    default_service_time_minutes: float,
+) -> float:
+    """Weighted-average service time across a product mix.
+
+    Each element of product_mix is (quantity, service_time_minutes_or_None).
+    None means the product has no override — use the business default.
+    Falls back to default when the mix is empty or all quantities are zero.
+    """
+    total_qty = sum(qty for qty, _ in product_mix if qty > 0)
+    if total_qty <= 0:
+        return default_service_time_minutes
+    weighted = sum(
+        qty * (svc if svc is not None else default_service_time_minutes)
+        for qty, svc in product_mix
+        if qty > 0
+    )
+    return weighted / total_qty

@@ -19,7 +19,7 @@ from app.db import get_db
 from app.engine.accuracy import forecast_errors, mad, mape, mse, tracking_signal
 from app.engine.ensemble import blend, model_weights, prediction_interval
 from app.engine.forecasting import exponential_smoothing, weighted_moving_average
-from app.engine.live_sales import hourly_averages
+from app.engine.live_sales import hourly_averages, hourly_product_mix
 from app.engine.ordering import (
     economic_order_quantity,
     reorder_point,
@@ -27,7 +27,7 @@ from app.engine.ordering import (
     service_level_z,
 )
 from app.engine.outliers import detect_outliers
-from app.engine.queueing import min_servers
+from app.engine.queueing import effective_service_time, min_servers
 from app.engine.seasonality import seasonal_naive_forecast
 from app.models import Business, DayRecord, ForecastRun, Period, Product, SaleEvent, SaleRecord
 from app.schemas.analytics import (
@@ -745,10 +745,19 @@ def get_hourly_analytics(
         )
 
     avgs = hourly_averages(raw, open_hours)
+    mix_by_hour = hourly_product_mix(raw, open_hours)
+
+    # Build a product_id → service_time_minutes lookup (None when not set)
+    products_list = db.query(Product).filter_by(business_id=biz.id).all()
+    svc_by_pid: dict[int, float | None] = {p.id: p.service_time_minutes for p in products_list}
 
     hours: list[HourlySlotAvg] = []
     for hour, avg_taps, n in avgs:
-        staff = min_servers(avg_taps, avg_svc)
+        hour_mix = mix_by_hour.get(hour, {})
+        # (quantity, service_time_or_None) — None product_id or no override → falls back to default
+        product_mix_pairs = [(qty, svc_by_pid.get(pid)) for pid, qty in hour_mix.items()]
+        eff_svc = effective_service_time(product_mix_pairs, avg_svc) if product_mix_pairs else avg_svc
+        staff = min_servers(avg_taps, eff_svc)
         time_range = _fmt_hour_range(hour)
         word = "person" if staff == 1 else "people"
         hours.append(HourlySlotAvg(

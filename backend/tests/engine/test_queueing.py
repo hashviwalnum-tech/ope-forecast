@@ -1,5 +1,5 @@
 """Known-answer tests for engine.queueing."""
-from app.engine.queueing import min_servers, utilisation, UTILISATION_CAP
+from app.engine.queueing import effective_service_time, min_servers, utilisation, UTILISATION_CAP
 
 
 # ── min_servers ───────────────────────────────────────────────────────────────
@@ -65,3 +65,51 @@ def test_min_servers_result_keeps_utilisation_below_cap():
             assert rho < UTILISATION_CAP, (
                 f"λ={lam}, svc={svc}, c={c}, ρ={rho:.3f} ≥ {UTILISATION_CAP}"
             )
+
+
+# ── effective_service_time ────────────────────────────────────────────────────
+
+def test_eff_svc_empty_mix_returns_default():
+    assert effective_service_time([], 8.0) == 8.0
+
+
+def test_eff_svc_zero_qty_returns_default():
+    # All quantities zero → falls back to default
+    assert effective_service_time([(0.0, 30.0)], 8.0) == 8.0
+
+
+def test_eff_svc_all_none_overrides_use_default():
+    # No product overrides → result equals default
+    mix = [(10.0, None), (5.0, None)]
+    assert effective_service_time(mix, 8.0) == 8.0
+
+
+def test_eff_svc_single_product_override():
+    # Only one product with an explicit time → result is that time
+    mix = [(10.0, 15.0)]
+    assert abs(effective_service_time(mix, 8.0) - 15.0) < 1e-9
+
+
+def test_eff_svc_equal_quantities_averages_times():
+    # 10 units at 20 min, 10 units at default (10 min) → avg = 15
+    mix = [(10.0, 20.0), (10.0, None)]
+    assert abs(effective_service_time(mix, 10.0) - 15.0) < 1e-9
+
+
+def test_eff_svc_weighted_by_quantity():
+    # 4 units at 5 min + 1 unit at 25 min → (4*5 + 1*25) / 5 = 45/5 = 9.0
+    mix = [(4.0, 5.0), (1.0, 25.0)]
+    assert abs(effective_service_time(mix, 5.0) - 9.0) < 1e-9
+
+
+def test_eff_svc_spa_example():
+    # Spa: 2 massages (60 min) + 8 express treatments (10 min), default 30 min
+    # weighted = (2*60 + 8*10) / 10 = (120 + 80) / 10 = 20.0
+    mix = [(2.0, 60.0), (8.0, 10.0)]
+    assert abs(effective_service_time(mix, 30.0) - 20.0) < 1e-9
+
+
+def test_eff_svc_ignores_zero_qty_items():
+    # A product with qty=0 must not affect the result
+    mix = [(5.0, 10.0), (0.0, 60.0)]
+    assert abs(effective_service_time(mix, 5.0) - 10.0) < 1e-9

@@ -37,6 +37,23 @@ def rollup_by_hour(
     return result
 
 
+def hourly_product_mix(
+    events: list[tuple[date, int, int | None, float]],
+    open_hours: set[int] | None = None,
+) -> dict[int, dict[int | None, float]]:
+    """Return {hour: {product_id_or_None: total_quantity}} across all days.
+
+    Quantities are totals (not per-day averages) — the ratio between products
+    is all that matters for weighted service-time math, so the n_days divisor
+    cancels out and is not applied here.
+    """
+    totals: dict[int, dict[int | None, float]] = defaultdict(lambda: defaultdict(float))
+    for _day, hour, pid, qty in events:
+        if open_hours is None or hour in open_hours:
+            totals[hour][pid] += qty
+    return {h: dict(mix) for h, mix in totals.items()}
+
+
 def hourly_averages(
     events: list[tuple[date, int, int | None, float]],
     open_hours: set[int] | None = None,

@@ -19,3 +19,4 @@ class Product(Base):
     lead_time_days: Mapped[int]
     holding_cost: Mapped[Optional[float]] = mapped_column(nullable=True)
     order_cost: Mapped[Optional[float]] = mapped_column(nullable=True)
+    service_time_minutes: Mapped[Optional[float]] = mapped_column(nullable=True)

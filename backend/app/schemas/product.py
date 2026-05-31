@@ -12,6 +12,7 @@ class ProductCreate(BaseModel):
     lead_time_days: int = Field(..., ge=1)
     holding_cost: Optional[float] = Field(None, ge=0)
     order_cost: Optional[float] = Field(None, ge=0)
+    service_time_minutes: Optional[float] = Field(None, gt=0)
 
 
 class ProductUpdate(BaseModel):
@@ -21,6 +22,7 @@ class ProductUpdate(BaseModel):
     lead_time_days: Optional[int] = Field(None, ge=1)
     holding_cost: Optional[float] = Field(None, ge=0)
     order_cost: Optional[float] = Field(None, ge=0)
+    service_time_minutes: Optional[float] = Field(None, gt=0)
 
 
 class ProductRead(BaseModel):
@@ -32,5 +34,6 @@ class ProductRead(BaseModel):
     lead_time_days: int
     holding_cost: Optional[float]
     order_cost: Optional[float]
+    service_time_minutes: Optional[float]
 
     model_config = {"from_attributes": True}
