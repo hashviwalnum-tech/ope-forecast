@@ -25,9 +25,10 @@ class BusinessRead(BaseModel):
 
 
 class BusinessSettingsUpdate(BaseModel):
-    opening_days: list[int] | None = None  # 0=Mon … 6=Sun
-    opening_hour: int | None = None        # 0–23
-    closing_hour: int | None = None        # 0–23
+    opening_days: list[int] | None = None           # 0=Mon … 6=Sun
+    opening_hour: int | None = None                 # 0–23
+    closing_hour: int | None = None                 # 0–23
+    avg_service_time_minutes: float | None = None   # minutes to serve one customer
 
 
 @router.get("", response_model=list[BusinessRead])

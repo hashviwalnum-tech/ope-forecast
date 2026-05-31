@@ -19,6 +19,7 @@ from app.db import get_db
 from app.engine.accuracy import forecast_errors, mad, mape, mse, tracking_signal
 from app.engine.ensemble import blend, model_weights, prediction_interval
 from app.engine.forecasting import exponential_smoothing, weighted_moving_average
+from app.engine.live_sales import hourly_averages
 from app.engine.ordering import (
     economic_order_quantity,
     reorder_point,
@@ -26,14 +27,17 @@ from app.engine.ordering import (
     service_level_z,
 )
 from app.engine.outliers import detect_outliers
+from app.engine.queueing import min_servers
 from app.engine.seasonality import seasonal_naive_forecast
-from app.models import Business, DayRecord, ForecastRun, Period, Product, SaleRecord
+from app.models import Business, DayRecord, ForecastRun, Period, Product, SaleEvent, SaleRecord
 from app.schemas.analytics import (
     AccuracyResponse,
     ForecastDay,
     ForecastHistoryPoint,
     ForecastHistoryResponse,
     ForecastResponse,
+    HourlyAnalyticsResponse,
+    HourlySlotAvg,
     LiftResponse,
     OrderingResponse,
     OrderingRow,
@@ -665,3 +669,99 @@ def get_forecast_history(db: Session = Depends(get_db), biz: Business = Depends(
         )
 
     return ForecastHistoryResponse(status="ok", history=history)
+
+
+# ── /hourly-analytics ─────────────────────────────────────────────────────────
+
+MIN_HOURLY_DAYS = 7  # one week of tap data before patterns are meaningful
+
+
+def _fmt_hour_range(hour: int) -> str:
+    """Format a 1-hour window: 9→'9–10 am', 12→'12–1 pm', 17→'5–6 pm'."""
+    def _h(h: int) -> str:
+        h24 = h % 24
+        if h24 == 0:   return "12"
+        if h24 <= 12:  return str(h24)
+        return str(h24 - 12)
+
+    def _suf(h: int) -> str:
+        return "am" if h % 24 < 12 else "pm"
+
+    end = hour + 1
+    if _suf(hour) == _suf(end):
+        return f"{_h(hour)}–{_h(end)} {_suf(hour)}"
+    return f"{_h(hour)} {_suf(hour)}–{_h(end)} {_suf(end)}"
+
+
+@router.get("/hourly-analytics", response_model=HourlyAnalyticsResponse)
+def get_hourly_analytics(
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """Busiest-hour view and staffing recommendations from tap-recorded SaleEvents.
+
+    Respects opening_hour / closing_hour so off-hours are excluded.
+    Requires MIN_HOURLY_DAYS distinct days of tap data.
+    """
+    settings = biz.settings or {}
+    avg_svc = float(settings.get("avg_service_time_minutes", 5.0))
+    opening_hour = int(settings.get("opening_hour", 0))
+    closing_hour = int(settings.get("closing_hour", 24))
+    open_hours = set(range(opening_hour, closing_hour)) if closing_hour > opening_hour else None
+
+    events = (
+        db.query(SaleEvent)
+        .filter_by(business_id=biz.id)
+        .order_by(SaleEvent.timestamp)
+        .all()
+    )
+
+    if not events:
+        return HourlyAnalyticsResponse(
+            status="not_enough_data",
+            message=(
+                'No tap data yet. Use "Record a Sale" to log each customer '
+                'as they arrive — hourly patterns and staffing advice appear '
+                f'after {MIN_HOURLY_DAYS} different days of taps.'
+            ),
+            n_days_data=0,
+            avg_service_time_minutes=avg_svc,
+        )
+
+    raw = [(e.timestamp.date(), e.timestamp.hour, e.product_id, e.quantity) for e in events]
+    n_days = len({e.timestamp.date() for e in events})
+
+    if n_days < MIN_HOURLY_DAYS:
+        remaining = MIN_HOURLY_DAYS - n_days
+        return HourlyAnalyticsResponse(
+            status="not_enough_data",
+            message=(
+                f"Keep tapping! You have {n_days} day{'s' if n_days != 1 else ''} of tap data. "
+                f"Log about {remaining} more day{'s' if remaining != 1 else ''} "
+                f"for reliable hourly patterns."
+            ),
+            n_days_data=n_days,
+            avg_service_time_minutes=avg_svc,
+        )
+
+    avgs = hourly_averages(raw, open_hours)
+
+    hours: list[HourlySlotAvg] = []
+    for hour, avg_taps, n in avgs:
+        staff = min_servers(avg_taps, avg_svc)
+        time_range = _fmt_hour_range(hour)
+        word = "person" if staff == 1 else "people"
+        hours.append(HourlySlotAvg(
+            hour=hour,
+            avg_taps=avg_taps,
+            n_days=n,
+            recommended_staff=staff,
+            label=f"For {time_range}, schedule {staff} {word}",
+        ))
+
+    return HourlyAnalyticsResponse(
+        status="ok",
+        n_days_data=n_days,
+        avg_service_time_minutes=avg_svc,
+        hours=hours,
+    )

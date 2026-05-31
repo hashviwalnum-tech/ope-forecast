@@ -120,3 +120,21 @@ class ForecastHistoryResponse(BaseModel):
     status: str
     message: Optional[str] = None
     history: list[ForecastHistoryPoint]
+
+
+# ── hourly analytics & staffing ───────────────────────────────────────────────
+
+class HourlySlotAvg(BaseModel):
+    hour: int               # 0–23
+    avg_taps: float         # average taps/customers per day at this hour
+    n_days: int             # days in the dataset used to compute the average
+    recommended_staff: int  # min servers from M/M/c engine
+    label: str              # plain-language: "For 9–10 am, schedule 2 people"
+
+
+class HourlyAnalyticsResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+    n_days_data: int = 0
+    avg_service_time_minutes: float = 5.0
+    hours: list[HourlySlotAvg] = []

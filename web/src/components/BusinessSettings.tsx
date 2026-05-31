@@ -11,18 +11,20 @@ function hourLabel(h: number): string {
 }
 
 export default function BusinessSettings() {
-  const [openDays,     setOpenDays]     = useState<number[]>(ALL_DAYS)
-  const [openingHour,  setOpeningHour]  = useState<number>(9)
-  const [closingHour,  setClosingHour]  = useState<number>(22)
-  const [saving,       setSaving]       = useState(false)
-  const [feedback,     setFeedback]     = useState<{ ok: boolean; msg: string } | null>(null)
+  const [openDays,       setOpenDays]       = useState<number[]>(ALL_DAYS)
+  const [openingHour,    setOpeningHour]    = useState<number>(9)
+  const [closingHour,    setClosingHour]    = useState<number>(22)
+  const [avgServiceTime, setAvgServiceTime] = useState<number>(5)
+  const [saving,         setSaving]         = useState(false)
+  const [feedback,       setFeedback]       = useState<{ ok: boolean; msg: string } | null>(null)
 
   useEffect(() => {
     businesses.me().then(biz => {
       const s = biz.settings as Record<string, unknown>
-      if (Array.isArray(s.opening_days))   setOpenDays(s.opening_days as number[])
-      if (typeof s.opening_hour === 'number') setOpeningHour(s.opening_hour)
-      if (typeof s.closing_hour === 'number') setClosingHour(s.closing_hour)
+      if (Array.isArray(s.opening_days))             setOpenDays(s.opening_days as number[])
+      if (typeof s.opening_hour === 'number')        setOpeningHour(s.opening_hour)
+      if (typeof s.closing_hour === 'number')        setClosingHour(s.closing_hour)
+      if (typeof s.avg_service_time_minutes === 'number') setAvgServiceTime(s.avg_service_time_minutes)
     }).catch(() => {})
   }, [])
 
@@ -47,6 +49,7 @@ export default function BusinessSettings() {
         opening_days: openDays,
         opening_hour: openingHour,
         closing_hour: closingHour,
+        avg_service_time_minutes: avgServiceTime,
       })
       setFeedback({ ok: true, msg: 'Settings saved!' })
     } catch {
@@ -120,6 +123,29 @@ export default function BusinessSettings() {
               <option key={h} value={h}>{hourLabel(h)}</option>
             ))}
           </select>
+        </div>
+      </div>
+
+      {/* Average service time */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">
+          Average minutes to serve one customer
+        </label>
+        <p className="text-xs text-slate-400 mb-3 leading-relaxed">
+          Used to calculate staffing recommendations in <strong>Busy Hours</strong>.
+          A quick counter might be 2–3 min; a sit-down appointment might be 20–30 min.
+        </p>
+        <div className="flex items-center gap-3">
+          <input
+            type="number"
+            min={1}
+            max={120}
+            value={avgServiceTime}
+            onChange={e => setAvgServiceTime(Math.max(1, Number(e.target.value)))}
+            className="w-24 px-3 py-2.5 border border-slate-300 rounded-xl text-slate-900
+                       text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
+          />
+          <span className="text-sm text-slate-500">minutes per customer</span>
         </div>
       </div>
 

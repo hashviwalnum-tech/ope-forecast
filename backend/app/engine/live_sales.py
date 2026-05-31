@@ -8,6 +8,7 @@ so the function is trivially testable without ORM objects.
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import date
 
 
 def rollup_by_hour(
@@ -34,3 +35,35 @@ def rollup_by_hour(
             totals[pid] += qty
         result.append((hour, len(slots), dict(totals)))
     return result
+
+
+def hourly_averages(
+    events: list[tuple[date, int, int | None, float]],
+    open_hours: set[int] | None = None,
+) -> list[tuple[int, float, int]]:
+    """Average tap count per hour of day across all days in the dataset.
+
+    Args:
+        events:     list of (date, hour 0–23, product_id or None, quantity).
+        open_hours: hours to include (e.g. {9,10,...,21}).  None = all hours.
+
+    Returns:
+        Sorted list of (hour, avg_taps_per_day, n_days_in_dataset).
+        Only hours that have at least one tap in any day are returned.
+        The average denominates over the full dataset size (days with zero
+        taps at that hour count as zero, not as absent).
+    """
+    all_dates: set[date] = {ev[0] for ev in events}
+    n_days = len(all_dates)
+    if n_days == 0:
+        return []
+
+    hour_totals: dict[int, int] = defaultdict(int)
+    for day, hour, _pid, _qty in events:
+        if open_hours is None or hour in open_hours:
+            hour_totals[hour] += 1
+
+    return [
+        (hour, round(hour_totals[hour] / n_days, 2), n_days)
+        for hour in sorted(hour_totals.keys())
+    ]

@@ -248,3 +248,21 @@ export interface SaleCreate {
 export interface SaleUpdate {
   units_sold: number
 }
+
+// ── hourly analytics & staffing ───────────────────────────────────────────────
+
+export interface HourlySlotAvg {
+  hour: number
+  avg_taps: number
+  n_days: number
+  recommended_staff: number
+  label: string
+}
+
+export interface HourlyAnalyticsResponse {
+  status: string
+  message?: string
+  n_days_data: number
+  avg_service_time_minutes: number
+  hours: HourlySlotAvg[]
+}

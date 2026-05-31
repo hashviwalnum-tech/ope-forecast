@@ -3,6 +3,7 @@ import type {
   AccuracyResponse,
   BusinessRead,
   DayRecordCreate,
+  HourlyAnalyticsResponse,
   DayRecordRead,
   DayRecordUpdate,
   ForecastHistoryResponse,
@@ -82,8 +83,12 @@ export const businesses = {
   list:   ()             => GET<BusinessRead[]>('/businesses'),
   me:     ()             => GET<BusinessRead>('/businesses/me'),
   create: (name: string) => POST<BusinessRead>('/businesses', { name }),
-  updateSettings: (settings: { opening_days?: number[]; opening_hour?: number; closing_hour?: number }) =>
-    PATCH<BusinessRead>('/businesses/me/settings', settings),
+  updateSettings: (settings: {
+    opening_days?: number[]
+    opening_hour?: number
+    closing_hour?: number
+    avg_service_time_minutes?: number
+  }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
 }
 
 export const dayRecords = {
@@ -121,12 +126,13 @@ export const sales = {
 }
 
 export const analytics = {
-  forecast:        () => GET<ForecastResponse>('/forecast'),
-  accuracy:        () => GET<AccuracyResponse>('/accuracy'),
-  weekdayAverages: () => GET<WeekdayAvgResponse>('/weekday-averages'),
-  ordering:        () => GET<OrderingResponse>('/ordering'),
-  forecastHistory: () => GET<ForecastHistoryResponse>('/forecast-history'),
-  lift:            () => GET<LiftResponse>('/lift'),
+  forecast:         () => GET<ForecastResponse>('/forecast'),
+  accuracy:         () => GET<AccuracyResponse>('/accuracy'),
+  weekdayAverages:  () => GET<WeekdayAvgResponse>('/weekday-averages'),
+  ordering:         () => GET<OrderingResponse>('/ordering'),
+  forecastHistory:  () => GET<ForecastHistoryResponse>('/forecast-history'),
+  lift:             () => GET<LiftResponse>('/lift'),
+  hourlyAnalytics:  () => GET<HourlyAnalyticsResponse>('/hourly-analytics'),
 }
 
 export const periods = {
