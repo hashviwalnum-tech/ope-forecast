@@ -56,8 +56,8 @@ export default function OutlierBanner({ onResolved }: Props) {
               <button
                 onClick={() => resolve(flag.day_record_id, 'event')}
                 disabled={resolving === flag.day_record_id}
-                className="px-3 py-2 bg-violet-100 text-violet-800 text-xs font-medium
-                           rounded-lg hover:bg-violet-200 disabled:opacity-50 transition-colors"
+                className="px-3 py-2 bg-teal-50 text-teal-700 border border-teal-200 text-xs font-medium
+                           rounded-lg hover:bg-teal-100 disabled:opacity-50 transition-colors"
               >
                 It was a special event
               </button>

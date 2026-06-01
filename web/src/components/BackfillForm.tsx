@@ -193,7 +193,7 @@ export default function BackfillForm({ onSaved }: Props) {
       {feedback && (
         <p className={`text-sm rounded-xl px-3 py-2.5 ${feedback.ok
           ? 'text-emerald-700 bg-emerald-50'
-          : 'text-red-600 bg-red-50'}`}>
+          : 'text-red-700 bg-red-50'}`}>
           {feedback.msg}
         </p>
       )}

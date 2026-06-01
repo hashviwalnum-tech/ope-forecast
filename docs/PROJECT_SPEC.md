@@ -18,6 +18,8 @@ A forecasting and decision tool for owners of small customer-facing businesses (
   - **Palette:** soft blue-green, relaxing rather than corporate or high-contrast. Blue as the primary, green as the accent (matching the logo). Plenty of whitespace, gentle rounded corners, no harsh pure-black-on-white.
   - **Plain language everywhere:** no jargon in the UI. Say "How busy will tomorrow be?" not "Forecast horizon"; "You'll likely need this much" not "Reorder point = …". Keep statistical terms (MAPE, tracking signal) in an optional "details" area, not the main view.
   - **Big, obvious controls:** large tap targets, clear single primary action per screen, readable font sizes. Assume a nervous first-time user on a phone.
+  - **Softer palette:** the blue-green is currently too bright — tone it down to calmer, lower-saturation shades. Easy on the eyes for daily use.
+  - **Information architecture — focus on the short term first, nest the rest.** The top level currently has too many buttons (~11), which overwhelms. Reorganize so the home screen leads with the immediate essentials — **this week's forecast, today/this-week's hours, and other short-term decisions** — and everything else (settings, products, past-data, history, analytics depth) is **grouped and nested** behind fewer, clearly-labelled entry points. The first thing the owner sees should answer "what do I need to know right now."
   - **Guidance over blank slates:** short helper text, sensible defaults, and friendly empty/"not enough data yet" states that reassure rather than alarm.
   - **Forgiving:** easy undo, confirm before anything destructive, and never punish a wrong tap.
 
@@ -84,7 +86,8 @@ Build features (hourly, staffing, monthly) one at a time, test-first where math 
 
 ### Phase 3.5 — Monetization (deferred until real users)
 - **Subscription billing** (Stripe on web) layered onto the premium-limit gating built in Phase 3.
-- **Ad placement** as an additional revenue stream — to be designed later. Note: keep ads tasteful and never compromise the calm, trustworthy feel for small-business owners.
+- **Ad placement** as an additional revenue stream. **Placement rules (non-negotiable for trust):** never pop-ups, never overlapping or covering content, never interrupting a flow. On **wide screens (desktop/tablet):** unobtrusive slots in the **side margins**. On **narrow screens (phone):** a single slim banner fixed at the very **bottom**, outside the content area. Always visually separated from real app content (subtle divider / different background) so an ad is never mistaken for part of Ope. **Removing ads is a premium perk** ("no ads"), tying into the premium model.
+- **Reserve the space NOW, fill it later (important):** during the Phase 3 UX work, build the *layout containers* for these ad slots (empty or with a subtle placeholder) so that wiring in a real ad network in Phase 3.5 requires no layout rework. Do not integrate an actual ad network yet — just reserve and style the space.
 - For mobile, App Store / Play in-app purchases are usually **required** for digital subscriptions and take a 15–30% cut with their own rules — design the premium flow with that in mind.
 
 ### Phase 4 — Mobile
@@ -138,7 +141,7 @@ Why Python for the engine: the forecasting math is the hard part, and `statsmode
 The app supports **two ways to get data in, feeding one shared analytical layer.** This is the key change driven by the tap-to-record idea.
 
 **Input mode A — daily totals (backfill & past data):** the owner enters end-of-day numbers. Two ways, both needed:
-- **Manual entry / backfill screen** — a dedicated screen to add or correct a *specific past day*, separate from "Add Today." Use a **date picker (clickable calendar)**, never a free-text date field, so there is zero date-format ambiguity. The current workaround of changing the date inside "Add Today" is not acceptable as the only option — past-data entry must be a clear, comfortable, first-class feature.
+- **Manual entry / backfill screen** — a dedicated screen to add or correct a *specific past day*, separate from "Add Today." Use a **date picker (clickable calendar)**, never a free-text date field, so there is zero date-format ambiguity. The current workaround of changing the date inside "Add Today" is not acceptable as the only option — past-data entry must be a clear, comfortable, first-class feature. **By default this captures daily totals only** (most owners won't recall hourly breakdowns for past days), but offer an **optional way to add hourly detail** for a past day when the owner does have it — e.g. from smart-register logs. This is the same hourly shape POS integration will later import automatically, so building the capability now is forward-compatible.
 - **CSV import** — for bulk history. Date handling must be robust: accept common formats, and **show the user how each date was interpreted before saving** (a preview), so DD/MM vs MM/DD confusion and Excel's auto-reformatting can't silently corrupt data. The on-screen example must actually match the stated expected format. Consider accepting ISO `yyyy-mm-dd` as canonical but tolerating others with the confirmation preview.
 
 **Input mode B — live transactions (going forward, and what registers emit):** the owner taps a product button the instant a customer buys it ("just sold bananas" → tap). Each tap is stored as a time-stamped event. This is the richer source: because every sale carries a timestamp, the **hourly view, busiest-hour analysis, and staffing recommendations all derive automatically from this same data** — no separate hourly data entry needed. It also mirrors exactly what a smart register produces, lining up with the end-state.
@@ -147,7 +150,7 @@ The app supports **two ways to get data in, feeding one shared analytical layer.
 
 ### Entities
 - **Business** — id, name, settings (opening days/hours, default lead time, target service level, average service time per customer for staffing). One row in Phase 1; FK to user in Phase 2. **Opening days/hours must be editable in a settings screen** — and the forecasting engine must use them: closed days are excluded from forecasting entirely (not treated as zero-customer days), and hourly features only consider open hours.
-- **Product** — id, business_id, name, unit, optional price, current_stock (optional), lead_time_days, holding_cost (optional), order_cost (optional). Products must be **quick to add and edit** — a fast "add product" flow is a Phase-1.5 priority (see roadmap).
+- **Product** — id, business_id, name, unit, optional price, current_stock (optional), lead_time_days, holding_cost (optional), order_cost (optional), **optional service_time_minutes (overrides the business default for staffing math)**, **optional storage_capacity (max units that physically fit), optional shelf_life_days (spoilage)**. The storage and shelf-life fields are **optional and off by default** — the app must work cleanly for products where neither applies (e.g. clothing has no shelf life; a large warehouse has effectively no storage cap). When present, they constrain ordering advice (see Ordering bridge). Products must be **quick to add and edit** — a fast "add product" flow is a Phase-1.5 priority (see roadmap).
 - **SaleEvent** *(mode B — live capture)* — id, business_id, product_id (nullable — a tap can record "a customer" with no specific product), timestamp, quantity (default 1), optional unit_price. The raw transaction stream; the foundation for hourly/staffing features and POS integration.
 - **DayRecord** *(mode A — daily totals, or the daily roll-up of SaleEvents)* — id, business_id, date (unique per business), customers (int), notes.
 - **SaleRecord** *(mode A)* — id, day_record_id, product_id, units_sold. Per-product daily totals when entered manually.
@@ -176,11 +179,14 @@ The app supports **two ways to get data in, feeding one shared analytical layer.
 - **Flag and ask — do not silently delete.** A spike is often *real and important* (holiday, viral day, competitor closed). When a day is flagged, prompt the owner in plain language: "Sunday looks unusually high (1,555 vs your usual ~150). One-off, or a real event?" Then they choose: mark it an event/ad (excluded from the normal baseline via the existing Period feature), exclude it as a fluke, or keep it as-is.
 - **Down-weight by default** until reviewed, so an un-handled extreme value can't dominate the average, but isn't fully discarded either. Silent deletion is forbidden — it would teach the model a falsely flat picture.
 
+**Per-product demand forecasting (core, currently a gap to fill):** the app must forecast demand **per product**, not only total customers — e.g. "order ~40 oranges." Each product's unit-sales history (from tap data / sale records) feeds the same forecasting engine to produce a per-product forecast and order recommendation. The UI must let the owner **filter to a single product** and see just its forecast and order advice.
+
 **Ordering bridge** (this is what turns a forecast into a decision):
 - Expected demand over lead time = forecast summed across the next `lead_time_days`.
 - Safety stock = `z × σ_dLT`, where `z` is the service-level z-score and `σ_dLT` is the std dev of demand over the lead time.
 - **Reorder point = expected demand over lead time + safety stock.** Recommend ordering up to (or above) the upper prediction interval to avoid stockouts.
 - Optional **EOQ** = `√(2DS/H)` when the product has order cost `S` and holding cost `H`.
+- **Storage & shelf-life constraints (optional, per product):** when a product has `storage_capacity`, never recommend ordering beyond what fits. When it has `shelf_life_days`, never recommend ordering more than can realistically sell before spoilage (cap the order at forecast demand over the shelf-life window). If neither is set, ordering advice is unconstrained. Surface a plain-language note when a constraint is binding ("capped at 200 — your storage limit").
 
 ## 7. Formula catalog
 
@@ -212,6 +218,8 @@ These answer "given the demand, are my registers/staff enough and how long do pe
 - **Utilization** — `λ / (servers × μ)`, where μ is service rate per server.
 - **Queue / waiting time** — M/M/1 and M/M/c expected wait and queue length; pairs with the busiest-hour feature to suggest how many registers to open at peak.
 - **Staffing per shift** — using the hourly arrival rate (λ) from tap-captured data and the average service time per customer, find the smallest number of servers/registers `c` that keeps utilization below a safe threshold (and expected wait under a target). This turns the queueing math into a plain answer: "for the 5–6pm rush, schedule 3 people." Depends on Phase 1.5 transaction capture for the hourly λ.
+  - **Service time is per-product, not one flat average.** Each business has a **default average service time**, but individual products/services can **override** it (e.g. a spa: massage = 60 min, express service = 10 min; a café might just use the default). Staffing math must weight by the **actual product mix sold in each hour**, not a blanket average — otherwise a mix of long and short services gives misleading advice. Keep the simple case simple: a business that doesn't set per-product times just uses the default for everything.
+  - **Marginal-worker value (owner-requested):** show the owner what *adding or removing one worker* does — e.g. "adding a 3rd person at 5–6pm cuts the average wait from 8 min to 3 min." This is the queueing math run at c and c±1 and compared, so a hire/scheduling decision is concrete. Pair with showing the **expected wait time / queue length** at current staffing, derived from the average arrival and service rates.
 
 ## 8. Event / ad effectiveness method
 
@@ -224,6 +232,7 @@ Do not compare raw sales during a promo to a random baseline. Instead: have the 
 - Annual seasonality: realistically needs ≈ 2 years — most users won't have it, so make it a "someday" feature, not a Phase-1 promise.
 - Always surface a clear "not enough data yet — keep logging" state instead of a misleading number.
 - **A missing day means "no data," never "zero customers."** Days the owner simply didn't log must be ignored by the engine, not counted as zero — otherwise gaps drag forecasts down. Combined with opening-days settings: closed days are expected-absent and excluded; open days with no entry are treated as missing data, not zero.
+- **Entry-timing rules (owner-requested data integrity):** do not allow logging or editing *today's* totals while the business is still open / the day hasn't finished, and do not allow live input outside opening hours — this keeps a day's data from being recorded half-complete. **Exception:** genuinely past days remain editable via the manual backfill screen. So the rule is "don't record a day that isn't finished or isn't within open hours," not "never touch history."
 - **Show progress toward reliability.** Display how many days/weeks have been logged and, when below the thresholds above, a friendly "log about N more days for reliable forecasts" message — so the owner understands *why* a forecast is or isn't shown yet, rather than guessing.
 
 ## 10. Free vs premium gating

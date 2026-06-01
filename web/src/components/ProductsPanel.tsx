@@ -195,7 +195,7 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
       )}
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
           {error}
         </p>
       )}
@@ -357,7 +357,7 @@ function EditProductForm({
       </div>
 
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
           {error}
         </p>
       )}
@@ -493,7 +493,7 @@ export default function ProductsPanel() {
 
       {/* ── product list ── */}
       {productList.length > 0 ? (
-        <section className="bg-white rounded-2xl border border-slate-200 px-6 py-5 shadow-sm">
+        <section className="bg-white rounded-2xl border border-teal-100 px-6 py-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-800 mb-1">
             Your products
             <span className="ml-2 text-sm font-normal text-slate-400">({productList.length})</span>

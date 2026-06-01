@@ -32,36 +32,10 @@ Phase 1 = MVP, **no login / no billing / single local user**. Prove the forecast
 - Do not hard-code forecast weights. The ensemble learns them from recent per-weekday error (spec section 2).
 - Exclude event/ad periods from the "normal" baseline when training.
 - Strong typing both sides (Pydantic + TypeScript).
+- **Design discipline (applies to EVERY change):** integrate new features into the existing navigation and design language (spec §1.5). Do NOT add new top-level buttons or spread options that increase visible choice/clutter — nest sensibly behind existing entry points. Preserve the calm, focused, low-saturation, technophobe-friendly feel and match the existing look exactly. A clean, focused interface matters more than exposing every function. When unsure how something fits the UI, propose a plan first rather than bolting on controls.
 
 ## Commands
-
-**One-time setup (already done — skip if venv and node_modules exist):**
-```
-# Backend
-cd backend
-python -m venv venv
-venv\Scripts\pip install -r requirements.txt
-
-# Web (HUJI network needs strict-ssl disabled)
-npm config set strict-ssl false
-cd web
-npm install
-```
-
-**Backend dev server** (runs on http://localhost:8000, docs at /docs):
-```
-cd backend
-venv\Scripts\uvicorn app.main:app --reload
-```
-
-**Backend tests:**
-```
-cd backend
-venv\Scripts\pytest
-```
-
-**Web dev server** (runs on http://localhost:5173):
-```
-cd web
-npm run dev
-```
+(To be filled in once scaffolded.)
+- Backend dev server: `uvicorn app.main:app --reload` (from `backend/`)
+- Backend tests: `pytest` (from `backend/`)
+- Web dev server: `npm run dev` (from `web/`)

@@ -294,7 +294,7 @@ export default function CsvImport({ onImported }: Props) {
       )}
 
       {result && (
-        <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+        <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
           {result}
         </p>
       )}

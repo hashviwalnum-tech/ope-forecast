@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --color-teal-50:  #f2f8f7;
+  --color-teal-100: #daeae8;
+  --color-teal-200: #b8d5d2;
+  --color-teal-300: #8bbcb8;
+  --color-teal-400: #6ba3a0;
+  --color-teal-500: #4e8b87;
+  --color-teal-600: #3a7470;
+  --color-teal-700: #2c5e5a;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; background: var(--color-teal-100); }
+body { margin: 0; background: var(--color-teal-50); }
 #root { min-height: 100vh; }

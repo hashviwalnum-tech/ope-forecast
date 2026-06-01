@@ -171,7 +171,7 @@ export default function BusinessSettings() {
       {feedback && (
         <p className={`text-sm rounded-xl px-3 py-2.5 ${feedback.ok
           ? 'text-emerald-700 bg-emerald-50'
-          : 'text-red-600 bg-red-50'}`}>
+          : 'text-red-700 bg-red-50'}`}>
           {feedback.msg}
         </p>
       )}
@@ -221,7 +221,7 @@ export default function BusinessSettings() {
         {tierFeedback && (
           <p className={`mt-3 text-sm rounded-xl px-3 py-2.5 ${tierFeedback.ok
             ? 'text-emerald-700 bg-emerald-50'
-            : 'text-red-600 bg-red-50'}`}>
+            : 'text-red-700 bg-red-50'}`}>
             {tierFeedback.msg}
           </p>
         )}

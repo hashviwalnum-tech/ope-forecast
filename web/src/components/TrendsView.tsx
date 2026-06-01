@@ -216,7 +216,7 @@ export default function TrendsView() {
         </p>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={barData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0fdfa" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
             <XAxis
               dataKey="name"
               tick={{ fontSize: 10, fill: '#94a3b8' }}
@@ -241,7 +241,7 @@ export default function TrendsView() {
                 return [value, name]
               }}
             />
-            <Bar dataKey="avg" fill="#14b8a6" radius={[4, 4, 0, 0]} maxBarSize={56} />
+            <Bar dataKey="avg" fill="#4e8b87" radius={[4, 4, 0, 0]} maxBarSize={56} />
           </BarChart>
         </ResponsiveContainer>
       </section>
@@ -260,11 +260,11 @@ export default function TrendsView() {
             <AreaChart data={lineData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
               <defs>
                 <linearGradient id="histGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#14b8a6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.02} />
+                  <stop offset="5%"  stopColor="#4e8b87" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#4e8b87" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0fdfa" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
               <XAxis
                 dataKey="label"
                 tick={{ fontSize: 10, fill: '#94a3b8' }}
@@ -290,11 +290,11 @@ export default function TrendsView() {
               <Area
                 type="monotone"
                 dataKey="customers"
-                stroke="#0d9488"
+                stroke="#3a7470"
                 strokeWidth={1.5}
                 fill="url(#histGrad)"
                 dot={lineData.length <= 60}
-                activeDot={{ r: 4, fill: '#0d9488' }}
+                activeDot={{ r: 4, fill: '#3a7470' }}
               />
             </AreaChart>
           </ResponsiveContainer>

@@ -36,7 +36,7 @@ function TypeBadge({ type }: { type: string }) {
 
 function LiftCard({ lift }: { lift: PeriodLift }) {
   const positive = lift.total_lift_customers >= 0
-  const liftColor = positive ? 'text-emerald-600' : 'text-red-600'
+  const liftColor = positive ? 'text-emerald-700' : 'text-red-700'
   const liftBg    = positive ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
 
   return (
@@ -225,7 +225,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       </div>
 
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
           {error}
         </p>
       )}
@@ -327,7 +327,7 @@ export default function PeriodsPanel() {
 
       {/* ── period list ── */}
       {periodList.length > 0 && (
-        <section className="bg-white rounded-xl border border-slate-200 px-6 py-5 shadow-sm">
+        <section className="bg-white rounded-2xl border border-teal-100 px-6 py-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-800 mb-3">
             Saved Periods
             <span className="ml-2 text-sm font-normal text-slate-400">({periodList.length})</span>

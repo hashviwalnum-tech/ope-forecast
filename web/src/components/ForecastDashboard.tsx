@@ -19,6 +19,7 @@ import type {
   OrderingResponse,
   WeekdayAvgResponse,
 } from '../api/types'
+import ProductForecastPanel from './ProductForecastPanel'
 
 // ── shared primitives ───────────────────────────────────────────────────────
 
@@ -74,11 +75,11 @@ function ForecastSection({ data }: { data: ForecastResponse | null }) {
       </p>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0fdfa" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fontSize: 11 }} width={36} axisLine={false} tickLine={false} />
           <Tooltip
-            cursor={{ fill: '#f0fdfa' }}
+            cursor={{ fill: '#f2f8f7' }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null
               const d = payload[0].payload
@@ -91,7 +92,7 @@ function ForecastSection({ data }: { data: ForecastResponse | null }) {
               )
             }}
           />
-          <Bar dataKey="predicted" fill="#0d9488" radius={[6, 6, 0, 0]} maxBarSize={56} />
+          <Bar dataKey="predicted" fill="#3a7470" radius={[6, 6, 0, 0]} maxBarSize={56} />
         </BarChart>
       </ResponsiveContainer>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -129,11 +130,11 @@ function WeekdaySection({ data }: { data: WeekdayAvgResponse | null }) {
     <Card title="Your typical week">
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0fdfa" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fontSize: 11 }} width={36} axisLine={false} tickLine={false} />
           <Tooltip
-            cursor={{ fill: '#f0fdfa' }}
+            cursor={{ fill: '#f2f8f7' }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null
               const d = payload[0].payload
@@ -145,7 +146,7 @@ function WeekdaySection({ data }: { data: WeekdayAvgResponse | null }) {
               )
             }}
           />
-          <Bar dataKey="avg" fill="#14b8a6" radius={[6, 6, 0, 0]} maxBarSize={56} name="Avg customers" />
+          <Bar dataKey="avg" fill="#4e8b87" radius={[6, 6, 0, 0]} maxBarSize={56} name="Avg customers" />
         </BarChart>
       </ResponsiveContainer>
     </Card>
@@ -174,7 +175,7 @@ function HistorySection({ data }: { data: ForecastHistoryResponse | null }) {
     <Card title="How our predictions did">
       <ResponsiveContainer width="100%" height={220}>
         <ComposedChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0fdfa" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" />
           <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fontSize: 11 }} width={36} axisLine={false} tickLine={false} />
           <Tooltip
@@ -194,11 +195,11 @@ function HistorySection({ data }: { data: ForecastHistoryResponse | null }) {
           />
           <Legend wrapperStyle={{ fontSize: 12 }} />
           <Line
-            type="monotone" dataKey="actual" stroke="#0d9488" strokeWidth={2}
-            dot={{ r: 3, fill: '#0d9488' }} name="Actual"
+            type="monotone" dataKey="actual" stroke="#3a7470" strokeWidth={2}
+            dot={{ r: 3, fill: '#3a7470' }} name="Actual"
           />
           <Line
-            type="monotone" dataKey="predicted" stroke="#f97316" strokeWidth={2}
+            type="monotone" dataKey="predicted" stroke="#6ba3a0" strokeWidth={2}
             strokeDasharray="5 4" dot={false} name="Predicted"
           />
         </ComposedChart>
@@ -226,7 +227,7 @@ function AccuracySection({ data }: { data: AccuracyResponse | null }) {
   }
 
   const tsAbs = data.tracking_signal != null ? Math.abs(data.tracking_signal) : 0
-  const tsColor = tsAbs > 4 ? 'text-red-600' : tsAbs > 2 ? 'text-amber-600' : 'text-slate-800'
+  const tsColor = tsAbs > 4 ? 'text-red-700' : tsAbs > 2 ? 'text-amber-700' : 'text-slate-800'
 
   return (
     <Card title="How well is the app doing?">
@@ -394,6 +395,7 @@ export default function ForecastDashboard({ refreshKey = 0 }: Props) {
       <HistorySection data={history} />
       <AccuracySection data={accuracy} />
       <OrderingSection data={ordering} />
+      <ProductForecastPanel refreshKey={refreshKey} />
     </div>
   )
 }

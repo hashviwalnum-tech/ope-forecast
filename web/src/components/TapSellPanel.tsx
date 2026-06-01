@@ -166,7 +166,7 @@ function HourlyChart({ hours }: { hours: HourSlot[] }) {
             labelStyle={{ color: '#334155', fontWeight: 600 }}
             formatter={(v) => [typeof v === 'number' ? v : 0, 'taps']}
           />
-          <Bar dataKey="taps" fill="#14b8a6" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="taps" fill="#4e8b87" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -179,7 +179,7 @@ function HourlyTable({ hours }: { hours: HourSlot[] }) {
   if (hours.length === 0) return null
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <div className="bg-white rounded-2xl border border-teal-100 overflow-hidden shadow-sm">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-100">

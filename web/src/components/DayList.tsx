@@ -99,7 +99,7 @@ export default function DayList({ refreshKey }: Props) {
   }
 
   if (loading) return <p className="text-teal-500 text-sm animate-pulse">Loading your days…</p>
-  if (error)   return <p className="text-red-600 text-sm bg-red-50 rounded-xl p-3">{error}</p>
+  if (error)   return <p className="text-red-700 text-sm bg-red-50 rounded-xl p-3">{error}</p>
   if (!days.length) return (
     <div className="py-12 text-center">
       <div className="w-14 h-14 mb-4 mx-auto rounded-full bg-teal-50 flex items-center justify-center">

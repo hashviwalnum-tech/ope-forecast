@@ -220,7 +220,7 @@ export default function HourlyDashboard() {
         </p>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0fdfa" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
             <XAxis
               dataKey="name"
               tick={{ fontSize: 10, fill: '#94a3b8' }}
@@ -242,7 +242,7 @@ export default function HourlyDashboard() {
                 name === 'staff' ? 'staff needed' : 'avg customers',
               ]}
             />
-            <Bar dataKey="avg" fill="#14b8a6" radius={[4, 4, 0, 0]} maxBarSize={44} />
+            <Bar dataKey="avg" fill="#4e8b87" radius={[4, 4, 0, 0]} maxBarSize={44} />
           </BarChart>
         </ResponsiveContainer>
       </section>

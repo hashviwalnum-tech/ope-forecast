@@ -80,7 +80,7 @@ export default function BusinessSetup({
                            focus:outline-none focus:ring-2 focus:ring-teal-400"
               />
               {error && (
-                <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+                <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">{error}</p>
               )}
               <button
                 type="submit"

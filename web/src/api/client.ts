@@ -17,6 +17,7 @@ import type {
   PeriodCreate,
   PeriodRead,
   ProductCreate,
+  ProductForecastResponse,
   ProductRead,
   ProductUpdate,
   SaleCreate,
@@ -152,6 +153,10 @@ export const analytics = {
   lift:             () => GET<LiftResponse>('/lift'),
   hourlyAnalytics:  () => GET<HourlyAnalyticsResponse>('/hourly-analytics'),
   monthlySummary:   () => GET<MonthlyResponse>('/monthly-summary'),
+  productForecast:  (productId?: number) =>
+    GET<ProductForecastResponse>(
+      productId != null ? `/product-forecast?product_id=${productId}` : '/product-forecast'
+    ),
 }
 
 export const periods = {

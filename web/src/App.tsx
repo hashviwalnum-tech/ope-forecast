@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import './App.css'
 import logo from './assets/logo.png'
 import BackfillForm from './components/BackfillForm'
@@ -6,49 +6,57 @@ import BusinessSetup from './components/BusinessSetup'
 import BusinessSettings from './components/BusinessSettings'
 import CsvImport from './components/CsvImport'
 import DayList from './components/DayList'
-import ForecastDashboard from './components/ForecastDashboard'
-import HourlyDashboard from './components/HourlyDashboard'
+import HomeScreen from './components/HomeScreen'
 import TrendsView from './components/TrendsView'
-import LogDayForm from './components/LogDayForm'
 import OutlierBanner from './components/OutlierBanner'
 import PeriodsPanel from './components/PeriodsPanel'
 import ProductsPanel from './components/ProductsPanel'
-import TapSellPanel from './components/TapSellPanel'
 import { useAuth } from './contexts/AuthContext'
 import LoginPage from './pages/LoginPage'
 import * as api from './api/client'
 import type { BusinessRead } from './api/types'
 
 const FREE_BUSINESS_LIMIT = 2
+const SHOW_ADS = true
 
-type Tab = 'log' | 'backfill' | 'history' | 'import' | 'forecast' | 'events' | 'products' | 'sell' | 'hours' | 'trends' | 'settings'
+type Tab = 'home' | 'backfill' | 'history' | 'import' | 'events' | 'products' | 'trends' | 'settings'
+type NavGroup = 'history' | 'manage'
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'forecast',  label: 'This Week'       },
-  { id: 'sell',      label: 'Record a Sale'   },
-  { id: 'hours',     label: 'Busy Hours'      },
-  { id: 'trends',    label: 'Monthly'         },
-  { id: 'events',    label: 'Promos & Events' },
-  { id: 'products',  label: 'My Products'     },
-  { id: 'log',       label: 'Add Today'       },
-  { id: 'backfill',  label: 'Add Past Day'    },
-  { id: 'history',   label: 'Past Days'       },
-  { id: 'import',    label: 'Import Data'     },
-  { id: 'settings',  label: 'Settings'        },
+const PRIMARY_TABS: { id: Tab; label: string }[] = [
+  { id: 'home', label: 'Home' },
+]
+
+const DROPDOWN_GROUPS: { id: NavGroup; label: string; tabs: { id: Tab; label: string }[] }[] = [
+  {
+    id: 'history',
+    label: 'History',
+    tabs: [
+      { id: 'history',  label: 'Past Days'      },
+      { id: 'backfill', label: 'Add Past Day'   },
+      { id: 'trends',   label: 'Monthly Trends' },
+      { id: 'import',   label: 'Import Data'    },
+    ],
+  },
+  {
+    id: 'manage',
+    label: 'Manage',
+    tabs: [
+      { id: 'products', label: 'My Products'     },
+      { id: 'events',   label: 'Promos & Events' },
+      { id: 'settings', label: 'Settings'        },
+    ],
+  },
 ]
 
 const TAB_TITLES: Record<Tab, string> = {
-  forecast:  "What's coming this week",
-  sell:      "Record today's sales",
-  hours:     'Busy hours & staffing',
-  trends:    'Monthly trends & history',
-  events:    'Promos & Events',
-  products:  'My Products',
-  log:       "Log today's numbers",
-  backfill:  'Add a past day',
-  history:   'Your past days',
-  import:    'Bring in your past data',
-  settings:  'Your business settings',
+  home:     "Know tomorrow, today.",
+  trends:   'Monthly trends & history',
+  events:   'Promos & Events',
+  products: 'My Products',
+  backfill: 'Add a past day',
+  history:  'Your past days',
+  import:   'Bring in your past data',
+  settings: 'Your business settings',
 }
 
 export default function App() {
@@ -60,10 +68,12 @@ export default function App() {
   const [bizError, setBizError]               = useState(false)
   const [showAddBusiness, setShowAddBusiness] = useState(false)
 
-  const [tab, setTab]               = useState<Tab>('forecast')
+  const [tab, setTab]               = useState<Tab>('home')
   const [refreshKey, setRefreshKey] = useState(0)
   const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [openGroup, setOpenGroup]   = useState<NavGroup | null>(null)
   const switcherRef = useRef<HTMLDivElement>(null)
+  const navRef      = useRef<HTMLDivElement>(null)
 
   // ── Load all businesses on login ─────────────────────────────────────────
 
@@ -108,6 +118,28 @@ export default function App() {
     document.addEventListener('mousedown', handle)
     return () => document.removeEventListener('mousedown', handle)
   }, [switcherOpen])
+
+  // ── Close nav dropdowns on outside click ─────────────────────────────────
+
+  useEffect(() => {
+    if (!openGroup) return
+    function handle(e: MouseEvent) {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setOpenGroup(null)
+      }
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [openGroup])
+
+  // ── Which dropdown group (if any) contains the active tab ────────────────
+
+  const activeGroup = useMemo<NavGroup | null>(() => {
+    for (const g of DROPDOWN_GROUPS) {
+      if (g.tabs.some(t => t.id === tab)) return g.id
+    }
+    return null
+  }, [tab])
 
   // ── Actions ───────────────────────────────────────────────────────────────
 
@@ -249,11 +281,13 @@ export default function App() {
         </div>
 
         {/* Nav */}
-        <nav className="flex flex-wrap gap-1 flex-1">
-          {TABS.map(t => (
+        <nav ref={navRef} className="flex flex-wrap gap-1 flex-1">
+
+          {/* Primary tabs — always visible */}
+          {PRIMARY_TABS.map(t => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => { setTab(t.id); setOpenGroup(null) }}
               className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 tab === t.id
                   ? 'bg-teal-600 text-white shadow-sm'
@@ -263,6 +297,56 @@ export default function App() {
               {t.label}
             </button>
           ))}
+
+          {/* Dropdown groups */}
+          {DROPDOWN_GROUPS.map(group => {
+            const isGroupActive = activeGroup === group.id
+            const isOpen = openGroup === group.id
+            return (
+              <div key={group.id} className="relative">
+                <button
+                  onClick={() => setOpenGroup(isOpen ? null : group.id)}
+                  className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    isGroupActive
+                      ? 'bg-teal-100 text-teal-700'
+                      : 'text-slate-600 hover:bg-teal-50 hover:text-teal-700'
+                  }`}
+                >
+                  {group.label}
+                  <svg
+                    className={`w-3.5 h-3.5 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {isOpen && (
+                  <div className="absolute left-0 top-full mt-1 w-48 bg-white border border-teal-100
+                                  rounded-xl shadow-lg z-20 py-1 overflow-hidden">
+                    {group.tabs.map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => { setTab(t.id); setOpenGroup(null) }}
+                        className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors ${
+                          tab === t.id
+                            ? 'bg-teal-50 text-teal-700 font-medium'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        {tab === t.id && (
+                          <svg className="w-3.5 h-3.5 shrink-0 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                        <span className={tab === t.id ? '' : 'ml-5'}>{t.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </nav>
 
         {/* Log out */}
@@ -276,22 +360,53 @@ export default function App() {
         </button>
       </header>
 
-      {/* ── Main content ────────────────────────────────────────────── */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-lg font-semibold text-slate-700 mb-6">{TAB_TITLES[tab]}</h1>
-        <OutlierBanner onResolved={refresh} />
-        {tab === 'forecast'  && <ForecastDashboard refreshKey={refreshKey} />}
-        {tab === 'sell'      && <TapSellPanel />}
-        {tab === 'hours'     && <HourlyDashboard />}
-        {tab === 'trends'    && <TrendsView />}
-        {tab === 'events'    && <PeriodsPanel />}
-        {tab === 'products'  && <ProductsPanel />}
-        {tab === 'log'       && <LogDayForm onSaved={refresh} />}
-        {tab === 'backfill'  && <BackfillForm onSaved={refresh} />}
-        {tab === 'history'   && <DayList refreshKey={refreshKey} />}
-        {tab === 'import'    && <CsvImport onImported={afterImport} />}
-        {tab === 'settings'  && <BusinessSettings />}
-      </main>
+      {/* ── Content row (side ad slots + main) ─────────────────────── */}
+      <div className="flex">
+
+        {/* Left ad slot — wide screens only */}
+        {SHOW_ADS && (
+          <aside className="hidden xl:flex flex-col w-28 shrink-0 pt-8 px-2 sticky top-20 self-start">
+            <div className="w-full min-h-[240px] bg-slate-50 border border-slate-200 rounded-lg
+                            flex items-center justify-center">
+              <span className="text-[10px] text-slate-300 tracking-widest uppercase select-none">Ad</span>
+            </div>
+          </aside>
+        )}
+
+        {/* Main content */}
+        <main className={`flex-1 max-w-4xl mx-auto px-6 py-8 ${SHOW_ADS ? 'pb-20 xl:pb-8' : ''}`}>
+          <h1 className="text-lg font-semibold text-slate-700 mb-6">{TAB_TITLES[tab]}</h1>
+          <OutlierBanner onResolved={refresh} />
+          {tab === 'home'     && <HomeScreen refreshKey={refreshKey} onSaved={refresh} />}
+          {tab === 'trends'   && <TrendsView />}
+          {tab === 'events'   && <PeriodsPanel />}
+          {tab === 'products' && <ProductsPanel />}
+          {tab === 'backfill' && <BackfillForm onSaved={refresh} />}
+          {tab === 'history'  && <DayList refreshKey={refreshKey} />}
+          {tab === 'import'   && <CsvImport onImported={afterImport} />}
+          {tab === 'settings' && <BusinessSettings />}
+        </main>
+
+        {/* Right ad slot — wide screens only */}
+        {SHOW_ADS && (
+          <aside className="hidden xl:flex flex-col w-28 shrink-0 pt-8 px-2 sticky top-20 self-start">
+            <div className="w-full min-h-[240px] bg-slate-50 border border-slate-200 rounded-lg
+                            flex items-center justify-center">
+              <span className="text-[10px] text-slate-300 tracking-widest uppercase select-none">Ad</span>
+            </div>
+          </aside>
+        )}
+
+      </div>
+
+      {/* Bottom ad banner — narrow screens only */}
+      {SHOW_ADS && (
+        <div className="fixed bottom-0 inset-x-0 xl:hidden h-14 bg-slate-50
+                        border-t border-slate-200 flex items-center justify-center z-10">
+          <span className="text-[10px] text-slate-300 tracking-widest uppercase select-none">Ad</span>
+        </div>
+      )}
+
     </div>
   )
 }
