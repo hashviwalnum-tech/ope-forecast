@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { dayRecords, products as productsApi, sales as salesApi } from '../api/client'
-import type { ProductRead } from '../api/types'
+import { dayRecords, products as productsApi, sales as salesApi, saleEvents } from '../api/client'
+import type { HourlyBackfillSlot, ProductRead } from '../api/types'
 
 // ── Date parsing ────────────────────────────────────────────────────────────
 
@@ -68,12 +68,13 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
 }
 
 interface CsvRow {
-  date: string          // ISO YYYY-MM-DD for the API
-  dateRaw: string       // exactly as it appeared in the file
-  dateDisplay: string   // human-readable interpretation shown to user
+  date: string
+  dateRaw: string
+  dateDisplay: string
   dateAmbiguous: boolean
   customers: number
   productUnits: Record<string, number>
+  hourlyCustomers: HourlyBackfillSlot[]   // h00–h23 columns, empty when absent
 }
 
 interface Props { onImported: () => void }
@@ -93,9 +94,22 @@ export default function CsvImport({ onImported }: Props) {
     const headers = ['date', 'customers', ...productList.map(p => p.name)]
     const example = ['2024-01-15', '95', ...productList.map(() => '0')]
     const csv = [headers, example].map(r => r.join(',')).join('\n')
+    triggerDownload(csv, 'ope-template.csv')
+  }
+
+  function downloadHourlyTemplate() {
+    const hourCols = Array.from({ length: 24 }, (_, i) => `h${String(i).padStart(2, '0')}`)
+    const headers  = ['date', 'customers', ...productList.map(p => p.name), ...hourCols]
+    const example  = ['2024-01-15', '95', ...productList.map(() => '0'), ...Array(24).fill('')]
+    const note     = `# Optional hourly columns h00–h23: customers per hour (leave blank if unknown)`
+    const csv      = [note, headers.join(','), example.join(',')].join('\n')
+    triggerDownload(csv, 'ope-template-hourly.csv')
+  }
+
+  function triggerDownload(csv: string, filename: string) {
     const a = Object.assign(document.createElement('a'), {
       href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
-      download: 'ops-forecast-template.csv',
+      download: filename,
     })
     a.click()
     URL.revokeObjectURL(a.href)
@@ -113,16 +127,27 @@ export default function CsvImport({ onImported }: Props) {
       const parsed: CsvRow[] = []
 
       const productCols: { idx: number; product: ProductRead }[] = []
+      const hourlyCols: { idx: number; hour: number }[] = []
+
       for (let i = 2; i < headers.length; i++) {
-        const prod = productList.find(p => p.name.toLowerCase() === headers[i].toLowerCase())
+        const h = headers[i]
+        if (!h) continue
+        const hourMatch = h.match(/^h(\d{2})$/i)
+        if (hourMatch) {
+          const hr = parseInt(hourMatch[1], 10)
+          if (hr >= 0 && hr <= 23) { hourlyCols.push({ idx: i, hour: hr }); continue }
+        }
+        if (h.startsWith('#')) continue   // comment columns (hourly template note row)
+        const prod = productList.find(p => p.name.toLowerCase() === h.toLowerCase())
         if (prod) {
           productCols.push({ idx: i, product: prod })
-        } else if (headers[i]) {
-          errors.push(`Column "${headers[i]}" doesn't match any of your products — it will be skipped.`)
+        } else {
+          errors.push(`Column "${h}" doesn't match any of your products — it will be skipped.`)
         }
       }
 
       rows.forEach((row, ri) => {
+        if (row[0]?.trim().startsWith('#')) return   // skip comment rows
         const line = ri + 2
         const rawDate = row[0] ?? ''
         const cust    = parseInt(row[1] ?? '')
@@ -143,6 +168,12 @@ export default function CsvImport({ onImported }: Props) {
           if (!isNaN(v) && v > 0) productUnits[product.name] = v
         }
 
+        const hourlyCustomers: HourlyBackfillSlot[] = []
+        for (const { idx, hour } of hourlyCols) {
+          const v = parseInt(row[idx] ?? '', 10)
+          if (!isNaN(v) && v > 0) hourlyCustomers.push({ hour, customers: v })
+        }
+
         parsed.push({
           date:          dateParsed.iso,
           dateRaw:       rawDate,
@@ -150,6 +181,7 @@ export default function CsvImport({ onImported }: Props) {
           dateAmbiguous: dateParsed.ambiguous,
           customers:     cust,
           productUnits,
+          hourlyCustomers,
         })
       })
 
@@ -170,6 +202,9 @@ export default function CsvImport({ onImported }: Props) {
           if (prod) {
             await salesApi.create({ day_record_id: day.id, product_id: prod.id, units_sold: units })
           }
+        }
+        if (row.hourlyCustomers.length > 0) {
+          await saleEvents.backfillHourly(row.date, row.hourlyCustomers)
         }
         ok++
       } catch {
@@ -198,13 +233,23 @@ export default function CsvImport({ onImported }: Props) {
           or <code className="bg-white px-1 rounded">MM/DD/YYYY</code>. The preview always shows how we read your
           dates — check it before saving.
         </p>
-        <button
-          onClick={downloadTemplate}
-          className="text-sm text-teal-600 border border-teal-200 rounded-lg
-                     px-3 py-1.5 hover:bg-white transition-colors"
-        >
-          Download a blank template to fill in
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={downloadTemplate}
+            className="text-sm text-teal-600 border border-teal-200 rounded-lg
+                       px-3 py-1.5 hover:bg-white transition-colors"
+          >
+            Download blank template
+          </button>
+          <button
+            onClick={downloadHourlyTemplate}
+            className="text-sm text-slate-600 border border-slate-200 rounded-lg
+                       px-3 py-1.5 hover:bg-white transition-colors"
+          >
+            Download hourly template
+            <span className="ml-1.5 text-xs text-slate-400">(for register exports)</span>
+          </button>
+        </div>
       </div>
 
       {/* File picker */}

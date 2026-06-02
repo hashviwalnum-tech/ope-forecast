@@ -33,6 +33,7 @@ Phase 1 = MVP, **no login / no billing / single local user**. Prove the forecast
 - Exclude event/ad periods from the "normal" baseline when training.
 - Strong typing both sides (Pydantic + TypeScript).
 - **Design discipline (applies to EVERY change):** integrate new features into the existing navigation and design language (spec §1.5). Do NOT add new top-level buttons or spread options that increase visible choice/clutter — nest sensibly behind existing entry points. Preserve the calm, focused, low-saturation, technophobe-friendly feel and match the existing look exactly. A clean, focused interface matters more than exposing every function. When unsure how something fits the UI, propose a plan first rather than bolting on controls.
+- **A change is NOT done until it is committed AND pushed to GitHub (`git push origin main`).** After every change meant for the live site, run the push yourself, confirm local and remote are in sync, and state in your summary whether the change is now live and which URL to test. Never end a task with unpushed commits. URLs to test: frontend → `https://ope-forecast-bngx.vercel.app`, backend health → `https://ope-forecast.onrender.com/health`.
 
 ## Commands
 (To be filled in once scaffolded.)

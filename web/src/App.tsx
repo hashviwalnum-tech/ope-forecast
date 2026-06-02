@@ -11,6 +11,7 @@ import TrendsView from './components/TrendsView'
 import OutlierBanner from './components/OutlierBanner'
 import PeriodsPanel from './components/PeriodsPanel'
 import ProductsPanel from './components/ProductsPanel'
+import PredictionsPanel from './components/PredictionsPanel'
 import { useAuth } from './contexts/AuthContext'
 import LoginPage from './pages/LoginPage'
 import * as api from './api/client'
@@ -19,7 +20,7 @@ import type { BusinessRead } from './api/types'
 const FREE_BUSINESS_LIMIT = 2
 const SHOW_ADS = true
 
-type Tab = 'home' | 'backfill' | 'history' | 'import' | 'events' | 'products' | 'trends' | 'settings'
+type Tab = 'home' | 'backfill' | 'history' | 'import' | 'events' | 'products' | 'trends' | 'settings' | 'predictions'
 type NavGroup = 'history' | 'manage'
 
 const PRIMARY_TABS: { id: Tab; label: string }[] = [
@@ -41,22 +42,24 @@ const DROPDOWN_GROUPS: { id: NavGroup; label: string; tabs: { id: Tab; label: st
     id: 'manage',
     label: 'Manage',
     tabs: [
-      { id: 'products', label: 'My Products'     },
-      { id: 'events',   label: 'Promos & Events' },
-      { id: 'settings', label: 'Settings'        },
+      { id: 'products',    label: 'My Products'       },
+      { id: 'events',      label: 'Promos & Events'   },
+      { id: 'predictions', label: 'Prediction history' },
+      { id: 'settings',    label: 'Settings'           },
     ],
   },
 ]
 
 const TAB_TITLES: Record<Tab, string> = {
-  home:     "Know tomorrow, today.",
-  trends:   'Monthly trends & history',
-  events:   'Promos & Events',
-  products: 'My Products',
-  backfill: 'Add a past day',
-  history:  'Your past days',
-  import:   'Bring in your past data',
-  settings: 'Your business settings',
+  home:        "Know tomorrow, today.",
+  trends:      'Monthly trends & history',
+  events:      'Promos & Events',
+  products:    'My Products',
+  backfill:    'Add a past day',
+  history:     'Your past days',
+  import:      'Bring in your past data',
+  settings:    'Your business settings',
+  predictions: 'How our predictions did',
 }
 
 export default function App() {
@@ -165,7 +168,7 @@ export default function App() {
 
   if (authLoading || (session && !bizLoaded)) {
     return (
-      <div className="min-h-screen bg-teal-50 flex items-center justify-center">
+      <div className="min-h-screen bg-teal-50/60 flex items-center justify-center">
         <p className="text-teal-600 text-sm">Loading…</p>
       </div>
     )
@@ -206,10 +209,10 @@ export default function App() {
   // ── Main app ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-teal-50/40">
 
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <header className="bg-white border-b-2 border-teal-100 px-6 py-3
+      <header className="bg-teal-50/80 backdrop-blur-sm border-b-2 border-teal-100 px-6 py-3
                          flex flex-wrap items-center gap-x-4 gap-y-2
                          sticky top-0 z-10 shadow-sm">
 
@@ -365,10 +368,10 @@ export default function App() {
 
         {/* Left ad slot — wide screens only */}
         {SHOW_ADS && (
-          <aside className="hidden xl:flex flex-col w-28 shrink-0 pt-8 px-2 sticky top-20 self-start">
-            <div className="w-full min-h-[240px] bg-slate-50 border border-slate-200 rounded-lg
+          <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
+            <div className="w-full min-h-[280px] bg-teal-50/70 border border-teal-100 rounded-xl
                             flex items-center justify-center">
-              <span className="text-[10px] text-slate-300 tracking-widest uppercase select-none">Ad</span>
+              <span className="text-[10px] text-teal-300 tracking-widest uppercase select-none">Ad</span>
             </div>
           </aside>
         )}
@@ -377,22 +380,23 @@ export default function App() {
         <main className={`flex-1 max-w-4xl mx-auto px-6 py-8 ${SHOW_ADS ? 'pb-20 xl:pb-8' : ''}`}>
           <h1 className="text-lg font-semibold text-slate-700 mb-6">{TAB_TITLES[tab]}</h1>
           <OutlierBanner onResolved={refresh} />
-          {tab === 'home'     && <HomeScreen refreshKey={refreshKey} onSaved={refresh} />}
-          {tab === 'trends'   && <TrendsView />}
-          {tab === 'events'   && <PeriodsPanel />}
-          {tab === 'products' && <ProductsPanel />}
-          {tab === 'backfill' && <BackfillForm onSaved={refresh} />}
-          {tab === 'history'  && <DayList refreshKey={refreshKey} />}
-          {tab === 'import'   && <CsvImport onImported={afterImport} />}
-          {tab === 'settings' && <BusinessSettings />}
+          {tab === 'home'        && <HomeScreen refreshKey={refreshKey} onSaved={refresh} />}
+          {tab === 'trends'      && <TrendsView />}
+          {tab === 'events'      && <PeriodsPanel />}
+          {tab === 'products'    && <ProductsPanel />}
+          {tab === 'backfill'    && <BackfillForm onSaved={refresh} />}
+          {tab === 'history'     && <DayList refreshKey={refreshKey} />}
+          {tab === 'import'      && <CsvImport onImported={afterImport} />}
+          {tab === 'settings'    && <BusinessSettings />}
+          {tab === 'predictions' && <PredictionsPanel />}
         </main>
 
         {/* Right ad slot — wide screens only */}
         {SHOW_ADS && (
-          <aside className="hidden xl:flex flex-col w-28 shrink-0 pt-8 px-2 sticky top-20 self-start">
-            <div className="w-full min-h-[240px] bg-slate-50 border border-slate-200 rounded-lg
+          <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
+            <div className="w-full min-h-[280px] bg-teal-50/70 border border-teal-100 rounded-xl
                             flex items-center justify-center">
-              <span className="text-[10px] text-slate-300 tracking-widest uppercase select-none">Ad</span>
+              <span className="text-[10px] text-teal-300 tracking-widest uppercase select-none">Ad</span>
             </div>
           </aside>
         )}
@@ -401,9 +405,9 @@ export default function App() {
 
       {/* Bottom ad banner — narrow screens only */}
       {SHOW_ADS && (
-        <div className="fixed bottom-0 inset-x-0 xl:hidden h-14 bg-slate-50
-                        border-t border-slate-200 flex items-center justify-center z-10">
-          <span className="text-[10px] text-slate-300 tracking-widest uppercase select-none">Ad</span>
+        <div className="fixed bottom-0 inset-x-0 xl:hidden h-14 bg-teal-50/90 backdrop-blur-sm
+                        border-t border-teal-100 flex items-center justify-center z-10">
+          <span className="text-[10px] text-teal-300 tracking-widest uppercase select-none">Ad</span>
         </div>
       )}
 

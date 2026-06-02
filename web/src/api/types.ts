@@ -60,6 +60,7 @@ export interface OrderingRow {
   current_stock?: number
   order_now: boolean
   eoq?: number
+  suggested_order_qty?: number
 }
 
 export interface OrderingResponse {
@@ -168,6 +169,7 @@ export interface ProductRead {
   lead_time_days: number
   holding_cost: number | null
   order_cost: number | null
+  service_time_minutes: number | null
 }
 
 export interface ProductCreate {
@@ -177,6 +179,7 @@ export interface ProductCreate {
   current_stock?: number
   holding_cost?: number
   order_cost?: number
+  service_time_minutes?: number
 }
 
 export interface ProductUpdate {
@@ -186,6 +189,7 @@ export interface ProductUpdate {
   current_stock?: number | null
   holding_cost?: number | null
   order_cost?: number | null
+  service_time_minutes?: number | null
 }
 
 // ── Sale Events (live tap-to-record) ─────────────────────────────────────────
@@ -304,6 +308,33 @@ export interface HourlyBackfillSlot {
 
 export interface HourlyBackfillResponse {
   inserted: number
+}
+
+// ── per-weekday hourly profiles ───────────────────────────────────────────────
+
+export interface WeekdayHourlySlot {
+  hour: number
+  avg_taps: number
+  recommended_staff: number
+  label: string
+  expected_wait_minutes: number
+}
+
+export interface WeekdayHourlyEntry {
+  weekday: string
+  weekday_idx: number        // 0=Mon … 6=Sun
+  peak_hour: number
+  peak_avg_taps: number
+  n_days_data: number
+  hours: WeekdayHourlySlot[]
+}
+
+export interface WeekdayHourlyResponse {
+  status: string
+  message?: string
+  weekdays: WeekdayHourlyEntry[]
+  overall_fallback: WeekdayHourlySlot[]
+  n_days_total: number
 }
 
 // ── per-product demand forecast ───────────────────────────────────────────────

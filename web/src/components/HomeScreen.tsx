@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import ForecastDashboard from './ForecastDashboard'
+import { OrderingPanel, WeekPredictionPanel } from './ForecastDashboard'
 import HourlyDashboard from './HourlyDashboard'
 import LogDayForm from './LogDayForm'
+import MergedForecastPanel from './MergedForecastPanel'
 import TapSellPanel from './TapSellPanel'
 
 interface Props {
@@ -19,25 +20,14 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
 
-      {/* This week */}
+      {/* ① Quick actions — most prominent, at the very top */}
       <section>
-        <h2 className="text-base font-semibold text-slate-500 uppercase tracking-wide mb-4">
-          This week
-        </h2>
-        <ForecastDashboard refreshKey={refreshKey} />
-      </section>
-
-      {/* Quick actions */}
-      <section>
-        <h2 className="text-base font-semibold text-slate-500 uppercase tracking-wide mb-4">
-          Quick actions
-        </h2>
-        <div className="flex flex-wrap gap-3 mb-4">
+        <div className="flex flex-wrap gap-3">
           <button
             onClick={() => { setShowSell(s => !s); setShowLog(false) }}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold
+            className={`flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold
                         transition-colors shadow-sm ${
               showSell
                 ? 'bg-teal-700 text-white'
@@ -45,8 +35,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
             }`}
           >
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M12 4v16m8-8H4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Record a Sale
             <svg
@@ -59,7 +48,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
 
           <button
             onClick={() => { setShowLog(l => !l); setShowSell(false) }}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold
+            className={`flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold
                         transition-colors border ${
               showLog
                 ? 'bg-teal-50 border-teal-300 text-teal-700'
@@ -68,7 +57,8 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
           >
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0
+                   00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             Log Today
             <svg
@@ -81,21 +71,30 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
         </div>
 
         {showSell && (
-          <div className="rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
+          <div className="mt-4 rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
             <TapSellPanel />
           </div>
         )}
         {showLog && (
-          <div className="rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
+          <div className="mt-4 rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
             <LogDayForm onSaved={handleSaved} />
           </div>
         )}
       </section>
 
-      {/* Busy hours today */}
+      {/* ② What to order now */}
+      <OrderingPanel refreshKey={refreshKey} />
+
+      {/* ③ Demand forecast — switchable chart (customers + each product) */}
+      <MergedForecastPanel refreshKey={refreshKey} />
+
+      {/* ④ Week prediction — customer overview with model weights */}
+      <WeekPredictionPanel refreshKey={refreshKey} />
+
+      {/* ⑤ Busy hours tomorrow + peak hours by weekday */}
       <section>
-        <h2 className="text-base font-semibold text-slate-500 uppercase tracking-wide mb-4">
-          Busy hours today
+        <h2 className="text-base font-semibold text-teal-700/70 uppercase tracking-wide mb-4">
+          Busy hours
         </h2>
         <HourlyDashboard />
       </section>

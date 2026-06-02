@@ -61,6 +61,9 @@ from app.schemas.analytics import (
     ProductForecastResponse,
     WeekdayAvg,
     WeekdayAvgResponse,
+    WeekdayHourlyEntry,
+    WeekdayHourlyResponse,
+    WeekdayHourlySlot,
 )
 
 router = APIRouter(tags=["Analytics"])
@@ -625,6 +628,9 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
                 pass
 
         order_now = prod.current_stock is not None and prod.current_stock <= rop
+        suggested_qty = eoq_val if eoq_val is not None else round(
+            avg_daily * prod.lead_time_days + ss, 1
+        )
 
         result.append(OrderingRow(
             product_id=prod.id,
@@ -637,6 +643,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             current_stock=prod.current_stock,
             order_now=order_now,
             eoq=eoq_val,
+            suggested_order_qty=round(suggested_qty, 1),
         ))
 
     return OrderingResponse(status="ok", products=result)
@@ -1033,3 +1040,108 @@ def get_product_forecast(
         ))
 
     return ProductForecastResponse(status="ok", products=result)
+
+
+# ── /hourly-by-weekday ────────────────────────────────────────────────────────
+
+MIN_WEEKDAY_HOURLY = 2  # minimum same-weekday days before a per-weekday profile is shown
+
+
+@router.get("/hourly-by-weekday", response_model=WeekdayHourlyResponse)
+def get_hourly_by_weekday(
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """Per-weekday hourly profiles for busy-hours-tomorrow and the weekday peak chart.
+
+    Returns:
+    - weekdays: one entry per weekday that has >= MIN_WEEKDAY_HOURLY days of tap data.
+    - overall_fallback: all-days average, used when a specific weekday has no entry yet.
+    The frontend picks tomorrow's weekday from 'weekdays'; if absent it falls back to
+    overall_fallback, labelling it honestly as 'typical across all days'.
+    """
+    settings = biz.settings or {}
+    avg_svc = float(settings.get("avg_service_time_minutes", 5.0))
+    opening_hour = int(settings.get("opening_hour", 0))
+    closing_hour = int(settings.get("closing_hour", 24))
+    open_hours = set(range(opening_hour, closing_hour)) if closing_hour > opening_hour else None
+
+    events = (
+        db.query(SaleEvent)
+        .filter_by(business_id=biz.id)
+        .order_by(SaleEvent.timestamp)
+        .all()
+    )
+
+    if not events:
+        return WeekdayHourlyResponse(
+            status="not_enough_data",
+            message='No tap data yet. Use "Record a Sale" to log customers — '
+                    f'hourly patterns appear after {MIN_HOURLY_DAYS} days of data.',
+        )
+
+    raw = [(e.timestamp.date(), e.timestamp.hour, e.product_id, e.quantity) for e in events]
+    n_days_total = len({ev[0] for ev in raw})
+
+    if n_days_total < MIN_HOURLY_DAYS:
+        return WeekdayHourlyResponse(
+            status="not_enough_data",
+            message=(
+                f"Need {MIN_HOURLY_DAYS} days of tap data "
+                f"({n_days_total} so far). Keep logging."
+            ),
+            n_days_total=n_days_total,
+        )
+
+    products_list = db.query(Product).filter_by(business_id=biz.id).all()
+    svc_by_pid: dict[int, float | None] = {p.id: p.service_time_minutes for p in products_list}
+
+    def _build_slots(ev_subset: list) -> list[WeekdayHourlySlot]:
+        avgs = hourly_averages(ev_subset, open_hours)
+        mix = hourly_product_mix(ev_subset, open_hours)
+        slots: list[WeekdayHourlySlot] = []
+        for hour, avg_taps, _ in avgs:
+            hour_mix = mix.get(hour, {})
+            pairs = [(qty, svc_by_pid.get(pid)) for pid, qty in hour_mix.items()]
+            eff_svc = effective_service_time(pairs, avg_svc) if pairs else avg_svc
+            staff = min_servers(avg_taps, eff_svc)
+            slots.append(WeekdayHourlySlot(
+                hour=hour,
+                avg_taps=avg_taps,
+                recommended_staff=staff,
+                label=_fmt_hour_range(hour),
+                expected_wait_minutes=round(expected_wait_minutes(avg_taps, eff_svc, staff), 1),
+            ))
+        return slots
+
+    overall_fallback = _build_slots(raw)
+
+    days_per_wd: dict[int, set] = {i: set() for i in range(7)}
+    for day, _h, _p, _q in raw:
+        days_per_wd[day.weekday()].add(day)
+
+    weekday_entries: list[WeekdayHourlyEntry] = []
+    for wd_idx, wd_name in enumerate(_WD_NAMES):
+        n_wd = len(days_per_wd[wd_idx])
+        if n_wd < MIN_WEEKDAY_HOURLY:
+            continue
+        wd_raw = [ev for ev in raw if ev[0].weekday() == wd_idx]
+        slots = _build_slots(wd_raw)
+        if not slots:
+            continue
+        peak = max(slots, key=lambda s: s.avg_taps)
+        weekday_entries.append(WeekdayHourlyEntry(
+            weekday=wd_name,
+            weekday_idx=wd_idx,
+            peak_hour=peak.hour,
+            peak_avg_taps=peak.avg_taps,
+            n_days_data=n_wd,
+            hours=slots,
+        ))
+
+    return WeekdayHourlyResponse(
+        status="ok",
+        weekdays=weekday_entries,
+        overall_fallback=overall_fallback,
+        n_days_total=n_days_total,
+    )

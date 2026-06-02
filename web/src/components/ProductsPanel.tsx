@@ -20,11 +20,12 @@ type AddForm = {
   current_stock: string
   holding_cost: string
   order_cost: string
+  service_time_minutes: string
 }
 
 const EMPTY_ADD: AddForm = {
   name: '', unit: '', lead_time_days: '1',
-  current_stock: '', holding_cost: '', order_cost: '',
+  current_stock: '', holding_cost: '', order_cost: '', service_time_minutes: '',
 }
 
 function AddProductForm({ onCreated }: { onCreated: () => void }) {
@@ -51,22 +52,25 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
       setError('Lead time must be at least 1 day.'); return
     }
 
-    const current_stock  = parseOptionalNumber(form.current_stock)
-    const holding_cost   = parseOptionalNumber(form.holding_cost)
-    const order_cost     = parseOptionalNumber(form.order_cost)
+    const current_stock        = parseOptionalNumber(form.current_stock)
+    const holding_cost         = parseOptionalNumber(form.holding_cost)
+    const order_cost           = parseOptionalNumber(form.order_cost)
+    const service_time_minutes = parseOptionalNumber(form.service_time_minutes)
 
-    if (current_stock !== null && current_stock < 0) { setError('Stock on hand can\'t be negative.'); return }
-    if (holding_cost  !== null && holding_cost  < 0) { setError('Holding cost can\'t be negative.'); return }
-    if (order_cost    !== null && order_cost    < 0) { setError('Order cost can\'t be negative.'); return }
+    if (current_stock        !== null && current_stock        < 0) { setError('Stock on hand can\'t be negative.'); return }
+    if (holding_cost         !== null && holding_cost         < 0) { setError('Holding cost can\'t be negative.'); return }
+    if (order_cost           !== null && order_cost           < 0) { setError('Order cost can\'t be negative.'); return }
+    if (service_time_minutes !== null && service_time_minutes <= 0) { setError('Serving time must be greater than zero.'); return }
 
     setSaving(true)
     setError(null)
     try {
       await productsApi.create({
         name, unit, lead_time_days,
-        ...(current_stock !== null && { current_stock }),
-        ...(holding_cost  !== null && { holding_cost }),
-        ...(order_cost    !== null && { order_cost }),
+        ...(current_stock        !== null && { current_stock }),
+        ...(holding_cost         !== null && { holding_cost }),
+        ...(order_cost           !== null && { order_cost }),
+        ...(service_time_minutes !== null && { service_time_minutes }),
       })
       setForm(EMPTY_ADD)
       setShowMore(false)
@@ -138,11 +142,11 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
         onClick={() => setShowMore(s => !s)}
         className="text-xs font-medium text-teal-600 hover:text-teal-800 transition-colors"
       >
-        {showMore ? '▲ Hide optional details' : '▼ Add optional details (stock on hand, cost info)'}
+        {showMore ? '▲ Hide optional details' : '▼ Add optional details (stock, costs, serving time)'}
       </button>
 
       {showMore && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">
               Stock on hand right now
@@ -158,6 +162,22 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
                          focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
             />
             <p className="mt-1 text-xs text-slate-400">Tells us when to suggest reordering</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">
+              Minutes to serve one customer
+            </label>
+            <input
+              type="number"
+              min="0.1"
+              step="any"
+              placeholder="Blank = use your settings default"
+              value={form.service_time_minutes}
+              onChange={e => set('service_time_minutes', e.target.value)}
+              className="w-full px-4 py-3 text-base border border-slate-200 rounded-xl
+                         focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+            />
+            <p className="mt-1 text-xs text-slate-400">Overrides the default in Settings for staffing calculations</p>
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">
@@ -221,16 +241,18 @@ type EditForm = {
   current_stock: string
   holding_cost: string
   order_cost: string
+  service_time_minutes: string
 }
 
 function productToEditForm(p: ProductRead): EditForm {
   return {
-    name:           p.name,
-    unit:           p.unit,
-    lead_time_days: String(p.lead_time_days),
-    current_stock:  p.current_stock  != null ? String(p.current_stock)  : '',
-    holding_cost:   p.holding_cost   != null ? String(p.holding_cost)   : '',
-    order_cost:     p.order_cost     != null ? String(p.order_cost)     : '',
+    name:                 p.name,
+    unit:                 p.unit,
+    lead_time_days:       String(p.lead_time_days),
+    current_stock:        p.current_stock        != null ? String(p.current_stock)        : '',
+    holding_cost:         p.holding_cost         != null ? String(p.holding_cost)         : '',
+    order_cost:           p.order_cost           != null ? String(p.order_cost)           : '',
+    service_time_minutes: p.service_time_minutes != null ? String(p.service_time_minutes) : '',
   }
 }
 
@@ -269,9 +291,10 @@ function EditProductForm({
     try {
       await productsApi.update(product.id, {
         name, unit, lead_time_days,
-        current_stock: parseOptionalNumber(form.current_stock),
-        holding_cost:  parseOptionalNumber(form.holding_cost),
-        order_cost:    parseOptionalNumber(form.order_cost),
+        current_stock:        parseOptionalNumber(form.current_stock),
+        holding_cost:         parseOptionalNumber(form.holding_cost),
+        order_cost:           parseOptionalNumber(form.order_cost),
+        service_time_minutes: parseOptionalNumber(form.service_time_minutes) ?? undefined,
       })
       onSaved()
     } catch (err) {
@@ -354,6 +377,22 @@ function EditProductForm({
                        focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
           />
         </div>
+        <div className="sm:col-span-2">
+          <label className="block text-xs font-medium text-slate-600 mb-1">
+            Minutes to serve one customer
+          </label>
+          <input
+            type="number"
+            min="0.1"
+            step="any"
+            placeholder="Blank = use your settings default"
+            value={form.service_time_minutes}
+            onChange={e => set('service_time_minutes', e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
+                       focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+          />
+          <p className="mt-1 text-xs text-slate-400">Overrides the default in Settings for staffing calculations</p>
+        </div>
       </div>
 
       {error && (
@@ -431,6 +470,9 @@ function ProductRow({
           <span>Restock time: <strong className="text-slate-700">{product.lead_time_days} day{product.lead_time_days !== 1 ? 's' : ''}</strong></span>
           {product.current_stock != null && (
             <span>In stock: <strong className="text-slate-700">{product.current_stock} {product.unit}</strong></span>
+          )}
+          {product.service_time_minutes != null && (
+            <span>Serve time: <strong className="text-slate-700">{product.service_time_minutes} min</strong></span>
           )}
           {product.order_cost != null && (
             <span>Order cost: <strong className="text-slate-700">{product.order_cost}</strong></span>

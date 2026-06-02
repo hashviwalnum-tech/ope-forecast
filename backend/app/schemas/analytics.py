@@ -97,6 +97,7 @@ class OrderingRow(BaseModel):
     current_stock: Optional[float] = None
     order_now: bool
     eoq: Optional[float] = None
+    suggested_order_qty: float = 0.0
 
 
 class OrderingResponse(BaseModel):
@@ -202,3 +203,30 @@ class ProductForecastResponse(BaseModel):
     status: str
     message: Optional[str] = None
     products: list[ProductForecastItem]
+
+
+# ── per-weekday hourly profiles ───────────────────────────────────────────────
+
+class WeekdayHourlySlot(BaseModel):
+    hour: int
+    avg_taps: float
+    recommended_staff: int
+    label: str                 # formatted range: "5–6 pm"
+    expected_wait_minutes: float
+
+
+class WeekdayHourlyEntry(BaseModel):
+    weekday: str               # "Monday" … "Sunday"
+    weekday_idx: int           # 0=Mon … 6=Sun
+    peak_hour: int
+    peak_avg_taps: float
+    n_days_data: int
+    hours: list[WeekdayHourlySlot]
+
+
+class WeekdayHourlyResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+    weekdays: list[WeekdayHourlyEntry] = []      # only weekdays with ≥ MIN_WEEKDAY_HOURLY days
+    overall_fallback: list[WeekdayHourlySlot] = []  # all-days average as fallback
+    n_days_total: int = 0

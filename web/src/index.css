@@ -1,14 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-teal-50:  #f2f8f7;
-  --color-teal-100: #daeae8;
-  --color-teal-200: #b8d5d2;
-  --color-teal-300: #8bbcb8;
-  --color-teal-400: #6ba3a0;
-  --color-teal-500: #4e8b87;
-  --color-teal-600: #3a7470;
-  --color-teal-700: #2c5e5a;
+  /* teal-25 = very light card / header background (not pure white) */
+  --color-teal-25:  #f5fbf9;
+  /* teal-50 = page body background — more vibrant than before */
+  --color-teal-50:  #e8f4f1;
+  --color-teal-100: #c4e0dc;
+  --color-teal-200: #9eccc7;
+  --color-teal-300: #72b5af;
+  --color-teal-400: #4fa09b;
+  --color-teal-500: #3a8c87;
+  --color-teal-600: #2c7470;
+  --color-teal-700: #1f5e5a;
+  /* warm sand — ad slots and bottom bar */
+  --color-sand-50:  #fdf6ee;
+  --color-sand-100: #f0dfc5;
+  --color-sand-400: #c4a882;
 }
 
 *, *::before, *::after { box-sizing: border-box; }

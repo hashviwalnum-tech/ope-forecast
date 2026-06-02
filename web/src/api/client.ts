@@ -27,6 +27,7 @@ import type {
   SaleUpdate,
   TodaySummaryResponse,
   WeekdayAvgResponse,
+  WeekdayHourlyResponse,
 } from './types'
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
@@ -157,6 +158,7 @@ export const analytics = {
     GET<ProductForecastResponse>(
       productId != null ? `/product-forecast?product_id=${productId}` : '/product-forecast'
     ),
+  hourlyByWeekday:  () => GET<WeekdayHourlyResponse>('/hourly-by-weekday'),
 }
 
 export const periods = {
