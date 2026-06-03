@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
-from app.engine.accuracy import forecast_errors, mad, mape, mse, tracking_signal
+from app.engine.accuracy import detect_drift, forecast_errors, mad, mape, mse, tracking_signal
 from app.engine.limits import history_cutoff
 from app.engine.monthly import monthly_summary
 from app.engine.ensemble import blend, model_weights, prediction_interval
@@ -147,7 +147,15 @@ def _effective_obs(records: list[DayRecord]) -> list[float]:
     result = obs.copy()
     for i in flagged_indices:
         wd = wds[i]
-        same_wd = [obs[j] for j in range(len(obs)) if wds[j] == wd and j != i]
+        # Use only non-flagged same-weekday values to avoid mutual contamination
+        # when two spikes fall on the same weekday.
+        same_wd = [
+            obs[j] for j in range(len(obs))
+            if wds[j] == wd and j != i and records[j].outlier_status != "flagged"
+        ]
+        if not same_wd:
+            # Edge case: every same-weekday record is flagged; fall back to full set
+            same_wd = [obs[j] for j in range(len(obs)) if wds[j] == wd and j != i]
         if same_wd:
             result[i] = median(same_wd)
     return result
@@ -446,6 +454,8 @@ def get_accuracy(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     except ValueError:
         mape_val = None
 
+    drift = detect_drift(obs)
+
     return AccuracyResponse(
         status="ok",
         n_observations=len(actuals),
@@ -454,6 +464,7 @@ def get_accuracy(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         mape=mape_val,
         tracking_signal=round(ts, 3),
         bias_warning=bias_warning,
+        drift_alert=drift,
     )
 
 
@@ -580,16 +591,9 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             products=[],
         )
 
-    # Exclude fluke/event days and closed weekdays from demand averages
-    open_days = _open_days(biz)
-    all_records = [
-        r for r in db.query(DayRecord)
-        .filter_by(business_id=biz.id)
-        .order_by(DayRecord.date)
-        .all()
-        if r.outlier_status not in ("excluded", "event")
-        and (open_days is None or r.date.weekday() in open_days)
-    ]
+    # Use the same clean-record backbone as the forecast engine:
+    # period-excluded, tier-capped, outlier-resolved, closed-days removed.
+    all_records = _clean_records(db, biz)
     if len(all_records) < MIN_RECORDS:
         return OrderingResponse(
             status="not_enough_data",
@@ -598,7 +602,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             products=[],
         )
 
-    n_days = len(all_records)
+    ids_and_dates = [(r.id, r.date) for r in all_records]
     z = service_level_z(_SERVICE_LEVEL)
     result: list[OrderingRow] = []
 
@@ -610,11 +614,31 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             .filter(SaleRecord.product_id == prod.id)
             .all()
         )
-        sales_by_day = {s.day_record_id: s.units_sold for s in sales}
-        daily_demand = [float(sales_by_day.get(r.id, 0.0)) for r in all_records]
+        sr_by_day: dict[int, float] = {s.day_record_id: float(s.units_sold) for s in sales}
+
+        # Trim pre-tracking zeros: only count days from the first recorded sale onward.
+        # Days before a product was tracked are absent from history, not zero demand.
+        daily_demand, _ = build_product_demand_series(ids_and_dates, sr_by_day)
+
+        n_data = len(daily_demand)
+        if n_data == 0:
+            result.append(OrderingRow(
+                product_id=prod.id,
+                name=prod.name,
+                unit=prod.unit,
+                avg_daily_demand=0.0,
+                lead_time_days=prod.lead_time_days,
+                safety_stock_units=0.0,
+                reorder_point=0.0,
+                current_stock=prod.current_stock,
+                order_now=False,
+                eoq=None,
+                suggested_order_qty=0.0,
+            ))
+            continue
 
         avg_daily = mean(daily_demand)
-        sigma_daily = stdev(daily_demand) if n_days > 1 else 0.0
+        sigma_daily = stdev(daily_demand) if n_data > 1 else 0.0
         sigma_lt = sigma_daily * math.sqrt(prod.lead_time_days)
 
         ss = safety_stock(z, sigma_lt)

@@ -67,3 +67,41 @@ def coefficient_of_variation(values: list[float]) -> float:
     if mean == 0:
         raise ValueError("mean is zero, CV is undefined")
     return float(np.std(values, ddof=1) / mean)
+
+
+def detect_drift(
+    values: list[float],
+    window: int = 21,
+    threshold_pct: float = 10.0,
+) -> str | None:
+    """Detect sustained demand drift between recent and prior observations.
+
+    Compares mean(values[-window:]) to mean(values[:-window]).
+    Returns a plain-language alert string when the recent mean deviates by
+    more than threshold_pct from the prior baseline, else None.
+    Requires at least 2 * window observations; returns None otherwise.
+    """
+    if len(values) < 2 * window:
+        return None
+
+    prior = values[:-window]
+    recent = values[-window:]
+
+    prior_mean = float(np.mean(prior))
+    if prior_mean == 0:
+        return None
+
+    recent_mean = float(np.mean(recent))
+    pct_change = (recent_mean - prior_mean) / prior_mean * 100.0
+
+    if abs(pct_change) < threshold_pct:
+        return None
+
+    direction = "higher" if pct_change > 0 else "lower"
+    abs_pct = round(abs(pct_change), 1)
+    n_weeks = window // 7
+    week_str = f"{n_weeks} week{'s' if n_weeks != 1 else ''}"
+    return (
+        f"Your demand has been ~{abs_pct}% {direction} than usual over the last "
+        f"{week_str}. This may be a real shift — check if anything has changed."
+    )

@@ -46,6 +46,7 @@ class AccuracyResponse(BaseModel):
     mape: Optional[float] = None
     tracking_signal: Optional[float] = None
     bias_warning: Optional[str] = None
+    drift_alert: Optional[str] = None
     message: Optional[str] = None
 
 
