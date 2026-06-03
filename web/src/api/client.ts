@@ -106,6 +106,8 @@ export const businesses = {
   list:   ()             => GET<BusinessRead[]>('/businesses'),
   me:     ()             => GET<BusinessRead>('/businesses/me'),
   create: (name: string) => POST<BusinessRead>('/businesses', { name }),
+  copyFrom: (sourceId: number, name: string) =>
+    POST<BusinessRead>(`/businesses/${sourceId}/copy`, { name }),
   updateSettings: (settings: {
     opening_days?: number[]
     opening_hour?: number

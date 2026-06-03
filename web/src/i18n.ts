@@ -38,9 +38,19 @@ export const translations = {
     logToday: 'Log Today',
     recordARegular: 'Record a Regular',
 
-    // Business
+    // Business / locations
     addBusiness: 'Add a business',
+    addLocation: 'Add a location',
     freePlanLimit: 'Free plan: up to {n} businesses',
+    freeOneLocation: 'Free plan: 1 location',
+    upgradeForLocations: 'Upgrade to premium for multiple locations →',
+    copyFromLocation: 'Copy settings & products from an existing location',
+    startFresh: 'Start fresh',
+    selectLocationToCopy: 'Which location to copy?',
+
+    // Manage > Advanced planning
+    advancedPlanning: 'Advanced planning',
+    tabToolbox: 'Planning tools',
 
     // Errors
     retry: 'Retry',
@@ -92,9 +102,19 @@ export const translations = {
     logToday: 'תעד היום',
     recordARegular: 'רשום לקוח קבוע',
 
-    // Business
+    // Business / locations
     addBusiness: 'הוסף עסק',
+    addLocation: 'הוסף סניף',
     freePlanLimit: 'תוכנית חינמית: עד {n} עסקים',
+    freeOneLocation: 'תוכנית חינמית: סניף אחד',
+    upgradeForLocations: 'שדרג לפרמיום לסניפים נוספים ←',
+    copyFromLocation: 'העתק הגדרות ומוצרים מסניף קיים',
+    startFresh: 'התחל מחדש',
+    selectLocationToCopy: 'מאיזה סניף להעתיק?',
+
+    // Manage > Advanced planning
+    advancedPlanning: 'תכנון מתקדם',
+    tabToolbox: 'כלי תכנון',
 
     // Errors
     retry: 'נסה שוב',

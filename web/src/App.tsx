@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import './App.css'
 import logo from './assets/logo.png'
+import AdvancedToolbox from './components/AdvancedToolbox'
 import BackfillForm from './components/BackfillForm'
 import BusinessSetup from './components/BusinessSetup'
 import BusinessSettings from './components/BusinessSettings'
@@ -21,18 +22,18 @@ import LoginPage from './pages/LoginPage'
 import * as api from './api/client'
 import type { BusinessRead } from './api/types'
 
-const FREE_BUSINESS_LIMIT = 2
+const FREE_BUSINESS_LIMIT = 1  // §10: free = one location; premium = more
 const SHOW_ADS = true
 
 type Tab =
   | 'home' | 'predictions_home'
   | 'backfill' | 'history' | 'import' | 'trends'
-  | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings'
+  | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings' | 'toolbox'
 type NavGroup = 'history' | 'manage'
 
 const GROUP_TAB_IDS: Record<NavGroup, Tab[]> = {
   history: ['history', 'backfill', 'trends', 'import'],
-  manage:  ['products', 'regulars', 'recurring', 'events', 'predictions', 'settings'],
+  manage:  ['products', 'regulars', 'recurring', 'events', 'predictions', 'toolbox', 'settings'],
 }
 
 
@@ -168,6 +169,7 @@ function AppInner() {
         { id: 'recurring'   as Tab, label: t('recurringPatterns')  },
         { id: 'events'      as Tab, label: t('promosEvents')       },
         { id: 'predictions' as Tab, label: t('predictionHistory')  },
+        { id: 'toolbox'     as Tab, label: t('advancedPlanning')   },
         { id: 'settings'    as Tab, label: t('settings')           },
       ],
     },
@@ -186,6 +188,7 @@ function AppInner() {
     import:           t('tabImport'),
     settings:         t('tabSettings'),
     predictions:      t('tabPredHistory'),
+    toolbox:          t('tabToolbox'),
   }
 
   if (authLoading || (session && !bizLoaded)) {
@@ -222,6 +225,8 @@ function AppInner() {
         isAdditional={showAddBusiness}
         existingCount={allBusinesses.length}
         limit={FREE_BUSINESS_LIMIT}
+        isPremium={activeBusiness?.tier === 'premium'}
+        existingBusinesses={showAddBusiness ? allBusinesses : []}
         onCreated={handleBusinessCreated}
         onCancel={showAddBusiness ? () => setShowAddBusiness(false) : undefined}
       />
@@ -284,7 +289,7 @@ function AppInner() {
                 </button>
               ))}
               <div className="border-t border-slate-100 mt-1 pt-1">
-                {allBusinesses.length < FREE_BUSINESS_LIMIT ? (
+                {activeBusiness?.tier === 'premium' || allBusinesses.length < FREE_BUSINESS_LIMIT ? (
                   <button
                     onClick={() => { setShowAddBusiness(true); setSwitcherOpen(false) }}
                     className="w-full text-left px-4 py-2.5 text-sm text-teal-600
@@ -293,12 +298,18 @@ function AppInner() {
                     <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    {t('addBusiness')}
+                    {t('addLocation')}
                   </button>
                 ) : (
-                  <p className="px-4 py-2.5 text-xs text-slate-400">
-                    {t('freePlanLimit', { n: FREE_BUSINESS_LIMIT })}
-                  </p>
+                  <div className="px-4 py-2.5">
+                    <p className="text-xs text-slate-500 mb-1">{t('freeOneLocation')}</p>
+                    <button
+                      onClick={() => { setTab('settings'); setSwitcherOpen(false) }}
+                      className="text-xs text-teal-600 hover:text-teal-700 hover:underline transition-colors"
+                    >
+                      {t('upgradeForLocations')}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -431,6 +442,7 @@ function AppInner() {
           {tab === 'import'           && <CsvImport onImported={afterImport} />}
           {tab === 'settings'         && <BusinessSettings />}
           {tab === 'predictions'      && <PredictionsPanel />}
+          {tab === 'toolbox'          && <AdvancedToolbox />}
         </main>
 
         {/* Right ad slot — wide screens only */}

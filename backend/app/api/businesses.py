@@ -5,9 +5,9 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from app.api.deps import get_business, get_current_user
 from app.db import get_db
-from app.models import Business
+from app.models import Business, Product
 
-FREE_BUSINESS_LIMIT = 2
+FREE_BUSINESS_LIMIT = 1  # §10: free = one location; premium = more
 
 router = APIRouter(prefix="/businesses", tags=["Businesses"])
 
@@ -74,17 +74,69 @@ def create_business(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
-    count = db.query(Business).filter(Business.user_id == user_id).count()
-    if count >= FREE_BUSINESS_LIMIT:
+    existing = db.query(Business).filter(Business.user_id == user_id).all()
+    is_premium = any(b.tier == "premium" for b in existing)
+    if not is_premium and len(existing) >= FREE_BUSINESS_LIMIT:
         raise HTTPException(
             status_code=403,
-            detail=f"Free plan allows up to {FREE_BUSINESS_LIMIT} businesses.",
+            detail="Multiple locations require a premium plan. Upgrade in Settings.",
         )
-    biz = Business(name=body.name, user_id=user_id, settings={})
+    biz = Business(name=body.name.strip(), user_id=user_id, settings={})
     db.add(biz)
     db.commit()
     db.refresh(biz)
     return biz
+
+
+@router.post("/{source_id}/copy", response_model=BusinessRead, status_code=201)
+def copy_business(
+    source_id: int,
+    body: BusinessCreate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user),
+):
+    """Create a new location by copying settings + products from source_id.
+    Premium required. History and sales data are NOT copied — only config and product list.
+    """
+    source = db.query(Business).filter(
+        Business.id == source_id, Business.user_id == user_id
+    ).first()
+    if not source:
+        raise HTTPException(404, "Source location not found")
+
+    all_biz = db.query(Business).filter(Business.user_id == user_id).all()
+    is_premium = any(b.tier == "premium" for b in all_biz)
+    if not is_premium:
+        raise HTTPException(
+            status_code=403,
+            detail="Multiple locations require a premium plan. Upgrade in Settings.",
+        )
+
+    new_settings = dict(source.settings or {})
+    new_biz = Business(name=body.name.strip(), user_id=user_id, settings=new_settings)
+    db.add(new_biz)
+    db.flush()
+
+    source_products = db.query(Product).filter(Product.business_id == source_id).all()
+    for p in source_products:
+        db.add(Product(
+            business_id=new_biz.id,
+            name=p.name,
+            unit=p.unit,
+            unit_mode=p.unit_mode or "whole",
+            price=p.price,
+            lead_time_days=p.lead_time_days,
+            current_stock=None,          # per-location data — not copied
+            holding_cost=p.holding_cost,
+            order_cost=p.order_cost,
+            service_time_minutes=p.service_time_minutes,
+            storage_capacity=p.storage_capacity,
+            shelf_life_days=p.shelf_life_days,
+        ))
+
+    db.commit()
+    db.refresh(new_biz)
+    return new_biz
 
 
 @router.patch("/me/tier", response_model=BusinessRead)
