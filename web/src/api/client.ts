@@ -20,6 +20,12 @@ import type {
   ProductForecastResponse,
   ProductRead,
   ProductUpdate,
+  RecurringPatternCreate,
+  RecurringPatternRead,
+  RecurringPatternUpdate,
+  RegularCreate,
+  RegularRead,
+  RegularUpdate,
   SaleCreate,
   SaleEventCreate,
   SaleEventRead,
@@ -113,7 +119,7 @@ export const dayRecords = {
   list: ()                              => GET<DayRecordRead[]>('/day-records'),
   create: (body: DayRecordCreate)       => POST<DayRecordRead>('/day-records', body),
   update: (id: number, b: DayRecordUpdate) => PUT<DayRecordRead>(`/day-records/${id}`, b),
-  resolveOutlier: (id: number, action: 'keep' | 'excluded' | 'event') =>
+  resolveOutlier: (id: number, action: 'keep' | 'excluded' | 'event' | 'recurring') =>
     PATCH<DayRecordRead>(`/day-records/${id}/outlier`, { action }),
   delete: (id: number)                  => DELETE(`/day-records/${id}`),
 }
@@ -165,4 +171,19 @@ export const periods = {
   list:   ()                          => GET<PeriodRead[]>('/periods'),
   create: (body: PeriodCreate)        => POST<PeriodRead>('/periods', body),
   delete: (id: number)                => DELETE(`/periods/${id}`),
+}
+
+export const recurringPatterns = {
+  list:   ()                                  => GET<RecurringPatternRead[]>('/recurring-patterns'),
+  create: (body: RecurringPatternCreate)      => POST<RecurringPatternRead>('/recurring-patterns', body),
+  update: (id: number, b: RecurringPatternUpdate) => PUT<RecurringPatternRead>(`/recurring-patterns/${id}`, b),
+  delete: (id: number)                        => DELETE(`/recurring-patterns/${id}`),
+}
+
+export const regulars = {
+  list:        ()                           => GET<RegularRead[]>('/regulars'),
+  create:      (body: RegularCreate)        => POST<RegularRead>('/regulars', body),
+  update:      (id: number, b: RegularUpdate) => PUT<RegularRead>(`/regulars/${id}`, b),
+  delete:      (id: number)                 => DELETE(`/regulars/${id}`),
+  recordVisit: (id: number)                 => POST<RegularRead>(`/regulars/${id}/visit`, {}),
 }

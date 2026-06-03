@@ -12,6 +12,9 @@ import OutlierBanner from './components/OutlierBanner'
 import PeriodsPanel from './components/PeriodsPanel'
 import ProductsPanel from './components/ProductsPanel'
 import PredictionsPanel from './components/PredictionsPanel'
+import PredictionsScreen from './components/PredictionsScreen'
+import RecurringPatternsPanel from './components/RecurringPatternsPanel'
+import RegularsPanel from './components/RegularsPanel'
 import { useAuth } from './contexts/AuthContext'
 import LoginPage from './pages/LoginPage'
 import * as api from './api/client'
@@ -20,11 +23,15 @@ import type { BusinessRead } from './api/types'
 const FREE_BUSINESS_LIMIT = 2
 const SHOW_ADS = true
 
-type Tab = 'home' | 'backfill' | 'history' | 'import' | 'events' | 'products' | 'trends' | 'settings' | 'predictions'
+type Tab =
+  | 'home' | 'predictions_home'
+  | 'backfill' | 'history' | 'import' | 'trends'
+  | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings'
 type NavGroup = 'history' | 'manage'
 
 const PRIMARY_TABS: { id: Tab; label: string }[] = [
-  { id: 'home', label: 'Home' },
+  { id: 'home',             label: 'Home'        },
+  { id: 'predictions_home', label: 'Predictions' },
 ]
 
 const DROPDOWN_GROUPS: { id: NavGroup; label: string; tabs: { id: Tab; label: string }[] }[] = [
@@ -42,24 +49,29 @@ const DROPDOWN_GROUPS: { id: NavGroup; label: string; tabs: { id: Tab; label: st
     id: 'manage',
     label: 'Manage',
     tabs: [
-      { id: 'products',    label: 'My Products'       },
-      { id: 'events',      label: 'Promos & Events'   },
-      { id: 'predictions', label: 'Prediction history' },
-      { id: 'settings',    label: 'Settings'           },
+      { id: 'products',    label: 'My Products'          },
+      { id: 'regulars',    label: 'My Regulars'          },
+      { id: 'recurring',   label: 'Recurring Patterns'   },
+      { id: 'events',      label: 'Promos & Events'      },
+      { id: 'predictions', label: 'Prediction history'   },
+      { id: 'settings',    label: 'Settings'             },
     ],
   },
 ]
 
 const TAB_TITLES: Record<Tab, string> = {
-  home:        "Know tomorrow, today.",
-  trends:      'Monthly trends & history',
-  events:      'Promos & Events',
-  products:    'My Products',
-  backfill:    'Add a past day',
-  history:     'Your past days',
-  import:      'Bring in your past data',
-  settings:    'Your business settings',
-  predictions: 'How our predictions did',
+  home:             "Know tomorrow, today.",
+  predictions_home: 'Predictions',
+  trends:           'Monthly trends & history',
+  events:           'Promos & Events',
+  products:         'My Products',
+  regulars:         'My Regulars',
+  recurring:        'Recurring Patterns',
+  backfill:         'Add a past day',
+  history:          'Your past days',
+  import:           'Bring in your past data',
+  settings:         'Your business settings',
+  predictions:      'How our predictions did',
 }
 
 export default function App() {
@@ -380,15 +392,18 @@ export default function App() {
         <main className={`flex-1 max-w-4xl mx-auto px-6 py-8 ${SHOW_ADS ? 'pb-20 xl:pb-8' : ''}`}>
           <h1 className="text-lg font-semibold text-slate-700 mb-6">{TAB_TITLES[tab]}</h1>
           <OutlierBanner onResolved={refresh} />
-          {tab === 'home'        && <HomeScreen refreshKey={refreshKey} onSaved={refresh} />}
-          {tab === 'trends'      && <TrendsView />}
-          {tab === 'events'      && <PeriodsPanel />}
-          {tab === 'products'    && <ProductsPanel />}
-          {tab === 'backfill'    && <BackfillForm onSaved={refresh} />}
-          {tab === 'history'     && <DayList refreshKey={refreshKey} />}
-          {tab === 'import'      && <CsvImport onImported={afterImport} />}
-          {tab === 'settings'    && <BusinessSettings />}
-          {tab === 'predictions' && <PredictionsPanel />}
+          {tab === 'home'             && <HomeScreen refreshKey={refreshKey} onSaved={refresh} />}
+          {tab === 'predictions_home' && <PredictionsScreen refreshKey={refreshKey} />}
+          {tab === 'trends'           && <TrendsView />}
+          {tab === 'events'           && <PeriodsPanel />}
+          {tab === 'products'         && <ProductsPanel />}
+          {tab === 'regulars'         && <RegularsPanel />}
+          {tab === 'recurring'        && <RecurringPatternsPanel />}
+          {tab === 'backfill'         && <BackfillForm onSaved={refresh} />}
+          {tab === 'history'          && <DayList refreshKey={refreshKey} />}
+          {tab === 'import'           && <CsvImport onImported={afterImport} />}
+          {tab === 'settings'         && <BusinessSettings />}
+          {tab === 'predictions'      && <PredictionsPanel />}
         </main>
 
         {/* Right ad slot — wide screens only */}

@@ -6,7 +6,7 @@ from app.api.deps import get_business
 from app.db import get_db
 from app.engine.limits import check_entry_timing, check_history, history_cutoff
 from app.engine.outliers import detect_outliers
-from app.models import Business, DayRecord
+from app.models import Business, DayRecord, RecurringPattern
 from app.schemas.day_record import (
     DayRecordCreate,
     DayRecordRead,
@@ -17,6 +17,7 @@ from app.schemas.day_record import (
 router = APIRouter(prefix="/day-records", tags=["Day Records"])
 
 _MIN_FOR_DETECTION = 14  # mirror analytics.MIN_RECORDS
+_WD_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
 def _timing_check(record_date: date, biz: Business) -> None:
@@ -105,10 +106,32 @@ def update_day_record(record_id: int, body: DayRecordUpdate, db: Session = Depen
 
 
 @router.patch("/{record_id}/outlier", response_model=DayRecordRead)
-def resolve_outlier(record_id: int, body: OutlierResolveRequest, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    """Resolve a flagged outlier: keep it, exclude it as a fluke, or mark it as an event."""
+def resolve_outlier(
+    record_id: int,
+    body: OutlierResolveRequest,
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """Resolve a flagged outlier: keep, exclude as fluke, mark as event, or mark as recurring."""
     row = _get_or_404(db, record_id, biz.id)
-    row.outlier_status = body.action
+
+    if body.action == "recurring":
+        wd = row.date.weekday()
+        wd_name = _WD_NAMES[wd]
+        # Create a RecurringPattern for this weekday if one doesn't already cover it
+        existing = db.query(RecurringPattern).filter_by(business_id=biz.id).all()
+        already_covered = any(wd in (p.weekdays or []) for p in existing)
+        if not already_covered:
+            db.add(RecurringPattern(
+                business_id=biz.id,
+                label=f"Regular {wd_name} bump",
+                weekdays=[wd],
+                effect="higher",
+            ))
+        row.outlier_status = "kept"
+    else:
+        row.outlier_status = body.action
+
     db.commit()
     db.refresh(row)
     return row

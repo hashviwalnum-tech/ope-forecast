@@ -38,7 +38,7 @@ from app.engine.queueing import (
     queue_length,
 )
 from app.engine.seasonality import seasonal_naive_forecast
-from app.models import Business, DayRecord, ForecastRun, Period, Product, SaleEvent, SaleRecord
+from app.models import Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, SaleEvent, SaleRecord
 from app.schemas.analytics import (
     AccuracyResponse,
     ForecastDay,
@@ -258,14 +258,28 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     obs = [float(r.customers) for r in all_records]
     wds = [r.date.weekday() for r in all_records]
 
+    # Weekdays covered by owner-declared recurring patterns are NEVER flagged as anomalies.
+    recurring_patterns = db.query(RecurringPattern).filter_by(business_id=biz.id).all()
+    recurring_weekdays: set[int] = set()
+    for rp in recurring_patterns:
+        for wd in (rp.weekdays or []):
+            recurring_weekdays.add(int(wd))
+
     detected = {d.day_index: d for d in detect_outliers(obs, wds)}
 
-    # Flag unreviewed records that are now detected as outliers
     changed = False
+    # Auto-resolve any previously flagged record now covered by a recurring pattern
+    for r in all_records:
+        if r.outlier_status == "flagged" and r.date.weekday() in recurring_weekdays:
+            r.outlier_status = "kept"
+            changed = True
+
+    # Flag unreviewed records that are now detected as outliers (skip recurring weekdays)
     for i, r in enumerate(all_records):
         if r.outlier_status is None and i in detected:
-            r.outlier_status = "flagged"
-            changed = True
+            if r.date.weekday() not in recurring_weekdays:
+                r.outlier_status = "flagged"
+                changed = True
     if changed:
         db.commit()
 

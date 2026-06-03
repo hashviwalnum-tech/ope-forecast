@@ -9,7 +9,7 @@ ALLOWED_ORIGINS = [o.strip() for o in _origins.split(",")]
 
 from app.db import engine
 from app.models import Base
-from app.api import businesses, day_records, products, sale_events, sales, periods, analytics
+from app.api import businesses, day_records, products, sale_events, sales, periods, analytics, recurring_patterns, regulars
 
 
 def _migrate_sqlite_products(eng) -> None:
@@ -49,6 +49,8 @@ app.include_router(products.router)
 app.include_router(sale_events.router)
 app.include_router(sales.router)
 app.include_router(periods.router)
+app.include_router(recurring_patterns.router)
+app.include_router(regulars.router)
 app.include_router(analytics.router)
 
 

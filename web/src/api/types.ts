@@ -1,5 +1,65 @@
 // Mirror of backend Pydantic schemas.  Keep in sync with app/schemas/*.py.
 
+// ── RecurringPattern ──────────────────────────────────────────────────────────
+
+export interface RecurringPatternRead {
+  id: number
+  business_id: number
+  label: string
+  weekdays: number[]       // 0=Mon … 6=Sun
+  hour_start: number | null
+  hour_end: number | null
+  effect: string           // "higher" | "lower" | "expected"
+}
+
+export interface RecurringPatternCreate {
+  label: string
+  weekdays: number[]
+  hour_start?: number
+  hour_end?: number
+  effect?: string
+}
+
+export interface RecurringPatternUpdate {
+  label?: string
+  weekdays?: number[]
+  hour_start?: number | null
+  hour_end?: number | null
+  effect?: string
+}
+
+// ── Regular (named repeat customer) ──────────────────────────────────────────
+
+export interface RegularRead {
+  id: number
+  business_id: number
+  name: string
+  visit_frequency_per_week: number
+  avg_spend: number
+  expected_lifespan_years: number
+  notes: string | null
+  visit_count: number
+  first_visit_date: string | null   // "YYYY-MM-DD"
+  last_visit_date: string | null    // "YYYY-MM-DD"
+  clv: number                       // auto-computed
+}
+
+export interface RegularCreate {
+  name: string
+  visit_frequency_per_week: number
+  avg_spend: number
+  expected_lifespan_years?: number
+  notes?: string
+}
+
+export interface RegularUpdate {
+  name?: string
+  visit_frequency_per_week?: number
+  avg_spend?: number
+  expected_lifespan_years?: number
+  notes?: string
+}
+
 export interface BusinessRead {
   id: number
   name: string

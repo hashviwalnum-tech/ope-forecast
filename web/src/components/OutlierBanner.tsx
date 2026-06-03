@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function OutlierBanner({ onResolved }: Props) {
-  const [flags, setFlags]       = useState<OutlierFlag[]>([])
+  const [flags, setFlags]         = useState<OutlierFlag[]>([])
   const [resolving, setResolving] = useState<number | null>(null)
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export default function OutlierBanner({ onResolved }: Props) {
 
   if (flags.length === 0) return null
 
-  async function resolve(id: number, action: 'keep' | 'excluded' | 'event') {
+  async function resolve(id: number, action: 'keep' | 'excluded' | 'event' | 'recurring') {
     setResolving(id)
     try {
       await dayRecords.resolveOutlier(id, action)
@@ -62,6 +62,14 @@ export default function OutlierBanner({ onResolved }: Props) {
                 It was a special event
               </button>
               <button
+                onClick={() => resolve(flag.day_record_id, 'recurring')}
+                disabled={resolving === flag.day_record_id}
+                className="px-3 py-2 bg-teal-50 text-teal-700 border border-teal-200 text-xs font-medium
+                           rounded-lg hover:bg-teal-100 disabled:opacity-50 transition-colors"
+              >
+                It repeats every {flag.weekday}
+              </button>
+              <button
                 onClick={() => resolve(flag.day_record_id, 'excluded')}
                 disabled={resolving === flag.day_record_id}
                 className="px-3 py-2 bg-slate-100 text-slate-700 text-xs font-medium
@@ -72,8 +80,8 @@ export default function OutlierBanner({ onResolved }: Props) {
               <button
                 onClick={() => resolve(flag.day_record_id, 'keep')}
                 disabled={resolving === flag.day_record_id}
-                className="px-3 py-2 bg-teal-50 text-teal-700 text-xs font-medium
-                           rounded-lg hover:bg-teal-100 disabled:opacity-50 transition-colors"
+                className="px-3 py-2 bg-slate-50 text-slate-600 border border-slate-200 text-xs font-medium
+                           rounded-lg hover:bg-slate-100 disabled:opacity-50 transition-colors"
               >
                 Keep it as-is
               </button>
@@ -84,6 +92,7 @@ export default function OutlierBanner({ onResolved }: Props) {
 
       <p className="mt-3 text-xs text-amber-700 leading-relaxed">
         Until you decide, unusual days are down-weighted so they don't skew your forecast.
+        Marking a day as recurring teaches Ope to expect it in the future.
       </p>
     </div>
   )

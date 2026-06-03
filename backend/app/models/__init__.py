@@ -4,6 +4,8 @@ from app.models.day_record import DayRecord
 from app.models.forecast_run import ForecastRun
 from app.models.period import Period
 from app.models.product import Product
+from app.models.recurring_pattern import RecurringPattern
+from app.models.regular import Regular
 from app.models.sale_event import SaleEvent
 from app.models.sale_record import SaleRecord
 
@@ -14,6 +16,8 @@ __all__ = [
     "ForecastRun",
     "Period",
     "Product",
+    "RecurringPattern",
+    "Regular",
     "SaleEvent",
     "SaleRecord",
 ]
