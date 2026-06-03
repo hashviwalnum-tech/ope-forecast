@@ -6,7 +6,7 @@ from app.api.deps import get_business
 from app.db import get_db
 from app.engine.limits import check_entry_timing, check_history, history_cutoff
 from app.engine.outliers import detect_outliers
-from app.models import Business, DayRecord, RecurringPattern
+from app.models import Business, DayRecord, Period, RecurringPattern
 from app.schemas.day_record import (
     DayRecordCreate,
     DayRecordRead,
@@ -129,6 +129,20 @@ def resolve_outlier(
                 effect="higher",
             ))
         row.outlier_status = "kept"
+    elif body.action == "ad":
+        # Exclude from normal baseline (same as event) and create an ad Period for lift tracking
+        existing_period = db.query(Period).filter_by(
+            business_id=biz.id, type="ad", start_date=row.date, end_date=row.date
+        ).first()
+        if not existing_period:
+            db.add(Period(
+                business_id=biz.id,
+                start_date=row.date,
+                end_date=row.date,
+                type="ad",
+                label=f"Ad – {row.date}",
+            ))
+        row.outlier_status = "event"
     else:
         row.outlier_status = body.action
 

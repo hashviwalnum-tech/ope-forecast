@@ -18,7 +18,7 @@ export default function OutlierBanner({ onResolved }: Props) {
 
   if (flags.length === 0) return null
 
-  async function resolve(id: number, action: 'keep' | 'excluded' | 'event' | 'recurring') {
+  async function resolve(id: number, action: 'keep' | 'excluded' | 'event' | 'ad' | 'recurring') {
     setResolving(id)
     try {
       await dayRecords.resolveOutlier(id, action)
@@ -60,6 +60,14 @@ export default function OutlierBanner({ onResolved }: Props) {
                            rounded-lg hover:bg-teal-100 disabled:opacity-50 transition-colors"
               >
                 It was a special event
+              </button>
+              <button
+                onClick={() => resolve(flag.day_record_id, 'ad')}
+                disabled={resolving === flag.day_record_id}
+                className="px-3 py-2 bg-teal-50 text-teal-700 border border-teal-200 text-xs font-medium
+                           rounded-lg hover:bg-teal-100 disabled:opacity-50 transition-colors"
+              >
+                It was an ad / promo
               </button>
               <button
                 onClick={() => resolve(flag.day_record_id, 'recurring')}

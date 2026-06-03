@@ -119,7 +119,7 @@ export const dayRecords = {
   list: ()                              => GET<DayRecordRead[]>('/day-records'),
   create: (body: DayRecordCreate)       => POST<DayRecordRead>('/day-records', body),
   update: (id: number, b: DayRecordUpdate) => PUT<DayRecordRead>(`/day-records/${id}`, b),
-  resolveOutlier: (id: number, action: 'keep' | 'excluded' | 'event' | 'recurring') =>
+  resolveOutlier: (id: number, action: 'keep' | 'excluded' | 'event' | 'ad' | 'recurring') =>
     PATCH<DayRecordRead>(`/day-records/${id}/outlier`, { action }),
   delete: (id: number)                  => DELETE(`/day-records/${id}`),
 }

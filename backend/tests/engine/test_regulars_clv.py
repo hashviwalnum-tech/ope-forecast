@@ -71,3 +71,58 @@ def test_recurring_weekday_prevents_flagging():
             flagged.append(i)
 
     assert flagged == [1]  # only index 1 (Thursday) is flagged; Sundays skipped
+
+
+# ── Outlier resolution action mapping tests ──────────────────────────────────
+
+def _resolve_action(action: str, current_status: str | None = "flagged") -> dict:
+    """Simulate the resolve_outlier handler logic (pure function version)."""
+    VALID = {"keep", "excluded", "event", "ad", "recurring"}
+    assert action in VALID
+
+    result = {"outlier_status": current_status, "period_created": None, "pattern_created": None}
+
+    if action == "recurring":
+        result["outlier_status"] = "kept"
+        result["pattern_created"] = "weekday_bump"
+    elif action == "ad":
+        result["outlier_status"] = "event"   # excluded from normal baseline
+        result["period_created"] = "ad"
+    else:
+        result["outlier_status"] = action    # 'keep', 'excluded', 'event'
+
+    return result
+
+
+def test_resolve_action_event():
+    r = _resolve_action("event")
+    assert r["outlier_status"] == "event"
+    assert r["period_created"] is None
+
+
+def test_resolve_action_ad_excludes_from_baseline():
+    r = _resolve_action("ad")
+    # 'ad' days are excluded from the normal baseline (same mechanism as 'event')
+    assert r["outlier_status"] == "event"
+
+
+def test_resolve_action_ad_creates_period():
+    r = _resolve_action("ad")
+    assert r["period_created"] == "ad"
+
+
+def test_resolve_action_fluke():
+    r = _resolve_action("excluded")
+    assert r["outlier_status"] == "excluded"
+    assert r["period_created"] is None
+
+
+def test_resolve_action_recurring_creates_pattern():
+    r = _resolve_action("recurring")
+    assert r["outlier_status"] == "kept"
+    assert r["pattern_created"] == "weekday_bump"
+
+
+def test_resolve_action_keep():
+    r = _resolve_action("keep")
+    assert r["outlier_status"] == "keep"

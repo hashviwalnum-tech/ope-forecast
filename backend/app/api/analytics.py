@@ -23,6 +23,7 @@ from app.engine.ensemble import blend, model_weights, prediction_interval
 from app.engine.forecasting import exponential_smoothing, weighted_moving_average
 from app.engine.live_sales import hourly_averages, hourly_product_mix
 from app.engine.ordering import (
+    apply_order_constraints,
     economic_order_quantity,
     reorder_point,
     safety_stock,
@@ -67,6 +68,18 @@ from app.schemas.analytics import (
 )
 
 router = APIRouter(tags=["Analytics"])
+
+
+def _round_qty(v: float, unit_mode: str) -> float:
+    """Round an order/forecast quantity per the product's unit mode.
+
+    'whole' → nearest integer (never "45.3 bottles").
+    'decimal' → two decimal places (e.g. "2.50 kg").
+    """
+    if unit_mode == "whole":
+        return float(round(v))
+    return round(v, 2)
+
 
 # Preset WMA weights by window size (oldest→newest, sum=1, most-recent heaviest)
 _WMA_WEIGHTS: dict[int, list[float]] = {
@@ -665,23 +678,32 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             except ValueError:
                 pass
 
-        order_now = prod.current_stock is not None and prod.current_stock <= rop
-        suggested_qty = eoq_val if eoq_val is not None else round(
-            avg_daily * prod.lead_time_days + ss, 1
+        base_qty = eoq_val if eoq_val is not None else avg_daily * prod.lead_time_days + ss
+        unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
+        constrained_qty, cap_notes = apply_order_constraints(
+            base_qty,
+            storage_capacity=prod.storage_capacity,
+            current_stock=prod.current_stock,
+            shelf_life_days=prod.shelf_life_days,
+            avg_daily_demand=avg_daily,
         )
+        suggested_qty = _round_qty(constrained_qty, unit_mode)
+        order_now = prod.current_stock is not None and prod.current_stock <= rop
 
         result.append(OrderingRow(
             product_id=prod.id,
             name=prod.name,
             unit=prod.unit,
+            unit_mode=unit_mode,
             avg_daily_demand=round(avg_daily, 2),
             lead_time_days=prod.lead_time_days,
-            safety_stock_units=round(ss, 1),
-            reorder_point=round(rop, 1),
+            safety_stock_units=_round_qty(ss, unit_mode),
+            reorder_point=_round_qty(rop, unit_mode),
             current_stock=prod.current_stock,
             order_now=order_now,
             eoq=eoq_val,
-            suggested_order_qty=round(suggested_qty, 1),
+            suggested_order_qty=suggested_qty,
+            constraint_notes=cap_notes,
         ))
 
     return OrderingResponse(status="ok", products=result)

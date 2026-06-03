@@ -24,6 +24,10 @@ def _migrate_sqlite_products(eng) -> None:
             conn.execute(text("ALTER TABLE products ADD COLUMN storage_capacity REAL"))
         if "shelf_life_days" not in existing:
             conn.execute(text("ALTER TABLE products ADD COLUMN shelf_life_days INTEGER"))
+        if "unit_mode" not in existing:
+            conn.execute(text("ALTER TABLE products ADD COLUMN unit_mode TEXT DEFAULT 'whole'"))
+        if "price" not in existing:
+            conn.execute(text("ALTER TABLE products ADD COLUMN price REAL"))
         conn.commit()
 
 

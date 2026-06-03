@@ -91,6 +91,7 @@ class OrderingRow(BaseModel):
     product_id: int
     name: str
     unit: str
+    unit_mode: str = "whole"
     avg_daily_demand: float
     lead_time_days: int
     safety_stock_units: float
@@ -99,6 +100,7 @@ class OrderingRow(BaseModel):
     order_now: bool
     eoq: Optional[float] = None
     suggested_order_qty: float = 0.0
+    constraint_notes: list[str] = []
 
 
 class OrderingResponse(BaseModel):
@@ -184,6 +186,7 @@ class ProductForecastItem(BaseModel):
     product_id: int
     name: str
     unit: str
+    unit_mode: str = "whole"
     status: str                           # "ok" | "not_enough_data"
     message: Optional[str] = None
     days: list[ProductForecastDay] = []
@@ -198,6 +201,7 @@ class ProductForecastItem(BaseModel):
     order_now: bool = False
     eoq: Optional[float] = None
     n_days_data: int = 0
+    constraint_notes: list[str] = []
 
 
 class ProductForecastResponse(BaseModel):
