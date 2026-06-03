@@ -7,6 +7,7 @@ from app.engine.limits import (
     FREE_HISTORY_DAYS,
     FREE_PERIODS_LIMIT,
     check_entry_timing,
+    check_non_working_day,
     history_cutoff,
     check_history,
     check_periods,
@@ -182,3 +183,48 @@ def test_same_open_and_close_hour_blocked_during_that_hour():
     # current_hour < opening_hour → "not started" block
     with pytest.raises(ValueError, match="hasn't started"):
         check_entry_timing(TODAY, TODAY, 8, 9, 9)
+
+
+# ── check_non_working_day ─────────────────────────────────────────────────────
+
+# TODAY = 2026-06-01 which is a Monday (weekday() == 0)
+_NWD_TODAY = date(2026, 6, 1)   # Monday
+_NWD_YEST  = _NWD_TODAY - timedelta(days=1)   # Sunday (past day)
+
+
+def test_non_working_day_past_date_always_allowed():
+    # Past dates bypass the check no matter what opening_days says.
+    check_non_working_day(_NWD_YEST, _NWD_TODAY, [0, 1, 2, 3, 4])  # Sun not in list, but it's past
+
+
+def test_non_working_day_no_schedule_always_allowed():
+    # opening_days=None → no schedule configured, never blocked.
+    check_non_working_day(_NWD_TODAY, _NWD_TODAY, None)
+
+
+def test_non_working_day_empty_list_always_allowed():
+    # Empty list is treated the same as None.
+    check_non_working_day(_NWD_TODAY, _NWD_TODAY, [])
+
+
+def test_working_day_in_schedule_allowed():
+    # Monday (0) is in the opening_days → allowed.
+    check_non_working_day(_NWD_TODAY, _NWD_TODAY, [0, 1, 2, 3, 4])
+
+
+def test_non_working_day_today_blocked():
+    # Monday (0) is NOT in a Tue–Sun schedule → blocked.
+    with pytest.raises(ValueError, match="not a working day"):
+        check_non_working_day(_NWD_TODAY, _NWD_TODAY, [1, 2, 3, 4, 5, 6])
+
+
+def test_non_working_day_error_message_contains_day_name():
+    with pytest.raises(ValueError) as exc:
+        check_non_working_day(_NWD_TODAY, _NWD_TODAY, [2, 3, 4])
+    assert "Monday" in str(exc.value)
+
+
+def test_non_working_day_error_message_mentions_past_days():
+    with pytest.raises(ValueError) as exc:
+        check_non_working_day(_NWD_TODAY, _NWD_TODAY, [2, 3, 4])
+    assert "Past Days" in str(exc.value)

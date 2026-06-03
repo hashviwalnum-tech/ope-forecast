@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
-from app.engine.limits import check_entry_timing, check_history, history_cutoff
+from app.engine.limits import check_entry_timing, check_history, check_non_working_day, history_cutoff
 from app.engine.outliers import detect_outliers
 from app.models import Business, DayRecord, Period, RecurringPattern
 from app.schemas.day_record import (
@@ -27,7 +27,9 @@ def _timing_check(record_date: date, biz: Business) -> None:
     raw_close = settings.get("closing_hour")
     opening = int(raw_open) if raw_open is not None else None
     closing = int(raw_close) if raw_close is not None else None
+    opening_days = settings.get("opening_days")
     try:
+        check_non_working_day(record_date, date.today(), opening_days)
         check_entry_timing(record_date, date.today(), datetime.now().hour, opening, closing)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))

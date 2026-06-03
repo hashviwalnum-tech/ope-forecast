@@ -4,7 +4,7 @@ import HourlyDashboard from './HourlyDashboard'
 import LogDayForm from './LogDayForm'
 import MergedForecastPanel from './MergedForecastPanel'
 import TapSellPanel from './TapSellPanel'
-import { regulars as regularsApi } from '../api/client'
+import { businesses as businessesApi, dayRecords as dayRecordsApi, regulars as regularsApi, saleEvents } from '../api/client'
 import type { RegularRead } from '../api/types'
 
 // ── Card IDs and default layout ─────────────────────────────────────────────
@@ -119,15 +119,46 @@ interface Props {
   onSaved: () => void
 }
 
+function localToday(): string {
+  const d = new Date()
+  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
+}
+
 export default function HomeScreen({ refreshKey, onSaved }: Props) {
   const [showSell, setShowSell]       = useState(false)
   const [showLog, setShowLog]         = useState(false)
   const [showRegular, setShowRegular] = useState(false)
   const [customizing, setCustomizing] = useState(false)
   const [layout, setLayout]           = useState<CardConfig[]>(loadLayout)
+  const [tapRollover, setTapRollover] = useState(false)
+
+  // Check for tap-only days that need a day record logged after closing
+  useEffect(() => {
+    async function checkRollover() {
+      try {
+        const bizData = await businessesApi.me()
+        const settings = bizData.settings || {}
+        const closingHour = typeof settings.closing_hour === 'number' ? settings.closing_hour : null
+        if (closingHour === null) return
+        if (new Date().getHours() < closingHour) return  // still open
+
+        const [summary, records] = await Promise.all([
+          saleEvents.today(),
+          dayRecordsApi.list(),
+        ])
+        const todayStr = localToday()
+        const alreadyLogged = records.some((r: { date: string }) => r.date === todayStr)
+        setTapRollover(summary.total_taps > 0 && !alreadyLogged)
+      } catch {
+        // non-critical; ignore
+      }
+    }
+    checkRollover()
+  }, [refreshKey])
 
   function handleSaved() {
     setShowLog(false)
+    setTapRollover(false)
     onSaved()
   }
 
@@ -179,6 +210,32 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
 
   return (
     <div className="space-y-8">
+
+      {/* Tap-only rollover banner */}
+      {tapRollover && (
+        <div className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200
+                        bg-amber-50 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Unsaved tap data for today</p>
+              <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
+                You recorded sales by tapping today — log today's totals to save them to your history.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => { setShowLog(true); setShowSell(false); setShowRegular(false) }}
+            className="shrink-0 px-4 py-2 bg-amber-500 text-white text-sm font-semibold
+                       rounded-xl hover:bg-amber-600 transition-colors"
+          >
+            Log Today
+          </button>
+        </div>
+      )}
 
       {/* ① Quick actions */}
       <section>

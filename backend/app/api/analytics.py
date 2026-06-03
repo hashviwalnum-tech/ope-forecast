@@ -1052,12 +1052,13 @@ def get_product_forecast(
 
             lo, hi = prediction_interval(fval, all_wd_errs) if len(all_wd_errs) >= 2 else (fval, fval)
 
+            unit_mode_f = getattr(prod, "unit_mode", "whole") or "whole"
             forecast_days.append(ProductForecastDay(
                 date=target,
                 weekday=target.strftime("%A"),
-                predicted_units=round(fval, 2),
-                interval_low=round(max(0.0, lo), 2),
-                interval_high=round(max(0.0, hi), 2),
+                predicted_units=_round_qty(fval, unit_mode_f),
+                interval_low=_round_qty(max(0.0, lo), unit_mode_f),
+                interval_high=_round_qty(max(0.0, hi), unit_mode_f),
             ))
 
         # ── ordering advice (forecast-based) ─────────────────────────────────
@@ -1078,25 +1079,36 @@ def get_product_forecast(
             except ValueError:
                 pass
 
-        suggested_qty = eoq_val if eoq_val is not None else round(forecast_demand_lt + ss, 1)
+        unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
+        base_qty = eoq_val if eoq_val is not None else forecast_demand_lt + ss
+        constrained_qty, cap_notes = apply_order_constraints(
+            base_qty,
+            storage_capacity=prod.storage_capacity,
+            current_stock=prod.current_stock,
+            shelf_life_days=prod.shelf_life_days,
+            avg_daily_demand=avg_daily,
+        )
+        suggested_qty = _round_qty(constrained_qty, unit_mode)
         order_now = prod.current_stock is not None and prod.current_stock <= rop
 
         result.append(ProductForecastItem(
             product_id=prod.id,
             name=prod.name,
             unit=prod.unit,
+            unit_mode=unit_mode,
             status="ok",
             days=forecast_days,
             avg_daily_demand=round(avg_daily, 2),
-            forecast_demand_over_lead_time=round(forecast_demand_lt, 1),
+            forecast_demand_over_lead_time=_round_qty(forecast_demand_lt, unit_mode),
             lead_time_days=prod.lead_time_days,
-            safety_stock_units=round(ss, 1),
-            reorder_point=round(rop, 1),
-            suggested_order_qty=round(suggested_qty, 1),
+            safety_stock_units=_round_qty(ss, unit_mode),
+            reorder_point=_round_qty(rop, unit_mode),
+            suggested_order_qty=suggested_qty,
             current_stock=prod.current_stock,
             order_now=order_now,
             eoq=eoq_val,
             n_days_data=n_data,
+            constraint_notes=cap_notes,
         ))
 
     return ProductForecastResponse(status="ok", products=result)

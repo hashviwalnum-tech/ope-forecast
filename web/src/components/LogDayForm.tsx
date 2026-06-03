@@ -115,7 +115,9 @@ export default function LogDayForm({ onSaved }: Props) {
               <div key={p.id} className="flex items-center gap-3">
                 <span className="flex-1 text-sm text-slate-700">{p.name}</span>
                 <input
-                  type="number" min="0" step="0.01" placeholder="0"
+                  type="number" min="0"
+                  step={p.unit_mode === 'decimal' ? '0.01' : '1'}
+                  placeholder="0"
                   value={unitsSold[p.id] ?? ''}
                   onChange={e => setUnitsSold(prev => ({ ...prev, [p.id]: e.target.value }))}
                   className="w-24 border border-slate-300 rounded-xl px-2 py-2 text-sm

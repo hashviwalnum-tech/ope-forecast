@@ -11,15 +11,18 @@ import {
 import { analytics } from '../api/client'
 import type { ForecastResponse, ProductForecastItem, ProductForecastResponse } from '../api/types'
 
-function fmt(n: number, unit: string) {
-  return `${n % 1 === 0 ? Math.round(n) : n.toFixed(1)} ${unit}`
+function fmtQty(n: number, unitMode: 'whole' | 'decimal', unit: string) {
+  const s = unitMode === 'decimal' ? n.toFixed(2) : String(Math.round(n))
+  return `${s} ${unit}`
 }
 
 // ── ordering advice shown when a product chip is selected ─────────────────────
 
 function OrderCard({ item }: { item: ProductForecastItem }) {
   const { unit } = item
+  const uMode = (item.unit_mode ?? 'whole') as 'whole' | 'decimal'
   const qty = item.suggested_order_qty
+  const notes = item.constraint_notes ?? []
 
   return (
     <div className="mt-4 rounded-xl border border-teal-100 overflow-hidden">
@@ -28,7 +31,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
         <div className="flex items-center gap-2">
           {item.order_now ? (
             <span className="px-2.5 py-1 bg-teal-600 text-white rounded-full text-xs font-bold">
-              Order ~{Math.round(qty)} {unit}
+              Order ~{fmtQty(qty, uMode, unit)}
             </span>
           ) : item.current_stock != null ? (
             <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">
@@ -40,16 +43,16 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
       <div className="grid grid-cols-3 divide-x divide-slate-100 bg-white">
         <div className="px-4 py-3">
           <p className="text-xs text-slate-500 mb-0.5">Reorder when below</p>
-          <p className="text-base font-bold tabular-nums text-slate-800">{fmt(item.reorder_point, unit)}</p>
+          <p className="text-base font-bold tabular-nums text-slate-800">{fmtQty(item.reorder_point, uMode, unit)}</p>
           <p className="text-xs text-slate-400 mt-0.5">
             {item.current_stock != null
-              ? `have ${fmt(item.current_stock, unit)} now`
+              ? `have ${fmtQty(item.current_stock, uMode, unit)} now`
               : 'track stock to get alerts'}
           </p>
         </div>
         <div className="px-4 py-3">
           <p className="text-xs text-slate-500 mb-0.5">Safety buffer</p>
-          <p className="text-base font-bold tabular-nums text-slate-800">{fmt(item.safety_stock_units, unit)}</p>
+          <p className="text-base font-bold tabular-nums text-slate-800">{fmtQty(item.safety_stock_units, uMode, unit)}</p>
           <p className="text-xs text-slate-400 mt-0.5">extra to absorb swings</p>
         </div>
         <div className={`px-4 py-3 ${item.order_now ? 'bg-teal-50/40' : ''}`}>
@@ -57,16 +60,26 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
             {item.eoq != null ? 'Ideal order (EOQ)' : 'Suggested order'}
           </p>
           <p className={`text-base font-bold tabular-nums ${item.order_now ? 'text-teal-700' : 'text-slate-800'}`}>
-            {fmt(qty, unit)}
+            {fmtQty(qty, uMode, unit)}
           </p>
           <p className="text-xs text-slate-400 mt-0.5">
             {item.eoq != null ? 'minimises ordering + holding costs' : 'covers lead time + safety buffer'}
           </p>
         </div>
       </div>
+      {notes.length > 0 && (
+        <div className="px-4 py-2.5 bg-amber-50 border-t border-amber-100">
+          {notes.map((note, i) => (
+            <p key={i} className="text-xs text-amber-800 flex items-start gap-1.5">
+              <span className="mt-0.5 shrink-0">⚠</span>
+              {note}
+            </p>
+          ))}
+        </div>
+      )}
       <div className="px-4 py-2 bg-teal-50/40 border-t border-teal-100">
         <p className="text-xs text-slate-400">
-          Avg <strong className="text-slate-600">{fmt(item.avg_daily_demand, unit)}/day</strong> from{' '}
+          Avg <strong className="text-slate-600">{fmtQty(item.avg_daily_demand, uMode, unit)}/day</strong> from{' '}
           <strong className="text-slate-600">{item.n_days_data}</strong> recorded days · lead time {item.lead_time_days}d
         </p>
       </div>
@@ -138,6 +151,8 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
   let chartData: { name: string; fullDay: string; predicted: number; low: number; high: number }[] = []
   let yLabel = ''
 
+  const activeUMode = (activeProduct?.unit_mode ?? 'whole') as 'whole' | 'decimal'
+
   if (selected === 'customers' && forecast?.status === 'ok') {
     chartData = forecast.days.map(d => ({
       name: `${d.weekday.slice(0, 3)} ${d.date.slice(5).replace('-', '/')}`,
@@ -151,9 +166,9 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
     chartData = activeProduct.days.map(d => ({
       name: `${d.weekday.slice(0, 3)} ${d.date.slice(5).replace('-', '/')}`,
       fullDay: d.weekday,
-      predicted: Math.round(d.predicted_units),
-      low: Math.round(d.interval_low),
-      high: Math.round(d.interval_high),
+      predicted: activeUMode === 'decimal' ? d.predicted_units : Math.round(d.predicted_units),
+      low: activeUMode === 'decimal' ? d.interval_low : Math.round(d.interval_low),
+      high: activeUMode === 'decimal' ? d.interval_high : Math.round(d.interval_high),
     }))
     yLabel = activeProduct.unit
   }

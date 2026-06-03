@@ -82,6 +82,28 @@ def check_entry_timing(
     )
 
 
+def check_non_working_day(
+    record_date: date,
+    today: date,
+    opening_days: list[int] | None,
+) -> None:
+    """Raise ValueError if today is a non-working day and we're trying to log it.
+
+    Only today is gated — past dates are always editable via the backfill screen.
+    If opening_days is None or empty the check is skipped (no schedule configured).
+    """
+    if record_date != today:
+        return
+    if not opening_days:
+        return
+    if today.weekday() not in opening_days:
+        day_name = today.strftime("%A")
+        raise ValueError(
+            f"{day_name} is not a working day for your business. "
+            f"You can still edit past days from the Past Days screen."
+        )
+
+
 def check_periods(tier: str, current_count: int) -> None:
     """Raise ValueError if a free account has hit the active periods cap."""
     if tier == "premium":

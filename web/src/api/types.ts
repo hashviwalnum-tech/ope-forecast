@@ -225,31 +225,43 @@ export interface ProductRead {
   business_id: number
   name: string
   unit: string
+  unit_mode: 'whole' | 'decimal'
+  price: number | null
   current_stock: number | null
   lead_time_days: number
   holding_cost: number | null
   order_cost: number | null
   service_time_minutes: number | null
+  storage_capacity: number | null
+  shelf_life_days: number | null
 }
 
 export interface ProductCreate {
   name: string
   unit: string
+  unit_mode?: 'whole' | 'decimal'
+  price?: number
   lead_time_days: number
   current_stock?: number
   holding_cost?: number
   order_cost?: number
   service_time_minutes?: number
+  storage_capacity?: number
+  shelf_life_days?: number
 }
 
 export interface ProductUpdate {
   name?: string
   unit?: string
+  unit_mode?: 'whole' | 'decimal'
+  price?: number | null
   lead_time_days?: number
   current_stock?: number | null
   holding_cost?: number | null
   order_cost?: number | null
   service_time_minutes?: number | null
+  storage_capacity?: number | null
+  shelf_life_days?: number | null
 }
 
 // ── Sale Events (live tap-to-record) ─────────────────────────────────────────
@@ -411,6 +423,7 @@ export interface ProductForecastItem {
   product_id: number
   name: string
   unit: string
+  unit_mode: 'whole' | 'decimal'
   status: string        // "ok" | "not_enough_data"
   message?: string
   days: ProductForecastDay[]
@@ -424,6 +437,7 @@ export interface ProductForecastItem {
   order_now: boolean
   eoq?: number
   n_days_data: number
+  constraint_notes: string[]
 }
 
 export interface ProductForecastResponse {

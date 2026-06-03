@@ -16,6 +16,7 @@ import PredictionsScreen from './components/PredictionsScreen'
 import RecurringPatternsPanel from './components/RecurringPatternsPanel'
 import RegularsPanel from './components/RegularsPanel'
 import { useAuth } from './contexts/AuthContext'
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
 import LoginPage from './pages/LoginPage'
 import * as api from './api/client'
 import type { BusinessRead } from './api/types'
@@ -29,53 +30,15 @@ type Tab =
   | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings'
 type NavGroup = 'history' | 'manage'
 
-const PRIMARY_TABS: { id: Tab; label: string }[] = [
-  { id: 'home',             label: 'Home'        },
-  { id: 'predictions_home', label: 'Predictions' },
-]
-
-const DROPDOWN_GROUPS: { id: NavGroup; label: string; tabs: { id: Tab; label: string }[] }[] = [
-  {
-    id: 'history',
-    label: 'History',
-    tabs: [
-      { id: 'history',  label: 'Past Days'      },
-      { id: 'backfill', label: 'Add Past Day'   },
-      { id: 'trends',   label: 'Monthly Trends' },
-      { id: 'import',   label: 'Import Data'    },
-    ],
-  },
-  {
-    id: 'manage',
-    label: 'Manage',
-    tabs: [
-      { id: 'products',    label: 'My Products'          },
-      { id: 'regulars',    label: 'My Regulars'          },
-      { id: 'recurring',   label: 'Recurring Patterns'   },
-      { id: 'events',      label: 'Promos & Events'      },
-      { id: 'predictions', label: 'Prediction history'   },
-      { id: 'settings',    label: 'Settings'             },
-    ],
-  },
-]
-
-const TAB_TITLES: Record<Tab, string> = {
-  home:             "Know tomorrow, today.",
-  predictions_home: 'Predictions',
-  trends:           'Monthly trends & history',
-  events:           'Promos & Events',
-  products:         'My Products',
-  regulars:         'My Regulars',
-  recurring:        'Recurring Patterns',
-  backfill:         'Add a past day',
-  history:          'Your past days',
-  import:           'Bring in your past data',
-  settings:         'Your business settings',
-  predictions:      'How our predictions did',
+const GROUP_TAB_IDS: Record<NavGroup, Tab[]> = {
+  history: ['history', 'backfill', 'trends', 'import'],
+  manage:  ['products', 'regulars', 'recurring', 'events', 'predictions', 'settings'],
 }
 
-export default function App() {
+
+function AppInner() {
   const { session, loading: authLoading, signOut } = useAuth()
+  const { lang, setLang, t, dir } = useLanguage()
 
   const [allBusinesses, setAllBusinesses]     = useState<BusinessRead[]>([])
   const [activeBusiness, setActiveBusiness]   = useState<BusinessRead | null>(null)
@@ -150,8 +113,8 @@ export default function App() {
   // ── Which dropdown group (if any) contains the active tab ────────────────
 
   const activeGroup = useMemo<NavGroup | null>(() => {
-    for (const g of DROPDOWN_GROUPS) {
-      if (g.tabs.some(t => t.id === tab)) return g.id
+    for (const [gId, tabIds] of Object.entries(GROUP_TAB_IDS) as [NavGroup, Tab[]][]) {
+      if (tabIds.includes(tab)) return gId
     }
     return null
   }, [tab])
@@ -178,6 +141,53 @@ export default function App() {
 
   // ── Guards ────────────────────────────────────────────────────────────────
 
+  // ── Language-aware nav labels ─────────────────────────────────────────────
+
+  const primaryTabs = [
+    { id: 'home' as Tab,             label: t('home')        },
+    { id: 'predictions_home' as Tab, label: t('predictions') },
+  ]
+
+  const dropdownGroups = [
+    {
+      id: 'history' as NavGroup,
+      label: t('history'),
+      tabs: [
+        { id: 'history'  as Tab, label: t('pastDays')      },
+        { id: 'backfill' as Tab, label: t('addPastDay')    },
+        { id: 'trends'   as Tab, label: t('monthlyTrends') },
+        { id: 'import'   as Tab, label: t('importData')    },
+      ],
+    },
+    {
+      id: 'manage' as NavGroup,
+      label: t('manage'),
+      tabs: [
+        { id: 'products'    as Tab, label: t('myProducts')         },
+        { id: 'regulars'    as Tab, label: t('myRegulars')         },
+        { id: 'recurring'   as Tab, label: t('recurringPatterns')  },
+        { id: 'events'      as Tab, label: t('promosEvents')       },
+        { id: 'predictions' as Tab, label: t('predictionHistory')  },
+        { id: 'settings'    as Tab, label: t('settings')           },
+      ],
+    },
+  ]
+
+  const tabTitles: Record<Tab, string> = {
+    home:             t('tabHome'),
+    predictions_home: t('tabPredictions'),
+    trends:           t('tabTrends'),
+    events:           t('tabEvents'),
+    products:         t('tabProducts'),
+    regulars:         t('tabRegulars'),
+    recurring:        t('tabRecurring'),
+    backfill:         t('tabBackfill'),
+    history:          t('tabHistory'),
+    import:           t('tabImport'),
+    settings:         t('tabSettings'),
+    predictions:      t('tabPredHistory'),
+  }
+
   if (authLoading || (session && !bizLoaded)) {
     return (
       <div className="min-h-screen bg-teal-50/60 flex items-center justify-center">
@@ -192,14 +202,14 @@ export default function App() {
     return (
       <div className="min-h-screen bg-teal-50 flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl shadow-md w-full max-w-sm p-8 text-center">
-          <p className="text-slate-700 font-semibold mb-2">Couldn't reach the server</p>
-          <p className="text-sm text-slate-500 mb-6">Check your connection and try again.</p>
+          <p className="text-slate-700 font-semibold mb-2">{t('serverUnreachable')}</p>
+          <p className="text-sm text-slate-500 mb-6">{t('checkConnection')}</p>
           <button
             onClick={() => { setBizLoaded(false); setBizError(false); loadBusinesses() }}
             className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
                        hover:bg-teal-700 transition-colors"
           >
-            Retry
+            {t('retry')}
           </button>
         </div>
       </div>
@@ -221,7 +231,7 @@ export default function App() {
   // ── Main app ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-teal-50/40">
+    <div className="min-h-screen bg-teal-50/40" dir={dir}>
 
       {/* ── Header ──────────────────────────────────────────────────── */}
       <header className="bg-teal-50/80 backdrop-blur-sm border-b-2 border-teal-100 px-6 py-3
@@ -233,7 +243,7 @@ export default function App() {
           <img src={logo} alt="Ope logo" className="h-11 w-auto" />
           <div className="leading-tight">
             <span className="block text-xl font-bold text-teal-700 tracking-tight">Ope</span>
-            <span className="block text-xs text-teal-500 font-medium">Know Tomorrow, Today.</span>
+            <span className="block text-xs text-teal-500 font-medium">{t('slogan')}</span>
           </div>
         </div>
 
@@ -283,11 +293,11 @@ export default function App() {
                     <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Add a business
+                    {t('addBusiness')}
                   </button>
                 ) : (
                   <p className="px-4 py-2.5 text-xs text-slate-400">
-                    Free plan: up to {FREE_BUSINESS_LIMIT} businesses
+                    {t('freePlanLimit', { n: FREE_BUSINESS_LIMIT })}
                   </p>
                 )}
               </div>
@@ -299,22 +309,22 @@ export default function App() {
         <nav ref={navRef} className="flex flex-wrap gap-1 flex-1">
 
           {/* Primary tabs — always visible */}
-          {PRIMARY_TABS.map(t => (
+          {primaryTabs.map(navTab => (
             <button
-              key={t.id}
-              onClick={() => { setTab(t.id); setOpenGroup(null) }}
+              key={navTab.id}
+              onClick={() => { setTab(navTab.id); setOpenGroup(null) }}
               className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                tab === t.id
+                tab === navTab.id
                   ? 'bg-teal-600 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-teal-50 hover:text-teal-700'
               }`}
             >
-              {t.label}
+              {navTab.label}
             </button>
           ))}
 
           {/* Dropdown groups */}
-          {DROPDOWN_GROUPS.map(group => {
+          {dropdownGroups.map(group => {
             const isGroupActive = activeGroup === group.id
             const isOpen = openGroup === group.id
             return (
@@ -337,24 +347,24 @@ export default function App() {
                 </button>
 
                 {isOpen && (
-                  <div className="absolute left-0 top-full mt-1 w-48 bg-white border border-teal-100
-                                  rounded-xl shadow-lg z-20 py-1 overflow-hidden">
-                    {group.tabs.map(t => (
+                  <div className={`absolute ${dir === 'rtl' ? 'right-0' : 'left-0'} top-full mt-1 w-48 bg-white border border-teal-100
+                                  rounded-xl shadow-lg z-20 py-1 overflow-hidden`}>
+                    {group.tabs.map(navTab => (
                       <button
-                        key={t.id}
-                        onClick={() => { setTab(t.id); setOpenGroup(null) }}
+                        key={navTab.id}
+                        onClick={() => { setTab(navTab.id); setOpenGroup(null) }}
                         className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors ${
-                          tab === t.id
+                          tab === navTab.id
                             ? 'bg-teal-50 text-teal-700 font-medium'
                             : 'text-slate-700 hover:bg-slate-50'
                         }`}
                       >
-                        {tab === t.id && (
+                        {tab === navTab.id && (
                           <svg className="w-3.5 h-3.5 shrink-0 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         )}
-                        <span className={tab === t.id ? '' : 'ml-5'}>{t.label}</span>
+                        <span className={tab === navTab.id ? '' : 'ml-5'}>{navTab.label}</span>
                       </button>
                     ))}
                   </div>
@@ -364,6 +374,23 @@ export default function App() {
           })}
         </nav>
 
+        {/* Language switcher */}
+        <div className="flex items-center shrink-0">
+          {(['en', 'he'] as const).map(l => (
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              className={`px-2 py-1 text-xs font-semibold rounded transition-colors ${
+                lang === l
+                  ? 'bg-teal-600 text-white'
+                  : 'text-teal-600 hover:bg-teal-50'
+              }`}
+            >
+              {l === 'en' ? 'EN' : 'HE'}
+            </button>
+          ))}
+        </div>
+
         {/* Log out */}
         <button
           onClick={signOut}
@@ -371,7 +398,7 @@ export default function App() {
                      text-slate-600 hover:border-rose-300 hover:text-rose-600
                      hover:bg-rose-50 transition-colors shrink-0"
         >
-          Log out
+          {t('logOut')}
         </button>
       </header>
 
@@ -390,7 +417,7 @@ export default function App() {
 
         {/* Main content */}
         <main className={`flex-1 max-w-4xl mx-auto px-6 py-8 ${SHOW_ADS ? 'pb-20 xl:pb-8' : ''}`}>
-          <h1 className="text-lg font-semibold text-slate-700 mb-6">{TAB_TITLES[tab]}</h1>
+          <h1 className="text-lg font-semibold text-slate-700 mb-6">{tabTitles[tab]}</h1>
           <OutlierBanner onResolved={refresh} />
           {tab === 'home'             && <HomeScreen refreshKey={refreshKey} onSaved={refresh} />}
           {tab === 'predictions_home' && <PredictionsScreen refreshKey={refreshKey} />}
@@ -427,5 +454,13 @@ export default function App() {
       )}
 
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppInner />
+    </LanguageProvider>
   )
 }
