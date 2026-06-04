@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable dark mode via .dark class on any ancestor */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* teal-25 = very light card / header background (not pure white) */
   --color-teal-25:  #f5fbf9;

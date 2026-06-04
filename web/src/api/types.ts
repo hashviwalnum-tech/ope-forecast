@@ -52,6 +52,10 @@ export interface RegularCreate {
   notes?: string
 }
 
+export interface RegularVisitBody {
+  amount_paid?: number
+}
+
 export interface RegularUpdate {
   name?: string
   visit_frequency_per_week?: number

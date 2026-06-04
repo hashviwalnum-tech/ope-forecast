@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { OrderingPanel, WeekPredictionPanel } from './ForecastDashboard'
 import HourlyDashboard from './HourlyDashboard'
 import LogDayForm from './LogDayForm'
 import MergedForecastPanel from './MergedForecastPanel'
+import PredictionsPanel from './PredictionsPanel'
 import TapSellPanel from './TapSellPanel'
+import TrendsView from './TrendsView'
 import { businesses as businessesApi, dayRecords as dayRecordsApi, regulars as regularsApi, saleEvents } from '../api/client'
 import type { RegularRead } from '../api/types'
+import type { CardId } from '../lib/homeLayout'
 
-// ── Card IDs and default layout ─────────────────────────────────────────────
+// ── Card catalogue ────────────────────────────────────────────────────────────
 
-type CardId = 'ordering' | 'forecast' | 'week' | 'hours'
+export type { CardId }
 
 interface CardConfig {
   id: CardId
@@ -17,66 +20,81 @@ interface CardConfig {
   visible: boolean
 }
 
-const DEFAULT_LAYOUT: CardConfig[] = [
-  { id: 'ordering', label: 'What to order',   visible: true  },
-  { id: 'forecast', label: 'Demand forecast', visible: true  },
-  { id: 'week',     label: 'Week prediction', visible: false },
-  { id: 'hours',    label: 'Busy hours',      visible: true  },
+export const ALL_CARD_DEFS: CardConfig[] = [
+  { id: 'ordering',  label: 'What to order',     visible: true  },
+  { id: 'forecast',  label: 'Demand forecast',   visible: true  },
+  { id: 'week',      label: 'Week prediction',   visible: false },
+  { id: 'hours',     label: 'Busy hours',        visible: true  },
+  { id: 'accuracy',  label: 'How predictions did', visible: false },
+  { id: 'trends',    label: 'Monthly trends',    visible: false },
 ]
 
-const STORAGE_KEY = 'ope_home_layout_v1'
+const STORAGE_KEY = 'ope_home_layout_v2'
 
 function loadLayout(): CardConfig[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return DEFAULT_LAYOUT
+    if (!raw) return ALL_CARD_DEFS
     const saved: CardConfig[] = JSON.parse(raw)
-    // Merge to handle new card additions in future updates
+    // Merge: keep saved order/visibility; append any newly added card defs
     const ids = new Set(saved.map(c => c.id))
     const merged = [...saved]
-    for (const def of DEFAULT_LAYOUT) {
+    for (const def of ALL_CARD_DEFS) {
       if (!ids.has(def.id)) merged.push(def)
     }
     return merged
   } catch {
-    return DEFAULT_LAYOUT
+    return ALL_CARD_DEFS
   }
 }
 
-function saveLayout(cards: CardConfig[]) {
+export function saveLayout(cards: CardConfig[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cards))
 }
 
-// ── Record-a-regular inline panel ───────────────────────────────────────────
+
+// ── Record-a-regular inline panel ─────────────────────────────────────────────
 
 function RecordRegularPanel({ onDone }: { onDone: () => void }) {
-  const [rows, setRows]   = useState<RegularRead[]>([])
-  const [loading, setLoading] = useState(true)
-  const [recording, setRecording] = useState<number | null>(null)
-  const [msg, setMsg]     = useState<string | null>(null)
+  const [rows, setRows]             = useState<RegularRead[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [recording, setRecording]   = useState<number | null>(null)
+  const [msg, setMsg]               = useState<string | null>(null)
+  const [errMsg, setErrMsg]         = useState<string | null>(null)
+  const [amounts, setAmounts]       = useState<Record<number, string>>({})
 
   useEffect(() => {
     regularsApi.list()
-      .then(setRows)
+      .then(data => {
+        setRows(data)
+        const defaults: Record<number, string> = {}
+        for (const r of data) defaults[r.id] = String(r.avg_spend)
+        setAmounts(defaults)
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
   async function record(id: number, name: string) {
     setRecording(id)
+    setErrMsg(null)
     try {
-      await regularsApi.recordVisit(id)
+      const amountStr = amounts[id]
+      const amount_paid = amountStr ? parseFloat(amountStr) : undefined
+      await regularsApi.recordVisit(id, amount_paid != null && !isNaN(amount_paid) ? { amount_paid } : undefined)
       setMsg(`Visit recorded for ${name}`)
       setTimeout(() => { setMsg(null); onDone() }, 1800)
-    } catch { /* ignore */ }
-    finally { setRecording(null) }
+    } catch (e: unknown) {
+      setErrMsg(e instanceof Error ? e.message : 'Could not record visit')
+    } finally {
+      setRecording(null) }
   }
 
   if (loading) return <p className="text-sm text-slate-400 p-2">Loading regulars…</p>
 
   if (rows.length === 0) {
     return (
-      <div className="text-sm text-slate-500 text-center py-4">
+      <div className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
         <p>No regulars added yet.</p>
         <p className="text-xs mt-1 text-slate-400">
           Go to <strong>Manage → My Regulars</strong> to add your loyal customers.
@@ -86,33 +104,51 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <div className="space-y-2">
-      {msg && (
-        <p className="text-sm text-teal-700 font-medium">{msg}</p>
-      )}
+    <div className="space-y-3">
+      {msg && <p className="text-sm text-teal-700 dark:text-teal-300 font-medium">{msg}</p>}
+      {errMsg && <p className="text-sm text-rose-600 dark:text-rose-400">{errMsg}</p>}
       {!msg && rows.map(r => (
-        <div key={r.id} className="flex items-center justify-between gap-3 py-1">
-          <div>
-            <span className="text-sm font-medium text-slate-700">{r.name}</span>
-            <span className="text-xs text-slate-400 ml-2">
+        <div key={r.id} className="flex items-center gap-3 py-1 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{r.name}</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">
               {r.visit_count} visit{r.visit_count !== 1 ? 's' : ''} logged
             </span>
           </div>
-          <button
-            onClick={() => record(r.id, r.name)}
-            disabled={recording === r.id}
-            className="px-3 py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-lg
-                       hover:bg-teal-700 disabled:opacity-50 transition-colors"
-          >
-            {recording === r.id ? '…' : 'Record visit'}
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-slate-400 dark:text-slate-500">$</span>
+              <input
+                type="number"
+                min="0"
+                step="0.5"
+                value={amounts[r.id] ?? r.avg_spend}
+                onChange={e => setAmounts(a => ({ ...a, [r.id]: e.target.value }))}
+                className="w-20 text-sm px-2 py-1.5 border border-slate-200 dark:border-slate-600
+                           rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200
+                           focus:outline-none focus:ring-2 focus:ring-teal-300 tabular-nums"
+                title="Amount paid this visit"
+              />
+            </div>
+            <button
+              onClick={() => record(r.id, r.name)}
+              disabled={recording === r.id}
+              className="px-3 py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-lg
+                         hover:bg-teal-700 disabled:opacity-50 transition-colors"
+            >
+              {recording === r.id ? '…' : 'Record visit'}
+            </button>
+          </div>
         </div>
       ))}
+      <p className="text-xs text-slate-400 dark:text-slate-500 pt-1">
+        Amount defaults to their usual spend — edit if they paid differently today.
+      </p>
     </div>
   )
 }
 
-// ── HomeScreen ───────────────────────────────────────────────────────────────
+// ── HomeScreen ─────────────────────────────────────────────────────────────────
 
 interface Props {
   refreshKey: number
@@ -132,7 +168,10 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
   const [layout, setLayout]           = useState<CardConfig[]>(loadLayout)
   const [tapRollover, setTapRollover] = useState(false)
 
-  // Check for tap-only days that need a day record logged after closing
+  // Drag state for reorder
+  const dragIdx = useRef<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+
   useEffect(() => {
     async function checkRollover() {
       try {
@@ -140,8 +179,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
         const settings = bizData.settings || {}
         const closingHour = typeof settings.closing_hour === 'number' ? settings.closing_hour : null
         if (closingHour === null) return
-        if (new Date().getHours() < closingHour) return  // still open
-
+        if (new Date().getHours() < closingHour) return
         const [summary, records] = await Promise.all([
           saleEvents.today(),
           dayRecordsApi.list(),
@@ -166,15 +204,26 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
     setLayout(prev => prev.map(c => c.id === id ? { ...c, visible: !c.visible } : c))
   }
 
-  function moveCard(id: CardId, dir: -1 | 1) {
+  function handleDragStart(idx: number) {
+    dragIdx.current = idx
+  }
+
+  function handleDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault()
+    setDragOver(idx)
+  }
+
+  function handleDrop(idx: number) {
+    const from = dragIdx.current
+    if (from === null || from === idx) { setDragOver(null); return }
     setLayout(prev => {
-      const idx = prev.findIndex(c => c.id === id)
-      const next = idx + dir
-      if (next < 0 || next >= prev.length) return prev
       const arr = [...prev]
-      ;[arr[idx], arr[next]] = [arr[next], arr[idx]]
+      const [item] = arr.splice(from, 1)
+      arr.splice(idx, 0, item)
       return arr
     })
+    dragIdx.current = null
+    setDragOver(null)
   }
 
   function doneCustomizing() {
@@ -183,7 +232,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
   }
 
   function resetLayout() {
-    setLayout(DEFAULT_LAYOUT)
+    setLayout(ALL_CARD_DEFS)
   }
 
   const visibleCards = layout.filter(c => c.visible)
@@ -199,10 +248,28 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
       case 'hours':
         return (
           <section key="hours">
-            <h2 className="text-base font-semibold text-teal-700/70 uppercase tracking-wide mb-4">
+            <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
               Busy hours
             </h2>
             <HourlyDashboard />
+          </section>
+        )
+      case 'accuracy':
+        return (
+          <section key="accuracy">
+            <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
+              How predictions did
+            </h2>
+            <PredictionsPanel />
+          </section>
+        )
+      case 'trends':
+        return (
+          <section key="trends">
+            <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
+              Monthly trends
+            </h2>
+            <TrendsView />
           </section>
         )
     }
@@ -213,16 +280,16 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
 
       {/* Tap-only rollover banner */}
       {tapRollover && (
-        <div className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200
-                        bg-amber-50 px-5 py-4">
+        <div className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200 dark:border-amber-800
+                        bg-amber-50 dark:bg-amber-900/20 px-5 py-4">
           <div className="flex items-start gap-3">
             <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <p className="text-sm font-semibold text-amber-800">Unsaved tap data for today</p>
-              <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Unsaved tap data for today</p>
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-0.5 leading-relaxed">
                 You recorded sales by tapping today — log today's totals to save them to your history.
               </p>
             </div>
@@ -253,10 +320,8 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Record a Sale
-            <svg
-              className={`w-3.5 h-3.5 shrink-0 transition-transform ${showSell ? 'rotate-180' : ''}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            >
+            <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showSell ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -266,8 +331,8 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
             className={`flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold
                         transition-colors border ${
               showLog
-                ? 'bg-teal-50 border-teal-300 text-teal-700'
-                : 'bg-white border-slate-200 text-slate-700 hover:border-teal-200 hover:bg-teal-50'
+                ? 'bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300'
+                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-teal-200 hover:bg-teal-50 dark:hover:bg-teal-900/20'
             }`}
           >
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -276,10 +341,8 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
                    00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             Log Today
-            <svg
-              className={`w-3.5 h-3.5 shrink-0 transition-transform ${showLog ? 'rotate-180' : ''}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            >
+            <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showLog ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -289,8 +352,8 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
             className={`flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold
                         transition-colors border ${
               showRegular
-                ? 'bg-teal-50 border-teal-300 text-teal-700'
-                : 'bg-white border-slate-200 text-slate-700 hover:border-teal-200 hover:bg-teal-50'
+                ? 'bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300'
+                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-teal-200 hover:bg-teal-50 dark:hover:bg-teal-900/20'
             }`}
           >
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -298,28 +361,26 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             Record a Regular
-            <svg
-              className={`w-3.5 h-3.5 shrink-0 transition-transform ${showRegular ? 'rotate-180' : ''}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            >
+            <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showRegular ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </div>
 
         {showSell && (
-          <div className="mt-4 rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
+          <div className="mt-4 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm">
             <TapSellPanel />
           </div>
         )}
         {showLog && (
-          <div className="mt-4 rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
+          <div className="mt-4 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm">
             <LogDayForm onSaved={handleSaved} />
           </div>
         )}
         {showRegular && (
-          <div className="mt-4 rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">Record a regular's visit</h3>
+          <div className="mt-4 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">Record a regular's visit</h3>
             <RecordRegularPanel onDone={() => setShowRegular(false)} />
           </div>
         )}
@@ -327,14 +388,14 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
 
       {/* ② Analytics cards (customizable) */}
       {customizing ? (
-        <div className="rounded-2xl border border-teal-200 bg-teal-50/60 p-5 space-y-3">
+        <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/60 dark:bg-slate-800 p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-teal-700">Customize your home</h3>
+            <h3 className="text-sm font-semibold text-teal-700 dark:text-teal-300">Customize your home</h3>
             <div className="flex gap-2">
               <button
                 onClick={resetLayout}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500
-                           hover:bg-white transition-colors"
+                className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-xs text-slate-500 dark:text-slate-400
+                           hover:bg-white dark:hover:bg-slate-700 transition-colors"
               >
                 Reset to default
               </button>
@@ -347,39 +408,39 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
               </button>
             </div>
           </div>
-          <p className="text-xs text-teal-600">
-            Toggle cards on/off and drag them into the order you want.
+          <p className="text-xs text-teal-600 dark:text-teal-400">
+            Toggle cards on/off and drag to reorder.
           </p>
 
           <div className="space-y-2">
             {layout.map((card, idx) => (
               <div
                 key={card.id}
-                className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-slate-100 shadow-sm"
+                draggable
+                onDragStart={() => handleDragStart(idx)}
+                onDragOver={e => handleDragOver(e, idx)}
+                onDrop={() => handleDrop(idx)}
+                onDragEnd={() => setDragOver(null)}
+                className={`flex items-center gap-3 bg-white dark:bg-slate-700 rounded-xl px-4 py-3 border shadow-sm
+                            cursor-grab active:cursor-grabbing transition-colors select-none
+                            ${dragOver === idx
+                              ? 'border-teal-400 dark:border-teal-500 bg-teal-50 dark:bg-teal-900/30'
+                              : 'border-slate-100 dark:border-slate-600'}`}
               >
-                <div className="flex flex-col gap-0.5">
-                  <button
-                    onClick={() => moveCard(card.id, -1)}
-                    disabled={idx === 0}
-                    className="text-slate-300 hover:text-teal-500 disabled:opacity-20 leading-none text-lg"
-                    title="Move up"
-                  >▲</button>
-                  <button
-                    onClick={() => moveCard(card.id, 1)}
-                    disabled={idx === layout.length - 1}
-                    className="text-slate-300 hover:text-teal-500 disabled:opacity-20 leading-none text-lg"
-                    title="Move down"
-                  >▼</button>
-                </div>
+                {/* Drag handle */}
+                <svg className="w-4 h-4 shrink-0 text-slate-300 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M4 8h16M4 16h16" />
+                </svg>
 
-                <span className={`flex-1 text-sm font-medium ${card.visible ? 'text-slate-700' : 'text-slate-400 line-through'}`}>
+                <span className={`flex-1 text-sm font-medium ${card.visible ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500 line-through'}`}>
                   {card.label}
                 </span>
 
                 <button
                   onClick={() => toggleCard(card.id)}
                   className={`relative w-10 h-6 rounded-full transition-colors ${
-                    card.visible ? 'bg-teal-500' : 'bg-slate-300'
+                    card.visible ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'
                   }`}
                 >
                   <span
@@ -398,9 +459,9 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
           <div className="flex justify-end">
             <button
               onClick={() => setCustomizing(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200
-                         text-xs text-slate-400 hover:text-teal-600 hover:border-teal-200
-                         hover:bg-teal-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
+                         text-xs text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400
+                         hover:border-teal-200 dark:hover:border-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
             >
               <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

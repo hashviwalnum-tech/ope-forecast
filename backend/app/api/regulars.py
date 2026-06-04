@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_business
 from app.db import get_db
 from app.models import Business, Regular
-from app.schemas.regular import RegularCreate, RegularRead, RegularUpdate
+from app.schemas.regular import RegularCreate, RegularRead, RegularUpdate, RegularVisitBody
 
 router = APIRouter(prefix="/regulars", tags=["Regulars"])
 
@@ -85,14 +85,31 @@ def delete_regular(reg_id: int, db: Session = Depends(get_db), biz: Business = D
 
 
 @router.post("/{reg_id}/visit", response_model=RegularRead)
-def record_visit(reg_id: int, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    """Log a visit from this regular. Increments visit_count, tracks first/last date."""
+def record_visit(
+    reg_id: int,
+    body: RegularVisitBody = RegularVisitBody(),
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """Log a visit from this regular. Increments visit_count, tracks first/last date.
+    Max once per day — returns 409 if already recorded today.
+    If amount_paid is supplied it blends into avg_spend (90/10 weighted average).
+    """
     row = _get_or_404(db, reg_id, biz.id)
     today = date.today()
+    if row.last_visit_date == today:
+        raise HTTPException(
+            409,
+            f"{row.name} was already recorded today. "
+            "If they visited again, check back tomorrow or edit the entry.",
+        )
     if row.first_visit_date is None:
         row.first_visit_date = today
     row.last_visit_date = today
     row.visit_count = (row.visit_count or 0) + 1
+    if body.amount_paid is not None:
+        # Blend new amount into running average (keep 90% of history, 10% new)
+        row.avg_spend = round(row.avg_spend * 0.9 + body.amount_paid * 0.1, 2)
     db.commit()
     db.refresh(row)
     return _to_read(row)

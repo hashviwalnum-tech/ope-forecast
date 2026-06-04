@@ -18,6 +18,7 @@ import RecurringPatternsPanel from './components/RecurringPatternsPanel'
 import RegularsPanel from './components/RegularsPanel'
 import { useAuth } from './contexts/AuthContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
+import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import LoginPage from './pages/LoginPage'
 import * as api from './api/client'
 import type { BusinessRead } from './api/types'
@@ -40,6 +41,7 @@ const GROUP_TAB_IDS: Record<NavGroup, Tab[]> = {
 function AppInner() {
   const { session, loading: authLoading, signOut } = useAuth()
   const { lang, setLang, t, dir } = useLanguage()
+  const { isDark, toggleTheme } = useTheme()
 
   const [allBusinesses, setAllBusinesses]     = useState<BusinessRead[]>([])
   const [activeBusiness, setActiveBusiness]   = useState<BusinessRead | null>(null)
@@ -193,8 +195,8 @@ function AppInner() {
 
   if (authLoading || (session && !bizLoaded)) {
     return (
-      <div className="min-h-screen bg-teal-50/60 flex items-center justify-center">
-        <p className="text-teal-600 text-sm">Loading…</p>
+      <div className="min-h-screen bg-teal-50/60 dark:bg-slate-900 flex items-center justify-center">
+        <p className="text-teal-600 dark:text-teal-400 text-sm">Loading…</p>
       </div>
     )
   }
@@ -203,10 +205,10 @@ function AppInner() {
 
   if (bizError) {
     return (
-      <div className="min-h-screen bg-teal-50 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-md w-full max-w-sm p-8 text-center">
-          <p className="text-slate-700 font-semibold mb-2">{t('serverUnreachable')}</p>
-          <p className="text-sm text-slate-500 mb-6">{t('checkConnection')}</p>
+      <div className="min-h-screen bg-teal-50 dark:bg-slate-900 flex items-center justify-center p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8 text-center">
+          <p className="text-slate-700 dark:text-slate-200 font-semibold mb-2">{t('serverUnreachable')}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t('checkConnection')}</p>
           <button
             onClick={() => { setBizLoaded(false); setBizError(false); loadBusinesses() }}
             className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
@@ -236,10 +238,10 @@ function AppInner() {
   // ── Main app ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-teal-50/40" dir={dir}>
+    <div className="min-h-screen bg-teal-50/40 dark:bg-slate-900" dir={dir}>
 
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <header className="bg-teal-50/80 backdrop-blur-sm border-b-2 border-teal-100 px-6 py-3
+      <header className="bg-teal-50/80 dark:bg-slate-800 backdrop-blur-sm border-b-2 border-teal-100 dark:border-slate-700 px-6 py-3
                          flex flex-wrap items-center gap-x-4 gap-y-2
                          sticky top-0 z-10 shadow-sm">
 
@@ -247,8 +249,8 @@ function AppInner() {
         <div className="flex items-center gap-3 shrink-0">
           <img src={logo} alt="Ope logo" className="h-11 w-auto" />
           <div className="leading-tight">
-            <span className="block text-xl font-bold text-teal-700 tracking-tight">Ope</span>
-            <span className="block text-xs text-teal-500 font-medium">{t('slogan')}</span>
+            <span className="block text-xl font-bold text-teal-700 dark:text-teal-300 tracking-tight">Ope</span>
+            <span className="block text-xs text-teal-500 dark:text-teal-400 font-medium">{t('slogan')}</span>
           </div>
         </div>
 
@@ -257,8 +259,8 @@ function AppInner() {
           <button
             onClick={() => setSwitcherOpen(o => !o)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
-                       text-teal-700 bg-teal-50 hover:bg-teal-100 font-medium
-                       border border-teal-100 transition-colors"
+                       text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-slate-700 hover:bg-teal-100 dark:hover:bg-slate-600 font-medium
+                       border border-teal-100 dark:border-slate-600 transition-colors"
           >
             <span className="max-w-[140px] truncate">{activeBusiness.name}</span>
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -267,7 +269,7 @@ function AppInner() {
           </button>
 
           {switcherOpen && (
-            <div className="absolute left-0 top-full mt-1 w-56 bg-white border border-teal-100
+            <div className="absolute left-0 top-full mt-1 w-56 bg-white dark:bg-slate-800 border border-teal-100 dark:border-slate-700
                             rounded-xl shadow-lg z-20 py-1 overflow-hidden">
               {allBusinesses.map(b => (
                 <button
@@ -275,8 +277,8 @@ function AppInner() {
                   onClick={() => switchBusiness(b)}
                   className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors
                     ${b.id === activeBusiness.id
-                      ? 'bg-teal-50 text-teal-700 font-medium'
-                      : 'text-slate-700 hover:bg-slate-50'}`}
+                      ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-medium'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                 >
                   <svg
                     className={`w-3.5 h-3.5 shrink-0 transition-opacity
@@ -288,12 +290,12 @@ function AppInner() {
                   <span className="truncate">{b.name}</span>
                 </button>
               ))}
-              <div className="border-t border-slate-100 mt-1 pt-1">
+              <div className="border-t border-slate-100 dark:border-slate-700 mt-1 pt-1">
                 {activeBusiness?.tier === 'premium' || allBusinesses.length < FREE_BUSINESS_LIMIT ? (
                   <button
                     onClick={() => { setShowAddBusiness(true); setSwitcherOpen(false) }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-teal-600
-                               hover:bg-teal-50 flex items-center gap-2 transition-colors"
+                    className="w-full text-left px-4 py-2.5 text-sm text-teal-600 dark:text-teal-400
+                               hover:bg-teal-50 dark:hover:bg-slate-700 flex items-center gap-2 transition-colors"
                   >
                     <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -302,10 +304,10 @@ function AppInner() {
                   </button>
                 ) : (
                   <div className="px-4 py-2.5">
-                    <p className="text-xs text-slate-500 mb-1">{t('freeOneLocation')}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t('freeOneLocation')}</p>
                     <button
                       onClick={() => { setTab('settings'); setSwitcherOpen(false) }}
-                      className="text-xs text-teal-600 hover:text-teal-700 hover:underline transition-colors"
+                      className="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-700 hover:underline transition-colors"
                     >
                       {t('upgradeForLocations')}
                     </button>
@@ -327,7 +329,7 @@ function AppInner() {
               className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 tab === navTab.id
                   ? 'bg-teal-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-teal-50 hover:text-teal-700'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-700 dark:hover:text-teal-300'
               }`}
             >
               {navTab.label}
@@ -344,8 +346,8 @@ function AppInner() {
                   onClick={() => setOpenGroup(isOpen ? null : group.id)}
                   className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isGroupActive
-                      ? 'bg-teal-100 text-teal-700'
-                      : 'text-slate-600 hover:bg-teal-50 hover:text-teal-700'
+                      ? 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-700 dark:hover:text-teal-300'
                   }`}
                 >
                   {group.label}
@@ -358,7 +360,7 @@ function AppInner() {
                 </button>
 
                 {isOpen && (
-                  <div className={`absolute ${dir === 'rtl' ? 'right-0' : 'left-0'} top-full mt-1 w-48 bg-white border border-teal-100
+                  <div className={`absolute ${dir === 'rtl' ? 'right-0' : 'left-0'} top-full mt-1 w-48 bg-white dark:bg-slate-800 border border-teal-100 dark:border-slate-700
                                   rounded-xl shadow-lg z-20 py-1 overflow-hidden`}>
                     {group.tabs.map(navTab => (
                       <button
@@ -366,8 +368,8 @@ function AppInner() {
                         onClick={() => { setTab(navTab.id); setOpenGroup(null) }}
                         className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors ${
                           tab === navTab.id
-                            ? 'bg-teal-50 text-teal-700 font-medium'
-                            : 'text-slate-700 hover:bg-slate-50'
+                            ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-medium'
+                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                       >
                         {tab === navTab.id && (
@@ -394,7 +396,7 @@ function AppInner() {
               className={`px-2 py-1 text-xs font-semibold rounded transition-colors ${
                 lang === l
                   ? 'bg-teal-600 text-white'
-                  : 'text-teal-600 hover:bg-teal-50'
+                  : 'text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-700'
               }`}
             >
               {l === 'en' ? 'EN' : 'HE'}
@@ -402,12 +404,32 @@ function AppInner() {
           ))}
         </div>
 
+        {/* Dark mode toggle */}
+        <button
+          onClick={toggleTheme}
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="p-2 rounded-lg text-slate-500 dark:text-slate-300
+                     hover:bg-teal-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+        >
+          {isDark ? (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m15.07-6.07-.7.7M6.34 17.66l-.7.7M17.66 17.66l-.7-.7M6.34 6.34l-.7-.7M12 5a7 7 0 100 14A7 7 0 0012 5z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
+        </button>
+
         {/* Log out */}
         <button
           onClick={signOut}
-          className="px-4 py-2 rounded-xl text-sm font-medium border border-slate-200
-                     text-slate-600 hover:border-rose-300 hover:text-rose-600
-                     hover:bg-rose-50 transition-colors shrink-0"
+          className="px-4 py-2 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-600
+                     text-slate-600 dark:text-slate-300 hover:border-rose-300 hover:text-rose-600
+                     hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors shrink-0"
         >
           {t('logOut')}
         </button>
@@ -419,16 +441,16 @@ function AppInner() {
         {/* Left ad slot — wide screens only */}
         {SHOW_ADS && (
           <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
-            <div className="w-full min-h-[280px] bg-teal-50/70 border border-teal-100 rounded-xl
+            <div className="w-full min-h-[280px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
                             flex items-center justify-center">
-              <span className="text-[10px] text-teal-300 tracking-widest uppercase select-none">Ad</span>
+              <span className="text-[10px] text-teal-300 dark:text-teal-600 tracking-widest uppercase select-none">Ad</span>
             </div>
           </aside>
         )}
 
         {/* Main content */}
         <main className={`flex-1 max-w-4xl mx-auto px-6 py-8 ${SHOW_ADS ? 'pb-20 xl:pb-8' : ''}`}>
-          <h1 className="text-lg font-semibold text-slate-700 mb-6">{tabTitles[tab]}</h1>
+          <h1 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-6">{tabTitles[tab]}</h1>
           <OutlierBanner onResolved={refresh} />
           {tab === 'home'             && <HomeScreen refreshKey={refreshKey} onSaved={refresh} />}
           {tab === 'predictions_home' && <PredictionsScreen refreshKey={refreshKey} />}
@@ -448,9 +470,9 @@ function AppInner() {
         {/* Right ad slot — wide screens only */}
         {SHOW_ADS && (
           <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
-            <div className="w-full min-h-[280px] bg-teal-50/70 border border-teal-100 rounded-xl
+            <div className="w-full min-h-[280px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
                             flex items-center justify-center">
-              <span className="text-[10px] text-teal-300 tracking-widest uppercase select-none">Ad</span>
+              <span className="text-[10px] text-teal-300 dark:text-teal-600 tracking-widest uppercase select-none">Ad</span>
             </div>
           </aside>
         )}
@@ -459,9 +481,9 @@ function AppInner() {
 
       {/* Bottom ad banner — narrow screens only */}
       {SHOW_ADS && (
-        <div className="fixed bottom-0 inset-x-0 xl:hidden h-14 bg-teal-50/90 backdrop-blur-sm
-                        border-t border-teal-100 flex items-center justify-center z-10">
-          <span className="text-[10px] text-teal-300 tracking-widest uppercase select-none">Ad</span>
+        <div className="fixed bottom-0 inset-x-0 xl:hidden h-14 bg-teal-50/90 dark:bg-slate-800/90 backdrop-blur-sm
+                        border-t border-teal-100 dark:border-slate-700 flex items-center justify-center z-10">
+          <span className="text-[10px] text-teal-300 dark:text-teal-600 tracking-widest uppercase select-none">Ad</span>
         </div>
       )}
 
@@ -471,8 +493,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <AppInner />
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AppInner />
+      </LanguageProvider>
+    </ThemeProvider>
   )
 }

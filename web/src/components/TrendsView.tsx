@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { analytics } from '../api/client'
 import type { MonthlyResponse, MonthSummary } from '../api/types'
+import { addCardToHome } from '../lib/homeLayout'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -117,6 +118,13 @@ export default function TrendsView() {
   const [data, setData] = useState<MonthlyResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [addedToHome, setAddedToHome] = useState(false)
+
+  function handleAddToHome() {
+    addCardToHome('trends')
+    setAddedToHome(true)
+    setTimeout(() => setAddedToHome(false), 2500)
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -174,6 +182,24 @@ export default function TrendsView() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <button
+          onClick={handleAddToHome}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
+                     text-xs text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400
+                     hover:border-teal-200 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
+        >
+          {addedToHome ? (
+            <><svg className="w-3.5 h-3.5 shrink-0 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>Added to home</>
+          ) : (
+            <><svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>Add to home</>
+          )}
+        </button>
+      </div>
 
       {/* ── Summary strip ── */}
       <div className="bg-white rounded-2xl border border-teal-100 px-6 py-4 shadow-sm

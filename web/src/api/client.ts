@@ -26,6 +26,7 @@ import type {
   RegularCreate,
   RegularRead,
   RegularUpdate,
+  RegularVisitBody,
   SaleCreate,
   SaleEventCreate,
   SaleEventRead,
@@ -187,5 +188,6 @@ export const regulars = {
   create:      (body: RegularCreate)        => POST<RegularRead>('/regulars', body),
   update:      (id: number, b: RegularUpdate) => PUT<RegularRead>(`/regulars/${id}`, b),
   delete:      (id: number)                 => DELETE(`/regulars/${id}`),
-  recordVisit: (id: number)                 => POST<RegularRead>(`/regulars/${id}/visit`, {}),
+  recordVisit: (id: number, body?: RegularVisitBody) =>
+    POST<RegularRead>(`/regulars/${id}/visit`, body ?? {}),
 }

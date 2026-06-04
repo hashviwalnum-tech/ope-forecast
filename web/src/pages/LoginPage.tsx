@@ -35,26 +35,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-teal-50 flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl shadow-md w-full max-w-sm p-8">
+    <div className="min-h-screen bg-teal-50 dark:bg-slate-900 flex items-center justify-center p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8">
 
         {/* Brand */}
         <div className="flex items-center gap-3 mb-8">
           <img src={logo} alt="Ope logo" className="h-12 w-auto" />
           <div className="leading-tight">
-            <span className="block text-2xl font-bold text-teal-700">Ope</span>
-            <span className="block text-sm text-teal-500">Know Tomorrow, Today.</span>
+            <span className="block text-2xl font-bold text-teal-700 dark:text-teal-300">Ope</span>
+            <span className="block text-sm text-teal-500 dark:text-teal-400">Know Tomorrow, Today.</span>
           </div>
         </div>
 
         {signedUp ? (
           <div className="text-center">
-            <p className="text-lg font-semibold text-slate-700 mb-2">Check your email</p>
-            <p className="text-sm text-slate-500 mb-6">
+            <p className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">Check your email</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
               We sent you a confirmation link. Click it, then come back to sign in.
             </p>
             <button
-              className="text-teal-600 underline text-sm"
+              className="text-teal-600 dark:text-teal-400 underline text-sm"
               onClick={() => { setSignedUp(false); setMode('signin') }}
             >
               Back to sign in
@@ -62,38 +62,40 @@ export default function LoginPage() {
           </div>
         ) : (
           <>
-            <h1 className="text-xl font-semibold text-slate-700 mb-6">
+            <h1 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-6">
               {mode === 'signin' ? 'Sign in to your account' : 'Create an account'}
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Email</label>
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Email</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600
+                             bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                              focus:outline-none focus:ring-2 focus:ring-teal-400"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Password</label>
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Password</label>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600
+                             bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                              focus:outline-none focus:ring-2 focus:ring-teal-400"
                 />
               </div>
 
               {error && (
-                <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">{error}</p>
               )}
 
               <button
@@ -106,9 +108,9 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-slate-500">
+            <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
               {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
-              <button onClick={switchMode} className="text-teal-600 font-medium underline">
+              <button onClick={switchMode} className="text-teal-600 dark:text-teal-400 font-medium underline">
                 {mode === 'signin' ? 'Create one' : 'Sign in'}
               </button>
             </p>

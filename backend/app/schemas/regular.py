@@ -22,6 +22,10 @@ class RegularUpdate(BaseModel):
     notes: Optional[str] = Field(None, max_length=1000)
 
 
+class RegularVisitBody(BaseModel):
+    amount_paid: Optional[float] = Field(None, ge=0)
+
+
 class RegularRead(BaseModel):
     id: int
     business_id: int

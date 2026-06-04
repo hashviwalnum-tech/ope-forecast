@@ -11,6 +11,10 @@ function fmtDate(d: string | null) {
   return new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function liveClv(avgSpend: number, freq: number, years: number) {
+  return freq * 52 * avgSpend * years
+}
+
 export default function RegularsPanel() {
   const [rows, setRows]         = useState<RegularRead[]>([])
   const [loading, setLoading]   = useState(true)
@@ -19,6 +23,12 @@ export default function RegularsPanel() {
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState<string | null>(null)
   const [visitMsg, setVisitMsg] = useState<string | null>(null)
+  const [visitErr, setVisitErr] = useState<string | null>(null)
+  const [showOptional, setShowOptional] = useState(false)
+
+  // Visit-recording state per regular
+  const [visitAmounts, setVisitAmounts] = useState<Record<number, string>>({})
+  const [visitRecording, setVisitRecording] = useState<number | null>(null)
 
   const [form, setForm] = useState<RegularCreate>({
     name: '', visit_frequency_per_week: 1, avg_spend: 0, expected_lifespan_years: 3,
@@ -27,11 +37,18 @@ export default function RegularsPanel() {
   function resetForm() {
     setForm({ name: '', visit_frequency_per_week: 1, avg_spend: 0, expected_lifespan_years: 3 })
     setError(null)
+    setShowOptional(false)
   }
 
   async function load() {
     setLoading(true)
-    try { setRows(await api.list()) } catch { /* ignore */ }
+    try {
+      const data = await api.list()
+      setRows(data)
+      const defaults: Record<number, string> = {}
+      for (const r of data) defaults[r.id] = String(r.avg_spend)
+      setVisitAmounts(defaults)
+    } catch { /* ignore */ }
     finally { setLoading(false) }
   }
 
@@ -48,6 +65,7 @@ export default function RegularsPanel() {
     })
     setEditing(r)
     setAdding(false)
+    setShowOptional(r.visit_frequency_per_week !== 1 || r.expected_lifespan_years !== 3)
   }
   function cancel() { setAdding(false); setEditing(null); resetForm() }
 
@@ -83,24 +101,38 @@ export default function RegularsPanel() {
   }
 
   async function recordVisit(id: number, name: string) {
-    await api.recordVisit(id)
-    setVisitMsg(`Visit recorded for ${name}`)
-    setTimeout(() => setVisitMsg(null), 3000)
-    load()
-  }
-
-  function liveClv() {
-    return form.visit_frequency_per_week * 52 * form.avg_spend * (form.expected_lifespan_years ?? 3)
+    setVisitRecording(id)
+    setVisitMsg(null)
+    setVisitErr(null)
+    try {
+      const amountStr = visitAmounts[id]
+      const amount_paid = amountStr ? parseFloat(amountStr) : undefined
+      await api.recordVisit(id, amount_paid != null && !isNaN(amount_paid) ? { amount_paid } : undefined)
+      setVisitMsg(`Visit recorded for ${name}`)
+      setTimeout(() => setVisitMsg(null), 3000)
+      load()
+    } catch (e: unknown) {
+      setVisitErr(e instanceof Error ? e.message : 'Could not record visit')
+      setTimeout(() => setVisitErr(null), 4000)
+    } finally {
+      setVisitRecording(null)
+    }
   }
 
   const showForm = adding || editing !== null
+  const clvPreview = liveClv(form.avg_spend, form.visit_frequency_per_week, form.expected_lifespan_years ?? 3)
 
   return (
     <div className="space-y-6">
 
       {visitMsg && (
-        <div className="rounded-xl bg-teal-50 border border-teal-200 px-4 py-3 text-sm text-teal-700">
+        <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 px-4 py-3 text-sm text-teal-700 dark:text-teal-300">
           {visitMsg}
+        </div>
+      )}
+      {visitErr && (
+        <div className="rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
+          {visitErr}
         </div>
       )}
 
@@ -120,86 +152,105 @@ export default function RegularsPanel() {
 
       {/* Form */}
       {showForm && (
-        <div className="rounded-2xl border border-teal-100 bg-white p-6 shadow-sm space-y-4">
-          <h3 className="font-semibold text-slate-700">
+        <div className="rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm space-y-4">
+          <h3 className="font-semibold text-slate-700 dark:text-slate-200">
             {editing ? 'Edit regular' : 'Add a regular'}
           </h3>
 
+          {/* Primary fields: name + avg spend */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Name</label>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Name</label>
               <input
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="e.g. Sarah"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
+                           bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                            focus:outline-none focus:ring-2 focus:ring-teal-300"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">
-                Visits per week
-              </label>
-              <input
-                type="number" min="0.1" step="0.5"
-                value={form.visit_frequency_per_week}
-                onChange={e => setForm(f => ({ ...f, visit_frequency_per_week: parseFloat(e.target.value) || 0 }))}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-teal-300"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                 Average spend per visit ($)
               </label>
               <input
                 type="number" min="0" step="0.5"
                 value={form.avg_spend}
                 onChange={e => setForm(f => ({ ...f, avg_spend: parseFloat(e.target.value) || 0 }))}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-teal-300"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">
-                Expected loyalty (years)
-              </label>
-              <input
-                type="number" min="0.5" step="0.5"
-                value={form.expected_lifespan_years}
-                onChange={e => setForm(f => ({ ...f, expected_lifespan_years: parseFloat(e.target.value) || 1 }))}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
-                           focus:outline-none focus:ring-2 focus:ring-teal-300"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-slate-500 mb-1">Notes (optional)</label>
-              <input
-                value={form.notes ?? ''}
-                onChange={e => setForm(f => ({ ...f, notes: e.target.value || undefined }))}
-                placeholder="e.g. loves the latte, allergic to nuts"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
+                           bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                            focus:outline-none focus:ring-2 focus:ring-teal-300"
               />
             </div>
           </div>
 
           {/* Live CLV preview */}
-          <div className="rounded-xl bg-teal-50 px-4 py-3">
-            <p className="text-xs text-teal-600 font-medium">
-              Estimated customer value over {form.expected_lifespan_years} years:
-              <span className="text-teal-800 font-bold ml-1">{fmtCLV(liveClv())}</span>
+          <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 px-4 py-3">
+            <p className="text-xs text-teal-600 dark:text-teal-400 font-medium">
+              Estimated customer value over {form.expected_lifespan_years ?? 3} years:
+              <span className="text-teal-800 dark:text-teal-200 font-bold ml-1">{fmtCLV(clvPreview)}</span>
             </p>
-            <p className="text-[11px] text-teal-500 mt-0.5">
-              {form.visit_frequency_per_week} visits/week × ${form.avg_spend}/visit × 52 weeks × {form.expected_lifespan_years} yrs
+            <p className="text-[11px] text-teal-500 dark:text-teal-500 mt-0.5">
+              {form.visit_frequency_per_week} visits/week × ${form.avg_spend}/visit × 52 weeks × {form.expected_lifespan_years ?? 3} yrs
             </p>
           </div>
 
-          {error && <p className="text-sm text-rose-600">{error}</p>}
+          {/* Optional details toggle */}
+          <button
+            type="button"
+            onClick={() => setShowOptional(o => !o)}
+            className="text-xs text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1"
+          >
+            {showOptional ? '▴' : '▾'} Optional details (visit frequency, loyalty period, notes)
+          </button>
+
+          {showOptional && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                  Visits per week
+                </label>
+                <input
+                  type="number" min="0.1" step="0.5"
+                  value={form.visit_frequency_per_week}
+                  onChange={e => setForm(f => ({ ...f, visit_frequency_per_week: parseFloat(e.target.value) || 0 }))}
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
+                             bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
+                             focus:outline-none focus:ring-2 focus:ring-teal-300"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                  Expected loyalty (years)
+                </label>
+                <input
+                  type="number" min="0.5" step="0.5"
+                  value={form.expected_lifespan_years}
+                  onChange={e => setForm(f => ({ ...f, expected_lifespan_years: parseFloat(e.target.value) || 1 }))}
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
+                             bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
+                             focus:outline-none focus:ring-2 focus:ring-teal-300"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Notes (optional)</label>
+                <input
+                  value={form.notes ?? ''}
+                  onChange={e => setForm(f => ({ ...f, notes: e.target.value || undefined }))}
+                  placeholder="e.g. loves the latte, allergic to nuts"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
+                             bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
+                             focus:outline-none focus:ring-2 focus:ring-teal-300"
+                />
+              </div>
+            </div>
+          )}
+
+          {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
 
           <div className="flex gap-3">
             <button
@@ -212,8 +263,8 @@ export default function RegularsPanel() {
             </button>
             <button
               onClick={cancel}
-              className="px-5 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm
-                         hover:bg-slate-50 transition-colors"
+              className="px-5 py-2 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-sm
+                         hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>
@@ -225,9 +276,9 @@ export default function RegularsPanel() {
       {loading ? (
         <p className="text-sm text-slate-400">Loading…</p>
       ) : rows.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-teal-200 bg-teal-50/40 p-8 text-center">
-          <p className="text-sm text-teal-600 font-medium">No regulars yet</p>
-          <p className="text-xs text-teal-400 mt-1">
+        <div className="rounded-2xl border border-dashed border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 p-8 text-center">
+          <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">No regulars yet</p>
+          <p className="text-xs text-teal-400 dark:text-teal-600 mt-1">
             Add your loyal customers to track how valuable they are over time.
           </p>
         </div>
@@ -236,49 +287,70 @@ export default function RegularsPanel() {
           {rows.map(r => (
             <div
               key={r.id}
-              className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm flex flex-wrap gap-4 items-start"
+              className="rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm"
             >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-slate-800">{r.name}</span>
-                  <span className="text-xs bg-teal-50 text-teal-600 border border-teal-100
-                                   rounded-full px-2 py-0.5 font-medium">
-                    CLV {fmtCLV(r.clv)}
-                  </span>
-                  {r.visit_count > 0 && (
-                    <span className="text-xs text-slate-400">{r.visit_count} visit{r.visit_count !== 1 ? 's' : ''} logged</span>
+              <div className="flex flex-wrap gap-4 items-start">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-slate-800 dark:text-slate-100">{r.name}</span>
+                    <span className="text-xs bg-teal-50 dark:bg-teal-900/40 text-teal-600 dark:text-teal-300 border border-teal-100 dark:border-teal-800
+                                     rounded-full px-2 py-0.5 font-medium">
+                      CLV {fmtCLV(r.clv)}
+                    </span>
+                    {r.visit_count > 0 && (
+                      <span className="text-xs text-slate-400 dark:text-slate-500">{r.visit_count} visit{r.visit_count !== 1 ? 's' : ''} logged</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                    {r.visit_frequency_per_week}×/week · ${r.avg_spend}/visit · {r.expected_lifespan_years} yr lifespan
+                  </p>
+                  {r.notes && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 italic">{r.notes}</p>}
+                  {r.last_visit_date && (
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Last visit: {fmtDate(r.last_visit_date)}</p>
                   )}
                 </div>
-                <p className="text-sm text-slate-500 mt-0.5">
-                  {r.visit_frequency_per_week}×/week · ${r.avg_spend}/visit · {r.expected_lifespan_years} yr lifespan
-                </p>
-                {r.notes && <p className="text-xs text-slate-400 mt-0.5 italic">{r.notes}</p>}
-                {r.last_visit_date && (
-                  <p className="text-xs text-slate-400 mt-0.5">Last visit: {fmtDate(r.last_visit_date)}</p>
-                )}
+
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => startEdit(r)}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-xs
+                               hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => del(r.id)}
+                    className="px-3 py-1.5 rounded-lg border border-rose-100 dark:border-rose-900 text-rose-500 dark:text-rose-400 text-xs
+                               hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
 
-              <div className="flex gap-2 shrink-0">
+              {/* Record visit row */}
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">Record visit — amount paid:</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-slate-400 dark:text-slate-500">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={visitAmounts[r.id] ?? r.avg_spend}
+                    onChange={e => setVisitAmounts(a => ({ ...a, [r.id]: e.target.value }))}
+                    className="w-20 text-sm px-2 py-1 border border-slate-200 dark:border-slate-600 rounded-lg
+                               bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200
+                               focus:outline-none focus:ring-2 focus:ring-teal-300 tabular-nums"
+                  />
+                </div>
                 <button
                   onClick={() => recordVisit(r.id, r.name)}
+                  disabled={visitRecording === r.id}
                   className="px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold
-                             hover:bg-teal-700 transition-colors"
+                             hover:bg-teal-700 disabled:opacity-50 transition-colors"
                 >
-                  Record visit
-                </button>
-                <button
-                  onClick={() => startEdit(r)}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-xs
-                             hover:bg-slate-50 transition-colors"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => del(r.id)}
-                  className="px-3 py-1.5 rounded-lg border border-rose-100 text-rose-500 text-xs
-                             hover:bg-rose-50 transition-colors"
-                >
-                  Remove
+                  {visitRecording === r.id ? '…' : 'Record visit'}
                 </button>
               </div>
             </div>
@@ -286,7 +358,7 @@ export default function RegularsPanel() {
         </div>
       )}
 
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-slate-400 dark:text-slate-500">
         Regulars are tracked separately — their visits never mix with your daily demand data.
       </p>
     </div>
