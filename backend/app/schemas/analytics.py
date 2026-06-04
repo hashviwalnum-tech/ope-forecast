@@ -36,6 +36,7 @@ class ForecastResponse(BaseModel):
     status: str
     message: Optional[str] = None
     days: list[ForecastDay]
+    drift_alert: Optional[str] = None  # plain-language sustained-drift warning
 
 
 class AccuracyResponse(BaseModel):

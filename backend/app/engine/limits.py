@@ -18,7 +18,8 @@ def _fmt_hour(h: int) -> str:
     return f"{h - 12} pm"
 
 FREE_HISTORY_DAYS = 365
-FREE_PERIODS_LIMIT = 2
+FREE_EVENTS_LIMIT = 10   # one-off events; §10 spec: generous expanded allowance
+FREE_ADS_LIMIT = 5       # ads remain gated but expanded from 2
 
 
 def history_cutoff(tier: str, today: date) -> date | None:
@@ -104,12 +105,22 @@ def check_non_working_day(
         )
 
 
-def check_periods(tier: str, current_count: int) -> None:
-    """Raise ValueError if a free account has hit the active periods cap."""
+def check_periods(tier: str, current_count: int, period_type: str = "event") -> None:
+    """Raise ValueError if a free account has hit the per-type periods cap.
+
+    Events and ads have separate limits (§10: events generous, ads gated).
+    RecurringPatterns are always unlimited and free — do not call this for them.
+    """
     if tier == "premium":
         return
-    if current_count >= FREE_PERIODS_LIMIT:
+    if period_type == "ad":
+        limit = FREE_ADS_LIMIT
+        kind = "ads"
+    else:
+        limit = FREE_EVENTS_LIMIT
+        kind = "events"
+    if current_count >= limit:
         raise ValueError(
-            f"Your free plan allows up to {FREE_PERIODS_LIMIT} saved ads or events. "
+            f"Your free plan allows up to {limit} saved {kind}. "
             f"Delete one to make room, or upgrade to premium for unlimited tracking."
         )

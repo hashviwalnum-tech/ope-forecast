@@ -29,4 +29,4 @@ class DayRecordRead(BaseModel):
 
 
 class OutlierResolveRequest(BaseModel):
-    action: Literal["keep", "excluded", "event", "ad", "recurring"]
+    action: Literal["keep", "excluded", "event", "ad", "recurring", "unflag"]

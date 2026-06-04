@@ -253,10 +253,10 @@ def _holdout_errors(
 def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     """Detect and return unreviewed outlier days.
 
-    On each call, detection runs on all records with no existing status
-    (outlier_status IS NULL). Newly found outliers are persisted as 'flagged'.
-    Already-resolved records are never re-flagged.
-    Returns all currently-flagged records with a plain-language message.
+    Detection uses only the clean baseline: event/ad period dates and closed
+    weekdays are excluded from the reference set so their legitimate
+    spikes/zeros never contaminate the normal-day pattern or produce false
+    flags.  Records flagged while inside an event period are auto-resolved.
     """
     all_records = (
         db.query(DayRecord)
@@ -268,49 +268,82 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     if len(all_records) < MIN_RECORDS:
         return OutlierListResponse(status="ok", flags=[])
 
-    obs = [float(r.customers) for r in all_records]
-    wds = [r.date.weekday() for r in all_records]
+    # Build blocked-dates set from event/ad periods
+    periods = db.query(Period).filter_by(business_id=biz.id).all()
+    blocked: set[date] = set()
+    for p in periods:
+        d = p.start_date
+        while d <= p.end_date:
+            blocked.add(d)
+            d += timedelta(days=1)
 
-    # Weekdays covered by owner-declared recurring patterns are NEVER flagged as anomalies.
+    open_days = _open_days(biz)
+
+    # Recurring-pattern weekdays are never flagged as anomalies
     recurring_patterns = db.query(RecurringPattern).filter_by(business_id=biz.id).all()
     recurring_weekdays: set[int] = set()
     for rp in recurring_patterns:
         for wd in (rp.weekdays or []):
             recurring_weekdays.add(int(wd))
 
-    detected = {d.day_index: d for d in detect_outliers(obs, wds)}
+    # Clean detection set: exclude event periods, closed days, already-resolved records
+    det_records = [
+        r for r in all_records
+        if r.date not in blocked
+        and (open_days is None or r.date.weekday() in open_days)
+        and r.outlier_status not in ("excluded", "event", "kept")
+    ]
+
+    if len(det_records) >= MIN_RECORDS:
+        det_obs = [float(r.customers) for r in det_records]
+        det_wds = [r.date.weekday() for r in det_records]
+        det_results = detect_outliers(det_obs, det_wds)
+        detected_by_id = {det_records[d.day_index].id: d for d in det_results}
+    else:
+        detected_by_id = {}
 
     changed = False
-    # Auto-resolve any previously flagged record now covered by a recurring pattern
+
+    # Auto-resolve: records now inside an event period should not remain flagged
+    for r in all_records:
+        if r.outlier_status == "flagged" and r.date in blocked:
+            r.outlier_status = None  # restored to unreviewed; period now explains it
+            changed = True
+
+    # Auto-resolve records on recurring-pattern weekdays
     for r in all_records:
         if r.outlier_status == "flagged" and r.date.weekday() in recurring_weekdays:
             r.outlier_status = "kept"
             changed = True
 
-    # Flag unreviewed records that are now detected as outliers (skip recurring weekdays)
-    for i, r in enumerate(all_records):
-        if r.outlier_status is None and i in detected:
+    # Flag newly detected records (only in detection set, only unreviewed, skip recurring)
+    for r in det_records:
+        if r.outlier_status is None and r.id in detected_by_id:
             if r.date.weekday() not in recurring_weekdays:
                 r.outlier_status = "flagged"
                 changed = True
+
     if changed:
         db.commit()
 
     # Build response for all currently-flagged records
     flags: list[OutlierFlag] = []
-    for i, r in enumerate(all_records):
+    for r in all_records:
         if r.outlier_status != "flagged":
             continue
 
-        det = detected.get(i)
+        det = detected_by_id.get(r.id)
         wd_name = _WD_NAMES[r.date.weekday()]
 
         if det:
             median_val = det.weekday_median
             direction = det.direction
         else:
-            # Still flagged but no longer detected (more data arrived); best effort
-            same = [obs[j] for j in range(len(obs)) if wds[j] == r.date.weekday() and j != i]
+            # Still flagged but no longer in detection results; best-effort context
+            same = [
+                float(x.customers) for x in det_records
+                if x.date.weekday() == r.date.weekday() and x.id != r.id
+            ]
             median_val = round(float(median(same)), 1) if same else 0.0
             direction = "high" if r.customers > median_val else "low"
 
@@ -429,7 +462,8 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         ))
 
     db.commit()
-    return ForecastResponse(status="ok", days=days)
+    drift = detect_drift(obs)
+    return ForecastResponse(status="ok", days=days, drift_alert=drift)
 
 
 # ── /accuracy ─────────────────────────────────────────────────────────────

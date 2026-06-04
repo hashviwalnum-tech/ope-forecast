@@ -24,9 +24,9 @@ def list_periods(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
 @router.post("", response_model=PeriodRead, status_code=201)
 def create_period(body: PeriodCreate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    count = db.query(Period).filter_by(business_id=biz.id).count()
+    count = db.query(Period).filter_by(business_id=biz.id, type=body.type).count()
     try:
-        check_periods(biz.tier, count)
+        check_periods(biz.tier, count, body.type)
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
     row = Period(business_id=biz.id, **body.model_dump())

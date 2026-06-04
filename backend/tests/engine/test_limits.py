@@ -5,7 +5,8 @@ from datetime import date, timedelta
 import pytest
 from app.engine.limits import (
     FREE_HISTORY_DAYS,
-    FREE_PERIODS_LIMIT,
+    FREE_EVENTS_LIMIT,
+    FREE_ADS_LIMIT,
     check_entry_timing,
     check_non_working_day,
     history_cutoff,
@@ -66,40 +67,72 @@ def test_check_history_error_message_contains_cutoff_date():
     assert "1 year" in msg
 
 
-# ── check_periods ──────────────────────────────────────────────────────────────
+# ── check_periods — events ─────────────────────────────────────────────────────
 
 def test_check_periods_premium_allows_any_count():
-    check_periods("premium", 0)
-    check_periods("premium", 100)  # no exception
+    check_periods("premium", 0, "event")
+    check_periods("premium", 100, "event")  # no exception
+    check_periods("premium", 100, "ad")     # no exception
 
 
-def test_check_periods_free_zero_passes():
-    check_periods("free", 0)  # no exception
+def test_free_events_limit_is_ten_or_more():
+    """§10: free tier gets a generous expanded allowance of one-off events (10+)."""
+    assert FREE_EVENTS_LIMIT >= 10
 
 
-def test_check_periods_free_one_under_limit_passes():
-    check_periods("free", FREE_PERIODS_LIMIT - 1)  # no exception
+def test_free_ads_limit_expanded_from_two():
+    """§10: ads remain gated but expanded from 2."""
+    assert FREE_ADS_LIMIT > 2
 
 
-def test_check_periods_free_at_limit_fails():
+def test_check_events_free_below_limit_passes():
+    check_periods("free", FREE_EVENTS_LIMIT - 1, "event")  # no exception
+
+
+def test_check_events_free_at_limit_fails():
     with pytest.raises(ValueError, match="free plan"):
-        check_periods("free", FREE_PERIODS_LIMIT)
+        check_periods("free", FREE_EVENTS_LIMIT, "event")
 
 
-def test_check_periods_free_over_limit_fails():
+def test_check_events_free_over_limit_fails():
     with pytest.raises(ValueError):
-        check_periods("free", FREE_PERIODS_LIMIT + 5)
+        check_periods("free", FREE_EVENTS_LIMIT + 5, "event")
 
 
-def test_check_periods_error_mentions_premium():
+def test_check_events_error_mentions_premium():
     with pytest.raises(ValueError) as exc_info:
-        check_periods("free", FREE_PERIODS_LIMIT)
+        check_periods("free", FREE_EVENTS_LIMIT, "event")
     assert "premium" in str(exc_info.value).lower()
 
 
-def test_free_periods_limit_constant_is_2():
-    """Spec says 'e.g. 2' — lock it in so changes are deliberate."""
-    assert FREE_PERIODS_LIMIT == 2
+# ── check_periods — ads ────────────────────────────────────────────────────────
+
+def test_check_ads_free_below_limit_passes():
+    check_periods("free", FREE_ADS_LIMIT - 1, "ad")  # no exception
+
+
+def test_check_ads_free_at_limit_fails():
+    with pytest.raises(ValueError, match="free plan"):
+        check_periods("free", FREE_ADS_LIMIT, "ad")
+
+
+def test_check_ads_free_over_limit_fails():
+    with pytest.raises(ValueError):
+        check_periods("free", FREE_ADS_LIMIT + 5, "ad")
+
+
+def test_check_ads_error_mentions_ads():
+    with pytest.raises(ValueError) as exc_info:
+        check_periods("free", FREE_ADS_LIMIT, "ad")
+    assert "ads" in str(exc_info.value).lower()
+
+
+def test_events_and_ads_have_separate_limits():
+    """Adding up to FREE_EVENTS_LIMIT events must not affect the ad limit."""
+    check_periods("free", FREE_EVENTS_LIMIT - 1, "event")  # fine
+    check_periods("free", FREE_ADS_LIMIT - 1, "ad")        # fine independently
+    with pytest.raises(ValueError):
+        check_periods("free", FREE_ADS_LIMIT, "ad")  # ads hit their own cap
 
 
 def test_free_history_days_constant_in_range():

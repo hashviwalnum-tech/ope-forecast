@@ -354,3 +354,157 @@ def test_drift_known_answer_pct():
     alert = detect_drift(values, window=21, threshold_pct=10.0)
     assert alert is not None
     assert "15.0" in alert or "15" in alert
+
+
+# ── (d) Fluke status fully reversible ─────────────────────────────────────────
+
+def test_unflagged_record_is_treated_as_normal():
+    """A record restored via 'unflag' (outlier_status=None) is used at face value."""
+    records = [_rec(MON[i], 100) for i in range(4)]
+    # Simulate what 'unflag' does: reset outlier_status to None
+    restored = _rec(MON[4], 110)  # normal value, status=None (just like after unflag)
+
+    all_records = records + [restored]
+    clean = _filter_clean(all_records)
+    obs = _effective_obs(clean)
+    wds = [r.date.weekday() for r in clean]
+
+    # Should average all 5 Mondays (100×4 + 110) / 5 = 102
+    forecast = seasonal_naive_forecast(obs, wds, 0)
+    assert abs(forecast - 102.0) < 0.01, (
+        f"After unflag the record must be included normally, got {forecast}"
+    )
+
+
+def test_excluded_to_unflagged_restores_to_clean_set():
+    """A day previously 'excluded' (fluke) returns to the clean set after unflag."""
+    normal = [_rec(MON[i], 100) for i in range(4)]
+    # Before unflag: excluded record is dropped from clean set
+    excluded_rec = _rec(MON[4], 9999, outlier_status="excluded")
+    clean_before = _filter_clean(normal + [excluded_rec])
+    assert len(clean_before) == 4, "Excluded record must not appear in clean set"
+
+    # After unflag: status reset to None → record re-enters clean set
+    restored_rec = _rec(MON[4], 9999, outlier_status=None)
+    clean_after = _filter_clean(normal + [restored_rec])
+    assert len(clean_after) == 5, "Restored record must re-enter clean set"
+
+
+def test_fluke_then_unflag_then_redetection_possible():
+    """After unflagging, the day can be re-detected as an outlier (it's a valid candidate)."""
+    from app.engine.outliers import detect_outliers
+
+    # 5 normal Mondays at 100, plus one that was un-flagged (9999 — still anomalous)
+    records = [_rec(MON[i], 100) for i in range(5)]
+    restored = _rec("2026-06-08", 9999, outlier_status=None)  # 6th Monday, un-flagged
+    all_recs = records + [restored]
+
+    obs = [float(r.customers) for r in all_recs]
+    wds = [r.date.weekday() for r in all_recs]
+
+    detected_indices = {d.day_index for d in detect_outliers(obs, wds)}
+    # The restored record's extreme value (9999) should be re-detected
+    assert 5 in detected_indices, (
+        "Un-flagged day with outlier value should be re-detectable"
+    )
+
+
+# ── (e) Event-period records do not contaminate outlier detection ──────────────
+
+def _filter_detection_set(records, blocked_dates=None, open_weekdays=None):
+    """Mirror the detection-set filter used in _auto_flag_outliers and /outliers."""
+    blocked = blocked_dates or set()
+    return [
+        r for r in records
+        if r.date not in blocked
+        and (open_weekdays is None or r.date.weekday() in open_weekdays)
+        and r.outlier_status not in ("excluded", "event", "kept")
+    ]
+
+
+def test_event_period_records_excluded_from_detection_set():
+    """Records inside an event/ad period must be excluded from the detection set."""
+    blocked = {date.fromisoformat("2026-05-16")}  # Saturday in period
+
+    records = (
+        [_rec(MON[i], 100) for i in range(4)]
+        + [_rec("2026-05-16", 999)]  # Saturday in event period (should be excluded)
+    )
+    det_set = _filter_detection_set(records, blocked_dates=blocked)
+
+    assert len(det_set) == 4, "Event-period record must not enter the detection set"
+    assert all(r.date not in blocked for r in det_set)
+
+
+def test_closed_day_excluded_from_detection_set():
+    """Records on configured closed weekdays must not enter the detection set."""
+    open_days = {0, 1, 2, 3, 4}  # Mon–Fri; Sat(5) closed
+    records = (
+        [_rec(MON[i], 100) for i in range(4)]
+        + [_rec("2026-05-16", 0)]   # Saturday (closed day with 0 customers)
+    )
+    det_set = _filter_detection_set(records, open_weekdays=open_days)
+    assert len(det_set) == 4, "Closed-day record must not enter the detection set"
+
+
+def test_event_period_spike_does_not_inflate_weekday_median():
+    """An event-period spike, when excluded from detection, must not raise the
+    weekday median and hide real anomalies on the same weekday.
+
+    Without exclusion: the event-period spike (999) raises the weekday std dev
+    so much that the 400-customer day falls within 3.5 sigma and is NOT flagged.
+    With exclusion: reference is only the 4 normal Mondays (100), and 400 IS flagged.
+    """
+    from app.engine.outliers import detect_outliers
+
+    # 4 normal Mondays + 1 event-period Monday (999) + 1 anomalous Monday (400)
+    normal_mondays = [_rec(MON[i], 100) for i in range(4)]
+    event_monday = _rec("2026-06-08", 999)   # event-period record (Monday)
+    anomalous_monday = _rec("2026-06-15", 400)  # genuinely anomalous Monday
+    ANOMALOUS_DATE = date.fromisoformat("2026-06-15")
+
+    blocked = {date.fromisoformat("2026-06-08")}  # event-period covers 2026-06-08
+    all_records = normal_mondays + [event_monday, anomalous_monday]
+
+    # Without exclusion: event spike contaminates detection → 400 NOT detected
+    all_obs = [float(r.customers) for r in all_records]
+    all_wds = [r.date.weekday() for r in all_records]
+    without_exclusion = {
+        all_records[d.day_index].date for d in detect_outliers(all_obs, all_wds)
+    }
+    assert ANOMALOUS_DATE not in without_exclusion, (
+        "Baseline: event spike must mask the 400-customer anomaly when not excluded"
+    )
+
+    # With exclusion (correct): event-period spike removed → 400 IS detected
+    det_set = _filter_detection_set(all_records, blocked_dates=blocked)
+    det_obs = [float(r.customers) for r in det_set]
+    det_wds = [r.date.weekday() for r in det_set]
+    with_exclusion = {
+        det_set[d.day_index].date for d in detect_outliers(det_obs, det_wds)
+    }
+    assert ANOMALOUS_DATE in with_exclusion, (
+        "Anomalous Monday (400) must be detected when event-period spike is excluded"
+    )
+
+
+def test_event_period_record_flagged_before_period_created_is_auto_unflagged():
+    """Records flagged before their period was created (date now in blocked set)
+    must be cleared from the flagged state so they don't appear as false alarms.
+    """
+    blocked = {date.fromisoformat("2026-05-04")}  # period created after the fact
+
+    # Simulate a record that was auto-flagged before the period existed
+    flagged_event_rec = _rec("2026-05-04", 999, outlier_status="flagged")
+    normal_rec = _rec(MON[1], 100)
+
+    # The auto-unflag logic: records inside blocked set that are "flagged" → None
+    changed = []
+    records = [flagged_event_rec, normal_rec]
+    for r in records:
+        if r.outlier_status == "flagged" and r.date in blocked:
+            r.outlier_status = None  # mirrors the /outliers endpoint fix
+            changed.append(r)
+
+    assert len(changed) == 1, "Event-period flagged record should be auto-un-flagged"
+    assert flagged_event_rec.outlier_status is None

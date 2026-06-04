@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -43,22 +43,52 @@ def _get_or_404(db: Session, record_id: int, biz_id: int) -> DayRecord:
 
 
 def _auto_flag_outliers(db: Session, business_id: int) -> None:
-    """Detect outliers on all unreviewed records and persist 'flagged' status."""
-    records = (
+    """Detect outliers and persist 'flagged' status.
+
+    Uses only the clean detection set — event-period dates and closed-day
+    weekdays are excluded from both the reference set and the candidates.
+    This prevents event spikes from contaminating the normal-day baseline.
+    """
+    # Load periods to build blocked-dates set
+    periods = db.query(Period).filter_by(business_id=business_id).all()
+    blocked: set[date] = set()
+    for p in periods:
+        d = p.start_date
+        while d <= p.end_date:
+            blocked.add(d)
+            d += timedelta(days=1)
+
+    biz = db.get(Business, business_id)
+    open_days: set[int] | None = None
+    if biz and biz.settings:
+        od = biz.settings.get("opening_days")
+        if od is not None:
+            open_days = set(int(x) for x in od)
+
+    all_records = (
         db.query(DayRecord)
         .filter_by(business_id=business_id)
         .order_by(DayRecord.date)
         .all()
     )
-    if len(records) < _MIN_FOR_DETECTION:
+
+    # Detection set: exclude event/ad periods, closed days, already-resolved records
+    det_records = [
+        r for r in all_records
+        if r.date not in blocked
+        and (open_days is None or r.date.weekday() in open_days)
+        and r.outlier_status not in ("excluded", "event", "kept")
+    ]
+
+    if len(det_records) < _MIN_FOR_DETECTION:
         return
 
-    obs = [float(r.customers) for r in records]
-    wds = [r.date.weekday() for r in records]
+    obs = [float(r.customers) for r in det_records]
+    wds = [r.date.weekday() for r in det_records]
     detected = {d.day_index for d in detect_outliers(obs, wds)}
 
     changed = False
-    for i, r in enumerate(records):
+    for i, r in enumerate(det_records):
         if r.outlier_status is None and i in detected:
             r.outlier_status = "flagged"
             changed = True
@@ -117,7 +147,10 @@ def resolve_outlier(
     """Resolve a flagged outlier: keep, exclude as fluke, mark as event, or mark as recurring."""
     row = _get_or_404(db, record_id, biz.id)
 
-    if body.action == "recurring":
+    if body.action == "unflag":
+        # Restore this day to normal — it becomes unreviewed and can be re-detected
+        row.outlier_status = None
+    elif body.action == "recurring":
         wd = row.date.weekday()
         wd_name = _WD_NAMES[wd]
         # Create a RecurringPattern for this weekday if one doesn't already cover it
