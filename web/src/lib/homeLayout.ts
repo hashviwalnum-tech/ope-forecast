@@ -1,7 +1,7 @@
 // Shared utility for the home card layout — avoids circular deps between
 // HomeScreen and other components that offer "Add to home."
 
-export type CardId = 'ordering' | 'forecast' | 'week' | 'hours' | 'accuracy' | 'trends'
+export type CardId = 'ordering' | 'forecast' | 'hours' | 'accuracy' | 'trends'
 
 const STORAGE_KEY = 'ope_home_layout_v2'
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { OrderingPanel, WeekPredictionPanel } from './ForecastDashboard'
+import { OrderingPanel } from './ForecastDashboard'
 import HourlyDashboard from './HourlyDashboard'
 import LogDayForm from './LogDayForm'
 import MergedForecastPanel from './MergedForecastPanel'
@@ -7,7 +7,9 @@ import PredictionsPanel from './PredictionsPanel'
 import TapSellPanel from './TapSellPanel'
 import TrendsView from './TrendsView'
 import { businesses as businessesApi, dayRecords as dayRecordsApi, regulars as regularsApi, saleEvents } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
 import type { RegularRead } from '../api/types'
+import type { TranslationKey } from '../i18n'
 import type { CardId } from '../lib/homeLayout'
 
 // ── Card catalogue ────────────────────────────────────────────────────────────
@@ -16,33 +18,33 @@ export type { CardId }
 
 interface CardConfig {
   id: CardId
-  label: string
+  labelKey: string
   visible: boolean
 }
 
+// Note: labelKey refers to i18n keys; we use a fixed map below
 export const ALL_CARD_DEFS: CardConfig[] = [
-  { id: 'ordering',  label: 'What to order',     visible: true  },
-  { id: 'forecast',  label: 'Demand forecast',   visible: true  },
-  { id: 'week',      label: 'Week prediction',   visible: false },
-  { id: 'hours',     label: 'Busy hours',        visible: true  },
-  { id: 'accuracy',  label: 'How predictions did', visible: false },
-  { id: 'trends',    label: 'Monthly trends',    visible: false },
+  { id: 'ordering',  labelKey: 'cardOrdering',  visible: true  },
+  { id: 'forecast',  labelKey: 'cardForecast',  visible: true  },
+  { id: 'hours',     labelKey: 'cardHours',     visible: true  },
+  { id: 'accuracy',  labelKey: 'cardAccuracy',  visible: false },
+  { id: 'trends',    labelKey: 'cardTrends',    visible: false },
 ]
 
-const STORAGE_KEY = 'ope_home_layout_v2'
+const STORAGE_KEY = 'ope_home_layout_v3'
 
 function loadLayout(): CardConfig[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return ALL_CARD_DEFS
     const saved: CardConfig[] = JSON.parse(raw)
-    // Merge: keep saved order/visibility; append any newly added card defs
     const ids = new Set(saved.map(c => c.id))
     const merged = [...saved]
     for (const def of ALL_CARD_DEFS) {
       if (!ids.has(def.id)) merged.push(def)
     }
-    return merged
+    // Remove 'week' if it was in an old saved layout
+    return merged.filter(c => c.id !== ('week' as string))
   } catch {
     return ALL_CARD_DEFS
   }
@@ -56,6 +58,7 @@ export function saveLayout(cards: CardConfig[]) {
 // ── Record-a-regular inline panel ─────────────────────────────────────────────
 
 function RecordRegularPanel({ onDone }: { onDone: () => void }) {
+  const { t } = useLanguage()
   const [rows, setRows]             = useState<RegularRead[]>([])
   const [loading, setLoading]       = useState(true)
   const [recording, setRecording]   = useState<number | null>(null)
@@ -82,7 +85,7 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
       const amountStr = amounts[id]
       const amount_paid = amountStr ? parseFloat(amountStr) : undefined
       await regularsApi.recordVisit(id, amount_paid != null && !isNaN(amount_paid) ? { amount_paid } : undefined)
-      setMsg(`Visit recorded for ${name}`)
+      setMsg(t('visitRecordedFor', { name }))
       setTimeout(() => { setMsg(null); onDone() }, 1800)
     } catch (e: unknown) {
       setErrMsg(e instanceof Error ? e.message : 'Could not record visit')
@@ -90,14 +93,14 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
       setRecording(null) }
   }
 
-  if (loading) return <p className="text-sm text-slate-400 p-2">Loading regulars…</p>
+  if (loading) return <p className="text-sm text-slate-400 p-2">{t('savingLabel')}</p>
 
   if (rows.length === 0) {
     return (
       <div className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
-        <p>No regulars added yet.</p>
+        <p>{t('noRegularsYet')}</p>
         <p className="text-xs mt-1 text-slate-400">
-          Go to <strong>Manage → My Regulars</strong> to add your loyal customers.
+          {t('goToRegulars')}
         </p>
       </div>
     )
@@ -112,7 +115,7 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
           <div className="flex-1 min-w-0">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{r.name}</span>
             <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">
-              {r.visit_count} visit{r.visit_count !== 1 ? 's' : ''} logged
+              {t('visitsLogged', { n: String(r.visit_count), s: r.visit_count !== 1 ? 'ים' : '', ו: r.visit_count !== 1 ? 'ו' : '' })}
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -127,7 +130,6 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
                 className="w-20 text-sm px-2 py-1.5 border border-slate-200 dark:border-slate-600
                            rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200
                            focus:outline-none focus:ring-2 focus:ring-teal-300 tabular-nums"
-                title="Amount paid this visit"
               />
             </div>
             <button
@@ -136,13 +138,13 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
               className="px-3 py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-lg
                          hover:bg-teal-700 disabled:opacity-50 transition-colors"
             >
-              {recording === r.id ? '…' : 'Record visit'}
+              {recording === r.id ? '…' : t('recordVisit')}
             </button>
           </div>
         </div>
       ))}
       <p className="text-xs text-slate-400 dark:text-slate-500 pt-1">
-        Amount defaults to their usual spend — edit if they paid differently today.
+        {t('amountDefaultsSpend')}
       </p>
     </div>
   )
@@ -161,6 +163,7 @@ function localToday(): string {
 }
 
 export default function HomeScreen({ refreshKey, onSaved }: Props) {
+  const { t } = useLanguage()
   const [showSell, setShowSell]       = useState(false)
   const [showLog, setShowLog]         = useState(false)
   const [showRegular, setShowRegular] = useState(false)
@@ -243,13 +246,11 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
         return <OrderingPanel key="ordering" refreshKey={refreshKey} />
       case 'forecast':
         return <MergedForecastPanel key="forecast" refreshKey={refreshKey} />
-      case 'week':
-        return <WeekPredictionPanel key="week" refreshKey={refreshKey} />
       case 'hours':
         return (
           <section key="hours">
             <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
-              Busy hours
+              {t('cardHours')}
             </h2>
             <HourlyDashboard />
           </section>
@@ -258,7 +259,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
         return (
           <section key="accuracy">
             <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
-              How predictions did
+              {t('cardAccuracy')}
             </h2>
             <PredictionsPanel />
           </section>
@@ -267,7 +268,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
         return (
           <section key="trends">
             <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
-              Monthly trends
+              {t('cardTrends')}
             </h2>
             <TrendsView />
           </section>
@@ -288,9 +289,9 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Unsaved tap data for today</p>
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t('tapRolloverTitle')}</p>
               <p className="text-sm text-amber-700 dark:text-amber-400 mt-0.5 leading-relaxed">
-                You recorded sales by tapping today — log today's totals to save them to your history.
+                {t('tapRolloverMsg')}
               </p>
             </div>
           </div>
@@ -299,7 +300,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
             className="shrink-0 px-4 py-2 bg-amber-500 text-white text-sm font-semibold
                        rounded-xl hover:bg-amber-600 transition-colors"
           >
-            Log Today
+            {t('logToday')}
           </button>
         </div>
       )}
@@ -319,7 +320,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Record a Sale
+            {t('recordASale')}
             <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showSell ? 'rotate-180' : ''}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -340,7 +341,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0
                    00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            Log Today
+            {t('logToday')}
             <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showLog ? 'rotate-180' : ''}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -360,7 +361,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            Record a Regular
+            {t('recordARegular')}
             <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showRegular ? 'rotate-180' : ''}`}
               fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -380,7 +381,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
         )}
         {showRegular && (
           <div className="mt-4 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm">
-            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">Record a regular's visit</h3>
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">{t('recordRegularTitle')}</h3>
             <RecordRegularPanel onDone={() => setShowRegular(false)} />
           </div>
         )}
@@ -390,26 +391,26 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
       {customizing ? (
         <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/60 dark:bg-slate-800 p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-teal-700 dark:text-teal-300">Customize your home</h3>
+            <h3 className="text-sm font-semibold text-teal-700 dark:text-teal-300">{t('customizeTitle')}</h3>
             <div className="flex gap-2">
               <button
                 onClick={resetLayout}
                 className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-xs text-slate-500 dark:text-slate-400
                            hover:bg-white dark:hover:bg-slate-700 transition-colors"
               >
-                Reset to default
+                {t('resetDefault')}
               </button>
               <button
                 onClick={doneCustomizing}
                 className="px-4 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold
                            hover:bg-teal-700 transition-colors"
               >
-                Done
+                {t('done')}
               </button>
             </div>
           </div>
           <p className="text-xs text-teal-600 dark:text-teal-400">
-            Toggle cards on/off and drag to reorder.
+            {t('toggleAndDrag')}
           </p>
 
           <div className="space-y-2">
@@ -434,7 +435,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
                 </svg>
 
                 <span className={`flex-1 text-sm font-medium ${card.visible ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500 line-through'}`}>
-                  {card.label}
+                  {t(card.labelKey as TranslationKey)}
                 </span>
 
                 <button
@@ -473,7 +474,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
                      2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              Customize home
+              {t('customizeHome')}
             </button>
           </div>
         </>

@@ -9,7 +9,26 @@ import {
   YAxis,
 } from 'recharts'
 import { analytics } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
+import type { Lang } from '../i18n'
 import type { ForecastResponse, ProductForecastItem, ProductForecastResponse } from '../api/types'
+
+// ── weekday translation map ───────────────────────────────────────────────────
+
+const WEEKDAY_SHORT: Record<Lang, Record<string, string>> = {
+  en: {
+    Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu',
+    Friday: 'Fri', Saturday: 'Sat', Sunday: 'Sun',
+  },
+  he: {
+    Monday: 'שני', Tuesday: 'שלישי', Wednesday: 'רביעי', Thursday: 'חמישי',
+    Friday: 'שישי', Saturday: 'שבת', Sunday: 'ראשון',
+  },
+}
+
+function shortDay(weekday: string, lang: Lang): string {
+  return WEEKDAY_SHORT[lang][weekday] ?? weekday.slice(0, 3)
+}
 
 function fmtQty(n: number, unitMode: 'whole' | 'decimal', unit: string) {
   const s = unitMode === 'decimal' ? n.toFixed(2) : String(Math.round(n))
@@ -19,68 +38,72 @@ function fmtQty(n: number, unitMode: 'whole' | 'decimal', unit: string) {
 // ── ordering advice shown when a product chip is selected ─────────────────────
 
 function OrderCard({ item }: { item: ProductForecastItem }) {
+  const { t } = useLanguage()
   const { unit } = item
   const uMode = (item.unit_mode ?? 'whole') as 'whole' | 'decimal'
   const qty = item.suggested_order_qty
   const notes = item.constraint_notes ?? []
 
+  const haveNow = item.current_stock != null
+    ? t('haveNow', { qty: fmtQty(item.current_stock, uMode, unit) })
+    : t('trackStockAlerts')
+
   return (
-    <div className="mt-4 rounded-xl border border-teal-100 overflow-hidden">
-      <div className="bg-teal-50/60 px-4 py-2.5 border-b border-teal-100 flex items-center justify-between">
-        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Ordering advice</p>
+    <div className="mt-4 rounded-xl border border-teal-100 dark:border-teal-800 overflow-hidden">
+      <div className="bg-teal-50/60 dark:bg-teal-900/20 px-4 py-2.5 border-b border-teal-100 dark:border-teal-800 flex items-center justify-between">
+        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{t('orderingAdvice')}</p>
         <div className="flex items-center gap-2">
           {item.order_now ? (
             <span className="px-2.5 py-1 bg-teal-600 text-white rounded-full text-xs font-bold">
-              Order ~{fmtQty(qty, uMode, unit)}
+              {t('orderNowBadge', { qty: fmtQty(qty, uMode, unit) })}
             </span>
           ) : item.current_stock != null ? (
-            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">
-              You're good
+            <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">
+              {t('youreGood')}
             </span>
           ) : null}
         </div>
       </div>
-      <div className="grid grid-cols-3 divide-x divide-slate-100 bg-white">
+      <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
         <div className="px-4 py-3">
-          <p className="text-xs text-slate-500 mb-0.5">Reorder when below</p>
-          <p className="text-base font-bold tabular-nums text-slate-800">{fmtQty(item.reorder_point, uMode, unit)}</p>
-          <p className="text-xs text-slate-400 mt-0.5">
-            {item.current_stock != null
-              ? `have ${fmtQty(item.current_stock, uMode, unit)} now`
-              : 'track stock to get alerts'}
-          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{t('reorderWhenBelow')}</p>
+          <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-100">{fmtQty(item.reorder_point, uMode, unit)}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{haveNow}</p>
         </div>
         <div className="px-4 py-3">
-          <p className="text-xs text-slate-500 mb-0.5">Safety buffer</p>
-          <p className="text-base font-bold tabular-nums text-slate-800">{fmtQty(item.safety_stock_units, uMode, unit)}</p>
-          <p className="text-xs text-slate-400 mt-0.5">extra to absorb swings</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{t('safetyBufferLabel')}</p>
+          <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-100">{fmtQty(item.safety_stock_units, uMode, unit)}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{t('extraAbsorbSwings')}</p>
         </div>
-        <div className={`px-4 py-3 ${item.order_now ? 'bg-teal-50/40' : ''}`}>
-          <p className="text-xs text-slate-500 mb-0.5">
-            {item.eoq != null ? 'Ideal order (EOQ)' : 'Suggested order'}
+        <div className={`px-4 py-3 ${item.order_now ? 'bg-teal-50/40 dark:bg-teal-900/10' : ''}`}>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">
+            {item.eoq != null ? t('idealOrderEOQ') : t('suggestedOrder')}
           </p>
-          <p className={`text-base font-bold tabular-nums ${item.order_now ? 'text-teal-700' : 'text-slate-800'}`}>
+          <p className={`text-base font-bold tabular-nums ${item.order_now ? 'text-teal-700 dark:text-teal-400' : 'text-slate-800 dark:text-slate-100'}`}>
             {fmtQty(qty, uMode, unit)}
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">
-            {item.eoq != null ? 'minimises ordering + holding costs' : 'covers lead time + safety buffer'}
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+            {item.eoq != null ? t('minimisesOrderingHolding') : t('coversLeadTimeSafety')}
           </p>
         </div>
       </div>
       {notes.length > 0 && (
-        <div className="px-4 py-2.5 bg-amber-50 border-t border-amber-100">
+        <div className="px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 border-t border-amber-100 dark:border-amber-900">
           {notes.map((note, i) => (
-            <p key={i} className="text-xs text-amber-800 flex items-start gap-1.5">
+            <p key={i} className="text-xs text-amber-800 dark:text-amber-300 flex items-start gap-1.5">
               <span className="mt-0.5 shrink-0">⚠</span>
               {note}
             </p>
           ))}
         </div>
       )}
-      <div className="px-4 py-2 bg-teal-50/40 border-t border-teal-100">
-        <p className="text-xs text-slate-400">
-          Avg <strong className="text-slate-600">{fmtQty(item.avg_daily_demand, uMode, unit)}/day</strong> from{' '}
-          <strong className="text-slate-600">{item.n_days_data}</strong> recorded days · lead time {item.lead_time_days}d
+      <div className="px-4 py-2 bg-teal-50/40 dark:bg-teal-900/10 border-t border-teal-100 dark:border-teal-800">
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          {t('avgPerDayData', {
+            qty: fmtQty(item.avg_daily_demand, uMode, unit),
+            n: String(item.n_days_data),
+            lt: String(item.lead_time_days),
+          })}
         </p>
       </div>
     </div>
@@ -103,7 +126,7 @@ function Chip({
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors
         ${active
           ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-          : 'border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-700 bg-white'
+          : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-teal-300 hover:text-teal-700 bg-white dark:bg-slate-800'
         }`}
     >
       {dotColor && (
@@ -119,6 +142,7 @@ function Chip({
 interface Props { refreshKey?: number }
 
 export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
+  const { t, lang } = useLanguage()
   const [forecast, setForecast]   = useState<ForecastResponse | null>(null)
   const [products, setProducts]   = useState<ProductForecastResponse | null>(null)
   const [selected, setSelected]   = useState<'customers' | number>('customers')
@@ -134,9 +158,9 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
 
   if (loading) {
     return (
-      <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-800 mb-3">Demand forecast</h2>
-        <p className="text-sm text-slate-400 animate-pulse">Loading…</p>
+      <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-3">{t('demandForecast')}</h2>
+        <p className="text-sm text-slate-400 animate-pulse">{t('savingLabel')}</p>
       </section>
     )
   }
@@ -155,16 +179,16 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
 
   if (selected === 'customers' && forecast?.status === 'ok') {
     chartData = forecast.days.map(d => ({
-      name: `${d.weekday.slice(0, 3)} ${d.date.slice(5).replace('-', '/')}`,
+      name: `${shortDay(d.weekday, lang)} ${d.date.slice(5).replace('-', '/')}`,
       fullDay: d.weekday,
       predicted: Math.round(d.predicted_customers),
       low: Math.round(d.interval_low),
       high: Math.round(d.interval_high),
     }))
-    yLabel = 'customers'
+    yLabel = t('customersLabel')
   } else if (activeProduct?.status === 'ok') {
     chartData = activeProduct.days.map(d => ({
-      name: `${d.weekday.slice(0, 3)} ${d.date.slice(5).replace('-', '/')}`,
+      name: `${shortDay(d.weekday, lang)} ${d.date.slice(5).replace('-', '/')}`,
       fullDay: d.weekday,
       predicted: activeUMode === 'decimal' ? d.predicted_units : Math.round(d.predicted_units),
       low: activeUMode === 'decimal' ? d.interval_low : Math.round(d.interval_low),
@@ -175,16 +199,16 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
 
   const noData = chartData.length === 0
   const noDataMsg = selected === 'customers'
-    ? (forecast?.message ?? 'Keep logging days to see your forecast.')
-    : (activeProduct?.message ?? `Log more ${activeProduct?.name ?? 'product'} sales to see a forecast.`)
+    ? (forecast?.message ?? t('keepLoggingForecast'))
+    : (activeProduct?.message ?? t('logMoreProductSales', { name: activeProduct?.name ?? '' }))
 
   return (
-    <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+    <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4 mb-3">
-        <h2 className="text-base font-semibold text-slate-800">Demand forecast</h2>
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">{t('demandForecast')}</h2>
         {orderNowCount > 0 && (
-          <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold shrink-0">
-            {orderNowCount} need{orderNowCount === 1 ? 's' : ''} ordering
+          <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 rounded-full text-xs font-semibold shrink-0">
+            {t('needsOrdering', { n: String(orderNowCount), s: orderNowCount === 1 ? '' : 's' })}
           </span>
         )}
       </div>
@@ -192,7 +216,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
       {/* Series chips */}
       <div className="flex flex-wrap gap-2 mb-4">
         <Chip
-          label="Customers"
+          label={t('customersLabel')}
           active={selected === 'customers'}
           onClick={() => setSelected('customers')}
         />
@@ -220,7 +244,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
       {/* Chart */}
       {noData ? (
         <div className="flex flex-col items-center justify-center py-10">
-          <p className="text-sm text-center max-w-xs leading-relaxed text-slate-500">{noDataMsg}</p>
+          <p className="text-sm text-center max-w-xs leading-relaxed text-slate-500 dark:text-slate-400">{noDataMsg}</p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={200}>
@@ -238,13 +262,14 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null
                 const d = payload[0].payload
+                const dayLabel = shortDay(d.fullDay, lang) + (lang === 'he' ? '' : ` (${d.fullDay})`)
                 return (
-                  <div className="bg-white border border-teal-100 rounded-xl px-3 py-2 shadow text-xs">
-                    <p className="font-semibold text-slate-700 mb-1">{d.fullDay}</p>
-                    <p className="text-teal-600">
-                      Expected: <strong>{d.predicted}</strong> {yLabel}
+                  <div className="bg-white dark:bg-slate-800 border border-teal-100 dark:border-teal-700 rounded-xl px-3 py-2 shadow text-xs">
+                    <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">{dayLabel}</p>
+                    <p className="text-teal-600 dark:text-teal-400">
+                      {t('expectedLabel')}: <strong>{d.predicted}</strong> {yLabel}
                     </p>
-                    <p className="text-slate-400">Likely range: {d.low} – {d.high}</p>
+                    <p className="text-slate-400 dark:text-slate-500">{t('likelyRange')}: {d.low} – {d.high}</p>
                   </div>
                 )
               }}
@@ -259,13 +284,13 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
 
       {/* Product selected but no data yet */}
       {activeProduct && activeProduct.status !== 'ok' && (
-        <div className="mt-3 rounded-xl bg-teal-50/40 border border-teal-100 px-4 py-4 text-center">
-          <p className="text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
-            {activeProduct.message ?? `Log more ${activeProduct.name} sales to see a forecast.`}
+        <div className="mt-3 rounded-xl bg-teal-50/40 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 px-4 py-4 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
+            {activeProduct.message ?? t('logMoreProductSales', { name: activeProduct.name })}
           </p>
           {activeProduct.n_days_data > 0 && (
-            <p className="mt-1 text-xs text-slate-400">
-              {activeProduct.n_days_data} day{activeProduct.n_days_data !== 1 ? 's' : ''} recorded so far
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+              {t('daysRecordedSoFar', { n: String(activeProduct.n_days_data), s: activeProduct.n_days_data !== 1 ? 's' : '' })}
             </p>
           )}
         </div>

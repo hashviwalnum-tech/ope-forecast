@@ -3,6 +3,7 @@ import {
   Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { products as productsApi, saleEvents } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
 import type { HourSlot, ProductRead, RecentTap, TodaySummaryResponse } from '../api/types'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -60,12 +61,12 @@ function TapButton({
         text-left select-none transition-all active:scale-95
         ${flash
           ? 'bg-teal-100 border-teal-400 shadow-md'
-          : 'bg-white border-teal-100 hover:border-teal-300 hover:bg-teal-50/50 shadow-sm'
+          : 'bg-white dark:bg-slate-700 border-teal-100 dark:border-slate-600 hover:border-teal-300 hover:bg-teal-50/50 shadow-sm'
         }
         disabled:opacity-60
       `}
     >
-      <span className="text-base font-semibold text-slate-800 text-center leading-tight">
+      <span className="text-base font-semibold text-slate-800 dark:text-slate-100 text-center leading-tight">
         {label}
       </span>
       {unit && (
@@ -94,25 +95,26 @@ function RecentTapsList({
   taps: RecentTap[]
   onDelete: (id: number) => void
 }) {
+  const { t } = useLanguage()
   if (taps.length === 0) return null
 
   return (
-    <div className="bg-white rounded-2xl border border-teal-100 p-5 shadow-sm">
-      <h3 className="text-sm font-semibold text-slate-700 mb-3">Recent taps today</h3>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-5 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">{t('recentTaps')}</h3>
       <ul className="space-y-1">
         {taps.map(tap => {
-          const t = new Date(tap.timestamp)
-          const timeStr = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          const label = tap.product_name ?? 'Customer (no product)'
+          const ts = new Date(tap.timestamp)
+          const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          const label = tap.product_name ?? t('customerNoProduct')
           const qty = tap.quantity !== 1 ? ` ×${tap.quantity}` : ''
           return (
             <li
               key={tap.id}
               className="flex items-center justify-between gap-3 px-3 py-2
-                         rounded-xl hover:bg-slate-50 group"
+                         rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 group"
             >
               <span className="text-xs text-slate-400 tabular-nums w-14 shrink-0">{timeStr}</span>
-              <span className="flex-1 text-sm text-slate-700">{label}{qty}</span>
+              <span className="flex-1 text-sm text-slate-700 dark:text-slate-200">{label}{qty}</span>
               <button
                 onClick={() => onDelete(tap.id)}
                 aria-label={`Remove ${label} at ${timeStr}`}
@@ -135,7 +137,7 @@ function RecentTapsList({
 
 // ── hourly chart ──────────────────────────────────────────────────────────────
 
-function HourlyChart({ hours }: { hours: HourSlot[] }) {
+function HourlyChart({ hours, salesByHourLabel }: { hours: HourSlot[]; salesByHourLabel: string }) {
   if (hours.length === 0) return null
 
   const data = hours.map(h => ({
@@ -144,8 +146,8 @@ function HourlyChart({ hours }: { hours: HourSlot[] }) {
   }))
 
   return (
-    <div className="bg-white rounded-2xl border border-teal-100 p-5 shadow-sm">
-      <h3 className="text-sm font-semibold text-slate-700 mb-4">Sales by hour today</h3>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-5 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">{salesByHourLabel}</h3>
       <ResponsiveContainer width="100%" height={160}>
         <BarChart data={data} barSize={28}>
           <XAxis
@@ -176,38 +178,39 @@ function HourlyChart({ hours }: { hours: HourSlot[] }) {
 // ── hourly detail table ───────────────────────────────────────────────────────
 
 function HourlyTable({ hours }: { hours: HourSlot[] }) {
+  const { t } = useLanguage()
   if (hours.length === 0) return null
 
   return (
-    <div className="bg-white rounded-2xl border border-teal-100 overflow-hidden shadow-sm">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 overflow-hidden shadow-sm">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-100">
-            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Hour
+          <tr className="border-b border-slate-100 dark:border-slate-700">
+            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+              {t('hourLabel')}
             </th>
-            <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              Taps
+            <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+              {t('tapsLabel')}
             </th>
-            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              What was sold
+            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+              {t('whatWasSold')}
             </th>
           </tr>
         </thead>
         <tbody>
           {hours.map(h => (
-            <tr key={h.hour} className="border-b border-slate-50 last:border-0">
-              <td className="px-4 py-3 font-medium text-slate-700 tabular-nums whitespace-nowrap">
+            <tr key={h.hour} className="border-b border-slate-50 dark:border-slate-700 last:border-0">
+              <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-200 tabular-nums whitespace-nowrap">
                 {fmtHour(h.hour)}
               </td>
-              <td className="px-4 py-3 text-right font-bold text-teal-700 tabular-nums">
+              <td className="px-4 py-3 text-right font-bold text-teal-700 dark:text-teal-400 tabular-nums">
                 {h.taps}
               </td>
-              <td className="px-4 py-3 text-slate-500 text-xs">
+              <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs">
                 {h.product_taps
                   .filter(pt => pt.product_id !== null)
                   .map(pt => `${pt.product_name} ×${pt.units}`)
-                  .join(', ') || <span className="text-slate-300">—</span>}
+                  .join(', ') || <span className="text-slate-300 dark:text-slate-600">—</span>}
               </td>
             </tr>
           ))}
@@ -220,11 +223,14 @@ function HourlyTable({ hours }: { hours: HourSlot[] }) {
 // ── main component ────────────────────────────────────────────────────────────
 
 export default function TapSellPanel() {
+  const { t } = useLanguage()
   const [productList, setProductList]   = useState<ProductRead[]>([])
   const [summary, setSummary]           = useState<TodaySummaryResponse | null>(null)
   const [tapping, setTapping]           = useState<number | 'customer' | null>(null)
   const [lastTap, setLastTap]           = useState<{ id: number; label: string } | null>(null)
   const [undoTimer, setUndoTimer]       = useState<ReturnType<typeof setTimeout> | null>(null)
+  // tap-unit per product (decimal products only): maps product_id -> qty string
+  const [tapQty, setTapQty]             = useState<Record<number, string>>({})
 
   const loadSummary = useCallback(async () => {
     try { setSummary(await saleEvents.today()) } catch { /* non-critical */ }
@@ -242,17 +248,16 @@ export default function TapSellPanel() {
     return entry ? entry.units : 0
   }, [summary])
 
-  async function handleTap(productId: number | null, label: string) {
+  async function handleTap(productId: number | null, label: string, qty = 1) {
     setTapping(productId ?? 'customer')
     try {
-      const ev = await saleEvents.tap({ product_id: productId ?? null, quantity: 1 })
+      const ev = await saleEvents.tap({ product_id: productId ?? null, quantity: qty })
       await loadSummary()
 
-      // Clear any existing undo timer, start a fresh 5-second window
       if (undoTimer) clearTimeout(undoTimer)
       setLastTap({ id: ev.id, label })
-      const t = setTimeout(() => setLastTap(null), 5000)
-      setUndoTimer(t)
+      const timer = setTimeout(() => setLastTap(null), 5000)
+      setUndoTimer(timer)
     } catch { /* silent */ } finally {
       setTapping(null)
     }
@@ -269,7 +274,6 @@ export default function TapSellPanel() {
   }
 
   async function handleDeleteTap(id: number) {
-    // If this is also the last-tap undo target, clear that chip too
     if (lastTap?.id === id) {
       if (undoTimer) clearTimeout(undoTimer)
       setLastTap(null)
@@ -286,17 +290,17 @@ export default function TapSellPanel() {
     <div className="space-y-6">
 
       {/* ── header strip ── */}
-      <div className="bg-white rounded-2xl border border-teal-100 px-6 py-4 shadow-sm
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 px-6 py-4 shadow-sm
                       flex items-center justify-between gap-4 flex-wrap">
         <div>
           <p className="text-xs text-slate-400 mb-0.5">Today — {dateStr}</p>
-          <p className="text-2xl font-bold text-teal-700 tabular-nums">
+          <p className="text-2xl font-bold text-teal-700 dark:text-teal-400 tabular-nums">
             {summary?.total_taps ?? 0}
-            <span className="text-sm font-normal text-slate-500 ml-2">taps recorded</span>
+            <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2">{t('tapsRecorded')}</span>
           </p>
         </div>
 
-        {/* Undo chip — visible for 5 s after each tap */}
+        {/* Undo chip */}
         {lastTap && (
           <button
             onClick={handleUndo}
@@ -307,45 +311,69 @@ export default function TapSellPanel() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
             </svg>
-            Undo "{lastTap.label}"
+            {t('undoLabel')} "{lastTap.label}"
           </button>
         )}
       </div>
 
       {/* ── tap grid ── */}
-      <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-800 mb-1">
-          Tap each time you make a sale
+      <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
+          {t('tapTitle')}
         </h2>
-        <p className="text-xs text-slate-500 mb-5">
-          Every tap is saved with the exact time — no typing needed.
+        {/* Short plain explanation next to tap screen */}
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+          {t('tapExplanation')}
         </p>
 
         {productList.length === 0 ? (
-          <div className="rounded-xl bg-slate-50 border border-slate-100 p-8 text-center">
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 p-8 text-center">
             <p className="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto">
-              Add your products in <strong>My Products</strong> first, then come back here to
-              start recording sales with one tap.
+              {t('noProductsAddFirst')}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {productList.map(p => (
-              <TapButton
-                key={p.id}
-                label={p.name}
-                unit={p.unit}
-                count={countFor(p.id)}
-                loading={tapping === p.id}
-                onTap={() => handleTap(p.id, p.name)}
-              />
-            ))}
+            {productList.map(p => {
+              const isDecimal = p.unit_mode === 'decimal'
+              const rawQty = tapQty[p.id]
+              const parsedQty = rawQty !== undefined ? parseFloat(rawQty) : 1
+              const effectiveQty = isDecimal && !isNaN(parsedQty) && parsedQty > 0 ? parsedQty : 1
+
+              return (
+                <div key={p.id} className="flex flex-col gap-1.5">
+                  <TapButton
+                    label={p.name}
+                    unit={p.unit}
+                    count={countFor(p.id)}
+                    loading={tapping === p.id}
+                    onTap={() => handleTap(p.id, p.name, effectiveQty)}
+                  />
+                  {isDecimal && (
+                    <div className="flex items-center gap-1.5 px-1">
+                      <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{t('tapUnit')}</span>
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.1"
+                        value={tapQty[p.id] ?? '1'}
+                        onChange={e => setTapQty(prev => ({ ...prev, [p.id]: e.target.value }))}
+                        className="w-16 text-xs px-2 py-1 border border-slate-200 dark:border-slate-600 rounded-lg
+                                   bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200
+                                   focus:outline-none focus:ring-1 focus:ring-teal-400 tabular-nums"
+                      />
+                      <span className="text-xs text-slate-400 dark:text-slate-500">{p.unit}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
             {/* Customer-only tap (no specific product) */}
             <TapButton
-              label="Customer (no product)"
+              label={t('customerNoProduct')}
               count={countFor(null)}
               loading={tapping === 'customer'}
-              onTap={() => handleTap(null, 'customer')}
+              onTap={() => handleTap(null, t('customerNoProduct'))}
             />
           </div>
         )}
@@ -363,23 +391,22 @@ export default function TapSellPanel() {
       {summary && summary.hours.length > 0 && (
         <section className="space-y-4">
           <div>
-            <h2 className="text-base font-semibold text-slate-800">
-              How today is looking, hour by hour
+            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+              {t('howTodayLooks')}
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Each bar is the number of taps in that hour.
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {t('eachBarHour')}
             </p>
           </div>
-          <HourlyChart hours={summary.hours} />
+          <HourlyChart hours={summary.hours} salesByHourLabel={t('salesByHour')} />
           <HourlyTable hours={summary.hours} />
         </section>
       )}
 
       {summary && summary.hours.length === 0 && productList.length > 0 && (
-        <div className="bg-white rounded-2xl border border-teal-100 p-10 text-center shadow-sm">
-          <p className="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto">
-            No taps yet today. Hit a button above each time you make a sale
-            and the chart will build up as the day goes on.
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
+          <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed max-w-xs mx-auto">
+            {t('noTapsYet')}
           </p>
         </div>
       )}

@@ -233,8 +233,6 @@ export interface ProductRead {
   price: number | null
   current_stock: number | null
   lead_time_days: number
-  holding_cost: number | null
-  order_cost: number | null
   service_time_minutes: number | null
   storage_capacity: number | null
   shelf_life_days: number | null
@@ -247,8 +245,6 @@ export interface ProductCreate {
   price?: number
   lead_time_days: number
   current_stock?: number
-  holding_cost?: number
-  order_cost?: number
   service_time_minutes?: number
   storage_capacity?: number
   shelf_life_days?: number
@@ -261,8 +257,6 @@ export interface ProductUpdate {
   price?: number | null
   lead_time_days?: number
   current_stock?: number | null
-  holding_cost?: number | null
-  order_cost?: number | null
   service_time_minutes?: number | null
   storage_capacity?: number | null
   shelf_life_days?: number | null

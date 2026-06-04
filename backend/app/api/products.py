@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
-from app.models import Business, Product
+from app.models import Business, Product, SaleRecord, SaleEvent
 from app.schemas.product import ProductCreate, ProductRead, ProductUpdate
 
 router = APIRouter(prefix="/products", tags=["Products"])
@@ -48,5 +48,11 @@ def update_product(product_id: int, body: ProductUpdate, db: Session = Depends(g
 @router.delete("/{product_id}", status_code=204)
 def delete_product(product_id: int, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     row = _get_or_404(db, product_id, biz.id)
+    # Remove associated sale records (FK — no cascade on SQLite/Postgres without explicit rule)
+    db.query(SaleRecord).filter(SaleRecord.product_id == product_id).delete(synchronize_session=False)
+    # Null out product_id on sale events (product_id is nullable there)
+    db.query(SaleEvent).filter(SaleEvent.product_id == product_id).update(
+        {"product_id": None}, synchronize_session=False
+    )
     db.delete(row)
     db.commit()
