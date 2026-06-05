@@ -388,6 +388,7 @@ export interface WeekdayHourlySlot {
   recommended_staff: number
   label: string
   expected_wait_minutes: number
+  marginal_note?: string
 }
 
 export interface WeekdayHourlyEntry {

@@ -146,6 +146,7 @@ export const businesses = {
     avg_service_time_minutes?: number
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
   setTier: (tier: 'free' | 'premium') => PATCH<BusinessRead>('/businesses/me/tier', { tier }),
+  delete: (id: number) => DELETE(`/businesses/${id}`),
 }
 
 export const dayRecords = {

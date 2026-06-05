@@ -1205,6 +1205,7 @@ def get_hourly_by_weekday(
                 recommended_staff=staff,
                 label=_fmt_hour_range(hour),
                 expected_wait_minutes=round(expected_wait_minutes(avg_taps, eff_svc, staff), 1),
+                marginal_note=marginal_note(avg_taps, eff_svc, staff),
             ))
         return slots
 

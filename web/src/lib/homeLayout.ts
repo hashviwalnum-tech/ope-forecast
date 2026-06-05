@@ -3,7 +3,7 @@
 
 export type CardId = 'ordering' | 'forecast' | 'hours' | 'accuracy' | 'trends'
 
-const STORAGE_KEY = 'ope_home_layout_v2'
+const STORAGE_KEY = 'ope_home_layout_v3'
 
 export function addCardToHome(id: CardId): void {
   try {

@@ -447,13 +447,17 @@ def test_closed_day_excluded_from_detection_set():
     assert len(det_set) == 4, "Closed-day record must not enter the detection set"
 
 
-def test_event_period_spike_does_not_inflate_weekday_median():
-    """An event-period spike, when excluded from detection, must not raise the
-    weekday median and hide real anomalies on the same weekday.
+def test_event_period_excluded_from_detection_set():
+    """Event-period records must be excluded from the outlier detection set.
 
-    Without exclusion: the event-period spike (999) raises the weekday std dev
-    so much that the 400-customer day falls within 3.5 sigma and is NOT flagged.
-    With exclusion: reference is only the 4 normal Mondays (100), and 400 IS flagged.
+    The critical property: when the event-period spike is excluded (correct path),
+    the clean reference set properly flags the anomalous Monday.  With IQR the
+    quartiles of [100, 100, 100, 100] are both 100 (IQR=0, floor applies) so
+    400 sits well outside the fence and is correctly flagged.
+
+    Note: unlike the old MAD algorithm, IQR is robust against a single spike in
+    the reference set (quartiles barely move), so the assertion is simply that the
+    exclusion path works — not that the contaminated path fails to flag.
     """
     from app.engine.outliers import detect_outliers
 
@@ -466,17 +470,7 @@ def test_event_period_spike_does_not_inflate_weekday_median():
     blocked = {date.fromisoformat("2026-06-08")}  # event-period covers 2026-06-08
     all_records = normal_mondays + [event_monday, anomalous_monday]
 
-    # Without exclusion: event spike contaminates detection → 400 NOT detected
-    all_obs = [float(r.customers) for r in all_records]
-    all_wds = [r.date.weekday() for r in all_records]
-    without_exclusion = {
-        all_records[d.day_index].date for d in detect_outliers(all_obs, all_wds)
-    }
-    assert ANOMALOUS_DATE not in without_exclusion, (
-        "Baseline: event spike must mask the 400-customer anomaly when not excluded"
-    )
-
-    # With exclusion (correct): event-period spike removed → 400 IS detected
+    # With exclusion (correct path): event-period spike removed → 400 IS flagged
     det_set = _filter_detection_set(all_records, blocked_dates=blocked)
     det_obs = [float(r.customers) for r in det_set]
     det_wds = [r.date.weekday() for r in det_set]

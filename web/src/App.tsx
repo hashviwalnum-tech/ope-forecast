@@ -64,7 +64,7 @@ function AppInner() {
 
   // ── Load all businesses on login ─────────────────────────────────────────
 
-  const loadBusinesses = useCallback(async () => {
+  const loadBusinesses = useCallback(async (keepActiveId?: number) => {
     if (!session) {
       setAllBusinesses([])
       setActiveBusiness(null)
@@ -77,8 +77,12 @@ function AppInner() {
       const list = await api.businesses.list()
       setAllBusinesses(list)
       if (list.length > 0) {
-        setActiveBusiness(list[0])
-        api.setActiveBusinessId(list[0].id)
+        // Preserve the currently active business when reloading for tier/delete changes
+        const chosen = keepActiveId
+          ? (list.find(b => b.id === keepActiveId) ?? list[0])
+          : list[0]
+        setActiveBusiness(chosen)
+        api.setActiveBusinessId(chosen.id)
       } else {
         setActiveBusiness(null)
         api.setActiveBusinessId(null)
@@ -146,6 +150,17 @@ function AppInner() {
     api.setActiveBusinessId(biz.id)
     setShowAddBusiness(false)
     setBizLoaded(true)
+  }
+
+  async function handleDeleteBusiness(bizId: number, bizName: string) {
+    if (!confirm(t('deleteLocationConfirm', { name: bizName }))) return
+    try {
+      await api.businesses.delete(bizId)
+      await loadBusinesses()
+      setSwitcherOpen(false)
+    } catch {
+      alert(t('deleteLocationError'))
+    }
   }
 
   // ── Guards ────────────────────────────────────────────────────────────────
@@ -289,23 +304,37 @@ function AppInner() {
             <div className="absolute left-0 top-full mt-1 w-56 bg-teal-25 dark:bg-slate-800 border border-teal-100 dark:border-slate-700
                             rounded-xl shadow-lg z-20 py-1 overflow-hidden">
               {allBusinesses.map(b => (
-                <button
-                  key={b.id}
-                  onClick={() => switchBusiness(b)}
-                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors
-                    ${b.id === activeBusiness.id
-                      ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-medium'
-                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
-                >
-                  <svg
-                    className={`w-3.5 h-3.5 shrink-0 transition-opacity
-                      ${b.id === activeBusiness.id ? 'text-teal-600 opacity-100' : 'opacity-0'}`}
-                    fill="currentColor" viewBox="0 0 20 20"
+                <div key={b.id} className="flex items-center group">
+                  <button
+                    onClick={() => switchBusiness(b)}
+                    className={`flex-1 text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors
+                      ${b.id === activeBusiness.id
+                        ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-medium'
+                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                   >
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  <span className="truncate">{b.name}</span>
-                </button>
+                    <svg
+                      className={`w-3.5 h-3.5 shrink-0 transition-opacity
+                        ${b.id === activeBusiness.id ? 'text-teal-600 opacity-100' : 'opacity-0'}`}
+                      fill="currentColor" viewBox="0 0 20 20"
+                    >
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="truncate">{b.name}</span>
+                  </button>
+                  {allBusinesses.length > 1 && (
+                    <button
+                      onClick={() => handleDeleteBusiness(b.id, b.name)}
+                      title={t('deleteLocation')}
+                      className="px-2 py-2 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400
+                                 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               ))}
               <div className="border-t border-slate-100 dark:border-slate-700 mt-1 pt-1">
                 {activeBusiness?.tier === 'premium' || allBusinesses.length < FREE_BUSINESS_LIMIT ? (
@@ -479,7 +508,7 @@ function AppInner() {
           {tab === 'backfill'         && <BackfillForm onSaved={refresh} />}
           {tab === 'history'          && <DayList refreshKey={refreshKey} />}
           {tab === 'import'           && <CsvImport onImported={afterImport} />}
-          {tab === 'settings'         && <BusinessSettings />}
+          {tab === 'settings'         && <BusinessSettings onTierChanged={() => loadBusinesses(activeBusiness?.id)} />}
           {tab === 'predictions'      && <PredictionsPanel />}
           {tab === 'toolbox'          && <AdvancedToolbox />}
         </main>

@@ -219,6 +219,7 @@ class WeekdayHourlySlot(BaseModel):
     recommended_staff: int
     label: str                 # formatted range: "5–6 pm"
     expected_wait_minutes: float
+    marginal_note: str = ""    # what adding/removing 1 worker does
 
 
 class WeekdayHourlyEntry(BaseModel):

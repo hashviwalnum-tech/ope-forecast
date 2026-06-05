@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react'
 import { businesses } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
-
-function hourLabel(h: number): string {
-  if (h === 0)  return '12:00 midnight'
-  if (h === 12) return '12:00 noon'
-  return h < 12 ? `${h}:00 AM` : `${h - 12}:00 PM`
+interface Props {
+  onTierChanged?: () => void
 }
 
-export default function BusinessSettings() {
-  const [openDays,       setOpenDays]       = useState<number[]>(ALL_DAYS)
+function dayKey(i: number): string {
+  return ['dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat', 'daySun'][i]
+}
+
+export default function BusinessSettings({ onTierChanged }: Props) {
+  const { t } = useLanguage()
+  const [openDays,       setOpenDays]       = useState<number[]>([0,1,2,3,4,5,6])
   const [openingHour,    setOpeningHour]    = useState<number>(9)
   const [closingHour,    setClosingHour]    = useState<number>(22)
   const [avgServiceTime, setAvgServiceTime] = useState<number>(5)
@@ -23,6 +24,12 @@ export default function BusinessSettings() {
   const [tierSaving,    setTierSaving]    = useState(false)
   const [tierFeedback,  setTierFeedback]  = useState<{ ok: boolean; msg: string } | null>(null)
   const { isDark, toggleTheme } = useTheme()
+
+  function hourLabel(h: number): string {
+    if (h === 0)  return '12:00 midnight'
+    if (h === 12) return '12:00 noon'
+    return h < 12 ? `${h}:00 AM` : `${h - 12}:00 PM`
+  }
 
   useEffect(() => {
     businesses.me().then(biz => {
@@ -41,9 +48,10 @@ export default function BusinessSettings() {
     try {
       const biz = await businesses.setTier(tier)
       setCurrentTier(biz.tier)
-      setTierFeedback({ ok: true, msg: `Switched to ${biz.tier} plan.` })
+      setTierFeedback({ ok: true, msg: t('switchedToPlan', { tier: biz.tier }) })
+      onTierChanged?.()
     } catch {
-      setTierFeedback({ ok: false, msg: 'Could not change plan — please try again.' })
+      setTierFeedback({ ok: false, msg: t('planChangeError') })
     } finally {
       setTierSaving(false)
     }
@@ -52,7 +60,7 @@ export default function BusinessSettings() {
   function toggleDay(d: number) {
     setOpenDays(prev =>
       prev.includes(d)
-        ? prev.length > 1 ? prev.filter(x => x !== d) : prev  // keep at least 1
+        ? prev.length > 1 ? prev.filter(x => x !== d) : prev
         : [...prev, d].sort((a, b) => a - b)
     )
   }
@@ -60,7 +68,7 @@ export default function BusinessSettings() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (closingHour <= openingHour) {
-      setFeedback({ ok: false, msg: 'Closing time must be after opening time.' })
+      setFeedback({ ok: false, msg: t('closingAfterOpening') })
       return
     }
     setSaving(true)
@@ -72,9 +80,9 @@ export default function BusinessSettings() {
         closing_hour: closingHour,
         avg_service_time_minutes: avgServiceTime,
       })
-      setFeedback({ ok: true, msg: 'Settings saved!' })
+      setFeedback({ ok: true, msg: t('settingsSavedOk') })
     } catch {
-      setFeedback({ ok: false, msg: 'Could not save — please try again.' })
+      setFeedback({ ok: false, msg: t('settingsSaveError') })
     } finally {
       setSaving(false)
     }
@@ -84,17 +92,16 @@ export default function BusinessSettings() {
     <form onSubmit={handleSave} className="space-y-8 max-w-sm">
 
       <div className="bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800 rounded-xl px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
-        These settings help Ope skip days you're closed and never treat a day
-        you forgot to log as zero sales.
+        {t('settingsHelpText')}
       </div>
 
       {/* Opening days */}
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
-          Which days are you open?
+          {t('openDaysLabel')}
         </label>
         <div className="flex gap-2 flex-wrap">
-          {DAYS.map((name, i) => (
+          {[0,1,2,3,4,5,6].map(i => (
             <button
               key={i}
               type="button"
@@ -105,22 +112,22 @@ export default function BusinessSettings() {
                   : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-300'
               }`}
             >
-              {name}
+              {t(dayKey(i) as Parameters<typeof t>[0])}
             </button>
           ))}
         </div>
         {openDays.length === 1 && (
-          <p className="text-xs text-amber-600 mt-2">At least one day must stay selected.</p>
+          <p className="text-xs text-amber-600 mt-2">{t('atLeastOneDay')}</p>
         )}
       </div>
 
       {/* Opening hours */}
       <div className="space-y-4">
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-          What are your opening hours?
+          {t('openingHoursLabel')}
         </label>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-500 dark:text-slate-400 w-16">Opens</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400 w-16">{t('opensLabel')}</span>
           <select
             value={openingHour}
             onChange={e => setOpeningHour(Number(e.target.value))}
@@ -133,7 +140,7 @@ export default function BusinessSettings() {
           </select>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-500 dark:text-slate-400 w-16">Closes</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400 w-16">{t('closesLabel')}</span>
           <select
             value={closingHour}
             onChange={e => setClosingHour(Number(e.target.value))}
@@ -150,11 +157,10 @@ export default function BusinessSettings() {
       {/* Average service time */}
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-          Average minutes to serve one customer
+          {t('avgServiceTimeLabel')}
         </label>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">
-          Used to calculate staffing recommendations in <strong>Busy Hours</strong>.
-          A quick counter might be 2–3 min; a sit-down appointment might be 20–30 min.
+          {t('avgServiceTimeDesc')}
         </p>
         <div className="flex items-center gap-3">
           <input
@@ -166,14 +172,14 @@ export default function BusinessSettings() {
             className="w-24 px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
                        bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
           />
-          <span className="text-sm text-slate-500 dark:text-slate-400">minutes per customer</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">{t('minPerCustomer')}</span>
         </div>
       </div>
 
       {/* Dark mode toggle */}
       <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Appearance</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">Choose light or dark display.</p>
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('appearanceLabel')}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">{t('appearanceDesc')}</p>
         <button
           type="button"
           onClick={toggleTheme}
@@ -193,7 +199,7 @@ export default function BusinessSettings() {
                 d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
           )}
-          <span className="text-sm font-medium">{isDark ? 'Dark mode (tap to switch to light)' : 'Light mode (tap to switch to dark)'}</span>
+          <span className="text-sm font-medium">{isDark ? t('darkModeLabel') : t('lightModeLabel')}</span>
         </button>
       </div>
 
@@ -210,16 +216,14 @@ export default function BusinessSettings() {
         className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300
                    text-white font-medium py-3 rounded-xl transition-colors text-base"
       >
-        {saving ? 'Saving…' : 'Save settings'}
+        {saving ? t('savingLabel') : t('saveSettings')}
       </button>
 
       {/* ── Plan / tier ─────────────────────────────────────────────── */}
       <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Your plan</p>
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('planLabel')}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">
-          {currentTier === 'premium'
-            ? 'Premium — unlimited history and ads/events.'
-            : 'Free — up to 1 year of history, up to 10 events and 5 ads. All features included.'}
+          {currentTier === 'premium' ? t('planDescPremium') : t('planDescFree')}
         </p>
 
         <div className="flex gap-3">
@@ -232,7 +236,7 @@ export default function BusinessSettings() {
                 ? 'bg-teal-600 text-white border-teal-600'
                 : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-300'}`}
           >
-            Free
+            {t('planFree')}
           </button>
           <button
             type="button"
@@ -243,7 +247,7 @@ export default function BusinessSettings() {
                 ? 'bg-teal-600 text-white border-teal-600'
                 : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-300'}`}
           >
-            Premium
+            {t('planPremium')}
           </button>
         </div>
 

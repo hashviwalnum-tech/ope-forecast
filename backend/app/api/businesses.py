@@ -5,7 +5,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from app.api.deps import get_business, get_current_user
 from app.db import get_db
-from app.models import Business, Product
+from app.models import Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord
 
 FREE_BUSINESS_LIMIT = 1  # §10: free = one location; premium = more
 
@@ -135,6 +135,38 @@ def copy_business(
     db.commit()
     db.refresh(new_biz)
     return new_biz
+
+
+@router.delete("/{business_id}", status_code=204)
+def delete_business(
+    business_id: int,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user),
+):
+    """Delete a location and all its data.  Requires at least one location to remain."""
+    all_biz = db.query(Business).filter(Business.user_id == user_id).all()
+    if len(all_biz) <= 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete your only location. Create another one first.",
+        )
+    biz = next((b for b in all_biz if b.id == business_id), None)
+    if not biz:
+        raise HTTPException(404, "Location not found")
+
+    # Cascade-delete all business data manually (SQLite doesn't enforce FK cascades)
+    day_ids = [r.id for r in db.query(DayRecord).filter_by(business_id=business_id).all()]
+    if day_ids:
+        db.query(SaleRecord).filter(SaleRecord.day_record_id.in_(day_ids)).delete(synchronize_session=False)
+    db.query(DayRecord).filter_by(business_id=business_id).delete()
+    db.query(SaleEvent).filter_by(business_id=business_id).delete()
+    db.query(Period).filter_by(business_id=business_id).delete()
+    db.query(RecurringPattern).filter_by(business_id=business_id).delete()
+    db.query(Regular).filter_by(business_id=business_id).delete()
+    db.query(Product).filter_by(business_id=business_id).delete()
+    db.query(ForecastRun).filter_by(business_id=business_id).delete()
+    db.delete(biz)
+    db.commit()
 
 
 @router.patch("/me/tier", response_model=BusinessRead)

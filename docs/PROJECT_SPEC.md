@@ -217,7 +217,7 @@ The app supports **two ways to get data in, feeding one shared analytical layer.
 **CRITICAL INTEGRITY RULES (these have repeatedly been mis-implemented — they must actually work end to end, verified by tests):**
 - **A missing/unlogged day is NOT zero.** It must be excluded from averages, never counted as 0 customers/units. Symptom of the bug: the app forecasting 0 for a product on some weekday because absences were averaged in as zeros. A forecast must never be dragged down by days that simply weren't recorded.
 - **Closed days / non-working days are excluded entirely**, not treated as zero.
-- **Outlier detection relative to the business's own pattern, never fixed thresholds.** A day is a candidate outlier if far outside the normal spread for that weekday — ~3 std devs from that weekday's mean, or a robust median ± k·MAD (better with several odd days). Scales automatically (kiosk vs supermarket).
+- **Outlier detection uses IQR (interquartile range) — the standard, robust method — NOT a tight std-dev rule.** The current detector is far too sensitive (it flagged 43 customers against a ~54 average, which is completely normal variation). Replace it with: compute Q1 and Q3 of that weekday's history, IQR = Q3−Q1, and flag a day only if it falls below `Q1 − 1.5·IQR` or above `Q3 + 1.5·IQR` (the conventional Tukey fences; use 3·IQR for "extreme"). This must be evaluated **per weekday** against that weekday's own distribution, and must NOT fire on ordinary day-to-day fluctuation. A value within normal weekly variance is never an outlier. Needs enough history (several same-weekday points) before flagging at all.
 - **Flag and ask — never silently delete.** A spike is often real (holiday, viral day, competitor closed). Prompt in plain language ("Sunday looks unusually high — one-off, or a real event?"); the owner chooses: mark event/ad, exclude as fluke, keep, or **mark as a recurring pattern** (RecurringPattern — then it's expected, not flagged again). Down-weight un-reviewed outliers; never fully discard silently.
 - **Keep alerting on large day-to-day range** *unless* the owner has explained it (event/ad/recurring) **or it recurs consistently** (then the engine learns it as the pattern, not noise).
 
@@ -305,7 +305,7 @@ Do not compare raw sales during a promo to a random baseline. Instead: have the 
 **Premium lifts limits / unlocks scale; the core decision tools stay free for everyone** (hourly, busiest-hour, staffing, change-detection, ordering, regulars/CLV, recurring patterns, full forecasting). Decided split:
 
 **Premium:**
-- **Multiple locations** — free = **one** business/location; premium = more. Include a **"copy settings & products to a new location"** action (copies configuration, **NOT the data/history** — each location's history is its own).
+- **Multiple locations** — free = **one** business/location; premium = more. Include a **"copy settings & products to a new location"** action (copies configuration, **NOT the data/history**). **Locations must be deletable** (with a confirm step). **Switching an account to premium must actually raise the location limit at runtime** — i.e. a premium user can immediately add more locations; the limit check must read the live tier, not a value cached at signup. (Current bug: premium doesn't actually unlock more locations — fix this.)
 - **Extended history** — free history capped (~**1 year**); premium = more/unlimited.
 - **More ads** — ads remain the premium-gated action: free gets a limited (but somewhat expanded) number of **ads**; premium = more/unlimited.
 - (future) POS integrations.
@@ -338,7 +338,8 @@ Do not compare raw sales during a promo to a random baseline. Instead: have the 
 - **Tracking signal**, errors `[2,−3,4,−1]` → RSFE 2, MAD 2.5, TS `0.8`.
 - **Little's Law**, λ=2/min, W=5 min → L = `10`.
 - **Reorder point**, avg daily demand 50, lead time 4 days, z=1.65, σ over LT 20 → demand-in-LT 200, safety stock ≈ `33`, ROP ≈ `233`.
-- **EOQ**, D=10000, S=50, H=2 → `√(2·10000·50/2) ≈ 707`.
+- **EOQ**, D=10000, S=50, H=2 → `√(2·10000·50/2) ≈ 707`. (Advanced-only; never required.)
+- **IQR outlier**, a weekday's history `[50,52,54,53,55,51,43]`: Q1≈51, Q3≈54, IQR≈3, lower fence ≈ 51−4.5 = 46.5, upper ≈ 54+4.5 = 58.5 → **43 is below 46.5 only slightly; with a realistic larger sample 43-vs-54 must NOT flag.** Test that ordinary variation (e.g. 43 when the weekday mean is 54 and spread is normal) is NOT flagged, and that a genuine extreme (e.g. 1500 vs ~54) IS flagged.
 
 ## 13. Open decisions to confirm
 
