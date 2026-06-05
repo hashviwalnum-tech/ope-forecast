@@ -16,11 +16,11 @@ function Section({
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left
-                   hover:bg-teal-50/40 transition-colors"
+                   hover:bg-teal-50/40 dark:hover:bg-slate-700/40 transition-colors"
       >
         <div>
-          <p className="text-base font-semibold text-slate-800">{title}</p>
-          <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{subtitle}</p>
+          <p className="text-base font-semibold text-slate-800 dark:text-slate-100">{title}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">{subtitle}</p>
         </div>
         <svg
           className={`w-5 h-5 text-teal-500 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
@@ -29,13 +29,13 @@ function Section({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      {open && <div className="px-6 pb-6 pt-2 border-t border-teal-50">{children}</div>}
+      {open && <div className="px-6 pb-6 pt-2 border-t border-teal-100 dark:border-slate-700">{children}</div>}
     </div>
   )
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <label className="block text-xs font-semibold text-slate-600 mb-1">{children}</label>
+  return <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{children}</label>
 }
 
 function Input({
@@ -59,7 +59,9 @@ function Input({
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full border border-slate-200 rounded-xl text-sm text-slate-800 py-2.5
+        className={`w-full border border-slate-200 dark:border-slate-600 rounded-xl text-sm
+                    text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700
+                    placeholder:text-slate-400 dark:placeholder:text-slate-500 py-2.5
                     focus:outline-none focus:ring-2 focus:ring-teal-400
                     ${prefix ? 'pl-7 pr-3' : 'px-3'}`}
       />
@@ -71,9 +73,11 @@ function ResultBadge({
   label, value, highlight,
 }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`rounded-xl px-4 py-3 ${highlight ? 'bg-teal-50 border border-teal-200' : 'bg-slate-50 border border-slate-100'}`}>
-      <p className="text-xs text-slate-500 mb-0.5">{label}</p>
-      <p className={`text-sm font-semibold ${highlight ? 'text-teal-700' : 'text-slate-700'}`}>{value}</p>
+    <div className={`rounded-xl px-4 py-3 ${highlight
+      ? 'bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700'
+      : 'bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700'}`}>
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{label}</p>
+      <p className={`text-sm font-semibold ${highlight ? 'text-teal-700 dark:text-teal-300' : 'text-slate-700 dark:text-slate-200'}`}>{value}</p>
     </div>
   )
 }
@@ -129,7 +133,7 @@ function DecisionPlanner() {
       </p>
 
       {decisions.map((d, i) => (
-        <div key={i} className="rounded-xl border border-slate-100 p-4 space-y-3">
+        <div key={i} className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/40 dark:bg-slate-900/20 p-4 space-y-3">
           <div>
             <Label>Option {i + 1} name</Label>
             <Input value={d.name} onChange={v => update(i, 'name', v)} placeholder={`Option ${i + 1}`} />
@@ -221,8 +225,8 @@ function DecisionPlanner() {
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
-            <p className="text-xs font-semibold text-slate-500 mb-2">Expected values</p>
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 p-4">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Expected values</p>
             <div className="space-y-1">
               {results.map((r, i) => (
                 <div key={i} className="flex justify-between text-xs text-slate-600">
@@ -458,7 +462,7 @@ function BudgetOptimizer() {
 
       <div className="space-y-3">
         {items.map((item, i) => (
-          <div key={i} className="rounded-xl border border-slate-100 p-4 space-y-2">
+          <div key={i} className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/40 dark:bg-slate-900/20 p-4 space-y-2">
             <div>
               <Label>Item {i + 1} name</Label>
               <Input value={item.name} onChange={v => updateItem(i, 'name', v)} placeholder="e.g. Oranges" />
@@ -530,7 +534,7 @@ function BudgetOptimizer() {
               </div>
             </div>
           ))}
-          <div className="flex justify-between rounded-xl bg-slate-50 border border-slate-100 px-4 py-3">
+          <div className="flex justify-between rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 px-4 py-3">
             <div>
               <p className="text-xs text-slate-500">Total spend</p>
               <p className="text-sm font-semibold text-slate-700 tabular-nums">€{totalSpend.toFixed(2)}</p>
@@ -548,7 +552,7 @@ function BudgetOptimizer() {
       )}
 
       {result && result.length === 0 && (
-        <p className="text-sm text-slate-500 bg-slate-50 rounded-xl px-4 py-3">
+        <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 rounded-xl px-4 py-3">
           No items could fit in the budget. Try increasing your budget or reducing item costs.
         </p>
       )}
@@ -631,7 +635,7 @@ function Checklist() {
             key={item.id}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
               item.done
-                ? 'bg-slate-50/60 border-slate-100'
+                ? 'bg-slate-50/60 dark:bg-slate-700/30 border-slate-100 dark:border-slate-700'
                 : 'bg-teal-25 dark:bg-slate-800 border-slate-200 dark:border-slate-600'
             }`}
           >
@@ -647,7 +651,7 @@ function Checklist() {
                 </svg>
               )}
             </button>
-            <span className={`flex-1 text-sm ${item.done ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+            <span className={`flex-1 text-sm ${item.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
               {item.text}
             </span>
             <button
@@ -669,7 +673,9 @@ function Checklist() {
           onChange={e => setNewText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
           placeholder="Add a task…"
-          className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800
+          className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600
+                     text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700
+                     placeholder:text-slate-400 dark:placeholder:text-slate-500
                      focus:outline-none focus:ring-2 focus:ring-teal-400"
         />
         <button

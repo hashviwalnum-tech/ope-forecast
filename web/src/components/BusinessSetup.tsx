@@ -53,8 +53,8 @@ export default function BusinessSetup({
   }
 
   return (
-    <div className="min-h-screen bg-teal-50 flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl shadow-md w-full max-w-sm p-8">
+    <div className="min-h-screen bg-teal-50 dark:bg-slate-900 flex items-center justify-center p-6">
+      <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8">
 
         {atLimit ? (
           <>
@@ -90,7 +90,7 @@ export default function BusinessSetup({
                   type="button"
                   onClick={() => setMode('fresh')}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${
-                    mode === 'fresh' ? 'bg-teal-50 text-teal-700' : 'bg-white text-slate-600 hover:bg-slate-50'
+                    mode === 'fresh' ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300' : 'bg-teal-25 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   <span className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
@@ -105,7 +105,7 @@ export default function BusinessSetup({
                 </button>
 
                 <div className={`border-t border-teal-100 transition-colors ${
-                  mode === 'copy' ? 'bg-teal-50' : 'bg-white hover:bg-slate-50'
+                  mode === 'copy' ? 'bg-teal-50 dark:bg-teal-900/30' : 'bg-teal-25 dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700'
                 }`}>
                   <button
                     type="button"

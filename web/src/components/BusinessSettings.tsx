@@ -219,7 +219,7 @@ export default function BusinessSettings() {
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">
           {currentTier === 'premium'
             ? 'Premium — unlimited history and ads/events.'
-            : 'Free — up to 1 year of history, up to 2 saved ads or events. All features included.'}
+            : 'Free — up to 1 year of history, up to 10 events and 5 ads. All features included.'}
         </p>
 
         <div className="flex gap-3">

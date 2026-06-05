@@ -127,8 +127,6 @@ def copy_business(
             price=p.price,
             lead_time_days=p.lead_time_days,
             current_stock=None,          # per-location data — not copied
-            holding_cost=p.holding_cost,
-            order_cost=p.order_cost,
             service_time_minutes=p.service_time_minutes,
             storage_capacity=p.storage_capacity,
             shelf_life_days=p.shelf_life_days,
