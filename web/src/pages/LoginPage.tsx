@@ -36,7 +36,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-teal-50 dark:bg-slate-900 flex items-center justify-center p-6">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8">
+      <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8">
 
         {/* Brand */}
         <div className="flex items-center gap-3 mb-8">

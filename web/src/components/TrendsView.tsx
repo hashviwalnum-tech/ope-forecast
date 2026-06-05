@@ -34,7 +34,7 @@ function MomBadge({ pct }: { pct: number | null }) {
 
 function NotEnoughData({ message }: { message?: string }) {
   return (
-    <div className="bg-white rounded-2xl border border-teal-100 p-10 text-center shadow-sm">
+    <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
       <div className="w-14 h-14 mb-4 rounded-full bg-teal-50 flex items-center
                       justify-center mx-auto">
         <svg className="w-7 h-7 text-teal-300" fill="none" viewBox="0 0 24 24"
@@ -61,7 +61,7 @@ function MomCard({ current, prev }: { current: MonthSummary; prev: MonthSummary 
   const up = change !== null && change >= 0
 
   return (
-    <div className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+    <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
       <h2 className="text-base font-semibold text-slate-800 mb-4">
         Month-over-month
       </h2>
@@ -202,7 +202,7 @@ export default function TrendsView() {
       </div>
 
       {/* ── Summary strip ── */}
-      <div className="bg-white rounded-2xl border border-teal-100 px-6 py-4 shadow-sm
+      <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 px-6 py-4 shadow-sm
                       flex flex-wrap items-center gap-x-8 gap-y-2">
         <div>
           <p className="text-xs text-slate-400">Total days logged</p>
@@ -231,7 +231,7 @@ export default function TrendsView() {
       )}
 
       {/* ── Monthly bar chart ── */}
-      <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+      <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
         <h2 className="text-base font-semibold text-slate-800 mb-1">
           Customers by month
         </h2>
@@ -274,7 +274,7 @@ export default function TrendsView() {
 
       {/* ── Full history line chart ── */}
       {lineData.length >= 2 && (
-        <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+        <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
           <h2 className="text-base font-semibold text-slate-800 mb-1">
             Full customer history
           </h2>
@@ -328,7 +328,7 @@ export default function TrendsView() {
       )}
 
       {/* ── Monthly breakdown table ── */}
-      <section className="bg-white rounded-2xl border border-teal-100 shadow-sm overflow-hidden">
+      <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-teal-50">
           <h2 className="text-base font-semibold text-slate-800">Month-by-month breakdown</h2>
         </div>

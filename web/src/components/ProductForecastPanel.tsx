@@ -54,7 +54,7 @@ function DemandChart({ item }: { item: ProductForecastItem }) {
             if (!active || !payload?.length) return null
             const d = payload[0].payload
             return (
-              <div className="bg-white border border-teal-100 rounded-xl px-3 py-2 shadow text-xs">
+              <div className="bg-teal-25 dark:bg-slate-700 border border-teal-100 dark:border-slate-600 rounded-xl px-3 py-2 shadow text-xs">
                 <p className="font-semibold text-slate-700 mb-1">{d.fullDay}</p>
                 <p className="text-teal-600">
                   Expected: <strong>{d.predicted} {item.unit}</strong>
@@ -164,7 +164,7 @@ function ProductChip({
       className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors
         ${active
           ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-          : 'border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-700 bg-white'
+          : 'border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-700 bg-teal-25 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300'
         }`}
     >
       {orderNow && (
@@ -233,7 +233,7 @@ export default function ProductForecastPanel({ refreshKey = 0 }: Props) {
 
   if (loading) {
     return (
-      <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+      <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
         <h2 className="text-base font-semibold text-slate-800 mb-4">Forecast by product</h2>
         <p className="text-sm text-slate-400 animate-pulse">Loading…</p>
       </section>
@@ -242,7 +242,7 @@ export default function ProductForecastPanel({ refreshKey = 0 }: Props) {
 
   if (!data || data.status === 'no_products' || data.products.length === 0) {
     return (
-      <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+      <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
         <h2 className="text-base font-semibold text-slate-800 mb-2">Forecast by product</h2>
         <p className="text-sm text-slate-400 leading-relaxed">
           Add products in <strong>My Products</strong>, then log sales for each one —

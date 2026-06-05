@@ -206,7 +206,7 @@ function AppInner() {
   if (bizError) {
     return (
       <div className="min-h-screen bg-teal-50 dark:bg-slate-900 flex items-center justify-center p-6">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8 text-center">
+        <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8 text-center">
           <p className="text-slate-700 dark:text-slate-200 font-semibold mb-2">{t('serverUnreachable')}</p>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t('checkConnection')}</p>
           <button
@@ -238,10 +238,10 @@ function AppInner() {
   // ── Main app ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-teal-50/40 dark:bg-slate-900" dir={dir}>
+    <div className="min-h-screen bg-teal-50 dark:bg-slate-900" dir={dir}>
 
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <header className="bg-teal-50/80 dark:bg-slate-800 backdrop-blur-sm border-b-2 border-teal-100 dark:border-slate-700 px-6 py-3
+      <header className="bg-teal-100 dark:bg-slate-800 backdrop-blur-sm border-b-2 border-teal-200 dark:border-slate-700 px-6 py-3
                          flex flex-wrap items-center gap-x-4 gap-y-2
                          sticky top-0 z-10 shadow-sm">
 
@@ -269,7 +269,7 @@ function AppInner() {
           </button>
 
           {switcherOpen && (
-            <div className="absolute left-0 top-full mt-1 w-56 bg-white dark:bg-slate-800 border border-teal-100 dark:border-slate-700
+            <div className="absolute left-0 top-full mt-1 w-56 bg-teal-25 dark:bg-slate-800 border border-teal-100 dark:border-slate-700
                             rounded-xl shadow-lg z-20 py-1 overflow-hidden">
               {allBusinesses.map(b => (
                 <button
@@ -360,7 +360,7 @@ function AppInner() {
                 </button>
 
                 {isOpen && (
-                  <div className={`absolute ${dir === 'rtl' ? 'right-0' : 'left-0'} top-full mt-1 w-48 bg-white dark:bg-slate-800 border border-teal-100 dark:border-slate-700
+                  <div className={`absolute ${dir === 'rtl' ? 'right-0' : 'left-0'} top-full mt-1 w-48 bg-teal-25 dark:bg-slate-800 border border-teal-100 dark:border-slate-700
                                   rounded-xl shadow-lg z-20 py-1 overflow-hidden`}>
                     {group.tabs.map(navTab => (
                       <button
@@ -441,7 +441,7 @@ function AppInner() {
         {/* Left ad slot — wide screens only */}
         {SHOW_ADS && (
           <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
-            <div className="w-full min-h-[280px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
+            <div className="w-full min-h-[600px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
                             flex items-center justify-center">
               <span className="text-[10px] text-teal-300 dark:text-teal-600 tracking-widest uppercase select-none">Ad</span>
             </div>
@@ -470,7 +470,7 @@ function AppInner() {
         {/* Right ad slot — wide screens only */}
         {SHOW_ADS && (
           <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
-            <div className="w-full min-h-[280px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
+            <div className="w-full min-h-[600px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
                             flex items-center justify-center">
               <span className="text-[10px] text-teal-300 dark:text-teal-600 tracking-widest uppercase select-none">Ad</span>
             </div>

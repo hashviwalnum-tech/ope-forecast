@@ -18,7 +18,7 @@ import type {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+    <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
       <h2 className="text-base font-semibold text-slate-800 mb-4">{title}</h2>
       {children}
     </section>
@@ -78,7 +78,7 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
               if (!active || !payload?.length) return null
               const d = payload[0].payload
               return (
-                <div className="bg-white border border-teal-100 rounded-xl px-3 py-2 shadow text-xs">
+                <div className="bg-teal-25 dark:bg-slate-700 border border-teal-100 dark:border-slate-600 rounded-xl px-3 py-2 shadow text-xs">
                   <p className="font-semibold text-slate-700 mb-1">{d.fullDay}</p>
                   <p className="text-teal-600">Expected: <strong>{d.predicted}</strong> customers</p>
                   <p className="text-slate-400">Likely range: {d.low} – {d.high}</p>
@@ -157,7 +157,7 @@ function OrderingTable({ data }: { data: OrderingResponse }) {
                   )}
                 </div>
               </div>
-              <div className="px-4 py-2 bg-white border-t border-slate-100 flex flex-wrap gap-x-4 gap-y-0.5">
+              <div className="px-4 py-2 bg-teal-25 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex flex-wrap gap-x-4 gap-y-0.5">
                 <span className="text-xs text-slate-400">
                   Reorder below: <strong className="text-slate-600">{p.reorder_point} {p.unit}</strong>
                 </span>

@@ -82,7 +82,7 @@ function LiftCard({ lift }: { lift: PeriodLift }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white/70 rounded-lg px-3 py-2">
+    <div className="bg-teal-25/70 dark:bg-slate-800/60 rounded-lg px-3 py-2">
       <p className="text-xs text-slate-500 mb-0.5">{label}</p>
       <p className="text-base font-bold text-slate-800 tabular-nums">{value}</p>
     </div>
@@ -316,8 +316,8 @@ export default function PeriodsPanel() {
     <div className="space-y-8">
 
       {/* ── create form ── */}
-      <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-800 mb-1">Did something special happen?</h2>
+      <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">Did something special happen?</h2>
         <p className="text-xs text-slate-500 mb-5">
           Tag a special event or ad campaign below. We'll keep it out of your normal baseline
           and show you how much extra business it brought.
@@ -327,7 +327,7 @@ export default function PeriodsPanel() {
 
       {/* ── period list ── */}
       {periodList.length > 0 && (
-        <section className="bg-white rounded-2xl border border-teal-100 px-6 py-5 shadow-sm">
+        <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 px-6 py-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-800 mb-3">
             Saved Periods
             <span className="ml-2 text-sm font-normal text-slate-400">({periodList.length})</span>
@@ -359,13 +359,13 @@ export default function PeriodsPanel() {
         </div>
 
         {!liftData || liftData.status === 'no_periods' ? (
-          <div className="bg-white rounded-2xl border border-teal-100 p-10 text-center shadow-sm">
+          <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
             <p className="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto">
               Once you tag a special day or ad campaign above, you'll see here whether it actually brought more customers.
             </p>
           </div>
         ) : liftData.periods.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-teal-100 p-10 text-center shadow-sm">
+          <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
             <p className="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto">
               {liftData.message ?? "We don't have enough logged days overlapping with your tagged periods yet — keep logging!"}
             </p>

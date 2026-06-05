@@ -15,7 +15,7 @@ import { addCardToHome } from '../lib/homeLayout'
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+    <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
       <h2 className="text-base font-semibold text-slate-800 mb-4">{title}</h2>
       {children}
     </section>
@@ -134,7 +134,7 @@ export default function PredictionsPanel() {
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null
                   return (
-                    <div className="bg-white border border-teal-100 rounded-xl px-3 py-2 shadow text-xs">
+                    <div className="bg-teal-25 dark:bg-slate-700 border border-teal-100 dark:border-slate-600 rounded-xl px-3 py-2 shadow text-xs">
                       <p className="font-semibold text-slate-600 mb-1">{label}</p>
                       {payload.map(p => (
                         <p key={p.name} style={{ color: p.color as string }}>

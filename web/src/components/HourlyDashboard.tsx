@@ -43,7 +43,7 @@ function tomorrowName(): string {
 function NotEnoughHourlyData({ message, nDays }: { message?: string; nDays: number }) {
   const MIN_DAYS = 7
   return (
-    <div className="bg-white rounded-2xl border border-teal-100 p-10 text-center shadow-sm">
+    <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
       <div className="w-14 h-14 mb-4 rounded-full bg-teal-50 flex items-center justify-center mx-auto">
         <svg className="w-7 h-7 text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -111,8 +111,8 @@ function TomorrowPanel({
       </div>
 
       {/* Hourly chart */}
-      <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-800 mb-1">
+      <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
           Busy hours tomorrow
         </h2>
         <p className="text-xs text-slate-400 mb-4">
@@ -192,7 +192,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
   if (weekdays.length === 0) return null
 
   return (
-    <section className="bg-white rounded-2xl border border-teal-100 shadow-sm overflow-hidden">
+    <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="px-6 py-4 border-b border-teal-100/60">
         <h2 className="text-base font-semibold text-slate-800">Peak hours by day</h2>
         <p className="text-xs text-slate-400 mt-0.5">Your busiest hour for each day of the week.</p>

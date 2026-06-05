@@ -12,7 +12,7 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="rounded-2xl border border-teal-100 overflow-hidden bg-white shadow-sm">
+    <div className="rounded-2xl border border-teal-100 dark:border-slate-700 overflow-hidden bg-teal-25 dark:bg-slate-800 shadow-sm">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left
@@ -632,7 +632,7 @@ function Checklist() {
             className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
               item.done
                 ? 'bg-slate-50/60 border-slate-100'
-                : 'bg-white border-slate-200'
+                : 'bg-teal-25 dark:bg-slate-800 border-slate-200 dark:border-slate-600'
             }`}
           >
             <button
