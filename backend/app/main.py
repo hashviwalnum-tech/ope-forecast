@@ -6,8 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 _origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173")
 ALLOWED_ORIGINS = [o.strip() for o in _origins.split(",")]
-print(f"CORS_DEBUG raw env  : {_origins!r}", flush=True)
-print(f"CORS_DEBUG list     : {ALLOWED_ORIGINS!r}", flush=True)
 
 from app.db import engine
 from app.models import Base

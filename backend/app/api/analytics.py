@@ -706,13 +706,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         rop = reorder_point(avg_daily, prod.lead_time_days, z, sigma_lt)
 
         eoq_val = None
-        if prod.order_cost and prod.holding_cost and avg_daily > 0:
-            try:
-                eoq_val = round(economic_order_quantity(avg_daily * 365, prod.order_cost, prod.holding_cost), 1)
-            except ValueError:
-                pass
-
-        base_qty = eoq_val if eoq_val is not None else avg_daily * prod.lead_time_days + ss
+        base_qty = avg_daily * prod.lead_time_days + ss
         unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
         constrained_qty, cap_notes = apply_order_constraints(
             base_qty,
@@ -1107,14 +1101,8 @@ def get_product_forecast(
         rop = forecast_demand_lt + ss
 
         eoq_val: float | None = None
-        if prod.order_cost and prod.holding_cost and avg_daily > 0:
-            try:
-                eoq_val = round(economic_order_quantity(avg_daily * 365, prod.order_cost, prod.holding_cost), 1)
-            except ValueError:
-                pass
-
         unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
-        base_qty = eoq_val if eoq_val is not None else forecast_demand_lt + ss
+        base_qty = forecast_demand_lt + ss
         constrained_qty, cap_notes = apply_order_constraints(
             base_qty,
             storage_capacity=prod.storage_capacity,

@@ -69,8 +69,6 @@ def main() -> None:
             unit="kg",
             current_stock=5.0,
             lead_time_days=3,
-            holding_cost=2.50,
-            order_cost=15.00,
         )
         session.add(product)
         session.flush()
