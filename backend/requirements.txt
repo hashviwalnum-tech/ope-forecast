@@ -11,3 +11,4 @@ scipy
 statsmodels
 pytest
 httpx
+sentry-sdk[fastapi]
