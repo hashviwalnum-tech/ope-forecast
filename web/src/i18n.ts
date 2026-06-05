@@ -56,6 +56,8 @@ export const translations = {
     retry: 'Retry',
     serverUnreachable: "Couldn't reach the server",
     checkConnection: 'Check your connection and try again.',
+    wakingUpTitle: 'Waking up…',
+    wakingUpMsg: 'Getting your data ready — this can take up to a minute. Hang tight.',
 
     // Slogan
     slogan: 'Know Tomorrow, Today.',
@@ -236,6 +238,8 @@ export const translations = {
     retry: 'נסה שוב',
     serverUnreachable: 'לא ניתן להגיע לשרת',
     checkConnection: 'בדוק את החיבור שלך ונסה שוב.',
+    wakingUpTitle: 'מתעורר…',
+    wakingUpMsg: 'מכין את הנתונים שלך — זה עלול לקחת עד דקה. אנחנו כאן.',
 
     // Slogan
     slogan: 'דע מחר, היום.',

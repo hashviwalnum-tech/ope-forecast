@@ -39,6 +39,36 @@ import type {
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
+// Render free tier sleeps after ~15 min. On cold start, CORS preflights get
+// reset immediately, causing "TypeError: Failed to fetch". We retry up to 6×
+// at 8-second intervals (~48 s total) which covers Render's ~45 s cold start.
+const RETRY_MAX = 6
+const RETRY_DELAY_MS = 8_000
+
+let _wakingUpListener: ((waking: boolean) => void) | null = null
+export function setWakingUpListener(fn: ((waking: boolean) => void) | null): void {
+  _wakingUpListener = fn
+}
+
+function isNetworkError(err: unknown): boolean {
+  return err instanceof TypeError && /failed to fetch|network request failed|networkerror/i.test((err as TypeError).message)
+}
+
+async function fetchWithRetry(input: string, init: RequestInit): Promise<Response> {
+  for (let attempt = 0; attempt <= RETRY_MAX; attempt++) {
+    try {
+      const res = await fetch(input, init)
+      if (attempt > 0) _wakingUpListener?.(false)
+      return res
+    } catch (err) {
+      if (!isNetworkError(err) || attempt === RETRY_MAX) throw err
+      if (attempt === 0) _wakingUpListener?.(true)
+      await new Promise<void>(resolve => setTimeout(resolve, RETRY_DELAY_MS))
+    }
+  }
+  throw new TypeError('Network unavailable')
+}
+
 let _activeBusinessId: number | null = null
 export function setActiveBusinessId(id: number | null): void {
   _activeBusinessId = id
@@ -69,13 +99,13 @@ async function extractError(res: Response): Promise<string> {
 }
 
 async function GET<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { headers: await authHeaders() })
+  const res = await fetchWithRetry(`${BASE}${path}`, { headers: await authHeaders() })
   if (!res.ok) throw new Error(await extractError(res))
   return res.json()
 }
 
 async function POST<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetchWithRetry(`${BASE}${path}`, {
     method: 'POST', headers: await authHeaders(), body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(await extractError(res))
@@ -83,7 +113,7 @@ async function POST<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function PUT<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetchWithRetry(`${BASE}${path}`, {
     method: 'PUT', headers: await authHeaders(), body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(await extractError(res))
@@ -91,12 +121,12 @@ async function PUT<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function DELETE(path: string): Promise<void> {
-  const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: await authHeaders() })
+  const res = await fetchWithRetry(`${BASE}${path}`, { method: 'DELETE', headers: await authHeaders() })
   if (!res.ok) throw new Error(await extractError(res))
 }
 
 async function PATCH<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetchWithRetry(`${BASE}${path}`, {
     method: 'PATCH', headers: await authHeaders(), body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(await extractError(res))
