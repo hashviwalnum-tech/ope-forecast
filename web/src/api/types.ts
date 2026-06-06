@@ -217,6 +217,7 @@ export interface DayRecordRead {
   customers: number
   notes: string | null
   outlier_status: string | null   // null | 'flagged' | 'kept' | 'excluded' | 'event'
+  warning: string | null          // non-blocking data-consistency note (hours vs total)
 }
 
 // ── Outlier flags ─────────────────────────────────────────────────────────

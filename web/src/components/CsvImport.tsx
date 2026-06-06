@@ -57,13 +57,20 @@ function parseDate(raw: string): ParsedDate | null {
 }
 
 // ── CSV parsing ─────────────────────────────────────────────────────────────
+// Skip leading comment lines (starting with #) when locating the header row,
+// so the hourly template's first-line note doesn't swallow the real headers.
 
 function parseCSV(text: string): { headers: string[]; rows: string[][] } {
   const lines = text.trim().split('\n').filter(l => l.trim())
   if (!lines.length) return { headers: [], rows: [] }
+
+  // Find the first non-comment line — that's the headers row
+  const headerIdx = lines.findIndex(l => !l.trim().startsWith('#'))
+  if (headerIdx === -1) return { headers: [], rows: [] }
+
   return {
-    headers: lines[0].split(',').map(h => h.trim()),
-    rows:    lines.slice(1).map(l => l.split(',').map(v => v.trim())),
+    headers: lines[headerIdx].split(',').map(h => h.trim()),
+    rows:    lines.slice(headerIdx + 1).map(l => l.split(',').map(v => v.trim())),
   }
 }
 
@@ -75,6 +82,7 @@ interface CsvRow {
   customers: number
   productUnits: Record<string, number>
   hourlyCustomers: HourlyBackfillSlot[]   // h00–h23 columns, empty when absent
+  hourlyAutoSummed: boolean               // true when customers was derived from hourly sum
 }
 
 interface Props { onImported: () => void }
@@ -85,14 +93,16 @@ export default function CsvImport({ onImported }: Props) {
   const [parseErrors, setParseErrors] = useState<string[]>([])
   const [fileName, setFileName]       = useState('')
   const [importing, setImporting]     = useState(false)
-  const [result, setResult]           = useState('')
+  const [progress, setProgress]       = useState<{ done: number; total: number } | null>(null)
+  const [result, setResult]           = useState<{ ok: number; skipped: number; failedDates: string[] } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { productsApi.list().then(setProductList).catch(() => {}) }, [])
 
   function downloadTemplate() {
     const headers = ['date', 'customers', ...productList.map(p => p.name)]
-    const example = ['2024-01-15', '95', ...productList.map(() => '0')]
+    // Prefix the example row with # so the parser skips it automatically on import
+    const example = ['# EXAMPLE — delete this row before importing: 2024-01-15', '95', ...productList.map(() => '0')]
     const csv = [headers, example].map(r => r.join(',')).join('\n')
     triggerDownload(csv, 'ope-template.csv')
   }
@@ -100,9 +110,11 @@ export default function CsvImport({ onImported }: Props) {
   function downloadHourlyTemplate() {
     const hourCols = Array.from({ length: 24 }, (_, i) => `h${String(i).padStart(2, '0')}`)
     const headers  = ['date', 'customers', ...productList.map(p => p.name), ...hourCols]
-    const example  = ['2024-01-15', '95', ...productList.map(() => '0'), ...Array(24).fill('')]
-    const note     = `# Optional hourly columns h00–h23: customers per hour (leave blank if unknown)`
-    const csv      = [note, headers.join(','), example.join(',')].join('\n')
+    // Prefix both the note and the example row with # so both are skipped on import
+    const note     = `# Optional hourly columns h00–h23: customers per hour (leave blank if unknown). When hourly data is present, the daily total is auto-computed if customers column is 0.`
+    // Prefix example row so it is skipped on import
+    const exampleCells = ['# EXAMPLE — delete this row before importing: 2024-01-15', '0 (or 95)', ...productList.map(() => '0'), ...Array(24).fill('')]
+    const csv      = [note, headers.join(','), exampleCells.join(',')].join('\n')
     triggerDownload(csv, 'ope-template-hourly.csv')
   }
 
@@ -119,7 +131,7 @@ export default function CsvImport({ onImported }: Props) {
     const file = e.target.files?.[0]
     if (!file) return
     setFileName(file.name)
-    setResult('')
+    setResult(null)
     const reader = new FileReader()
     reader.onload = evt => {
       const { headers, rows } = parseCSV((evt.target?.result ?? '') as string)
@@ -137,7 +149,7 @@ export default function CsvImport({ onImported }: Props) {
           const hr = parseInt(hourMatch[1], 10)
           if (hr >= 0 && hr <= 23) { hourlyCols.push({ idx: i, hour: hr }); continue }
         }
-        if (h.startsWith('#')) continue   // comment columns (hourly template note row)
+        if (h.startsWith('#')) continue   // comment columns
         const prod = productList.find(p => p.name.toLowerCase() === h.toLowerCase())
         if (prod) {
           productCols.push({ idx: i, product: prod })
@@ -147,18 +159,14 @@ export default function CsvImport({ onImported }: Props) {
       }
 
       rows.forEach((row, ri) => {
-        if (row[0]?.trim().startsWith('#')) return   // skip comment rows
+        if (row[0]?.trim().startsWith('#')) return   // skip comment/example rows
         const line = ri + 2
         const rawDate = row[0] ?? ''
-        const cust    = parseInt(row[1] ?? '')
+        const custRaw = parseInt(row[1] ?? '')
 
         const dateParsed = parseDate(rawDate)
         if (!dateParsed) {
           errors.push(`Row ${line}: can't read date "${rawDate}" — use YYYY-MM-DD, DD/MM/YYYY, or MM/DD/YYYY`)
-          return
-        }
-        if (isNaN(cust) || cust < 0) {
-          errors.push(`Row ${line}: invalid customer count "${row[1]}"`)
           return
         }
 
@@ -174,14 +182,44 @@ export default function CsvImport({ onImported }: Props) {
           if (!isNaN(v) && v > 0) hourlyCustomers.push({ hour, customers: v })
         }
 
+        // Auto-sum: when hourly columns are present and their total exceeds (or
+        // replaces) the explicit customers column, use the hourly sum as the
+        // daily total.  The daily total is always the source of truth, and
+        // hourly data is the most granular form of it.
+        const hourlySum = hourlyCustomers.reduce((s, h) => s + h.customers, 0)
+        let customers = custRaw
+        let hourlyAutoSummed = false
+
+        if (hourlySum > 0) {
+          if (isNaN(custRaw) || custRaw <= 0) {
+            // No explicit daily total — derive from hourly
+            customers = hourlySum
+            hourlyAutoSummed = true
+          } else if (hourlySum > custRaw) {
+            // Hourly data is more granular and sums to more than the stated total
+            errors.push(
+              `Row ${line} (${dateParsed.display}): hourly columns sum to ${hourlySum} but customers column says ${custRaw}. ` +
+              `Using ${hourlySum} as the daily total (hourly data takes precedence).`
+            )
+            customers = hourlySum
+            hourlyAutoSummed = true
+          }
+        }
+
+        if (isNaN(customers) || customers < 0) {
+          errors.push(`Row ${line}: invalid customer count "${row[1]}"`)
+          return
+        }
+
         parsed.push({
-          date:          dateParsed.iso,
-          dateRaw:       rawDate,
-          dateDisplay:   dateParsed.display,
-          dateAmbiguous: dateParsed.ambiguous,
-          customers:     cust,
+          date:             dateParsed.iso,
+          dateRaw:          rawDate,
+          dateDisplay:      dateParsed.display,
+          dateAmbiguous:    dateParsed.ambiguous,
+          customers,
           productUnits,
           hourlyCustomers,
+          hourlyAutoSummed,
         })
       })
 
@@ -193,26 +231,41 @@ export default function CsvImport({ onImported }: Props) {
 
   async function handleImport() {
     setImporting(true)
-    let ok = 0, skipped = 0
-    for (const row of preview) {
-      try {
-        const day = await dayRecords.create({ date: row.date, customers: row.customers })
-        for (const [name, units] of Object.entries(row.productUnits)) {
-          const prod = productList.find(p => p.name === name)
-          if (prod) {
-            await salesApi.create({ day_record_id: day.id, product_id: prod.id, units_sold: units })
-          }
+    setProgress({ done: 0, total: preview.length })
+
+    let ok = 0
+    let skipped = 0
+    const failedDates: string[] = []
+
+    // Process rows concurrently in small batches to balance speed vs server load
+    const BATCH = 4
+    for (let i = 0; i < preview.length; i += BATCH) {
+      const batch = preview.slice(i, i + BATCH)
+      await Promise.all(batch.map(async row => {
+        try {
+          const day = await dayRecords.create({ date: row.date, customers: row.customers })
+          // Product sales and hourly data can run in parallel for this row
+          await Promise.all([
+            ...Object.entries(row.productUnits).map(([name, units]) => {
+              const prod = productList.find(p => p.name === name)
+              return prod ? salesApi.create({ day_record_id: day.id, product_id: prod.id, units_sold: units }) : Promise.resolve()
+            }),
+            row.hourlyCustomers.length > 0
+              ? saleEvents.backfillHourly(row.date, row.hourlyCustomers)
+              : Promise.resolve(),
+          ])
+          ok++
+        } catch {
+          skipped++
+          failedDates.push(row.dateDisplay)
         }
-        if (row.hourlyCustomers.length > 0) {
-          await saleEvents.backfillHourly(row.date, row.hourlyCustomers)
-        }
-        ok++
-      } catch {
-        skipped++
-      }
+      }))
+      setProgress({ done: Math.min(i + BATCH, preview.length), total: preview.length })
     }
+
     setImporting(false)
-    setResult(`Done: ${ok} rows imported, ${skipped} skipped (duplicates or errors).`)
+    setProgress(null)
+    setResult({ ok, skipped, failedDates })
     setPreview([])
     setFileName('')
     if (fileRef.current) fileRef.current.value = ''
@@ -220,6 +273,7 @@ export default function CsvImport({ onImported }: Props) {
   }
 
   const hasAmbiguous = preview.some(r => r.dateAmbiguous)
+  const hasAutoSummed = preview.some(r => r.hourlyAutoSummed)
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -232,6 +286,10 @@ export default function CsvImport({ onImported }: Props) {
           <code className="bg-white px-1 rounded">2024-01-15</code>), <code className="bg-white px-1 rounded">DD/MM/YYYY</code>,
           or <code className="bg-white px-1 rounded">MM/DD/YYYY</code>. The preview always shows how we read your
           dates — check it before saving.
+        </p>
+        <p className="text-xs text-slate-500">
+          The example row in the downloaded template starts with <code className="bg-white px-1 rounded">#</code> and
+          is automatically skipped when you import — no need to delete it manually.
         </p>
         <div className="flex flex-wrap gap-2">
           <button
@@ -266,11 +324,19 @@ export default function CsvImport({ onImported }: Props) {
         }
       </div>
 
-      {/* Parse errors */}
+      {/* Parse errors / warnings */}
       {parseErrors.length > 0 && (
         <ul className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
           {parseErrors.map((msg, i) => <li key={i}>⚠ {msg}</li>)}
         </ul>
+      )}
+
+      {/* Auto-sum notice */}
+      {hasAutoSummed && (
+        <div className="text-sm text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-4 py-3">
+          <strong>Daily totals auto-computed from hourly data</strong> for some rows (marked ★ below).
+          Hourly data is the most granular source, so it takes precedence when it sums to more than the customers column.
+        </div>
       )}
 
       {/* Date-ambiguity warning */}
@@ -311,7 +377,12 @@ export default function CsvImport({ onImported }: Props) {
                         <span className="ml-1.5 bg-amber-200 text-amber-800 text-xs font-medium px-1 rounded">?</span>
                       )}
                     </td>
-                    <td className="py-1.5 px-3 font-semibold">{row.customers}</td>
+                    <td className="py-1.5 px-3 font-semibold">
+                      {row.customers}
+                      {row.hourlyAutoSummed && (
+                        <span className="ml-1 text-teal-600 text-xs" title="Auto-computed from hourly columns">★</span>
+                      )}
+                    </td>
                     {productList.map(p => (
                       <td key={p.id} className="py-1.5 px-3 text-slate-500">
                         {row.productUnits[p.name] ?? <span className="text-slate-300">—</span>}
@@ -328,20 +399,52 @@ export default function CsvImport({ onImported }: Props) {
             )}
           </div>
 
-          <button
-            onClick={handleImport} disabled={importing}
-            className="mt-4 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300
-                       text-white font-medium py-2 px-5 rounded-lg transition-colors"
-          >
-            {importing ? 'Importing…' : `Import ${preview.length} rows`}
-          </button>
+          {/* Progress bar (visible during import) */}
+          {importing && progress && (
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-slate-500 mb-1">
+                <span>Importing…</span>
+                <span>{progress.done} / {progress.total}</span>
+              </div>
+              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-teal-500 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {!importing && (
+            <button
+              onClick={handleImport} disabled={importing}
+              className="mt-4 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300
+                         text-white font-medium py-2 px-5 rounded-lg transition-colors"
+            >
+              Import {preview.length} rows
+            </button>
+          )}
         </div>
       )}
 
+      {/* Result */}
       {result && (
-        <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
-          {result}
-        </p>
+        <div className={`text-sm rounded-lg px-4 py-3 border ${
+          result.skipped === 0
+            ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+            : 'text-amber-700 bg-amber-50 border-amber-200'
+        }`}>
+          <p className="font-medium">
+            {result.ok} row{result.ok !== 1 ? 's' : ''} imported successfully
+            {result.skipped > 0 ? `, ${result.skipped} skipped` : ''}.
+          </p>
+          {result.failedDates.length > 0 && (
+            <p className="mt-1 text-xs">
+              Couldn&apos;t import (already logged or invalid):{' '}
+              {result.failedDates.join(', ')}.
+            </p>
+          )}
+        </div>
       )}
     </div>
   )

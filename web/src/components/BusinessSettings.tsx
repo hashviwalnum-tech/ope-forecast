@@ -14,12 +14,16 @@ function dayKey(i: number): string {
 
 export default function BusinessSettings({ onTierChanged }: Props) {
   const { t } = useLanguage()
-  const [openDays,       setOpenDays]       = useState<number[]>([0,1,2,3,4,5,6])
-  const [openingHour,    setOpeningHour]    = useState<number>(9)
-  const [closingHour,    setClosingHour]    = useState<number>(22)
-  const [avgServiceTime, setAvgServiceTime] = useState<number>(5)
-  const [saving,         setSaving]         = useState(false)
-  const [feedback,       setFeedback]       = useState<{ ok: boolean; msg: string } | null>(null)
+  const [openDays,        setOpenDays]        = useState<number[]>([0,1,2,3,4,5,6])
+  const [openingHour,     setOpeningHour]     = useState<number>(9)
+  const [closingHour,     setClosingHour]     = useState<number>(22)
+  const [avgServiceTime,  setAvgServiceTime]  = useState<number>(5)
+  // Staffing threshold — one of: 'wait' (max wait minutes), 'queue' (max queue length), or 'none'
+  const [thresholdType,   setThresholdType]   = useState<'wait' | 'queue' | 'none'>('none')
+  const [maxWaitMinutes,  setMaxWaitMinutes]  = useState<number>(5)
+  const [maxQueueLength,  setMaxQueueLength]  = useState<number>(3)
+  const [saving,          setSaving]          = useState(false)
+  const [feedback,        setFeedback]        = useState<{ ok: boolean; msg: string } | null>(null)
 
   const [currentTier,   setCurrentTier]   = useState<string>('free')
   const [tierSaving,    setTierSaving]    = useState(false)
@@ -39,6 +43,13 @@ export default function BusinessSettings({ onTierChanged }: Props) {
       if (typeof s.opening_hour === 'number')        setOpeningHour(s.opening_hour)
       if (typeof s.closing_hour === 'number')        setClosingHour(s.closing_hour)
       if (typeof s.avg_service_time_minutes === 'number') setAvgServiceTime(s.avg_service_time_minutes)
+      if (typeof s.staffing_max_wait_minutes === 'number') {
+        setThresholdType('wait')
+        setMaxWaitMinutes(s.staffing_max_wait_minutes)
+      } else if (typeof s.staffing_max_queue_length === 'number') {
+        setThresholdType('queue')
+        setMaxQueueLength(s.staffing_max_queue_length)
+      }
       setCurrentTier(biz.tier ?? 'free')
     }).catch(() => {})
   }, [])
@@ -80,6 +91,8 @@ export default function BusinessSettings({ onTierChanged }: Props) {
         opening_hour: openingHour,
         closing_hour: closingHour,
         avg_service_time_minutes: avgServiceTime,
+        staffing_max_wait_minutes:  thresholdType === 'wait'  ? maxWaitMinutes  : null,
+        staffing_max_queue_length: thresholdType === 'queue' ? maxQueueLength  : null,
       })
       setFeedback({ ok: true, msg: t('settingsSavedOk') })
     } catch {
@@ -175,6 +188,65 @@ export default function BusinessSettings({ onTierChanged }: Props) {
           />
           <span className="text-sm text-slate-500 dark:text-slate-400">{t('minPerCustomer')}</span>
         </div>
+      </div>
+
+      {/* Staffing threshold */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+          Staffing goal
+        </label>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">
+          How do you want to size your team? Pick the thing that matters most to you — the app will recommend the smallest number of people that keeps your queue under control.
+        </p>
+
+        <div className="space-y-2 mb-3">
+          {([ ['none', 'Keep servers busy (default — 85% utilisation)'],
+               ['wait', 'Max time a customer waits'],
+               ['queue', 'Max people in line at once'],
+          ] as const).map(([val, label]) => (
+            <label key={val} className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="radio"
+                name="thresholdType"
+                value={val}
+                checked={thresholdType === val}
+                onChange={() => setThresholdType(val)}
+                className="accent-teal-600"
+              />
+              <span className="text-sm text-slate-600 dark:text-slate-300">{label}</span>
+            </label>
+          ))}
+        </div>
+
+        {thresholdType === 'wait' && (
+          <div className="flex items-center gap-3 pl-6">
+            <input
+              type="number"
+              min={1}
+              max={60}
+              value={maxWaitMinutes}
+              onChange={e => setMaxWaitMinutes(Math.max(1, Number(e.target.value)))}
+              className="w-24 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
+                         bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
+            />
+            <span className="text-sm text-slate-500 dark:text-slate-400">minutes max wait</span>
+          </div>
+        )}
+
+        {thresholdType === 'queue' && (
+          <div className="flex items-center gap-3 pl-6">
+            <input
+              type="number"
+              min={1}
+              max={50}
+              value={maxQueueLength}
+              onChange={e => setMaxQueueLength(Math.max(1, Number(e.target.value)))}
+              className="w-24 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
+                         bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
+            />
+            <span className="text-sm text-slate-500 dark:text-slate-400">people max in line</span>
+          </div>
+        )}
       </div>
 
       {/* Dark mode toggle */}

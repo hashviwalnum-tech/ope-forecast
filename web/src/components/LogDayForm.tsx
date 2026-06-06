@@ -36,6 +36,7 @@ export default function LogDayForm({ onSaved }: Props) {
   const [unitsSold, setUnitsSold] = useState<Record<number, string>>({})
   const [saving, setSaving]       = useState(false)
   const [feedback, setFeedback]   = useState<{ ok: boolean; msg: string } | null>(null)
+  const [warning, setWarning]     = useState<string | null>(null)
 
   useEffect(() => {
     products.list().then(setProductList).catch(() => {})
@@ -48,6 +49,7 @@ export default function LogDayForm({ onSaved }: Props) {
     if (isNaN(cust) || cust < 0) return
     setSaving(true)
     setFeedback(null)
+    setWarning(null)
     try {
       const day = await dayRecords.create({ date: localToday(), customers: cust })
       for (const p of productList) {
@@ -59,6 +61,7 @@ export default function LogDayForm({ onSaved }: Props) {
       setCustomers('')
       setUnitsSold({})
       setFeedback({ ok: true, msg: 'Saved!' })
+      if (day.warning) setWarning(day.warning)
       onSaved()
     } catch (err) {
       const raw = err instanceof Error ? err.message : 'Save failed'
@@ -136,6 +139,16 @@ export default function LogDayForm({ onSaved }: Props) {
           : 'text-red-700 bg-red-50'}`}>
           {feedback.msg}
         </p>
+      )}
+
+      {warning && (
+        <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-3">
+          <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p className="text-sm text-amber-700 leading-relaxed">{warning}</p>
+        </div>
       )}
 
       <button

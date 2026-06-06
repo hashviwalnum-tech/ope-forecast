@@ -24,6 +24,7 @@ class DayRecordRead(BaseModel):
     customers: int
     notes: Optional[str]
     outlier_status: Optional[str] = None
+    warning: Optional[str] = None  # non-blocking data-consistency warning (not persisted)
 
     model_config = {"from_attributes": True}
 

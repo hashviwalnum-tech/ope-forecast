@@ -12,7 +12,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from app.engine.product_forecast import build_product_demand_series
+from app.engine.product_forecast import build_product_demand_series, round_qty
 
 # ── shared fixture dates ──────────────────────────────────────────────────────
 
@@ -150,3 +150,53 @@ def test_pre_tracking_count_known_answer():
     assert demand[1] == 0.0
     assert dates[0] == D[3]
     assert dates[1] == D[4]
+
+
+# ── round_qty guard tests (whole-unit regression prevention) ─────────────────
+# These tests exist to catch any future regression where whole-unit products
+# produce fractional forecast or order quantities.  The function is the single
+# source of truth used by all forecast and ordering outputs in analytics.py.
+
+@pytest.mark.parametrize("raw,expected", [
+    (0.1, 0.0),
+    (0.5, 0.0),   # banker's rounding: 0.5 → 0 (round half to even)
+    (0.7, 1.0),
+    (1.3, 1.0),
+    (1.5, 2.0),
+    (3.7, 4.0),
+    (9.9, 10.0),
+    (99.9, 100.0),
+    (0.0, 0.0),
+    (5.0, 5.0),
+])
+def test_whole_unit_never_fractional(raw: float, expected: float):
+    """Whole-unit mode must always produce an integer-valued float."""
+    result = round_qty(raw, "whole")
+    # Must equal the expected whole number
+    assert result == expected, f"round_qty({raw}, 'whole') = {result}, want {expected}"
+    # Must have no fractional part (i.e. int(result) == result)
+    assert result == float(int(result)), f"round_qty({raw}, 'whole') = {result} has fractional part"
+
+
+def test_whole_unit_result_is_float():
+    """round_qty always returns a float, even for whole-unit mode."""
+    assert isinstance(round_qty(3.0, "whole"), float)
+    assert isinstance(round_qty(3.7, "whole"), float)
+
+
+def test_decimal_unit_allows_fractional():
+    """Decimal-unit mode rounds to 2 decimal places, not to whole number."""
+    assert round_qty(3.756, "decimal") == 3.76
+    assert round_qty(1.001, "decimal") == 1.0
+    assert round_qty(2.505, "decimal") == 2.5  # banker's rounding at 3rd decimal
+
+
+def test_decimal_unit_preserves_two_places():
+    assert round_qty(2.50, "decimal") == 2.5
+    assert round_qty(0.01, "decimal") == 0.01
+
+
+def test_whole_unit_large_value():
+    """Large values round correctly without overflow."""
+    assert round_qty(9999.6, "whole") == 10000.0
+    assert round_qty(9999.4, "whole") == 9999.0

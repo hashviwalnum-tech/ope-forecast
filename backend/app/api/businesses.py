@@ -33,6 +33,8 @@ class BusinessSettingsUpdate(BaseModel):
     opening_hour: int | None = None                 # 0–23
     closing_hour: int | None = None                 # 0–23
     avg_service_time_minutes: float | None = None   # minutes to serve one customer
+    staffing_max_wait_minutes: float | None = None  # owner's max acceptable wait (None = use utilisation cap)
+    staffing_max_queue_length: float | None = None  # owner's max queue length (None = use utilisation cap)
 
 
 @router.get("", response_model=list[BusinessRead])

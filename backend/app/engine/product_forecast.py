@@ -11,6 +11,21 @@ from __future__ import annotations
 from datetime import date
 
 
+def round_qty(v: float, unit_mode: str) -> float:
+    """Round a quantity per the product's unit_mode.
+
+    'whole'   → nearest integer (never fractional — "order 45", never "45.3").
+    'decimal' → two decimal places (e.g. "2.50 kg").
+
+    This is the single source of truth for unit-mode rounding; every forecast
+    and order quantity must pass through here so that whole-unit products can
+    never produce a fractional output.
+    """
+    if unit_mode == "whole":
+        return float(round(v))
+    return round(v, 2)
+
+
 def build_product_demand_series(
     day_ids_and_dates: list[tuple[int, date]],
     sales_by_day_id: dict[int, float],

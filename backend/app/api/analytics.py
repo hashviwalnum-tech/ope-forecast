@@ -30,12 +30,14 @@ from app.engine.ordering import (
     service_level_z,
 )
 from app.engine.outliers import detect_outliers
-from app.engine.product_forecast import build_product_demand_series
+from app.engine.product_forecast import build_product_demand_series, round_qty
 from app.engine.queueing import (
     effective_service_time,
     expected_wait_minutes,
     marginal_note,
     min_servers,
+    min_servers_for_queue_threshold,
+    min_servers_for_wait_threshold,
     queue_length,
 )
 from app.engine.seasonality import seasonal_naive_forecast
@@ -70,15 +72,9 @@ from app.schemas.analytics import (
 router = APIRouter(tags=["Analytics"])
 
 
-def _round_qty(v: float, unit_mode: str) -> float:
-    """Round an order/forecast quantity per the product's unit mode.
-
-    'whole' → nearest integer (never "45.3 bottles").
-    'decimal' → two decimal places (e.g. "2.50 kg").
-    """
-    if unit_mode == "whole":
-        return float(round(v))
-    return round(v, 2)
+# round_qty imported from engine.product_forecast — single source of truth
+# for unit-mode rounding so the guard test in tests/engine/ covers all paths.
+_round_qty = round_qty
 
 
 # Preset WMA weights by window size (oldest→newest, sum=1, most-recent heaviest)
@@ -723,7 +719,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             name=prod.name,
             unit=prod.unit,
             unit_mode=unit_mode,
-            avg_daily_demand=round(avg_daily, 2),
+            avg_daily_demand=_round_qty(avg_daily, unit_mode),
             lead_time_days=prod.lead_time_days,
             safety_stock_units=_round_qty(ss, unit_mode),
             reorder_point=_round_qty(rop, unit_mode),
@@ -787,6 +783,33 @@ def get_forecast_history(db: Session = Depends(get_db), biz: Business = Depends(
 # ── /hourly-analytics ─────────────────────────────────────────────────────────
 
 MIN_HOURLY_DAYS = 7  # one week of tap data before patterns are meaningful
+
+
+def _recommended_staff(
+    arrivals_per_hour: float,
+    eff_svc: float,
+    settings: dict,
+) -> int:
+    """Pick the smallest staff count satisfying the owner's threshold.
+
+    Priority:
+    1. staffing_max_wait_minutes  — if set, find min c so wait ≤ threshold.
+    2. staffing_max_queue_length  — if set, find min c so queue ≤ threshold.
+    3. Fallback to utilisation-cap (UTILISATION_CAP = 85%).
+    """
+    max_wait = settings.get("staffing_max_wait_minutes")
+    max_queue = settings.get("staffing_max_queue_length")
+    if max_wait is not None:
+        try:
+            return min_servers_for_wait_threshold(arrivals_per_hour, eff_svc, float(max_wait))
+        except Exception:
+            pass
+    if max_queue is not None:
+        try:
+            return min_servers_for_queue_threshold(arrivals_per_hour, eff_svc, float(max_queue))
+        except Exception:
+            pass
+    return min_servers(arrivals_per_hour, eff_svc)
 
 
 def _fmt_hour_range(hour: int) -> str:
@@ -870,7 +893,7 @@ def get_hourly_analytics(
         # (quantity, service_time_or_None) — None product_id or no override → falls back to default
         product_mix_pairs = [(qty, svc_by_pid.get(pid)) for pid, qty in hour_mix.items()]
         eff_svc = effective_service_time(product_mix_pairs, avg_svc) if product_mix_pairs else avg_svc
-        staff = min_servers(avg_taps, eff_svc)
+        staff = _recommended_staff(avg_taps, eff_svc, settings)
         time_range = _fmt_hour_range(hour)
         word = "person" if staff == 1 else "people"
         hours.append(HourlySlotAvg(
@@ -1120,7 +1143,7 @@ def get_product_forecast(
             unit_mode=unit_mode,
             status="ok",
             days=forecast_days,
-            avg_daily_demand=round(avg_daily, 2),
+            avg_daily_demand=_round_qty(avg_daily, unit_mode),
             forecast_demand_over_lead_time=_round_qty(forecast_demand_lt, unit_mode),
             lead_time_days=prod.lead_time_days,
             safety_stock_units=_round_qty(ss, unit_mode),
@@ -1198,7 +1221,7 @@ def get_hourly_by_weekday(
             hour_mix = mix.get(hour, {})
             pairs = [(qty, svc_by_pid.get(pid)) for pid, qty in hour_mix.items()]
             eff_svc = effective_service_time(pairs, avg_svc) if pairs else avg_svc
-            staff = min_servers(avg_taps, eff_svc)
+            staff = _recommended_staff(avg_taps, eff_svc, settings)
             slots.append(WeekdayHourlySlot(
                 hour=hour,
                 avg_taps=avg_taps,

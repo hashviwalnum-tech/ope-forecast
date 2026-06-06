@@ -6,6 +6,8 @@ from app.engine.queueing import (
     expected_wait_minutes,
     marginal_note,
     min_servers,
+    min_servers_for_wait_threshold,
+    min_servers_for_queue_threshold,
     queue_length,
     utilisation,
     OVERLOADED,
@@ -308,3 +310,75 @@ def test_marginal_note_cuts_wait_phrasing():
     # A well-loaded system with room to add staff should use "cuts" phrasing
     note = marginal_note(20, 5, 2)
     assert "cut" in note.lower() or "from" in note.lower()
+
+
+# ── min_servers_for_wait_threshold ────────────────────────────────────────────
+
+def test_wait_threshold_zero_arrivals_returns_one():
+    assert min_servers_for_wait_threshold(0, 5, 5.0) == 1
+
+
+def test_wait_threshold_satisfied_by_two_servers():
+    # λ=20/hr, svc=5min (μ=12/hr), c=2 gives wait ≈ 11.3 min (from known-case test)
+    # c=3 gives a much shorter wait — verify the threshold function finds min c ≤ wait
+    c = min_servers_for_wait_threshold(20, 5, 15.0)
+    assert expected_wait_minutes(20, 5, c) <= 15.0
+
+
+def test_wait_threshold_tight_limit_needs_more_servers():
+    # With max_wait = 1 minute (well below the c=2 wait of ~11.3 min),
+    # more servers are needed than the utilisation-cap minimum.
+    c_threshold = min_servers_for_wait_threshold(20, 5, 1.0)
+    c_util = min_servers(20, 5)
+    assert c_threshold >= c_util
+
+
+def test_wait_threshold_result_actually_satisfies_constraint():
+    # The returned c must satisfy the wait constraint
+    for lam in [5, 10, 20, 40]:
+        for svc in [3, 5, 10]:
+            for max_w in [1.0, 5.0, 10.0]:
+                c = min_servers_for_wait_threshold(lam, svc, max_w)
+                w = expected_wait_minutes(lam, svc, c)
+                assert w <= max_w + 1e-9, (
+                    f"λ={lam}, svc={svc}, max_wait={max_w}: got c={c}, wait={w:.3f}"
+                )
+
+
+def test_wait_threshold_loose_limit_equals_utilisation_cap_minimum():
+    # A very loose threshold (huge max wait) should give the same c as min_servers
+    # because min_servers already satisfies any large wait limit
+    c_threshold = min_servers_for_wait_threshold(20, 5, 1000.0)
+    c_util = min_servers(20, 5)
+    assert c_threshold == c_util
+
+
+# ── min_servers_for_queue_threshold ──────────────────────────────────────────
+
+def test_queue_threshold_zero_arrivals_returns_one():
+    assert min_servers_for_queue_threshold(0, 5, 2.0) == 1
+
+
+def test_queue_threshold_result_satisfies_constraint():
+    for lam in [5, 10, 20, 40]:
+        for svc in [3, 5, 10]:
+            for max_q in [0.5, 1.0, 3.0]:
+                c = min_servers_for_queue_threshold(lam, svc, max_q)
+                lq = queue_length(lam, svc, c)
+                assert lq <= max_q + 1e-9, (
+                    f"λ={lam}, svc={svc}, max_queue={max_q}: got c={c}, Lq={lq:.4f}"
+                )
+
+
+def test_queue_threshold_loose_limit_matches_utilisation_minimum():
+    c_threshold = min_servers_for_queue_threshold(20, 5, 1000.0)
+    c_util = min_servers(20, 5)
+    assert c_threshold == c_util
+
+
+def test_queue_threshold_tight_limit_needs_more_servers():
+    # With max_queue = 0.5 people (far below the c=2 queue of ~2.4),
+    # more servers are needed than the utilisation-cap minimum.
+    c_threshold = min_servers_for_queue_threshold(20, 5, 0.5)
+    c_util = min_servers(20, 5)
+    assert c_threshold >= c_util

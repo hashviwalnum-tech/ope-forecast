@@ -196,6 +196,68 @@ def marginal_note(
     return " ".join(parts)
 
 
+def min_servers_for_wait_threshold(
+    arrivals_per_hour: float,
+    avg_service_time_minutes: float,
+    max_wait_minutes: float,
+) -> int:
+    """Smallest c so that expected queue wait ≤ max_wait_minutes.
+
+    Used when the owner has set a maximum acceptable wait time.  The search
+    starts from c=1; servers where ρ ≥ 1 return OVERLOADED (9999) from
+    expected_wait_minutes and are naturally skipped by the ≤ check.
+
+    Args:
+        arrivals_per_hour:       average arrivals per hour (λ).
+        avg_service_time_minutes: average service time per customer.
+        max_wait_minutes:        owner's target: "nobody waits longer than X".
+
+    Returns:
+        Integer ≥ 1.
+    """
+    if arrivals_per_hour <= 0 or avg_service_time_minutes <= 0:
+        return 1
+
+    for c in range(1, 201):
+        if expected_wait_minutes(arrivals_per_hour, avg_service_time_minutes, c) <= max_wait_minutes:
+            return c
+    return 201  # safety fallback; practically unreachable for reasonable inputs
+
+
+def min_servers_for_queue_threshold(
+    arrivals_per_hour: float,
+    avg_service_time_minutes: float,
+    max_queue_length: float,
+) -> int:
+    """Smallest c so that expected queue length ≤ max_queue_length.
+
+    Used when the owner has set a maximum number of people they want waiting in
+    line at any given time.  queue_length() returns OVERLOADED for ρ ≥ 1, so
+    unstable staffing levels are naturally rejected by the ≤ check.
+
+    Args:
+        arrivals_per_hour:       average arrivals per hour (λ).
+        avg_service_time_minutes: average service time per customer.
+        max_queue_length:        owner's target: "no more than N people in line".
+
+    Returns:
+        Integer ≥ 1.
+    """
+    if arrivals_per_hour <= 0 or avg_service_time_minutes <= 0:
+        return 1
+
+    for c in range(1, 201):
+        try:
+            if queue_length(arrivals_per_hour, avg_service_time_minutes, c) <= max_queue_length:
+                return c
+        except (OverflowError, ValueError):
+            # erlang_c can overflow for very large c with small offered load;
+            # at that point the queue length is effectively 0, so the constraint
+            # is satisfied.
+            return c
+    return 201
+
+
 def effective_service_time(
     product_mix: list[tuple[float, float | None]],
     default_service_time_minutes: float,

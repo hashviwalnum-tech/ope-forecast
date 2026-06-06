@@ -6,7 +6,7 @@ from app.api.deps import get_business
 from app.db import get_db
 from app.engine.limits import check_entry_timing, check_history, check_non_working_day, history_cutoff
 from app.engine.outliers import detect_outliers
-from app.models import Business, DayRecord, Period, RecurringPattern
+from app.models import Business, DayRecord, Period, RecurringPattern, SaleEvent
 from app.schemas.day_record import (
     DayRecordCreate,
     DayRecordRead,
@@ -33,6 +33,45 @@ def _timing_check(record_date: date, biz: Business) -> None:
         check_entry_timing(record_date, date.today(), datetime.now().hour, opening, closing)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
+
+
+def _hourly_consistency_warning(
+    db: Session, biz_id: int, record_date: date, customers: int
+) -> str | None:
+    """Return a non-blocking warning when known hourly SaleEvent data exceeds the daily total.
+
+    SaleEvents with product_id=None represent explicit 'customer arrived' taps;
+    SaleEvents from backfill-hourly also store per-hour quantities with product_id=None.
+    Their sum is the 'known hourly total' for the day.
+
+    Partial coverage is fine (known hours < total — the gap is 'unknown time').
+    Only flag when sum of known hours > customers, since that is mathematically
+    inconsistent with the daily total being the source of truth.
+    """
+    day_start = datetime.combine(record_date, datetime.min.time())
+    day_end   = datetime.combine(record_date, datetime.max.time())
+
+    hourly_total = (
+        db.query(SaleEvent)
+        .filter(
+            SaleEvent.business_id == biz_id,
+            SaleEvent.product_id.is_(None),
+            SaleEvent.timestamp >= day_start,
+            SaleEvent.timestamp <= day_end,
+        )
+        .with_entities(SaleEvent.quantity)
+        .all()
+    )
+    total_known = sum(float(r.quantity) for r in hourly_total)
+
+    if total_known > customers:
+        return (
+            f"Heads up: the hourly data for this day adds up to {int(total_known)} customers, "
+            f"but you've entered {customers}. The daily total you entered is the source of truth. "
+            f"If {int(total_known)} is right, update the customers count to match — "
+            f"or choose 'rely on daily total only' and the extra hourly detail will be kept as-is."
+        )
+    return None
 
 
 def _get_or_404(db: Session, record_id: int, biz_id: int) -> DayRecord:
@@ -118,7 +157,11 @@ def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db), biz:
     db.refresh(row)
     _auto_flag_outliers(db, biz.id)
     db.refresh(row)
-    return row
+    # Non-blocking data-consistency check: warn when known hourly data exceeds the daily total
+    warning = _hourly_consistency_warning(db, biz.id, body.date, body.customers)
+    result = DayRecordRead.model_validate(row)
+    result.warning = warning
+    return result
 
 
 @router.get("/{record_id}", response_model=DayRecordRead)
@@ -134,7 +177,12 @@ def update_day_record(record_id: int, body: DayRecordUpdate, db: Session = Depen
         setattr(row, field, value)
     db.commit()
     db.refresh(row)
-    return row
+    # Non-blocking data-consistency check
+    new_customers = body.customers if body.customers is not None else row.customers
+    warning = _hourly_consistency_warning(db, biz.id, row.date, new_customers)
+    result = DayRecordRead.model_validate(row)
+    result.warning = warning
+    return result
 
 
 @router.patch("/{record_id}/outlier", response_model=DayRecordRead)

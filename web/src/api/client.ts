@@ -147,6 +147,8 @@ export const businesses = {
     opening_hour?: number
     closing_hour?: number
     avg_service_time_minutes?: number
+    staffing_max_wait_minutes?: number | null
+    staffing_max_queue_length?: number | null
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
   setTier: (tier: 'free' | 'premium') => PATCH<BusinessRead>('/businesses/me/tier', { tier }),
   delete: (id: number) => DELETE(`/businesses/${id}`),
