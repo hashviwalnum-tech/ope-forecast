@@ -6,6 +6,7 @@ from app.models.period import Period
 from app.models.product import Product
 from app.models.recurring_pattern import RecurringPattern
 from app.models.regular import Regular
+from app.models.regular_daily_spend import RegularDailySpend
 from app.models.sale_event import SaleEvent
 from app.models.sale_record import SaleRecord
 from app.models.telegram_link import TelegramLink
@@ -19,6 +20,7 @@ __all__ = [
     "Product",
     "RecurringPattern",
     "Regular",
+    "RegularDailySpend",
     "SaleEvent",
     "SaleRecord",
     "TelegramLink",

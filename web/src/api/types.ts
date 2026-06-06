@@ -55,6 +55,7 @@ export interface RegularRead {
   first_visit_date: string | null   // "YYYY-MM-DD"
   last_visit_date: string | null    // "YYYY-MM-DD"
   clv: number                       // auto-computed
+  today_amount: number | null
 }
 
 export interface RegularCreate {
@@ -67,6 +68,15 @@ export interface RegularCreate {
 
 export interface RegularVisitBody {
   amount_paid?: number
+}
+
+export interface RegularProfitabilityRead {
+  regular_id: number
+  name: string
+  first_visit_date: string | null
+  this_month: number
+  this_year: number
+  all_time: number
 }
 
 export interface RegularUpdate {

@@ -15,12 +15,25 @@ import type { WeekdayHourlyEntry, WeekdayHourlyResponse, WeekdayHourlySlot } fro
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-function fmtHour(h: number): string {
+function fmtHour(h: number, lang?: string): string {
   const h24 = ((h % 24) + 24) % 24
+  // Hebrew uses 24h format; English uses 12h with am/pm
+  if (lang === 'he') return `${h24}:00`
   if (h24 === 0)   return '12 am'
   if (h24 < 12)   return `${h24} am`
   if (h24 === 12) return '12 pm'
   return `${h24 - 12} pm`
+}
+
+const WEEKDAY_FULL_TRANSLATIONS: Record<string, Record<string, string>> = {
+  he: {
+    Monday: 'שני', Tuesday: 'שלישי', Wednesday: 'רביעי', Thursday: 'חמישי',
+    Friday: 'שישי', Saturday: 'שבת', Sunday: 'ראשון',
+  },
+}
+
+function translateWeekdayFull(weekday: string, lang: string): string {
+  return WEEKDAY_FULL_TRANSLATIONS[lang]?.[weekday] ?? weekday
 }
 
 function jsDayToPython(jsDay: number): number {
@@ -82,17 +95,17 @@ function TomorrowPanel({
   dayName: string
   isFallback: boolean
 }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { isDark } = useTheme()
   const busiest = [...slots].sort((a, b) => b.avg_taps - a.avg_taps)[0]
   const chartData = slots.map(h => ({
-    name: fmtHour(h.hour),
+    name: fmtHour(h.hour, lang),
     avg: h.avg_taps,
     staff: h.recommended_staff,
   }))
 
   const staffWord = busiest.recommended_staff === 1 ? t('personLabel') : t('peopleLabel')
-  const timeRange = `${fmtHour(busiest.hour)}–${fmtHour(busiest.hour + 1)}`
+  const timeRange = `${fmtHour(busiest.hour, lang)}–${fmtHour(busiest.hour + 1, lang)}`
 
   return (
     <div className="space-y-4">
@@ -207,7 +220,7 @@ function TomorrowPanel({
 // ── peak hours by weekday accordion ──────────────────────────────────────────
 
 function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [open, setOpen] = useState<number | null>(null)
   const tomorrowIdx = tomorrowPyWeekday()
 
@@ -237,7 +250,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                 onClick={() => setOpen(isOpen ? null : wd.weekday_idx)}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{wd.weekday}</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{translateWeekdayFull(wd.weekday, lang)}</span>
                   {isTomorrow && (
                     <span className="text-xs bg-teal-100 dark:bg-teal-800 text-teal-700 dark:text-teal-300 font-semibold px-2 py-0.5 rounded-full">
                       {t('tomorrowBadge')}
@@ -246,7 +259,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {fmtHour(busiest.hour)} · {busiest.recommended_staff} {bStaffWord}
+                    {fmtHour(busiest.hour, lang)} · {busiest.recommended_staff} {bStaffWord}
                   </span>
                   <svg
                     className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -287,7 +300,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                   <p className="text-xs text-slate-400 dark:text-slate-500 pt-1">
                     {t('basedOnNDays', {
                       n: String(wd.n_days_data),
-                      weekday: wd.weekday,
+                      weekday: translateWeekdayFull(wd.weekday, lang),
                       s: wd.n_days_data !== 1 ? 's' : '',
                     })}
                   </p>

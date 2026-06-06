@@ -35,9 +35,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }
 
   function t(key: TranslationKey, vars?: Record<string, string | number>): string {
-    let str: string = (translations[lang] as Record<string, string>)[key]
-      ?? (translations['en'] as Record<string, string>)[key]
-      ?? key
+    const map = translations[lang] as Record<string, string>
+    const enMap = translations['en'] as Record<string, string>
+    let str: string
+    if (map[key] !== undefined) {
+      str = map[key]
+    } else {
+      if (lang !== 'en' && import.meta.env.DEV) {
+        console.warn(`[i18n] Missing ${lang} translation: "${key}"`)
+      }
+      str = enMap[key] ?? key
+    }
     if (vars) {
       for (const [k, v] of Object.entries(vars)) {
         str = str.replace(`{${k}}`, String(v))

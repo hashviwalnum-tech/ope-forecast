@@ -292,7 +292,7 @@ export default function TrendsView() {
               labelStyle={{ color: isDark ? '#e2e8f0' : '#334155', fontWeight: 600 }}
               formatter={(value, name) => {
                 if (name === 'avg') return [
-                  typeof value === 'number' ? `${value.toFixed(1)}/day` : value,
+                  typeof value === 'number' ? `${value.toFixed(1)}${t('perDaySuffix')}` : value,
                   t('avgCustomersTooltipLabel'),
                 ]
                 return [value, name]

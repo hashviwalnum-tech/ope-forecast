@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
+import {
+  Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from 'recharts'
 import { regulars as api } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { RegularCreate, RegularRead, RegularUpdate } from '../api/types'
+import { useTheme } from '../contexts/ThemeContext'
+import type { RegularCreate, RegularProfitabilityRead, RegularRead, RegularUpdate } from '../api/types'
 
 function fmtCLV(clv: number) {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(clv)
@@ -16,6 +20,90 @@ function liveClv(avgSpend: number, freq: number, years: number) {
   return freq * 52 * avgSpend * years
 }
 
+// ── Profitability chart (per regular) ────────────────────────────────────────
+
+function ProfitabilityChart({ regularId }: { regularId: number }) {
+  const { t } = useLanguage()
+  const { isDark } = useTheme()
+  const [data, setData] = useState<RegularProfitabilityRead | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.profitability(regularId)
+      .then(setData)
+      .catch(() => setData(null))
+      .finally(() => setLoading(false))
+  }, [regularId])
+
+  if (loading) return (
+    <p className="text-xs text-slate-400 dark:text-slate-500 py-2">{t('loadingLabel')}</p>
+  )
+
+  if (!data || (data.this_month === 0 && data.this_year === 0 && data.all_time === 0)) return (
+    <p className="text-xs text-slate-400 dark:text-slate-500 py-2">{t('profitabilityNoData')}</p>
+  )
+
+  const chartData = [
+    { label: t('profitabilityThisMonth'), value: data.this_month },
+    { label: t('profitabilityThisYear'), value: data.this_year },
+    { label: t('profitabilityAllTime'), value: data.all_time },
+  ]
+
+  const tickFill = isDark ? '#94a3b8' : '#64748b'
+  const gridStroke = isDark ? '#334155' : '#e2e8f0'
+  const barColors = ['#4e8b87', '#3a7470', '#2c5f5c']
+
+  const fmt = (v: number) =>
+    new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
+
+  return (
+    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+        {t('profitabilityTitle', { name: data.name })}
+      </p>
+      <ResponsiveContainer width="100%" height={120}>
+        <BarChart data={chartData} margin={{ top: 4, right: 8, left: 4, bottom: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 10, fill: tickFill }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={{ fontSize: 10, fill: tickFill }}
+            width={48}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={fmt}
+          />
+          <Tooltip
+            contentStyle={{
+              fontSize: 12, borderRadius: 8,
+              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+              background: isDark ? '#1e293b' : '#fff',
+              color: isDark ? '#e2e8f0' : '#334155',
+            }}
+            formatter={(value: number) => [fmt(value), t('profitabilityTooltipLabel')]}
+          />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={56}>
+            {chartData.map((_, i) => (
+              <Cell key={i} fill={barColors[i % barColors.length]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+      {data.first_visit_date && (
+        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+          {t('firstVisitLabel', { date: fmtDate(data.first_visit_date) ?? '' })}
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
 export default function RegularsPanel() {
   const { t } = useLanguage()
   const [rows, setRows]         = useState<RegularRead[]>([])
@@ -27,6 +115,7 @@ export default function RegularsPanel() {
   const [visitMsg, setVisitMsg] = useState<string | null>(null)
   const [visitErr, setVisitErr] = useState<string | null>(null)
   const [showOptional, setShowOptional] = useState(false)
+  const [expandedProfit, setExpandedProfit] = useState<Set<number>>(new Set())
 
   const [visitAmounts, setVisitAmounts] = useState<Record<number, string>>({})
   const [visitRecording, setVisitRecording] = useState<number | null>(null)
@@ -47,7 +136,9 @@ export default function RegularsPanel() {
       const data = await api.list()
       setRows(data)
       const defaults: Record<number, string> = {}
-      for (const r of data) defaults[r.id] = String(r.avg_spend)
+      for (const r of data) {
+        defaults[r.id] = String(r.today_amount ?? r.avg_spend)
+      }
       setVisitAmounts(defaults)
     } catch { /* ignore */ }
     finally { setLoading(false) }
@@ -120,6 +211,14 @@ export default function RegularsPanel() {
     }
   }
 
+  function toggleProfit(id: number) {
+    setExpandedProfit(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
   const showForm = adding || editing !== null
   const clvPreview = liveClv(form.avg_spend, form.visit_frequency_per_week, form.expected_lifespan_years ?? 3)
 
@@ -184,7 +283,6 @@ export default function RegularsPanel() {
             </div>
           </div>
 
-          {/* Live CLV preview */}
           <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 px-4 py-3">
             <p className="text-xs text-teal-600 dark:text-teal-400 font-medium">
               {t('clvEstimateText', { years: String(form.expected_lifespan_years ?? 3) })}
@@ -334,14 +432,16 @@ export default function RegularsPanel() {
 
               {/* Record visit row */}
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('recordVisitAmountLabel')}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                  {r.today_amount != null ? t('updateTodaysTotalLabel') : t('recordVisitAmountLabel')}
+                </span>
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-slate-400 dark:text-slate-500">$</span>
                   <input
                     type="number"
                     min="0"
                     step="0.5"
-                    value={visitAmounts[r.id] ?? r.avg_spend}
+                    value={visitAmounts[r.id] ?? (r.today_amount ?? r.avg_spend)}
                     onChange={e => setVisitAmounts(a => ({ ...a, [r.id]: e.target.value }))}
                     className="w-20 text-sm px-2 py-1 border border-slate-200 dark:border-slate-600 rounded-lg
                                bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200
@@ -351,11 +451,32 @@ export default function RegularsPanel() {
                 <button
                   onClick={() => recordVisit(r.id, r.name)}
                   disabled={visitRecording === r.id}
-                  className="px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold
-                             hover:bg-teal-700 disabled:opacity-50 transition-colors"
+                  className={`px-3 py-1.5 rounded-lg text-white text-xs font-semibold
+                             hover:bg-teal-700 disabled:opacity-50 transition-colors
+                             ${r.today_amount != null ? 'bg-teal-500' : 'bg-teal-600'}`}
                 >
-                  {visitRecording === r.id ? '…' : t('recordVisit')}
+                  {visitRecording === r.id
+                    ? '…'
+                    : r.today_amount != null
+                      ? t('updateVisitBtn')
+                      : t('recordVisit')}
                 </button>
+                {r.today_amount != null && (
+                  <span className="text-xs text-teal-600 dark:text-teal-400 font-medium">
+                    {t('todayLoggedLabel', { amount: String(r.today_amount.toFixed(2)) })}
+                  </span>
+                )}
+              </div>
+
+              {/* Profitability chart (expandable) */}
+              <div className="mt-2">
+                <button
+                  onClick={() => toggleProfit(r.id)}
+                  className="text-xs text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1"
+                >
+                  {expandedProfit.has(r.id) ? '▴' : '▾'} {t('showProfitabilityBtn')}
+                </button>
+                {expandedProfit.has(r.id) && <ProfitabilityChart regularId={r.id} />}
               </div>
             </div>
           ))}

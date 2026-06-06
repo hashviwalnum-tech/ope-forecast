@@ -26,6 +26,7 @@ import type {
   RecurringPatternRead,
   RecurringPatternUpdate,
   RegularCreate,
+  RegularProfitabilityRead,
   RegularRead,
   RegularUpdate,
   RegularVisitBody,
@@ -223,6 +224,7 @@ export const regulars = {
   delete:      (id: number)                 => DELETE(`/regulars/${id}`),
   recordVisit: (id: number, body?: RegularVisitBody) =>
     POST<RegularRead>(`/regulars/${id}/visit`, body ?? {}),
+  profitability: (id: number) => GET<RegularProfitabilityRead>(`/regulars/${id}/profitability`),
 }
 
 export const telegram = {

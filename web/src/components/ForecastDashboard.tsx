@@ -46,18 +46,27 @@ function NotEnoughData({ message }: { message?: string }) {
   )
 }
 
+// ── weekday short-name translations ───────────────────────────────────────────
+
+const WDAY_SHORT: Record<string, Record<string, string>> = {
+  he: {
+    Monday: 'שני', Tuesday: 'שלישי', Wednesday: 'רביעי', Thursday: 'חמישי',
+    Friday: 'שישי', Saturday: 'שבת', Sunday: 'ראשון',
+  },
+}
+
 // ── week prediction (7-day customer bars) ─────────────────────────────────────
 
 function ForecastChart({ data }: { data: ForecastResponse }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { isDark } = useTheme()
   if (data.status !== 'ok' || data.days.length === 0) {
     return <NotEnoughData message={data.message} />
   }
 
   const chartData = data.days.map(d => ({
-    name: `${d.weekday.slice(0, 3)} ${d.date.slice(5).replace('-', '/')}`,
-    fullDay: d.weekday,
+    name: `${WDAY_SHORT[lang]?.[d.weekday] ?? d.weekday.slice(0, 3)} ${d.date.slice(5).replace('-', '/')}`,
+    fullDay: WDAY_SHORT[lang]?.[d.weekday] ?? d.weekday,
     predicted: Math.round(d.predicted_customers),
     low: Math.round(d.interval_low),
     high: Math.round(d.interval_high),
@@ -104,7 +113,7 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
           }
           return (
             <span key={d.date} className="text-xs text-slate-400 dark:text-slate-500">
-              {d.weekday.slice(0, 3)}: <span className="text-slate-600 dark:text-slate-300">{label[top] ?? top}</span>
+              {WDAY_SHORT[lang]?.[d.weekday] ?? d.weekday.slice(0, 3)}: <span className="text-slate-600 dark:text-slate-300">{label[top] ?? top}</span>
             </span>
           )
         })}
@@ -141,8 +150,8 @@ function OrderingTable({ data }: { data: OrderingResponse }) {
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.name}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    ~{p.avg_daily_demand} {p.unit}/day · restock in {p.lead_time_days}d
-                    {p.current_stock != null && ` · ${p.current_stock} ${p.unit} in stock`}
+                    ~{p.avg_daily_demand} {p.unit}{t('perDaySuffix')} · {t('restockInNDays', { n: String(p.lead_time_days) })}
+                    {p.current_stock != null && ` · ${t('inStockSuffix', { qty: `${p.current_stock} ${p.unit}` })}`}
                   </p>
                 </div>
                 <div className="shrink-0 text-right">

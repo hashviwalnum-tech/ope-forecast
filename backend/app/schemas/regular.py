@@ -38,5 +38,15 @@ class RegularRead(BaseModel):
     first_visit_date: Optional[date]
     last_visit_date: Optional[date]
     clv: float  # computed: frequency_per_week × 52 × avg_spend × lifespan_years
+    today_amount: Optional[float] = None
 
     model_config = {"from_attributes": True}
+
+
+class RegularProfitabilityRead(BaseModel):
+    regular_id: int
+    name: str
+    first_visit_date: Optional[date]
+    this_month: float
+    this_year: float
+    all_time: float

@@ -299,6 +299,36 @@ export const translations = {
     regularsNote: 'Regulars are tracked separately — their visits never mix with your daily demand data.',
     removeRegularConfirm: 'Remove this regular?',
 
+    // Regulars — visit update labels
+    updateTodaysTotalLabel: 'Update today\'s total:',
+    updateVisitBtn: 'Update total',
+    todayLoggedLabel: '(recorded: ${amount})',
+    firstVisitLabel: 'First visit: {date}',
+    showProfitabilityBtn: 'Revenue from this regular',
+
+    // Regulars — profitability chart
+    profitabilityTitle: 'Revenue from {name}',
+    profitabilityThisMonth: 'This month',
+    profitabilityThisYear: 'This year',
+    profitabilityAllTime: 'All time',
+    profitabilityNoData: 'No visit amounts recorded yet. Record a visit with an amount to see revenue.',
+    profitabilityTooltipLabel: 'Revenue',
+
+    // Chart / data-derived labels (bypass normal text path — must be translated explicitly)
+    perDaySuffix: '/day',
+    perHourSuffix: '/hr',
+    restockInNDays: 'restock in {n}d',
+    inStockSuffix: '{qty} in stock',
+    weekdayFull_Monday: 'Monday',
+    weekdayFull_Tuesday: 'Tuesday',
+    weekdayFull_Wednesday: 'Wednesday',
+    weekdayFull_Thursday: 'Thursday',
+    weekdayFull_Friday: 'Friday',
+    weekdayFull_Saturday: 'Saturday',
+    weekdayFull_Sunday: 'Sunday',
+    amLabel: 'am',
+    pmLabel: 'pm',
+
     // Predictions panel
     loadingPredictions: 'Loading predictions…',
     cantLoadPredictions: "Couldn't load predictions — is the backend running?",
@@ -719,6 +749,36 @@ export const translations = {
     recordVisitAmountLabel: 'רשום ביקור — סכום שולם:',
     regularsNote: 'הלקוחות הקבועים מנוהלים בנפרד — הביקורים שלהם לעולם לא מתערבבים עם נתוני הביקוש היומי שלך.',
     removeRegularConfirm: 'להסיר לקוח קבוע זה?',
+
+    // Regulars — visit update labels
+    updateTodaysTotalLabel: 'עדכן סכום היום:',
+    updateVisitBtn: 'עדכן סכום',
+    todayLoggedLabel: '(נרשם: ₪{amount})',
+    firstVisitLabel: 'ביקור ראשון: {date}',
+    showProfitabilityBtn: 'הכנסות מלקוח זה',
+
+    // Regulars — profitability chart
+    profitabilityTitle: 'הכנסות מ{name}',
+    profitabilityThisMonth: 'החודש',
+    profitabilityThisYear: 'השנה',
+    profitabilityAllTime: 'סה"כ',
+    profitabilityNoData: 'עדיין לא נרשמו סכומי ביקורים. רשום ביקור עם סכום כדי לראות הכנסות.',
+    profitabilityTooltipLabel: 'הכנסות',
+
+    // Chart / data-derived labels
+    perDaySuffix: '/יום',
+    perHourSuffix: '/שעה',
+    restockInNDays: 'חידוש בעוד {n}ד',
+    inStockSuffix: '{qty} במלאי',
+    weekdayFull_Monday: 'שני',
+    weekdayFull_Tuesday: 'שלישי',
+    weekdayFull_Wednesday: 'רביעי',
+    weekdayFull_Thursday: 'חמישי',
+    weekdayFull_Friday: 'שישי',
+    weekdayFull_Saturday: 'שבת',
+    weekdayFull_Sunday: 'ראשון',
+    amLabel: '',
+    pmLabel: '',
 
     // Predictions panel
     loadingPredictions: 'טוען תחזיות…',

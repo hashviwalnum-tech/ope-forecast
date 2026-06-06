@@ -6,7 +6,10 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_business
 from app.db import get_db
 from app.models import Business, Regular
-from app.schemas.regular import RegularCreate, RegularRead, RegularUpdate, RegularVisitBody
+from app.models.regular_daily_spend import RegularDailySpend
+from app.schemas.regular import (
+    RegularCreate, RegularProfitabilityRead, RegularRead, RegularUpdate, RegularVisitBody,
+)
 
 router = APIRouter(prefix="/regulars", tags=["Regulars"])
 
@@ -15,7 +18,16 @@ def _clv(r: Regular) -> float:
     return round(r.visit_frequency_per_week * 52.0 * r.avg_spend * r.expected_lifespan_years, 2)
 
 
-def _to_read(r: Regular) -> RegularRead:
+def _today_amount(db: Session, regular_id: int) -> float | None:
+    row = (
+        db.query(RegularDailySpend)
+        .filter_by(regular_id=regular_id, date=date.today())
+        .first()
+    )
+    return row.amount if row else None
+
+
+def _to_read(r: Regular, db: Session) -> RegularRead:
     return RegularRead(
         id=r.id,
         business_id=r.business_id,
@@ -28,6 +40,7 @@ def _to_read(r: Regular) -> RegularRead:
         first_visit_date=r.first_visit_date,
         last_visit_date=r.last_visit_date,
         clv=_clv(r),
+        today_amount=_today_amount(db, r.id),
     )
 
 
@@ -41,7 +54,7 @@ def _get_or_404(db: Session, reg_id: int, biz_id: int) -> Regular:
 @router.get("", response_model=list[RegularRead])
 def list_regulars(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     rows = db.query(Regular).filter_by(business_id=biz.id).order_by(Regular.name).all()
-    return [_to_read(r) for r in rows]
+    return [_to_read(r, db) for r in rows]
 
 
 @router.post("", response_model=RegularRead, status_code=201)
@@ -54,12 +67,12 @@ def create_regular(
     db.add(row)
     db.commit()
     db.refresh(row)
-    return _to_read(row)
+    return _to_read(row, db)
 
 
 @router.get("/{reg_id}", response_model=RegularRead)
 def get_regular(reg_id: int, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    return _to_read(_get_or_404(db, reg_id, biz.id))
+    return _to_read(_get_or_404(db, reg_id, biz.id), db)
 
 
 @router.put("/{reg_id}", response_model=RegularRead)
@@ -74,7 +87,7 @@ def update_regular(
         setattr(row, field, value)
     db.commit()
     db.refresh(row)
-    return _to_read(row)
+    return _to_read(row, db)
 
 
 @router.delete("/{reg_id}", status_code=204)
@@ -91,25 +104,60 @@ def record_visit(
     db: Session = Depends(get_db),
     biz: Business = Depends(get_business),
 ):
-    """Log a visit from this regular. Increments visit_count, tracks first/last date.
-    Max once per day — returns 409 if already recorded today.
-    If amount_paid is supplied it blends into avg_spend (90/10 weighted average).
+    """Log or update today's visit for this regular.
+
+    ONE record per regular per day (RegularDailySpend). Calling this again
+    today replaces the day's total — no duplicate-visit blocking.
+    visit_count increments only when first recording this day.
     """
     row = _get_or_404(db, reg_id, biz.id)
     today = date.today()
-    if row.last_visit_date == today:
-        raise HTTPException(
-            409,
-            f"{row.name} was already recorded today. "
-            "If they visited again, check back tomorrow or edit the entry.",
-        )
-    if row.first_visit_date is None:
-        row.first_visit_date = today
-    row.last_visit_date = today
-    row.visit_count = (row.visit_count or 0) + 1
-    if body.amount_paid is not None:
-        # Blend new amount into running average (keep 90% of history, 10% new)
-        row.avg_spend = round(row.avg_spend * 0.9 + body.amount_paid * 0.1, 2)
+
+    amount = body.amount_paid if body.amount_paid is not None else row.avg_spend
+
+    existing = (
+        db.query(RegularDailySpend)
+        .filter_by(regular_id=reg_id, date=today)
+        .first()
+    )
+    if existing:
+        existing.amount = amount
+    else:
+        db.add(RegularDailySpend(regular_id=reg_id, date=today, amount=amount))
+        row.visit_count = (row.visit_count or 0) + 1
+        if row.first_visit_date is None:
+            row.first_visit_date = today
+        row.last_visit_date = today
+
     db.commit()
     db.refresh(row)
-    return _to_read(row)
+    return _to_read(row, db)
+
+
+@router.get("/{reg_id}/profitability", response_model=RegularProfitabilityRead)
+def get_profitability(
+    reg_id: int,
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """Return how much this regular has earned the business this month, this year, and all time."""
+    row = _get_or_404(db, reg_id, biz.id)
+    today = date.today()
+
+    spends = db.query(RegularDailySpend).filter_by(regular_id=reg_id).all()
+
+    this_month = sum(
+        s.amount for s in spends
+        if s.date.year == today.year and s.date.month == today.month
+    )
+    this_year = sum(s.amount for s in spends if s.date.year == today.year)
+    all_time = sum(s.amount for s in spends)
+
+    return RegularProfitabilityRead(
+        regular_id=reg_id,
+        name=row.name,
+        first_visit_date=row.first_visit_date,
+        this_month=round(this_month, 2),
+        this_year=round(this_year, 2),
+        all_time=round(all_time, 2),
+    )

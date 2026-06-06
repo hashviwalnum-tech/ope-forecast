@@ -36,7 +36,8 @@ _TestingSession = sessionmaker(autocommit=False, autoflush=False, bind=_test_eng
 _app_db.engine = _test_engine
 _app_db.SessionLocal = _TestingSession
 
-from app.models import Base  # noqa: E402  (import after env patch)
+from app.models import Base, Business, Regular  # noqa: E402  (import after env patch)
+from app.models.regular_daily_spend import RegularDailySpend  # noqa: F401, E402
 from app.db import get_db    # noqa: E402
 from app.main import app     # noqa: E402  (triggers all router imports)
 
@@ -57,6 +58,32 @@ def db():
         yield session
     finally:
         session.close()
+
+
+@pytest.fixture()
+def biz(db):
+    """A test Business row."""
+    b = Business(name="Test Biz", settings={})
+    db.add(b)
+    db.commit()
+    db.refresh(b)
+    return b
+
+
+@pytest.fixture()
+def regular(db, biz):
+    """A test Regular row."""
+    r = Regular(
+        business_id=biz.id,
+        name="Sarah",
+        visit_frequency_per_week=3,
+        avg_spend=20.0,
+        expected_lifespan_years=3,
+    )
+    db.add(r)
+    db.commit()
+    db.refresh(r)
+    return r
 
 
 @pytest.fixture()
