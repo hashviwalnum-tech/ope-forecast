@@ -9,6 +9,8 @@ import {
   YAxis,
 } from 'recharts'
 import { analytics } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
+import { useTheme } from '../contexts/ThemeContext'
 import type {
   ForecastResponse,
   OrderingResponse,
@@ -19,25 +21,26 @@ import type {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-800 mb-4">{title}</h2>
+      <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-4">{title}</h2>
       {children}
     </section>
   )
 }
 
 function NotEnoughData({ message }: { message?: string }) {
+  const { t } = useLanguage()
   return (
     <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-      <div className="w-14 h-14 mb-4 rounded-full bg-teal-50 flex items-center justify-center">
-        <svg className="w-7 h-7 text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="w-14 h-14 mb-4 rounded-full bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center">
+        <svg className="w-7 h-7 text-teal-300 dark:text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0
                002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0
                002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       </div>
-      <p className="text-sm text-center max-w-xs leading-relaxed text-slate-500">
-        {message ?? 'Keep adding days — your patterns will appear here after a couple of weeks of logging.'}
+      <p className="text-sm text-center max-w-xs leading-relaxed text-slate-500 dark:text-slate-400">
+        {message ?? t('keepLogging')}
       </p>
     </div>
   )
@@ -46,6 +49,8 @@ function NotEnoughData({ message }: { message?: string }) {
 // ── week prediction (7-day customer bars) ─────────────────────────────────────
 
 function ForecastChart({ data }: { data: ForecastResponse }) {
+  const { t } = useLanguage()
+  const { isDark } = useTheme()
   if (data.status !== 'ok' || data.days.length === 0) {
     return <NotEnoughData message={data.message} />
   }
@@ -61,27 +66,29 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
   const topModel = (weights: Record<string, number>) =>
     Object.entries(weights).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
 
+  const tickFill = isDark ? '#94a3b8' : '#64748b'
+  const gridStroke = isDark ? '#334155' : '#e2e8f0'
+
   return (
     <>
-      <p className="text-xs text-slate-400 mb-4 leading-relaxed">
-        We mix several prediction methods and give more weight to whichever has been most accurate lately.
-        Hover over a bar to see the expected range.
+      <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">
+        {t('predMixNote')}
       </p>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
-          <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 11 }} width={36} axisLine={false} tickLine={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+          <XAxis dataKey="name" tick={{ fontSize: 11, fill: tickFill }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 11, fill: tickFill }} width={36} axisLine={false} tickLine={false} />
           <Tooltip
-            cursor={{ fill: '#f2f8f7' }}
+            cursor={{ fill: isDark ? '#1e293b' : '#f2f8f7' }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null
               const d = payload[0].payload
               return (
-                <div className="bg-teal-25 dark:bg-slate-700 border border-teal-100 dark:border-slate-600 rounded-xl px-3 py-2 shadow text-xs">
-                  <p className="font-semibold text-slate-700 mb-1">{d.fullDay}</p>
-                  <p className="text-teal-600">Expected: <strong>{d.predicted}</strong> customers</p>
-                  <p className="text-slate-400">Likely range: {d.low} – {d.high}</p>
+                <div className="bg-white dark:bg-slate-800 border border-teal-100 dark:border-slate-600 rounded-xl px-3 py-2 shadow text-xs">
+                  <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">{d.fullDay}</p>
+                  <p className="text-teal-600 dark:text-teal-400">{t('expectedLabel')}: <strong>{d.predicted}</strong> {t('customersLabel')}</p>
+                  <p className="text-slate-400 dark:text-slate-500">{t('likelyRange')}: {d.low} – {d.high}</p>
                 </div>
               )
             }}
@@ -96,8 +103,8 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
             seasonal_naive: 'seasonal', wma: 'WMA', exp_smoothing: 'exp. smooth.',
           }
           return (
-            <span key={d.date} className="text-xs text-slate-400">
-              {d.weekday.slice(0, 3)}: <span className="text-slate-600">{label[top] ?? top}</span>
+            <span key={d.date} className="text-xs text-slate-400 dark:text-slate-500">
+              {d.weekday.slice(0, 3)}: <span className="text-slate-600 dark:text-slate-300">{label[top] ?? top}</span>
             </span>
           )
         })}
@@ -109,14 +116,15 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
 // ── ordering table ─────────────────────────────────────────────────────────────
 
 function OrderingTable({ data }: { data: OrderingResponse }) {
+  const { t } = useLanguage()
   if (data.status !== 'ok' || data.products.length === 0) {
     return <NotEnoughData message={data.message} />
   }
 
   return (
     <>
-      <p className="text-xs text-slate-400 mb-4 leading-relaxed">
-        Tells you when to reorder based on how long your supplier takes and how much demand varies day to day.
+      <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">
+        {t('orderingNoteText')}
       </p>
       <div className="space-y-3">
         {data.products.map(p => {
@@ -125,14 +133,14 @@ function OrderingTable({ data }: { data: OrderingResponse }) {
             <div
               key={p.product_id}
               className={`rounded-xl border overflow-hidden
-                ${p.order_now ? 'border-teal-200' : 'border-slate-100'}`}
+                ${p.order_now ? 'border-teal-200 dark:border-teal-700' : 'border-slate-100 dark:border-slate-700'}`}
             >
               <div className={`flex items-center justify-between gap-3 px-4 py-3
-                ${p.order_now ? 'bg-teal-50/60' : 'bg-slate-50/60'}`}
+                ${p.order_now ? 'bg-teal-50/60 dark:bg-teal-900/20' : 'bg-slate-50/60 dark:bg-slate-700/40'}`}
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-800">{p.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     ~{p.avg_daily_demand} {p.unit}/day · restock in {p.lead_time_days}d
                     {p.current_stock != null && ` · ${p.current_stock} ${p.unit} in stock`}
                   </p>
@@ -141,32 +149,32 @@ function OrderingTable({ data }: { data: OrderingResponse }) {
                   {p.order_now ? (
                     hasQty ? (
                       <span className="inline-block px-3 py-1 bg-teal-600 text-white rounded-full text-xs font-bold">
-                        Order ~{Math.round(p.suggested_order_qty!)} {p.unit}
+                        {t('orderNowBadge', { qty: `${Math.round(p.suggested_order_qty!)} ${p.unit}` })}
                       </span>
                     ) : (
-                      <span className="inline-block px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-                        Order now
+                      <span className="inline-block px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-semibold">
+                        {t('orderNowLabel')}
                       </span>
                     )
                   ) : p.current_stock != null ? (
-                    <span className="inline-block px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">
-                      You're good
+                    <span className="inline-block px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">
+                      {t('youreGood')}
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-400">No stock tracked</span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500">{t('noStockTracked')}</span>
                   )}
                 </div>
               </div>
               <div className="px-4 py-2 bg-teal-25 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex flex-wrap gap-x-4 gap-y-0.5">
-                <span className="text-xs text-slate-400">
-                  Reorder below: <strong className="text-slate-600">{p.reorder_point} {p.unit}</strong>
+                <span className="text-xs text-slate-400 dark:text-slate-500">
+                  {t('reorderBelowColon')} <strong className="text-slate-600 dark:text-slate-300">{p.reorder_point} {p.unit}</strong>
                 </span>
-                <span className="text-xs text-slate-400">
-                  Safety buffer: <strong className="text-slate-600">{p.safety_stock_units} {p.unit}</strong>
+                <span className="text-xs text-slate-400 dark:text-slate-500">
+                  {t('safetyBufferColon')} <strong className="text-slate-600 dark:text-slate-300">{p.safety_stock_units} {p.unit}</strong>
                 </span>
                 {p.eoq != null && (
-                  <span className="text-xs text-slate-400">
-                    EOQ: <strong className="text-slate-600">{p.eoq} {p.unit}</strong>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                    {t('eoqLabelColon')} <strong className="text-slate-600 dark:text-slate-300">{p.eoq} {p.unit}</strong>
                   </span>
                 )}
               </div>
@@ -183,6 +191,7 @@ function OrderingTable({ data }: { data: OrderingResponse }) {
 interface PanelProps { refreshKey?: number }
 
 export function WeekPredictionPanel({ refreshKey = 0 }: PanelProps) {
+  const { t } = useLanguage()
   const [forecast, setForecast] = useState<ForecastResponse | null>(null)
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState<string | null>(null)
@@ -197,28 +206,29 @@ export function WeekPredictionPanel({ refreshKey = 0 }: PanelProps) {
 
   if (loading) {
     return (
-      <Card title="Week prediction">
-        <p className="text-sm text-slate-400 animate-pulse py-8 text-center">Loading…</p>
+      <Card title={t('weekPredictionTitle')}>
+        <p className="text-sm text-slate-400 dark:text-slate-500 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
       </Card>
     )
   }
 
   if (error) {
     return (
-      <Card title="Week prediction">
-        <p className="text-sm text-red-600 py-4">{error}</p>
+      <Card title={t('weekPredictionTitle')}>
+        <p className="text-sm text-red-600 dark:text-red-400 py-4">{error}</p>
       </Card>
     )
   }
 
   return (
-    <Card title="Week prediction">
+    <Card title={t('weekPredictionTitle')}>
       {forecast ? <ForecastChart data={forecast} /> : <NotEnoughData />}
     </Card>
   )
 }
 
 export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
+  const { t } = useLanguage()
   const [ordering, setOrdering] = useState<OrderingResponse | null>(null)
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState<string | null>(null)
@@ -233,22 +243,22 @@ export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
 
   if (loading) {
     return (
-      <Card title="What to order now">
-        <p className="text-sm text-slate-400 animate-pulse py-8 text-center">Loading…</p>
+      <Card title={t('whatToOrderTitle')}>
+        <p className="text-sm text-slate-400 dark:text-slate-500 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
       </Card>
     )
   }
 
   if (error) {
     return (
-      <Card title="What to order now">
-        <p className="text-sm text-red-600 py-4">{error}</p>
+      <Card title={t('whatToOrderTitle')}>
+        <p className="text-sm text-red-600 dark:text-red-400 py-4">{error}</p>
       </Card>
     )
   }
 
   return (
-    <Card title="What to order now">
+    <Card title={t('whatToOrderTitle')}>
       {ordering ? <OrderingTable data={ordering} /> : <NotEnoughData />}
     </Card>
   )

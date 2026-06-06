@@ -271,7 +271,7 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
       )}
 
       {error && (
-        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+        <p className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
           {error}
         </p>
       )}
@@ -500,7 +500,7 @@ function EditProductForm({
       </div>
 
       {error && (
-        <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <p className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
           {error}
         </p>
       )}

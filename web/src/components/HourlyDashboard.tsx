@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import { analytics } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useTheme } from '../contexts/ThemeContext'
 import type { WeekdayHourlyEntry, WeekdayHourlyResponse, WeekdayHourlySlot } from '../api/types'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -82,6 +83,7 @@ function TomorrowPanel({
   isFallback: boolean
 }) {
   const { t } = useLanguage()
+  const { isDark } = useTheme()
   const busiest = [...slots].sort((a, b) => b.avg_taps - a.avg_taps)[0]
   const chartData = slots.map(h => ({
     name: fmtHour(h.hour),
@@ -125,12 +127,17 @@ function TomorrowPanel({
         </p>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11 }} width={36} axisLine={false} tickLine={false} allowDecimals={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} width={36} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip
-              contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #ccece9' }}
-              labelStyle={{ color: '#334155', fontWeight: 600 }}
+              contentStyle={{
+                fontSize: 12, borderRadius: 8,
+                border: `1px solid ${isDark ? '#334155' : '#ccece9'}`,
+                background: isDark ? '#1e293b' : '#fff',
+                color: isDark ? '#e2e8f0' : '#334155',
+              }}
+              labelStyle={{ color: isDark ? '#e2e8f0' : '#334155', fontWeight: 600 }}
               formatter={(v, name) => [
                 typeof v === 'number' ? v.toFixed(1) : v,
                 name === 'staff' ? t('staffNeededTooltip') : t('avgCustomersTooltip'),

@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import { analytics } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useTheme } from '../contexts/ThemeContext'
 import type { Lang } from '../i18n'
 import type { ForecastResponse, ProductForecastItem, ProductForecastResponse } from '../api/types'
 
@@ -143,6 +144,7 @@ interface Props { refreshKey?: number }
 
 export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
   const { t, lang } = useLanguage()
+  const { isDark } = useTheme()
   const [forecast, setForecast]   = useState<ForecastResponse | null>(null)
   const [products, setProducts]   = useState<ProductForecastResponse | null>(null)
   const [selected, setSelected]   = useState<'customers' | number>('customers')
@@ -249,16 +251,16 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
             <YAxis
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }}
               width={yLabel.length > 4 ? 48 : 36}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
-              cursor={{ fill: '#f2f8f7' }}
+              cursor={{ fill: isDark ? '#1e293b' : '#f2f8f7' }}
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null
                 const d = payload[0].payload

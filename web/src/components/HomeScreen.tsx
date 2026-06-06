@@ -10,26 +10,13 @@ import { businesses as businessesApi, dayRecords as dayRecordsApi, regulars as r
 import { useLanguage } from '../contexts/LanguageContext'
 import type { RegularRead } from '../api/types'
 import type { TranslationKey } from '../i18n'
-import type { CardId } from '../lib/homeLayout'
+import { ALL_CARD_DEFS, type CardId, type CardDef } from '../lib/homeLayout'
 
 // ── Card catalogue ────────────────────────────────────────────────────────────
 
 export type { CardId }
 
-interface CardConfig {
-  id: CardId
-  labelKey: string
-  visible: boolean
-}
-
-// Note: labelKey refers to i18n keys; we use a fixed map below
-export const ALL_CARD_DEFS: CardConfig[] = [
-  { id: 'ordering',  labelKey: 'cardOrdering',  visible: true  },
-  { id: 'forecast',  labelKey: 'cardForecast',  visible: true  },
-  { id: 'hours',     labelKey: 'cardHours',     visible: true  },
-  { id: 'accuracy',  labelKey: 'cardAccuracy',  visible: false },
-  { id: 'trends',    labelKey: 'cardTrends',    visible: false },
-]
+type CardConfig = CardDef
 
 const STORAGE_KEY = 'ope_home_layout_v3'
 

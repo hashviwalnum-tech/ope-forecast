@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { regulars as api } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
 import type { RegularCreate, RegularRead, RegularUpdate } from '../api/types'
 
 function fmtCLV(clv: number) {
@@ -16,6 +17,7 @@ function liveClv(avgSpend: number, freq: number, years: number) {
 }
 
 export default function RegularsPanel() {
+  const { t } = useLanguage()
   const [rows, setRows]         = useState<RegularRead[]>([])
   const [loading, setLoading]   = useState(true)
   const [adding, setAdding]     = useState(false)
@@ -26,7 +28,6 @@ export default function RegularsPanel() {
   const [visitErr, setVisitErr] = useState<string | null>(null)
   const [showOptional, setShowOptional] = useState(false)
 
-  // Visit-recording state per regular
   const [visitAmounts, setVisitAmounts] = useState<Record<number, string>>({})
   const [visitRecording, setVisitRecording] = useState<number | null>(null)
 
@@ -95,7 +96,7 @@ export default function RegularsPanel() {
   }
 
   async function del(id: number) {
-    if (!confirm('Remove this regular?')) return
+    if (!confirm(t('removeRegularConfirm'))) return
     await api.delete(id)
     load()
   }
@@ -108,7 +109,7 @@ export default function RegularsPanel() {
       const amountStr = visitAmounts[id]
       const amount_paid = amountStr ? parseFloat(amountStr) : undefined
       await api.recordVisit(id, amount_paid != null && !isNaN(amount_paid) ? { amount_paid } : undefined)
-      setVisitMsg(`Visit recorded for ${name}`)
+      setVisitMsg(t('visitRecordedFor', { name }))
       setTimeout(() => setVisitMsg(null), 3000)
       load()
     } catch (e: unknown) {
@@ -136,7 +137,6 @@ export default function RegularsPanel() {
         </div>
       )}
 
-      {/* Add button */}
       {!showForm && (
         <button
           onClick={startAdd}
@@ -146,21 +146,19 @@ export default function RegularsPanel() {
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Add a regular
+          {t('addARegular')}
         </button>
       )}
 
-      {/* Form */}
       {showForm && (
         <div className="rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm space-y-4">
           <h3 className="font-semibold text-slate-700 dark:text-slate-200">
-            {editing ? 'Edit regular' : 'Add a regular'}
+            {editing ? t('editRegularTitle') : t('addARegular')}
           </h3>
 
-          {/* Primary fields: name + avg spend */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Name</label>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('nameLabel')}</label>
               <input
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -173,7 +171,7 @@ export default function RegularsPanel() {
 
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                Average spend per visit ($)
+                {t('avgSpendLabel')}
               </label>
               <input
                 type="number" min="0" step="0.5"
@@ -189,28 +187,31 @@ export default function RegularsPanel() {
           {/* Live CLV preview */}
           <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 px-4 py-3">
             <p className="text-xs text-teal-600 dark:text-teal-400 font-medium">
-              Estimated customer value over {form.expected_lifespan_years ?? 3} years:
+              {t('clvEstimateText', { years: String(form.expected_lifespan_years ?? 3) })}
               <span className="text-teal-800 dark:text-teal-200 font-bold ml-1">{fmtCLV(clvPreview)}</span>
             </p>
             <p className="text-[11px] text-teal-500 dark:text-teal-500 mt-0.5">
-              {form.visit_frequency_per_week} visits/week × ${form.avg_spend}/visit × 52 weeks × {form.expected_lifespan_years ?? 3} yrs
+              {t('clvFormulaText', {
+                freq: String(form.visit_frequency_per_week),
+                spend: String(form.avg_spend),
+                years: String(form.expected_lifespan_years ?? 3),
+              })}
             </p>
           </div>
 
-          {/* Optional details toggle */}
           <button
             type="button"
             onClick={() => setShowOptional(o => !o)}
             className="text-xs text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1"
           >
-            {showOptional ? '▴' : '▾'} Optional details (visit frequency, loyalty period, notes)
+            {showOptional ? '▴' : '▾'} {t('optionalDetailsToggle')}
           </button>
 
           {showOptional && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  Visits per week
+                  {t('visitsPerWeek')}
                 </label>
                 <input
                   type="number" min="0.1" step="0.5"
@@ -224,7 +225,7 @@ export default function RegularsPanel() {
 
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  Expected loyalty (years)
+                  {t('expectedLoyalty')}
                 </label>
                 <input
                   type="number" min="0.5" step="0.5"
@@ -237,7 +238,7 @@ export default function RegularsPanel() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Notes (optional)</label>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('notesOptional')}</label>
                 <input
                   value={form.notes ?? ''}
                   onChange={e => setForm(f => ({ ...f, notes: e.target.value || undefined }))}
@@ -259,27 +260,26 @@ export default function RegularsPanel() {
               className="px-5 py-2 rounded-xl bg-teal-600 text-white text-sm font-semibold
                          hover:bg-teal-700 disabled:opacity-50 transition-colors"
             >
-              {saving ? 'Saving…' : 'Save'}
+              {saving ? t('savingLabel') : t('saveLabel')}
             </button>
             <button
               onClick={cancel}
               className="px-5 py-2 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-sm
                          hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
-              Cancel
+              {t('cancelBtn')}
             </button>
           </div>
         </div>
       )}
 
-      {/* List */}
       {loading ? (
-        <p className="text-sm text-slate-400">Loading…</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500">{t('savingLabel')}</p>
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 p-8 text-center">
-          <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">No regulars yet</p>
+          <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">{t('noRegularsEmptyTitle')}</p>
           <p className="text-xs text-teal-400 dark:text-teal-600 mt-1">
-            Add your loyal customers to track how valuable they are over time.
+            {t('noRegularsEmptyDesc')}
           </p>
         </div>
       ) : (
@@ -298,15 +298,19 @@ export default function RegularsPanel() {
                       CLV {fmtCLV(r.clv)}
                     </span>
                     {r.visit_count > 0 && (
-                      <span className="text-xs text-slate-400 dark:text-slate-500">{r.visit_count} visit{r.visit_count !== 1 ? 's' : ''} logged</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500">
+                        {t('visitsLogged', { n: String(r.visit_count), s: r.visit_count !== 1 ? 's' : '', ים: r.visit_count !== 1 ? 'ים' : '', ו: r.visit_count !== 1 ? 'ו' : '' })}
+                      </span>
                     )}
                   </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                    {r.visit_frequency_per_week}×/week · ${r.avg_spend}/visit · {r.expected_lifespan_years} yr lifespan
+                    {r.visit_frequency_per_week}×/week · ${r.avg_spend}/visit · {r.expected_lifespan_years} yr
                   </p>
                   {r.notes && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 italic">{r.notes}</p>}
                   {r.last_visit_date && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Last visit: {fmtDate(r.last_visit_date)}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                      {t('lastVisitLabel', { date: fmtDate(r.last_visit_date) ?? '' })}
+                    </p>
                   )}
                 </div>
 
@@ -316,21 +320,21 @@ export default function RegularsPanel() {
                     className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-xs
                                hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                   >
-                    Edit
+                    {t('editBtn')}
                   </button>
                   <button
                     onClick={() => del(r.id)}
                     className="px-3 py-1.5 rounded-lg border border-rose-100 dark:border-rose-900 text-rose-500 dark:text-rose-400 text-xs
                                hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
                   >
-                    Remove
+                    {t('removeBtn')}
                   </button>
                 </div>
               </div>
 
               {/* Record visit row */}
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">Record visit — amount paid:</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('recordVisitAmountLabel')}</span>
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-slate-400 dark:text-slate-500">$</span>
                   <input
@@ -350,7 +354,7 @@ export default function RegularsPanel() {
                   className="px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold
                              hover:bg-teal-700 disabled:opacity-50 transition-colors"
                 >
-                  {visitRecording === r.id ? '…' : 'Record visit'}
+                  {visitRecording === r.id ? '…' : t('recordVisit')}
                 </button>
               </div>
             </div>
@@ -359,7 +363,7 @@ export default function RegularsPanel() {
       )}
 
       <p className="text-xs text-slate-400 dark:text-slate-500">
-        Regulars are tracked separately — their visits never mix with your daily demand data.
+        {t('regularsNote')}
       </p>
     </div>
   )

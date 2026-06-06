@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import * as api from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
 import type { BusinessRead } from '../api/types'
 
 interface Props {
@@ -21,11 +22,11 @@ export default function BusinessSetup({
   existingBusinesses = [],
   onCancel,
 }: Props) {
+  const { t } = useLanguage()
   const [name, setName] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // copy-from flow
   const showCopyOption = isAdditional && isPremium && existingBusinesses.length > 0
   const [mode, setMode] = useState<'fresh' | 'copy'>('fresh')
   const [copySourceId, setCopySourceId] = useState<number>(existingBusinesses[0]?.id ?? 0)
@@ -58,53 +59,55 @@ export default function BusinessSetup({
 
         {atLimit ? (
           <>
-            <h1 className="text-xl font-semibold text-slate-700 mb-2">One location on the free plan</h1>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">
-              Your free plan includes one location. Upgrade to premium in{' '}
-              <strong>Manage → Settings</strong> to add more.
+            <h1 className="text-xl font-semibold text-slate-700 dark:text-slate-100 mb-2">
+              {t('oneFreeLocation')}
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+              {t('freePlanOneLocMsg')}
             </p>
             {onCancel && (
               <button
                 onClick={onCancel}
-                className="w-full py-3 rounded-xl border border-slate-200 text-slate-600
-                           text-sm font-semibold hover:bg-slate-50 transition-colors"
+                className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-600
+                           text-slate-600 dark:text-slate-300
+                           text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
-                Go back
+                {t('goBack')}
               </button>
             )}
           </>
         ) : (
           <>
-            <h1 className="text-xl font-semibold text-slate-700 mb-2">
-              {isAdditional ? 'Add a location' : 'Welcome to Ope!'}
+            <h1 className="text-xl font-semibold text-slate-700 dark:text-slate-100 mb-2">
+              {isAdditional ? t('addLocation') : t('welcomeTitle')}
             </h1>
-            <p className="text-sm text-slate-500 mb-6">
-              {isAdditional
-                ? 'Give your new location a name to get started.'
-                : "Let's get started. What's your business called?"}
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+              {isAdditional ? t('locationNameHint') : t('businessNameHint')}
             </p>
 
             {showCopyOption && (
-              <div className="mb-5 rounded-xl border border-teal-100 overflow-hidden">
+              <div className="mb-5 rounded-xl border border-teal-100 dark:border-teal-800 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setMode('fresh')}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors ${
-                    mode === 'fresh' ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300' : 'bg-teal-25 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700'
+                    mode === 'fresh'
+                      ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                      : 'bg-teal-25 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   <span className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                    mode === 'fresh' ? 'border-teal-600' : 'border-slate-300'
+                    mode === 'fresh' ? 'border-teal-600' : 'border-slate-300 dark:border-slate-500'
                   }`}>
                     {mode === 'fresh' && <span className="w-2 h-2 rounded-full bg-teal-600" />}
                   </span>
                   <div>
-                    <span className="font-medium">Start fresh</span>
-                    <span className="block text-xs text-slate-400 mt-0.5">Empty location, no products or settings</span>
+                    <span className="font-medium">{t('startFreshLabel')}</span>
+                    <span className="block text-xs text-slate-400 dark:text-slate-500 mt-0.5">{t('startFreshDesc')}</span>
                   </div>
                 </button>
 
-                <div className={`border-t border-teal-100 transition-colors ${
+                <div className={`border-t border-teal-100 dark:border-teal-800 transition-colors ${
                   mode === 'copy' ? 'bg-teal-50 dark:bg-teal-900/30' : 'bg-teal-25 dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700'
                 }`}>
                   <button
@@ -113,29 +116,30 @@ export default function BusinessSetup({
                     className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm"
                   >
                     <span className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                      mode === 'copy' ? 'border-teal-600' : 'border-slate-300'
+                      mode === 'copy' ? 'border-teal-600' : 'border-slate-300 dark:border-slate-500'
                     }`}>
                       {mode === 'copy' && <span className="w-2 h-2 rounded-full bg-teal-600" />}
                     </span>
                     <div>
-                      <span className={`font-medium ${mode === 'copy' ? 'text-teal-700' : 'text-slate-600'}`}>
-                        Copy settings & products
+                      <span className={`font-medium ${mode === 'copy' ? 'text-teal-700 dark:text-teal-300' : 'text-slate-600 dark:text-slate-300'}`}>
+                        {t('copySettingsTitle')}
                       </span>
-                      <span className="block text-xs text-slate-400 mt-0.5">
-                        Same hours, open days, and product list — no history copied
+                      <span className="block text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                        {t('copySettingsDesc')}
                       </span>
                     </div>
                   </button>
 
                   {mode === 'copy' && (
                     <div className="px-4 pb-3">
-                      <label className="block text-xs font-medium text-slate-600 mb-1.5">
-                        Copy from which location?
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+                        {t('copyFromWhich')}
                       </label>
                       <select
                         value={copySourceId}
                         onChange={e => setCopySourceId(Number(e.target.value))}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 text-sm
+                                   text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700
                                    focus:outline-none focus:ring-2 focus:ring-teal-400"
                       >
                         {existingBusinesses.map(b => (
@@ -155,12 +159,13 @@ export default function BusinessSetup({
                 autoFocus
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder={isAdditional ? 'Second Location, North Branch, …' : 'Corner Café, My Salon, …'}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800
+                placeholder={isAdditional ? t('locationNamePlaceholder') : t('businessNamePlaceholder')}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600
+                           text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700
                            focus:outline-none focus:ring-2 focus:ring-teal-400"
               />
               {error && (
-                <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+                <p className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">{error}</p>
               )}
               <button
                 type="submit"
@@ -169,17 +174,18 @@ export default function BusinessSetup({
                            hover:bg-teal-700 disabled:opacity-60 transition-colors"
               >
                 {submitting
-                  ? (mode === 'copy' ? 'Copying…' : 'Setting up…')
-                  : isAdditional ? 'Add location' : 'Get started'}
+                  ? (mode === 'copy' ? t('copying') : t('settingUp'))
+                  : isAdditional ? t('addLocationBtn') : t('getStartedBtn')}
               </button>
               {onCancel && (
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="w-full py-3 rounded-xl border border-slate-200 text-slate-600
-                             text-sm font-semibold hover:bg-slate-50 transition-colors"
+                  className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-600
+                             text-slate-600 dark:text-slate-300
+                             text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
-                  Cancel
+                  {t('cancelBtn')}
                 </button>
               )}
             </form>

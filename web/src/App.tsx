@@ -152,15 +152,17 @@ function AppInner() {
     setBizLoaded(true)
   }
 
-  async function handleDeleteBusiness(bizId: number, bizName: string) {
+  function handleDeleteBusiness(bizId: number, bizName: string) {
     if (!confirm(t('deleteLocationConfirm', { name: bizName }))) return
-    try {
-      await api.businesses.delete(bizId)
-      await loadBusinesses()
-      setSwitcherOpen(false)
-    } catch {
-      alert(t('deleteLocationError'))
-    }
+    setSwitcherOpen(false) // close immediately — keeps the UI responsive
+    setTimeout(async () => {
+      try {
+        await api.businesses.delete(bizId)
+        await loadBusinesses()
+      } catch {
+        alert(t('deleteLocationError'))
+      }
+    }, 0)
   }
 
   // ── Guards ────────────────────────────────────────────────────────────────

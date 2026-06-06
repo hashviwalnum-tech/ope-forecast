@@ -1,6 +1,7 @@
 import { OrderingPanel, WeekPredictionPanel } from './ForecastDashboard'
 import HourlyDashboard from './HourlyDashboard'
 import MergedForecastPanel from './MergedForecastPanel'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface Props {
   refreshKey: number
@@ -12,6 +13,7 @@ interface Props {
  * This tab preserves the full view so customizing home never loses anything.
  */
 export default function PredictionsScreen({ refreshKey }: Props) {
+  const { t } = useLanguage()
   return (
     <div className="space-y-8">
       <OrderingPanel refreshKey={refreshKey} />
@@ -19,7 +21,7 @@ export default function PredictionsScreen({ refreshKey }: Props) {
       <WeekPredictionPanel refreshKey={refreshKey} />
       <section>
         <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
-          Busy hours
+          {t('busyHoursLabel')}
         </h2>
         <HourlyDashboard />
       </section>

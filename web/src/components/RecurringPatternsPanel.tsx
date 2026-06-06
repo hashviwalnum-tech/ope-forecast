@@ -1,29 +1,13 @@
 import { useEffect, useState } from 'react'
 import { recurringPatterns as api } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
 import type { RecurringPatternCreate, RecurringPatternRead } from '../api/types'
 
 const WD_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const WD_LONG  = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-function fmtWeekdays(wds: number[]) {
-  if (wds.length === 7) return 'Every day'
-  return wds.map(w => WD_SHORT[w]).join(', ')
-}
-
-function fmtHourRange(start: number | null, end: number | null) {
-  if (start === null && end === null) return 'All hours'
-  function fmt(h: number) {
-    if (h === 0) return '12 am'
-    if (h < 12) return `${h} am`
-    if (h === 12) return '12 pm'
-    return `${h - 12} pm`
-  }
-  if (start !== null && end !== null) return `${fmt(start)}–${fmt(end)}`
-  if (start !== null) return `From ${fmt(start)} (end inferred from data)`
-  return `Until ${fmt(end!)}`
-}
-
 export default function RecurringPatternsPanel() {
+  const { t } = useLanguage()
   const [rows, setRows]       = useState<RecurringPatternRead[]>([])
   const [loading, setLoading] = useState(true)
   const [adding, setAdding]   = useState(false)
@@ -34,6 +18,31 @@ export default function RecurringPatternsPanel() {
     label: '', weekdays: [], effect: 'higher',
     hour_start: undefined, hour_end: undefined,
   })
+
+  function fmtWeekdays(wds: number[]) {
+    if (wds.length === 7) return t('everyDay')
+    return wds.map(w => WD_SHORT[w]).join(', ')
+  }
+
+  function fmt12h(h: number): string {
+    if (h === 0) return '12 am'
+    if (h < 12) return `${h} am`
+    if (h === 12) return '12 pm'
+    return `${h - 12} pm`
+  }
+
+  function fmtHourRange(start: number | null, end: number | null): string {
+    if (start === null && end === null) return t('allHours')
+    if (start !== null && end !== null) return `${fmt12h(start)}–${fmt12h(end)}`
+    if (start !== null) return t('fromHourInferred', { hour: fmt12h(start) })
+    return t('untilHour', { hour: fmt12h(end!) })
+  }
+
+  function effectLabel(effect: string): string {
+    if (effect === 'higher') return t('effectBusier')
+    if (effect === 'lower')  return t('effectQuieter')
+    return t('effectExpectedLabel')
+  }
 
   async function load() {
     setLoading(true)
@@ -60,7 +69,7 @@ export default function RecurringPatternsPanel() {
 
   async function save() {
     if (!form.label.trim() || form.weekdays.length === 0) {
-      setError('Please fill in a name and choose at least one day.')
+      setError(t('patternFillName'))
       return
     }
     setSaving(true)
@@ -77,7 +86,7 @@ export default function RecurringPatternsPanel() {
   }
 
   async function del(id: number) {
-    if (!confirm('Remove this recurring pattern?')) return
+    if (!confirm(t('removeBtn') + '?')) return
     await api.delete(id)
     load()
   }
@@ -85,8 +94,7 @@ export default function RecurringPatternsPanel() {
   return (
     <div className="space-y-6">
       <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800 px-4 py-3 text-sm text-teal-700 dark:text-teal-300">
-        <strong>Teach Ope your world.</strong> Declare patterns you know repeat — like a school trip every Sunday
-        — and Ope will expect them instead of flagging them as unusual.
+        <strong>{t('teachOpeTitle')}</strong> {t('teachOpeDesc')}
       </div>
 
       {!adding && (
@@ -98,16 +106,16 @@ export default function RecurringPatternsPanel() {
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Declare a recurring pattern
+          {t('declarePattern')}
         </button>
       )}
 
       {adding && (
         <div className="rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm space-y-4">
-          <h3 className="font-semibold text-slate-700 dark:text-slate-200">New recurring pattern</h3>
+          <h3 className="font-semibold text-slate-700 dark:text-slate-200">{t('newPatternTitle')}</h3>
 
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Name</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('nameLabel')}</label>
             <input
               value={form.label}
               onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
@@ -119,7 +127,7 @@ export default function RecurringPatternsPanel() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Which days?</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">{t('whichDays')}</label>
             <div className="flex flex-wrap gap-2">
               {WD_LONG.map((_name, idx) => (
                 <button
@@ -140,7 +148,7 @@ export default function RecurringPatternsPanel() {
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Effect</label>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('effectLabel')}</label>
               <select
                 value={form.effect ?? 'higher'}
                 onChange={e => setForm(f => ({ ...f, effect: e.target.value }))}
@@ -148,15 +156,15 @@ export default function RecurringPatternsPanel() {
                            bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                            focus:outline-none focus:ring-2 focus:ring-teal-300"
               >
-                <option value="higher">Busier than usual</option>
-                <option value="lower">Quieter than usual</option>
-                <option value="expected">Just expected (no change)</option>
+                <option value="higher">{t('effectHigher')}</option>
+                <option value="lower">{t('effectLower')}</option>
+                <option value="expected">{t('effectExpected')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                Start hour (optional)
+                {t('startHourOptional')}
               </label>
               <input
                 type="number" min="0" max="23"
@@ -171,7 +179,7 @@ export default function RecurringPatternsPanel() {
 
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                End hour (optional)
+                {t('endHourOptional')}
               </label>
               <input
                 type="number" min="0" max="23"
@@ -184,7 +192,7 @@ export default function RecurringPatternsPanel() {
               />
               {form.hour_start != null && form.hour_end == null && (
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-                  If blank, Ope will estimate the pattern's end from your sales data.
+                  {t('endHourNote')}
                 </p>
               )}
             </div>
@@ -199,26 +207,26 @@ export default function RecurringPatternsPanel() {
               className="px-5 py-2 rounded-xl bg-teal-600 text-white text-sm font-semibold
                          hover:bg-teal-700 disabled:opacity-50 transition-colors"
             >
-              {saving ? 'Saving…' : 'Save pattern'}
+              {saving ? t('savingLabel') : t('savePattern')}
             </button>
             <button
               onClick={cancel}
               className="px-5 py-2 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-sm
                          hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
-              Cancel
+              {t('cancelBtn')}
             </button>
           </div>
         </div>
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-400">Loading…</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500">{t('savingLabel')}</p>
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 p-8 text-center">
-          <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">No recurring patterns yet</p>
+          <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">{t('noRecurringPatterns')}</p>
           <p className="text-xs text-teal-400 dark:text-teal-600 mt-1">
-            Declare patterns you know repeat — Ope will expect them and stop flagging them.
+            {t('noRecurringDesc')}
           </p>
         </div>
       ) : (
@@ -238,7 +246,7 @@ export default function RecurringPatternsPanel() {
                         ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-800'
                         : 'bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600'
                   }`}>
-                    {rp.effect === 'higher' ? 'Busier' : rp.effect === 'lower' ? 'Quieter' : 'Expected'}
+                    {effectLabel(rp.effect)}
                   </span>
                 </div>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -255,7 +263,7 @@ export default function RecurringPatternsPanel() {
                 className="px-3 py-1.5 rounded-lg border border-rose-100 dark:border-rose-900 text-rose-500 dark:text-rose-400 text-xs
                            hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors shrink-0"
               >
-                Remove
+                {t('removeBtn')}
               </button>
             </div>
           ))}
