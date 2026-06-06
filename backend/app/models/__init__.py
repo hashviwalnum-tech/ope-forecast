@@ -8,6 +8,7 @@ from app.models.recurring_pattern import RecurringPattern
 from app.models.regular import Regular
 from app.models.sale_event import SaleEvent
 from app.models.sale_record import SaleRecord
+from app.models.telegram_link import TelegramLink
 
 __all__ = [
     "Base",
@@ -20,4 +21,5 @@ __all__ = [
     "Regular",
     "SaleEvent",
     "SaleRecord",
+    "TelegramLink",
 ]

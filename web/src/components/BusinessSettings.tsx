@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { businesses } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
+import TelegramConnectPanel from './TelegramConnectPanel'
 
 interface Props {
   onTierChanged?: () => void
@@ -259,6 +260,9 @@ export default function BusinessSettings({ onTierChanged }: Props) {
           </p>
         )}
       </div>
+
+      {/* ── Telegram integration ─────────────────────────────────────── */}
+      <TelegramConnectPanel />
     </form>
   )
 }

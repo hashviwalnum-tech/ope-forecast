@@ -2,6 +2,8 @@ import { supabase } from '../lib/supabase'
 import type {
   AccuracyResponse,
   BusinessRead,
+  TelegramLinkCodeResponse,
+  TelegramLinkStatus,
   DayRecordCreate,
   HourlyAnalyticsResponse,
   HourlyBackfillSlot,
@@ -221,4 +223,10 @@ export const regulars = {
   delete:      (id: number)                 => DELETE(`/regulars/${id}`),
   recordVisit: (id: number, body?: RegularVisitBody) =>
     POST<RegularRead>(`/regulars/${id}/visit`, body ?? {}),
+}
+
+export const telegram = {
+  generateCode: ()               => POST<TelegramLinkCodeResponse>('/telegram/link-code', {}),
+  getStatus:    ()               => GET<TelegramLinkStatus>('/telegram/link'),
+  revoke:       ()               => DELETE('/telegram/link'),
 }

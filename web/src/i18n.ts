@@ -242,6 +242,22 @@ export const translations = {
     loadingHourlyData: 'Loading hourly data…',
     couldntLoadHourly: "Couldn't load hourly data — is the backend running?",
     marginalNoteLabel: 'Adding or removing staff:',
+
+    // Telegram Connect
+    telegramLabel: 'Connect Telegram',
+    telegramDesc: 'Link your Ope account to a Telegram bot so you can log sales and get forecasts by chat.',
+    telegramLinked: 'Linked to Telegram chat {id}',
+    telegramGenerate: 'Generate link code',
+    telegramGenerating: 'Generating…',
+    telegramRelink: 'Link a different chat',
+    telegramRevoke: 'Disconnect',
+    telegramRevokeConfirm: 'Disconnect Telegram? The bot will stop working until you link again.',
+    telegramCodeInstructions: 'Send this command to the Ope bot on Telegram. The code expires in 60 minutes.',
+    telegramCodeExpiry: 'This code is single-use and expires in 60 minutes.',
+    telegramRefreshCode: 'Generate a new code',
+    telegramGenerateError: 'Could not generate a code — please try again.',
+    telegramRevokeError: 'Could not disconnect — please try again.',
+    copyToClipboard: 'Copy to clipboard',
   },
   he: {
     // Nav
@@ -484,6 +500,22 @@ export const translations = {
     loadingHourlyData: 'טוען נתוני שעות…',
     couldntLoadHourly: 'לא ניתן לטעון נתוני שעות — האם השרת פועל?',
     marginalNoteLabel: 'הוספה/הסרה של עובד:',
+
+    // Telegram Connect
+    telegramLabel: 'חיבור לטלגרם',
+    telegramDesc: 'קשר את חשבון Ope שלך לבוט טלגרם כדי לרשום מכירות ולקבל תחזיות בצ׳אט.',
+    telegramLinked: 'מחובר לצ׳אט טלגרם {id}',
+    telegramGenerate: 'צור קוד קישור',
+    telegramGenerating: 'יוצר…',
+    telegramRelink: 'קשר צ׳אט אחר',
+    telegramRevoke: 'נתק',
+    telegramRevokeConfirm: 'לנתק את טלגרם? הבוט יפסיק לעבוד עד שתקשר שוב.',
+    telegramCodeInstructions: 'שלח פקודה זו לבוט Ope בטלגרם. הקוד יפוג תוך 60 דקות.',
+    telegramCodeExpiry: 'קוד זה חד-פעמי ופג תוך 60 דקות.',
+    telegramRefreshCode: 'צור קוד חדש',
+    telegramGenerateError: 'לא ניתן ליצור קוד — נסה שוב.',
+    telegramRevokeError: 'לא ניתן לנתק — נסה שוב.',
+    copyToClipboard: 'העתק ללוח',
   },
 } as const satisfies Record<Lang, Record<string, string>>
 

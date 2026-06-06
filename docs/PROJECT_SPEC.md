@@ -134,6 +134,13 @@ React Native (Expo) app reusing the same backend API and a shared TypeScript pac
 ### Phase 5 — Integrations
 Smart register / POS connectors to auto-import sales.
 
+**Telegram bot (a client of the Ope API — integration & moat feature):** lets owners log sales and ask for forecasts/orders in plain language. It's an **agent**: an LLM receives the message, chooses among tools (`log_sale`, `get_forecast`, `get_order_recommendation`), each tool calls the Ope API, and the LLM replies plainly. Real-data (production) architecture:
+- **Account linking:** each Telegram user has a unique `chat_id`. The owner generates a **one-time link code** in the web app and sends it to the bot once (`/link CODE`); the backend stores a **TelegramLink** (chat_id ↔ business_id), revocable from the web app. The bot never handles user passwords.
+- **Service auth:** the bot is a trusted server-side caller holding a **bot service key** (shared secret). It calls dedicated backend endpoints that trust that key and scope every request to the linked business_id. Never reuse human login tokens in the bot.
+- **Tools call the real Ope API** (Render backend) and return that business's real data — not stubs.
+- **LLM provider swappable** behind a small abstraction (paid API / Gemini / local Ollama) so the model can change without touching tool logic.
+- New table **TelegramLink** (id, business_id, chat_id, created_at); new endpoints: generate-link-code, redeem-link-code, and service-authed tool endpoints.
+
 ## 4. Architecture (this is what makes "web now, mobile later" painless)
 
 **API-first.** All business logic and math live behind a single JSON HTTP API. The web app is one client of that API; the future mobile app is another. Nothing in the backend changes when mobile arrives. Do **not** put forecasting logic in the frontend.

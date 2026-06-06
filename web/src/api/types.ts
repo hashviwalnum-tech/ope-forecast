@@ -1,5 +1,18 @@
 // Mirror of backend Pydantic schemas.  Keep in sync with app/schemas/*.py.
 
+// ── Telegram ──────────────────────────────────────────────────────────────────
+
+export interface TelegramLinkCodeResponse {
+  code: string
+  expires_in_minutes: number
+}
+
+export interface TelegramLinkStatus {
+  linked: boolean
+  chat_id: string | null
+  has_pending_code: boolean
+}
+
 // ── RecurringPattern ──────────────────────────────────────────────────────────
 
 export interface RecurringPatternRead {
