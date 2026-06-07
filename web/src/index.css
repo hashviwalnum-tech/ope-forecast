@@ -24,3 +24,15 @@
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; background: var(--color-teal-50); }
 #root { min-height: 100vh; }
+
+/* Logo: transparent PNG — no outline in light mode; thin white outline in dark mode */
+.logo-img {
+  display: block;
+}
+.dark .logo-img {
+  /* drop-shadow follows the actual shape (not the bounding box),
+     so this paints a white outline around the logo shapes themselves */
+  filter:
+    drop-shadow(0 0 1px rgba(255,255,255,0.95))
+    drop-shadow(0 0 3px rgba(255,255,255,0.45));
+}

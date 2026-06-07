@@ -281,7 +281,7 @@ function AppInner() {
 
         {/* Brand */}
         <div className="flex items-center gap-3 shrink-0">
-          <img src={logo} alt="Ope logo" className="h-11 w-auto" />
+          <img src={logo} alt="Ope logo" className="logo-img h-11 w-auto" />
           <div className="leading-tight">
             <span className="block text-xl font-bold text-teal-700 dark:text-teal-300 tracking-tight">Ope</span>
             <span className="block text-xs text-teal-500 dark:text-teal-400 font-medium">{t('slogan')}</span>
