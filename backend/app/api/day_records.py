@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
@@ -151,9 +152,17 @@ def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db), biz:
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
     _timing_check(body.date, biz)
+    # Reject duplicates before hitting the unique constraint so the error is a
+    # clean 409 rather than an unhandled IntegrityError that looks like CORS.
+    if db.query(DayRecord).filter_by(business_id=biz.id, date=body.date).first():
+        raise HTTPException(status_code=409, detail="A record for this date already exists.")
     row = DayRecord(business_id=biz.id, **body.model_dump())
     db.add(row)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="A record for this date already exists.")
     db.refresh(row)
     _auto_flag_outliers(db, biz.id)
     db.refresh(row)

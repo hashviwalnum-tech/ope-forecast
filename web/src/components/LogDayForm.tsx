@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { businesses, dayRecords, products, sales } from '../api/client'
-import type { BusinessRead, ProductRead } from '../api/types'
+import type { BusinessRead, ProductRead, SaleRead } from '../api/types'
 
 function localToday(): string {
   const d = new Date()
@@ -37,6 +37,7 @@ export default function LogDayForm({ onSaved }: Props) {
   const [saving, setSaving]       = useState(false)
   const [feedback, setFeedback]   = useState<{ ok: boolean; msg: string } | null>(null)
   const [warning, setWarning]     = useState<string | null>(null)
+  const [overwriteId, setOverwriteId] = useState<number | null>(null)
 
   useEffect(() => {
     products.list().then(setProductList).catch(() => {})
@@ -50,6 +51,7 @@ export default function LogDayForm({ onSaved }: Props) {
     setSaving(true)
     setFeedback(null)
     setWarning(null)
+    setOverwriteId(null)
     try {
       const day = await dayRecords.create({ date: localToday(), customers: cust })
       for (const p of productList) {
@@ -65,10 +67,52 @@ export default function LogDayForm({ onSaved }: Props) {
       onSaved()
     } catch (err) {
       const raw = err instanceof Error ? err.message : 'Save failed'
-      const msg = raw.includes('409') || raw.toLowerCase().includes('already')
-        ? "Today's already been logged — find it in Past Days to edit it."
-        : raw
-      setFeedback({ ok: false, msg })
+      if (raw.toLowerCase().includes('already exists')) {
+        // Find the existing record's ID so the user can overwrite it.
+        try {
+          const records = await dayRecords.list()
+          const existing = records.find(r => r.date === localToday())
+          if (existing) {
+            setOverwriteId(existing.id)
+          } else {
+            setFeedback({ ok: false, msg: 'Today is already logged — find it in Past Days to edit it.' })
+          }
+        } catch {
+          setFeedback({ ok: false, msg: 'Today is already logged — find it in Past Days to edit it.' })
+        }
+      } else {
+        setFeedback({ ok: false, msg: raw })
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleOverwrite() {
+    if (overwriteId === null) return
+    const cust = parseInt(customers)
+    if (isNaN(cust) || cust < 0) return
+    setSaving(true)
+    setFeedback(null)
+    try {
+      await dayRecords.update(overwriteId, { customers: cust })
+      const existingSales: SaleRead[] = await sales.list(overwriteId)
+      for (const p of productList) {
+        const val = parseFloat(unitsSold[p.id] ?? '')
+        const ex = existingSales.find(s => s.product_id === p.id)
+        if (ex) {
+          if (!isNaN(val) && val >= 0) await sales.update(ex.id, { units_sold: val })
+        } else if (!isNaN(val) && val > 0) {
+          await sales.create({ day_record_id: overwriteId, product_id: p.id, units_sold: val })
+        }
+      }
+      setOverwriteId(null)
+      setCustomers('')
+      setUnitsSold({})
+      setFeedback({ ok: true, msg: 'Updated!' })
+      onSaved()
+    } catch (err) {
+      setFeedback({ ok: false, msg: err instanceof Error ? err.message : 'Update failed' })
     } finally {
       setSaving(false)
     }
@@ -151,13 +195,37 @@ export default function LogDayForm({ onSaved }: Props) {
         </div>
       )}
 
-      <button
-        type="submit" disabled={saving}
-        className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300
-                   text-white font-medium py-3 rounded-xl transition-colors text-base"
-      >
-        {saving ? 'Saving…' : 'Save today'}
-      </button>
+      {overwriteId !== null ? (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 space-y-3">
+          <p className="text-sm font-medium text-amber-800">
+            A record for today already exists. Overwrite it with this data, or cancel?
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button" onClick={handleOverwrite} disabled={saving}
+              className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300
+                         text-white font-medium py-2 rounded-xl text-sm transition-colors"
+            >
+              {saving ? 'Saving…' : 'Overwrite'}
+            </button>
+            <button
+              type="button" onClick={() => setOverwriteId(null)} disabled={saving}
+              className="flex-1 bg-white hover:bg-slate-50 border border-slate-300
+                         text-slate-700 font-medium py-2 rounded-xl text-sm transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="submit" disabled={saving}
+          className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300
+                     text-white font-medium py-3 rounded-xl transition-colors text-base"
+        >
+          {saving ? 'Saving…' : 'Save today'}
+        </button>
+      )}
     </form>
   )
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { businesses, dayRecords, products, sales, saleEvents } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { BusinessRead, ProductRead } from '../api/types'
+import type { BusinessRead, ProductRead, SaleRead } from '../api/types'
 
 function localToday(): string {
   const d = new Date()
@@ -51,6 +51,7 @@ export default function BackfillForm({ onSaved }: Props) {
   const [unitsSold, setUnitsSold] = useState<Record<number, string>>({})
   const [saving, setSaving]       = useState(false)
   const [feedback, setFeedback]   = useState<{ ok: boolean; msg: string } | null>(null)
+  const [overwriteId, setOverwriteId] = useState<number | null>(null)
 
   // hourly breakdown (optional)
   const [showHourly, setShowHourly] = useState(false)
@@ -71,6 +72,7 @@ export default function BackfillForm({ onSaved }: Props) {
     if (isNaN(cust) || cust < 0) return
     setSaving(true)
     setFeedback(null)
+    setOverwriteId(null)
     try {
       const day = await dayRecords.create({ date, customers: cust })
       for (const p of productList) {
@@ -97,10 +99,53 @@ export default function BackfillForm({ onSaved }: Props) {
       onSaved()
     } catch (err) {
       const raw = err instanceof Error ? err.message : 'Save failed'
-      const msg = raw.includes('409') || raw.toLowerCase().includes('already')
-        ? t('alreadyHasEntry')
-        : raw
-      setFeedback({ ok: false, msg })
+      if (raw.toLowerCase().includes('already exists')) {
+        // Find the existing record's ID so the user can overwrite it.
+        try {
+          const records = await dayRecords.list()
+          const existing = records.find(r => r.date === date)
+          if (existing) {
+            setOverwriteId(existing.id)
+          } else {
+            setFeedback({ ok: false, msg: t('alreadyHasEntry') })
+          }
+        } catch {
+          setFeedback({ ok: false, msg: t('alreadyHasEntry') })
+        }
+      } else {
+        setFeedback({ ok: false, msg: raw })
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleOverwrite() {
+    if (overwriteId === null) return
+    const cust = parseInt(customers)
+    if (isNaN(cust) || cust < 0) return
+    setSaving(true)
+    setFeedback(null)
+    try {
+      await dayRecords.update(overwriteId, { customers: cust })
+      const existingSales: SaleRead[] = await sales.list(overwriteId)
+      for (const p of productList) {
+        const val = parseFloat(unitsSold[p.id] ?? '')
+        const ex = existingSales.find(s => s.product_id === p.id)
+        if (ex) {
+          if (!isNaN(val) && val >= 0) await sales.update(ex.id, { units_sold: val })
+        } else if (!isNaN(val) && val > 0) {
+          await sales.create({ day_record_id: overwriteId, product_id: p.id, units_sold: val })
+        }
+      }
+      setOverwriteId(null)
+      setCustomers('')
+      setUnitsSold({})
+      setHourlyData({})
+      setFeedback({ ok: true, msg: 'Updated!' })
+      onSaved()
+    } catch (err) {
+      setFeedback({ ok: false, msg: err instanceof Error ? err.message : 'Update failed' })
     } finally {
       setSaving(false)
     }
@@ -232,13 +277,38 @@ export default function BackfillForm({ onSaved }: Props) {
         </p>
       )}
 
-      <button
-        type="submit" disabled={saving || nonWorking}
-        className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 dark:disabled:bg-teal-900
-                   text-white font-medium py-3 rounded-xl transition-colors text-base"
-      >
-        {saving ? t('savingLabel') : t('saveThisDay')}
-      </button>
+      {overwriteId !== null ? (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-4 space-y-3">
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+            A record for this date already exists. Overwrite it with this data, or cancel?
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button" onClick={handleOverwrite} disabled={saving}
+              className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300
+                         text-white font-medium py-2 rounded-xl text-sm transition-colors"
+            >
+              {saving ? t('savingLabel') : 'Overwrite'}
+            </button>
+            <button
+              type="button" onClick={() => setOverwriteId(null)} disabled={saving}
+              className="flex-1 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600
+                         border border-slate-300 dark:border-slate-600
+                         text-slate-700 dark:text-slate-200 font-medium py-2 rounded-xl text-sm transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="submit" disabled={saving || nonWorking}
+          className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 dark:disabled:bg-teal-900
+                     text-white font-medium py-3 rounded-xl transition-colors text-base"
+        >
+          {saving ? t('savingLabel') : t('saveThisDay')}
+        </button>
+      )}
     </form>
   )
 }
