@@ -121,7 +121,7 @@ function TomorrowPanel({
           </span>
         </p>
         <p className="text-sm text-teal-200 mt-1">
-          {t('peakCustomersHr', { n: busiest.avg_taps.toFixed(1) })}
+          {t('peakCustomersHr', { n: String(Math.round(busiest.avg_taps)) })}
         </p>
         {isFallback && (
           <p className="text-xs text-teal-300 mt-2">
@@ -152,7 +152,7 @@ function TomorrowPanel({
               }}
               labelStyle={{ color: isDark ? '#e2e8f0' : '#334155', fontWeight: 600 }}
               formatter={(v, name) => [
-                typeof v === 'number' ? v.toFixed(1) : v,
+                name === 'avg' ? Math.round(v as number) : v,
                 name === 'staff' ? t('staffNeededTooltip') : t('avgCustomersTooltip'),
               ]}
             />
@@ -186,7 +186,7 @@ function TomorrowPanel({
                         {h.label}
                       </p>
                       <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                        ~{h.avg_taps.toFixed(1)} {t('avgCustomersTooltip')}/hr ·{' '}
+                        ~{Math.round(h.avg_taps)} {t('avgCustomersTooltip')}/hr ·{' '}
                         <span className={h.expected_wait_minutes < 0.5 ? 'text-teal-500' : 'text-amber-500'}>
                           {waitLabel}
                         </span>
@@ -286,7 +286,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                             {h.label}
                           </span>
                           <span className="text-xs text-slate-400 dark:text-slate-500">
-                            ~{h.avg_taps.toFixed(1)}/hr · {h.recommended_staff} {hStaffWord}
+                            ~{Math.round(h.avg_taps)}/hr · {h.recommended_staff} {hStaffWord}
                           </span>
                         </div>
                         {h.marginal_note && (

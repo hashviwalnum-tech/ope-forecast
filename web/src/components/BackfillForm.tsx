@@ -65,11 +65,28 @@ export default function BackfillForm({ onSaved }: Props) {
   const locked = isTodayLocked(biz)
   const nonWorking = isNonWorkingDay(date, biz)
 
+  // Hourly reconciliation: compare sum of typed hours to daily customer total
+  const typedHoursTotal = showHourly
+    ? Object.values(hourlyData).reduce((sum, v) => sum + (parseFloat(v) || 0), 0)
+    : 0
+  const custNum = parseInt(customers)
+  const hasTypedHours = showHourly && typedHoursTotal > 0
+  const hourlyExceedsTotal = hasTypedHours && !isNaN(custNum) && custNum >= 0 && typedHoursTotal > custNum
+  const hourlyUnderTotal = hasTypedHours && !isNaN(custNum) && custNum > 0 && typedHoursTotal < custNum
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (nonWorking) return
     const cust = parseInt(customers)
     if (isNaN(cust) || cust < 0) return
+    // Block save if typed hourly entries exceed the daily total (mathematically impossible)
+    if (hourlyExceedsTotal) {
+      setFeedback({
+        ok: false,
+        msg: `Typed hours add up to ${Math.round(typedHoursTotal)} customers, which exceeds your daily total of ${cust}. Adjust the hourly breakdown or the daily total before saving.`,
+      })
+      return
+    }
     setSaving(true)
     setFeedback(null)
     setOverwriteId(null)
@@ -248,7 +265,17 @@ export default function BackfillForm({ onSaved }: Props) {
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               {t('hourlyBreakdownDesc')}
             </p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 max-w-xs">
+            {hourlyUnderTotal && (
+              <p className="text-xs text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
+                {`${Math.round(typedHoursTotal)} of ${custNum} customers are in typed hours. The remaining ${Math.round(custNum - typedHoursTotal)} count as unattributed time — your daily total of ${custNum} stays correct.`}
+              </p>
+            )}
+            {hourlyExceedsTotal && (
+              <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg px-3 py-2 leading-relaxed">
+                {`Typed hours add up to ${Math.round(typedHoursTotal)} customers, which exceeds your daily total of ${custNum}. Adjust the breakdown or the daily total.`}
+              </p>
+            )}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 max-w-xs">
               {Array.from({ length: 24 }, (_, h) => (
                 <div key={h} className="flex items-center gap-2">
                   <span className="text-xs text-slate-500 dark:text-slate-400 w-11 shrink-0 text-right tabular-nums">

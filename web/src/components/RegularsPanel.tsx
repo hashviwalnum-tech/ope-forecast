@@ -84,7 +84,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
               background: isDark ? '#1e293b' : '#fff',
               color: isDark ? '#e2e8f0' : '#334155',
             }}
-            formatter={(value: number) => [fmt(value), t('profitabilityTooltipLabel')]}
+            formatter={(value) => [fmt(typeof value === 'number' ? value : 0), t('profitabilityTooltipLabel')]}
           />
           <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={56}>
             {chartData.map((_, i) => (

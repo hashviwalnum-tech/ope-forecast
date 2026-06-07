@@ -77,3 +77,63 @@ def test_put_overwrites_existing_record(day_client):
     r2 = day_client.put(f"/day-records/{record_id}", json={"customers": 99})
     assert r2.status_code == 200
     assert r2.json()["customers"] == 99
+
+
+# ── Hourly consistency warning ─────────────────────────────────────────────────
+
+def test_hourly_warning_when_events_exceed_total(day_client, db, biz):
+    """When hourly SaleEvents (product_id=None) sum to more than the daily
+    customer total, the endpoint must return a non-None warning string.
+
+    Root cause of the previous non-implementation:
+    BackfillForm submits hourly SaleEvents AFTER the day record is created,
+    so the server-side warning check (run at creation time) always sees zero
+    hourly data.  The real guard is frontend reconciliation before submit;
+    this test covers the server-side path used when live tap-sales exist."""
+    import datetime
+    from app.models import SaleEvent
+
+    # Create 15 customer taps for DATE_A — each is a product_id=None SaleEvent
+    for minute in range(15):
+        db.add(SaleEvent(
+            business_id=biz.id,
+            product_id=None,
+            timestamp=datetime.datetime(2025, 9, 10, 10, minute, 0),
+            quantity=1.0,
+        ))
+    db.commit()
+
+    # Create day record with only 10 customers — less than the 15 tap events
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 10})
+    assert r.status_code == 201
+    data = r.json()
+    assert data["warning"] is not None, "Expected a warning when hourly data exceeds daily total"
+    assert "15" in data["warning"], f"Warning should mention the 15-customer hourly total; got: {data['warning']}"
+
+
+def test_no_warning_when_events_under_total(day_client, db, biz):
+    """When hourly SaleEvents are fewer than the daily total, no warning is returned
+    (the gap is simply treated as unattributed time — this is fine)."""
+    import datetime
+    from app.models import SaleEvent
+
+    # Only 5 tap events, but daily total is 10 — a gap of 5 unattributed customers
+    for minute in range(5):
+        db.add(SaleEvent(
+            business_id=biz.id,
+            product_id=None,
+            timestamp=datetime.datetime(2025, 9, 10, 10, minute, 0),
+            quantity=1.0,
+        ))
+    db.commit()
+
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 10})
+    assert r.status_code == 201
+    assert r.json()["warning"] is None
+
+
+def test_no_warning_when_no_hourly_events(day_client):
+    """No warning when there are no hourly SaleEvents at all."""
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 50})
+    assert r.status_code == 201
+    assert r.json()["warning"] is None

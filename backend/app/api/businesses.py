@@ -63,6 +63,14 @@ def update_settings(
     biz: Business = Depends(get_business),
 ):
     merged = {**(biz.settings or {}), **body.model_dump(exclude_none=True)}
+    # Allow clearing staffing threshold fields when the client explicitly sends null.
+    # model_dump(exclude_none=True) drops null values, so a switch from 'wait' to
+    # 'queue' would leave the old staffing_max_wait_minutes in settings and both
+    # thresholds would be active (wait-threshold wins in _recommended_staff).
+    # Fix: check model_fields_set to distinguish "not sent" from "sent as null".
+    for field in ('staffing_max_wait_minutes', 'staffing_max_queue_length'):
+        if field in body.model_fields_set and getattr(body, field) is None:
+            merged.pop(field, None)
     biz.settings = merged
     flag_modified(biz, "settings")
     db.commit()
