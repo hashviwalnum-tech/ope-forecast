@@ -46,27 +46,30 @@ function NotEnoughData({ message }: { message?: string }) {
   )
 }
 
-// ── weekday short-name translations ───────────────────────────────────────────
+// ── weekday short-name via i18n ───────────────────────────────────────────────
 
-const WDAY_SHORT: Record<string, Record<string, string>> = {
-  he: {
-    Monday: 'שני', Tuesday: 'שלישי', Wednesday: 'רביעי', Thursday: 'חמישי',
-    Friday: 'שישי', Saturday: 'שבת', Sunday: 'ראשון',
-  },
+const WDAY_KEY: Record<string, 'dayMon' | 'dayTue' | 'dayWed' | 'dayThu' | 'dayFri' | 'daySat' | 'daySun'> = {
+  Monday: 'dayMon', Tuesday: 'dayTue', Wednesday: 'dayWed',
+  Thursday: 'dayThu', Friday: 'dayFri', Saturday: 'daySat', Sunday: 'daySun',
+}
+
+function wdayShort(weekday: string, t: ReturnType<typeof useLanguage>['t']): string {
+  const key = WDAY_KEY[weekday]
+  return key ? t(key) : weekday.slice(0, 3)
 }
 
 // ── week prediction (7-day customer bars) ─────────────────────────────────────
 
 function ForecastChart({ data }: { data: ForecastResponse }) {
-  const { t, lang } = useLanguage()
+  const { t } = useLanguage()
   const { isDark } = useTheme()
   if (data.status !== 'ok' || data.days.length === 0) {
     return <NotEnoughData message={data.message} />
   }
 
   const chartData = data.days.map(d => ({
-    name: `${WDAY_SHORT[lang]?.[d.weekday] ?? d.weekday.slice(0, 3)} ${d.date.slice(5).replace('-', '/')}`,
-    fullDay: WDAY_SHORT[lang]?.[d.weekday] ?? d.weekday,
+    name: `${wdayShort(d.weekday, t)} ${d.date.slice(5).replace('-', '/')}`,
+    fullDay: t(`weekdayFull_${d.weekday}` as Parameters<typeof t>[0]) ?? d.weekday,
     predicted: Math.round(d.predicted_customers),
     low: Math.round(d.interval_low),
     high: Math.round(d.interval_high),
@@ -108,12 +111,16 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
       <div className="mt-3 flex flex-wrap gap-2">
         {data.days.map(d => {
           const top = topModel(d.model_weights)
-          const label: Record<string, string> = {
-            seasonal_naive: 'seasonal', wma: 'WMA', exp_smoothing: 'exp. smooth.',
+          const modelLabel: Record<string, string> = {
+            seasonal_naive: t('modelNameSeasonal'),
+            wma: t('modelNameWma'),
+            exp_smoothing: t('modelNameExpSmooth'),
+            linear_trend: t('modelNameLinearTrend'),
+            same_date_last_year: t('modelNameLastYear'),
           }
           return (
             <span key={d.date} className="text-xs text-slate-400 dark:text-slate-500">
-              {WDAY_SHORT[lang]?.[d.weekday] ?? d.weekday.slice(0, 3)}: <span className="text-slate-600 dark:text-slate-300">{label[top] ?? top}</span>
+              {wdayShort(d.weekday, t)}: <span className="text-slate-600 dark:text-slate-300">{modelLabel[top] ?? top}</span>
             </span>
           )
         })}

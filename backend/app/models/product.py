@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Float, ForeignKey, Integer, String
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -23,3 +24,4 @@ class Product(Base):
     service_time_minutes: Mapped[Optional[float]] = mapped_column(nullable=True)
     storage_capacity: Mapped[Optional[float]] = mapped_column(nullable=True)
     shelf_life_days: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=func.now())

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { businesses, dayRecords, products, sales } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
 import type { BusinessRead, ProductRead, SaleRead } from '../api/types'
 
 function localToday(): string {
@@ -7,29 +8,18 @@ function localToday(): string {
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
 }
 
-function fmtHour(h: number): string {
-  if (h === 0)  return 'midnight'
-  if (h === 12) return 'noon'
+function fmtHour(h: number, lang: string): string {
+  if (lang === 'he') return `${h}:00`
+  if (h === 0)  return '12 am'
   if (h < 12)   return `${h} am`
+  if (h === 12) return '12 pm'
   return `${h - 12} pm`
-}
-
-function todayLockReason(biz: BusinessRead | null): string | null {
-  if (!biz) return null
-  const oh = biz.settings.opening_hour
-  const ch = biz.settings.closing_hour
-  if (typeof oh !== 'number' || typeof ch !== 'number') return null
-  const now = new Date().getHours()
-  if (now >= ch) return null  // day is finished — allow
-  if (now < oh) {
-    return `Today hasn't started yet (opens at ${fmtHour(oh)}). Come back after closing (${fmtHour(ch)}) to log today's numbers.`
-  }
-  return `Your business is still open until ${fmtHour(ch)}. Log today's totals after you close — that way the count will be complete.`
 }
 
 interface Props { onSaved: () => void }
 
 export default function LogDayForm({ onSaved }: Props) {
+  const { t, lang } = useLanguage()
   const [customers, setCustomers] = useState('')
   const [productList, setProductList] = useState<ProductRead[]>([])
   const [biz, setBiz]             = useState<BusinessRead | null>(null)
@@ -43,6 +33,19 @@ export default function LogDayForm({ onSaved }: Props) {
     products.list().then(setProductList).catch(() => {})
     businesses.me().then(setBiz).catch(() => {})
   }, [])
+
+  function todayLockReason(): string | null {
+    if (!biz) return null
+    const oh = biz.settings.opening_hour
+    const ch = biz.settings.closing_hour
+    if (typeof oh !== 'number' || typeof ch !== 'number') return null
+    const now = new Date().getHours()
+    if (now >= ch) return null  // day is finished — allow
+    if (now < oh) {
+      return t('todayNotStarted', { opens: fmtHour(oh, lang), closes: fmtHour(ch, lang) })
+    }
+    return t('todayStillOpenMsg', { closes: fmtHour(ch, lang) })
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -62,23 +65,22 @@ export default function LogDayForm({ onSaved }: Props) {
       }
       setCustomers('')
       setUnitsSold({})
-      setFeedback({ ok: true, msg: 'Saved!' })
+      setFeedback({ ok: true, msg: t('savedFeedback') })
       if (day.warning) setWarning(day.warning)
       onSaved()
     } catch (err) {
       const raw = err instanceof Error ? err.message : 'Save failed'
       if (raw.toLowerCase().includes('already exists')) {
-        // Find the existing record's ID so the user can overwrite it.
         try {
           const records = await dayRecords.list()
           const existing = records.find(r => r.date === localToday())
           if (existing) {
             setOverwriteId(existing.id)
           } else {
-            setFeedback({ ok: false, msg: 'Today is already logged — find it in Past Days to edit it.' })
+            setFeedback({ ok: false, msg: t('todayAlreadyLoggedMsg') })
           }
         } catch {
-          setFeedback({ ok: false, msg: 'Today is already logged — find it in Past Days to edit it.' })
+          setFeedback({ ok: false, msg: t('todayAlreadyLoggedMsg') })
         }
       } else {
         setFeedback({ ok: false, msg: raw })
@@ -109,7 +111,7 @@ export default function LogDayForm({ onSaved }: Props) {
       setOverwriteId(null)
       setCustomers('')
       setUnitsSold({})
-      setFeedback({ ok: true, msg: 'Updated!' })
+      setFeedback({ ok: true, msg: t('savedFeedback') })
       onSaved()
     } catch (err) {
       setFeedback({ ok: false, msg: err instanceof Error ? err.message : 'Update failed' })
@@ -118,7 +120,7 @@ export default function LogDayForm({ onSaved }: Props) {
     }
   }
 
-  const lockReason = todayLockReason(biz)
+  const lockReason = todayLockReason()
   if (lockReason) {
     return (
       <div className="max-w-sm rounded-2xl border border-amber-200 bg-amber-50 px-5 py-5 space-y-2">
@@ -128,12 +130,12 @@ export default function LogDayForm({ onSaved }: Props) {
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm font-semibold text-amber-800">Not ready to log yet</p>
+            <p className="text-sm font-semibold text-amber-800">{t('notReadyToLogYet')}</p>
             <p className="text-sm text-amber-700 mt-1 leading-relaxed">{lockReason}</p>
           </div>
         </div>
         <p className="text-xs text-amber-600 pl-8">
-          Need to fix an earlier day? Use <strong>Past Days</strong> instead.
+          {t('fixEarlierDayNote')}
         </p>
       </div>
     )
@@ -144,7 +146,7 @@ export default function LogDayForm({ onSaved }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1.5">
-          How many customers today?
+          {t('howManyCustomersToday')}
         </label>
         <input
           type="number" min="0" required placeholder="0"
@@ -156,7 +158,7 @@ export default function LogDayForm({ onSaved }: Props) {
 
       {productList.length > 0 && (
         <fieldset className="border border-teal-100 rounded-2xl p-4 bg-teal-50/30">
-          <legend className="text-sm font-semibold text-slate-600 px-1">What did you sell today?</legend>
+          <legend className="text-sm font-semibold text-slate-600 px-1">{t('whatDidYouSellToday')}</legend>
           <div className="space-y-3 mt-2">
             {productList.map(p => (
               <div key={p.id} className="flex items-center gap-3">
@@ -198,7 +200,7 @@ export default function LogDayForm({ onSaved }: Props) {
       {overwriteId !== null ? (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 space-y-3">
           <p className="text-sm font-medium text-amber-800">
-            A record for today already exists. Overwrite it with this data, or cancel?
+            {t('todayOverwritePrompt')}
           </p>
           <div className="flex gap-2">
             <button
@@ -206,14 +208,14 @@ export default function LogDayForm({ onSaved }: Props) {
               className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300
                          text-white font-medium py-2 rounded-xl text-sm transition-colors"
             >
-              {saving ? 'Saving…' : 'Overwrite'}
+              {saving ? t('savingLabel') : t('overwriteBtn')}
             </button>
             <button
               type="button" onClick={() => setOverwriteId(null)} disabled={saving}
               className="flex-1 bg-white hover:bg-slate-50 border border-slate-300
                          text-slate-700 font-medium py-2 rounded-xl text-sm transition-colors"
             >
-              Cancel
+              {t('cancelBtn')}
             </button>
           </div>
         </div>
@@ -223,7 +225,7 @@ export default function LogDayForm({ onSaved }: Props) {
           className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300
                      text-white font-medium py-3 rounded-xl transition-colors text-base"
         >
-          {saving ? 'Saving…' : 'Save today'}
+          {saving ? t('savingLabel') : t('saveTodayBtn')}
         </button>
       )}
     </form>

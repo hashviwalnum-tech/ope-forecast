@@ -1,8 +1,11 @@
 """
-Forecasting models: SMA, WMA, exponential smoothing, linear trend, seasonality index.
+Forecasting models: SMA, WMA, exponential smoothing, linear trend, seasonality index,
+same-date-last-year.
 Pure functions — no DB, no framework imports.
 """
 from __future__ import annotations
+
+from datetime import date, timedelta
 
 import numpy as np
 from scipy import stats
@@ -64,3 +67,39 @@ def seasonality_index(day_average: float, overall_average: float) -> float:
     if overall_average == 0:
         raise ValueError("overall_average must be non-zero")
     return day_average / overall_average
+
+
+def same_date_last_year(
+    dates: list[date],
+    values: list[float],
+    target_date: date,
+    window_days: int = 7,
+) -> float | None:
+    """Average of same-weekday observations within ±window_days of the same calendar date one year ago.
+
+    Only observations that fall on the same weekday as target_date are included,
+    so the day-of-week signal is preserved while adding yearly seasonality.
+
+    Returns None when no matching observations exist (data doesn't span a full year
+    or no same-weekday values fall within the window).
+    """
+    if len(dates) != len(values):
+        raise ValueError("dates and values must have the same length")
+    if not dates:
+        return None
+
+    try:
+        anchor = target_date.replace(year=target_date.year - 1)
+    except ValueError:
+        # Feb 29 in a non-leap prior year — shift to Feb 28
+        anchor = target_date.replace(year=target_date.year - 1, day=28)
+
+    low = anchor - timedelta(days=window_days)
+    high = anchor + timedelta(days=window_days)
+    target_wd = target_date.weekday()
+
+    matching = [
+        v for d, v in zip(dates, values)
+        if low <= d <= high and d.weekday() == target_wd
+    ]
+    return float(sum(matching) / len(matching)) if matching else None

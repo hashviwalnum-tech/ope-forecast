@@ -25,6 +25,7 @@ class DayRecordRead(BaseModel):
     notes: Optional[str]
     outlier_status: Optional[str] = None
     warning: Optional[str] = None  # non-blocking data-consistency warning (not persisted)
+    prev_customers: Optional[int] = None  # non-None means one-step undo is available
 
     model_config = {"from_attributes": True}
 

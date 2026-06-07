@@ -6,10 +6,12 @@ import pytest
 from app.engine.ordering import (
     apply_order_constraints,
     demand_over_lead_time,
+    projected_stock_timeline,
     safety_stock,
     reorder_point,
     economic_order_quantity,
     service_level_z,
+    will_stock_run_out,
 )
 
 
@@ -249,3 +251,62 @@ def test_stock_full_order_zero():
     )
     assert order == pytest.approx(0.0)
     assert "storage" in notes[0].lower()
+
+
+# ---------------------------------------------------------------------------
+# projected_stock_timeline
+# ---------------------------------------------------------------------------
+
+def test_projected_stock_basic_depletion():
+    """Stock depletes by forecast each day; can go negative (stockout)."""
+    result = projected_stock_timeline(30.0, [10.0, 10.0, 10.0, 10.0], arrivals=[])
+    assert result == pytest.approx([20.0, 10.0, 0.0, -10.0])
+
+
+def test_projected_stock_with_arrival():
+    """Arrival on day 1 adds to stock before that day's sales are deducted."""
+    # Day 0: 5 - 10 = -5 (out before the order arrives)
+    # Day 1: -5 + 30 - 10 = 15 (order arrived)
+    # Day 2: 15 - 10 = 5
+    result = projected_stock_timeline(5.0, [10.0, 10.0, 10.0], arrivals=[(1, 30)])
+    assert result == pytest.approx([-5.0, 15.0, 5.0])
+
+
+def test_projected_stock_multiple_arrivals():
+    """Multiple arrivals on different days each add to stock."""
+    result = projected_stock_timeline(0.0, [5.0, 5.0, 5.0], arrivals=[(0, 10), (2, 20)])
+    # Day 0: 0 + 10 - 5 = 5
+    # Day 1: 5 - 5 = 0
+    # Day 2: 0 + 20 - 5 = 15
+    assert result == pytest.approx([5.0, 0.0, 15.0])
+
+
+def test_projected_stock_no_depletion_flat():
+    """When forecast is 0 each day and no arrivals, stock stays flat."""
+    result = projected_stock_timeline(50.0, [0.0, 0.0, 0.0], arrivals=[])
+    assert result == pytest.approx([50.0, 50.0, 50.0])
+
+
+def test_projected_stock_negative_current_raises():
+    with pytest.raises(ValueError):
+        projected_stock_timeline(-1.0, [5.0], arrivals=[])
+
+
+# ---------------------------------------------------------------------------
+# will_stock_run_out
+# ---------------------------------------------------------------------------
+
+def test_will_stock_run_out_false_all_positive():
+    assert will_stock_run_out([20.0, 10.0, 5.0]) is False
+
+
+def test_will_stock_run_out_true_hits_zero():
+    assert will_stock_run_out([5.0, 0.0, 3.0]) is True
+
+
+def test_will_stock_run_out_true_goes_negative():
+    assert will_stock_run_out([5.0, -5.0]) is True
+
+
+def test_will_stock_run_out_empty_list():
+    assert will_stock_run_out([]) is False

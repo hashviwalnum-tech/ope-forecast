@@ -131,7 +131,7 @@ class ForecastHistoryResponse(BaseModel):
 
 class HourlySlotAvg(BaseModel):
     hour: int               # 0–23
-    avg_taps: float         # average taps/customers per day at this hour
+    avg_taps: int           # whole-number average customers per day at this hour (customers are whole people)
     n_days: int             # days in the dataset used to compute the average
     recommended_staff: int  # min servers from M/M/c engine
     label: str              # plain-language: "For 9–10 am, schedule 2 people"
@@ -203,6 +203,9 @@ class ProductForecastItem(BaseModel):
     eoq: Optional[float] = None
     n_days_data: int = 0
     constraint_notes: list[str] = []
+    # True when current_stock is set and projected stock will hit zero before
+    # any pending order arrives — fires the "about to run out" warning in the UI
+    projected_runout_warning: bool = False
 
 
 class ProductForecastResponse(BaseModel):
@@ -215,7 +218,7 @@ class ProductForecastResponse(BaseModel):
 
 class WeekdayHourlySlot(BaseModel):
     hour: int
-    avg_taps: float
+    avg_taps: int              # whole-number average (customers are whole people; never show decimals)
     recommended_staff: int
     label: str                 # formatted range: "5–6 pm"
     expected_wait_minutes: float

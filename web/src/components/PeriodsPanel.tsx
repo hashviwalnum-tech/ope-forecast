@@ -5,15 +5,19 @@ import type { LiftResponse, PeriodLift, PeriodRead } from '../api/types'
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
-function fmtDate(iso: string) {
+const MONTH_KEYS = [
+  'monthJan','monthFeb','monthMar','monthApr','monthMay','monthJun',
+  'monthJul','monthAug','monthSep','monthOct','monthNov','monthDec',
+] as const
+
+function fmtDate(iso: string, t: (k: typeof MONTH_KEYS[number]) => string) {
   const [y, m, d] = iso.split('-')
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  return `${parseInt(d)} ${months[parseInt(m) - 1]} ${y}`
+  return `${parseInt(d)} ${t(MONTH_KEYS[parseInt(m) - 1])} ${y}`
 }
 
-function fmtRange(start: string, end: string) {
-  if (start === end) return fmtDate(start)
-  return `${fmtDate(start)} – ${fmtDate(end)}`
+function fmtRange(start: string, end: string, t: (k: typeof MONTH_KEYS[number]) => string) {
+  if (start === end) return fmtDate(start, t)
+  return `${fmtDate(start, t)} – ${fmtDate(end, t)}`
 }
 
 function sign(n: number) { return n >= 0 ? '+' : '' }
@@ -50,7 +54,7 @@ function LiftCard({ lift }: { lift: PeriodLift }) {
             <TypeBadge type={lift.type} />
             <span className="font-semibold text-slate-800 dark:text-slate-100">{lift.label}</span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{fmtRange(lift.start_date, lift.end_date)}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{fmtRange(lift.start_date, lift.end_date, t as (k: typeof MONTH_KEYS[number]) => string)}</p>
         </div>
         <div className={`text-right ${liftColor}`}>
           <p className="text-2xl font-bold tabular-nums leading-none">
@@ -117,17 +121,17 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.label.trim()) { setError('Label is required.'); return }
-    if (!form.start_date)   { setError('Start date is required.'); return }
-    if (!form.end_date)     { setError('End date is required.'); return }
-    if (form.end_date < form.start_date) { setError('End date must be on or after start date.'); return }
+    if (!form.label.trim()) { setError(t('periodLabelRequired')); return }
+    if (!form.start_date)   { setError(t('periodStartRequired')); return }
+    if (!form.end_date)     { setError(t('periodEndRequired')); return }
+    if (form.end_date < form.start_date) { setError(t('periodEndAfterStart')); return }
 
     setSaving(true)
     setError(null)
     try {
       const cost = form.cost.trim() ? parseFloat(form.cost) : undefined
       if (cost !== undefined && (isNaN(cost) || cost < 0)) {
-        setError('Cost must be a positive number.'); setSaving(false); return
+        setError(t('periodCostPositive')); setSaving(false); return
       }
       await periodsApi.create({
         label: form.label.trim(),
@@ -155,7 +159,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
           <input
             ref={labelRef}
             type="text"
-            placeholder="e.g. Summer sale, Facebook campaign"
+            placeholder={t('periodNamePlaceholder')}
             value={form.label}
             onChange={e => set('label', e.target.value)}
             className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
@@ -278,7 +282,7 @@ function PeriodRow({ period, onDeleted }: { period: PeriodRead; onDeleted: () =>
         <div className="min-w-0">
           <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{period.label}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {fmtRange(period.start_date, period.end_date)}
+            {fmtRange(period.start_date, period.end_date, t as (k: typeof MONTH_KEYS[number]) => string)}
             {period.cost != null && (
               <span className="ml-2 text-slate-400 dark:text-slate-500">
                 {t('periodCost', { cost: String(period.cost) })}

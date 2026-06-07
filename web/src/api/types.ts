@@ -218,6 +218,7 @@ export interface DayRecordRead {
   notes: string | null
   outlier_status: string | null   // null | 'flagged' | 'kept' | 'excluded' | 'event'
   warning: string | null          // non-blocking data-consistency note (hours vs total)
+  prev_customers: number | null   // non-null when one-step undo is available
 }
 
 // ── Outlier flags ─────────────────────────────────────────────────────────
@@ -461,6 +462,30 @@ export interface ProductForecastItem {
   eoq?: number
   n_days_data: number
   constraint_notes: string[]
+  projected_runout_warning: boolean
+}
+
+// ── Order records (ordering lifecycle) ───────────────────────────────────────
+
+export interface OrderRecordRead {
+  id: number
+  business_id: number
+  product_id: number
+  ordered_date: string         // "YYYY-MM-DD"
+  quantity: number
+  expected_arrival_date: string  // "YYYY-MM-DD"
+  status: 'pending' | 'arrived' | 'cancelled'
+}
+
+export interface OrderRecordCreate {
+  product_id: number
+  ordered_date: string
+  quantity: number
+}
+
+export interface OrderRecordUpdate {
+  quantity?: number
+  status?: 'pending' | 'arrived' | 'cancelled'
 }
 
 export interface ProductForecastResponse {

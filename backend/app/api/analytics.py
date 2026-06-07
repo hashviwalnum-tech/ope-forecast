@@ -20,14 +20,21 @@ from app.engine.accuracy import detect_drift, forecast_errors, mad, mape, mse, t
 from app.engine.limits import history_cutoff
 from app.engine.monthly import monthly_summary
 from app.engine.ensemble import blend, model_weights, prediction_interval
-from app.engine.forecasting import exponential_smoothing, weighted_moving_average
+from app.engine.forecasting import (
+    exponential_smoothing,
+    linear_trend,
+    same_date_last_year,
+    weighted_moving_average,
+)
 from app.engine.live_sales import hourly_averages, hourly_product_mix
 from app.engine.ordering import (
     apply_order_constraints,
     economic_order_quantity,
+    projected_stock_timeline,
     reorder_point,
     safety_stock,
     service_level_z,
+    will_stock_run_out,
 )
 from app.engine.outliers import detect_outliers
 from app.engine.product_forecast import build_product_demand_series, round_qty
@@ -42,6 +49,7 @@ from app.engine.queueing import (
 )
 from app.engine.seasonality import seasonal_naive_forecast
 from app.models import Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, SaleEvent, SaleRecord
+from app.models.order_record import OrderRecord
 from app.schemas.analytics import (
     AccuracyResponse,
     ForecastDay,
@@ -195,18 +203,41 @@ def _exp_for_weekday(obs: list[float], wds: list[int], wd: int) -> float | None:
     return _exp_next(same)
 
 
-def _holdout_errors(
-    obs: list[float], wds: list[int], n_per_weekday: int = 4
-) -> dict[str, dict[int, list[float]]]:
+def _linear_trend_for_weekday(obs: list[float], wds: list[int], wd: int) -> float | None:
+    """OLS linear trend over time-indexed same-weekday observations, predicting the next step.
+
+    Uses sequential indices (0, 1, 2, …) so the slope measures change per additional
+    same-weekday observation.  Returns None when fewer than 3 same-weekday points exist
+    (OLS needs at least 2, but 3 gives a meaningful trend estimate).
     """
-    Leave-one-out signed errors (actual − predicted) for each model and weekday.
+    same = [v for v, w in zip(obs, wds) if w == wd]
+    if len(same) < 3:
+        return None
+    xs = list(range(len(same)))
+    return linear_trend(xs, same, float(len(same)))
+
+
+def _holdout_errors(
+    obs: list[float],
+    wds: list[int],
+    dates: list[date] | None = None,
+    n_per_weekday: int = 4,
+) -> dict[str, dict[int, list[float]]]:
+    """Leave-one-out signed errors (actual − predicted) for each model and weekday.
 
     For each weekday, the last n_per_weekday occurrences are treated as a holdout.
     Each point is predicted using only data that came before it in time.
-    Returns {"seasonal_naive": {weekday: [errors]}, "wma": {...}, "exp_smoothing": {...}}
+
+    Models: seasonal_naive, wma, exp_smoothing, linear_trend, same_date_last_year.
+    same_date_last_year requires dates to be provided; it produces no errors when
+    the data doesn't span a full year.
     """
     result: dict[str, dict[int, list[float]]] = {
-        "seasonal_naive": {}, "wma": {}, "exp_smoothing": {}
+        "seasonal_naive": {},
+        "wma": {},
+        "exp_smoothing": {},
+        "linear_trend": {},
+        "same_date_last_year": {},
     }
 
     by_wd: dict[int, list[int]] = {}
@@ -215,8 +246,10 @@ def _holdout_errors(
 
     for wd, all_idx in by_wd.items():
         sn: list[float] = []
-        wma: list[float] = []
-        exp: list[float] = []
+        wma_e: list[float] = []
+        exp_e: list[float] = []
+        lt_e: list[float] = []
+        sdly_e: list[float] = []
 
         for hi in all_idx[-n_per_weekday:]:
             t_obs = obs[:hi]
@@ -230,15 +263,27 @@ def _holdout_errors(
 
             p = _wma_for_weekday(t_obs, t_wds, wd)
             if p is not None:
-                wma.append(actual - p)
+                wma_e.append(actual - p)
 
             p = _exp_for_weekday(t_obs, t_wds, wd)
             if p is not None:
-                exp.append(actual - p)
+                exp_e.append(actual - p)
+
+            p = _linear_trend_for_weekday(t_obs, t_wds, wd)
+            if p is not None:
+                lt_e.append(actual - p)
+
+            if dates is not None:
+                t_dates = dates[:hi]
+                p = same_date_last_year(t_dates, t_obs, dates[hi])
+                if p is not None:
+                    sdly_e.append(actual - p)
 
         result["seasonal_naive"][wd] = sn
-        result["wma"][wd] = wma
-        result["exp_smoothing"][wd] = exp
+        result["wma"][wd] = wma_e
+        result["exp_smoothing"][wd] = exp_e
+        result["linear_trend"][wd] = lt_e
+        result["same_date_last_year"][wd] = sdly_e
 
     return result
 
@@ -386,8 +431,9 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
     obs = _effective_obs(records)
     wds = [r.date.weekday() for r in records]
+    dates = [r.date for r in records]
 
-    holdout = _holdout_errors(obs, wds, n_per_weekday=4)
+    holdout = _holdout_errors(obs, wds, dates, n_per_weekday=4)
 
     today = date.today()
     open_days = _open_days(biz)
@@ -420,6 +466,18 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             preds["exp_smoothing"] = p
             errs = holdout["exp_smoothing"].get(wd, [])
             maes["exp_smoothing"] = mad([abs(e) for e in errs]) if errs else 1.0
+
+        p = _linear_trend_for_weekday(obs, wds, wd)
+        if p is not None:
+            preds["linear_trend"] = p
+            errs = holdout["linear_trend"].get(wd, [])
+            maes["linear_trend"] = mad([abs(e) for e in errs]) if errs else 1.0
+
+        p = same_date_last_year(dates, obs, target_date)
+        if p is not None:
+            preds["same_date_last_year"] = p
+            errs = holdout["same_date_last_year"].get(wd, [])
+            maes["same_date_last_year"] = mad([abs(e) for e in errs]) if errs else 1.0
 
         if not preds:
             continue
@@ -841,9 +899,17 @@ def get_hourly_analytics(
     """
     settings = biz.settings or {}
     avg_svc = float(settings.get("avg_service_time_minutes", 5.0))
-    opening_hour = int(settings.get("opening_hour", 0))
-    closing_hour = int(settings.get("closing_hour", 24))
-    open_hours = set(range(opening_hour, closing_hour)) if closing_hour > opening_hour else None
+    # Only apply the open-hours filter when the owner has explicitly configured
+    # their hours.  Defaulting to 0/24 would silently include all 24 hours
+    # (even overnight) when no hours have been saved yet.
+    _raw_oh = settings.get("opening_hour")
+    _raw_ch = settings.get("closing_hour")
+    if _raw_oh is not None and _raw_ch is not None:
+        _oh = int(_raw_oh)
+        _ch = int(_raw_ch)
+        open_hours: set[int] | None = set(range(_oh, _ch)) if _ch > _oh else None
+    else:
+        open_hours = None  # hours not configured: no filter
 
     events = (
         db.query(SaleEvent)
@@ -888,23 +954,24 @@ def get_hourly_analytics(
     svc_by_pid: dict[int, float | None] = {p.id: p.service_time_minutes for p in products_list}
 
     hours: list[HourlySlotAvg] = []
-    for hour, avg_taps, n in avgs:
+    for hour, avg_taps_raw, n in avgs:
+        avg_taps_int = int(round(avg_taps_raw))  # customers are whole people
         hour_mix = mix_by_hour.get(hour, {})
         # (quantity, service_time_or_None) — None product_id or no override → falls back to default
         product_mix_pairs = [(qty, svc_by_pid.get(pid)) for pid, qty in hour_mix.items()]
         eff_svc = effective_service_time(product_mix_pairs, avg_svc) if product_mix_pairs else avg_svc
-        staff = _recommended_staff(avg_taps, eff_svc, settings)
+        staff = _recommended_staff(avg_taps_raw, eff_svc, settings)
         time_range = _fmt_hour_range(hour)
         word = "person" if staff == 1 else "people"
         hours.append(HourlySlotAvg(
             hour=hour,
-            avg_taps=avg_taps,
+            avg_taps=avg_taps_int,
             n_days=n,
             recommended_staff=staff,
             label=f"For {time_range}, schedule {staff} {word}",
-            expected_wait_minutes=round(expected_wait_minutes(avg_taps, eff_svc, staff), 1),
-            queue_length=round(queue_length(avg_taps, eff_svc, staff), 2),
-            marginal_note=marginal_note(avg_taps, eff_svc, staff),
+            expected_wait_minutes=round(expected_wait_minutes(avg_taps_raw, eff_svc, staff), 1),
+            queue_length=round(queue_length(avg_taps_raw, eff_svc, staff), 2),
+            marginal_note=marginal_note(avg_taps_raw, eff_svc, staff),
         ))
 
     return HourlyAnalyticsResponse(
@@ -1059,8 +1126,8 @@ def get_product_forecast(
             continue
 
         # ── ensemble forecast ─────────────────────────────────────────────────
-        wds = [d.weekday() for d in dates]
-        holdout = _holdout_errors(demands, wds, n_per_weekday=4)
+        prod_wds = [d.weekday() for d in dates]
+        holdout = _holdout_errors(demands, prod_wds, dates, n_per_weekday=4)
 
         forecast_days: list[ProductForecastDay] = []
         for offset in range(1, 8):
@@ -1073,23 +1140,35 @@ def get_product_forecast(
             maes: dict[str, float] = {}
 
             try:
-                preds["seasonal_naive"] = seasonal_naive_forecast(demands, wds, wd)
+                preds["seasonal_naive"] = seasonal_naive_forecast(demands, prod_wds, wd)
                 errs = holdout["seasonal_naive"].get(wd, [])
                 maes["seasonal_naive"] = mad([abs(e) for e in errs]) if errs else 1.0
             except ValueError:
                 pass
 
-            p = _wma_for_weekday(demands, wds, wd)
+            p = _wma_for_weekday(demands, prod_wds, wd)
             if p is not None:
                 preds["wma"] = p
                 errs = holdout["wma"].get(wd, [])
                 maes["wma"] = mad([abs(e) for e in errs]) if errs else 1.0
 
-            p = _exp_for_weekday(demands, wds, wd)
+            p = _exp_for_weekday(demands, prod_wds, wd)
             if p is not None:
                 preds["exp_smoothing"] = p
                 errs = holdout["exp_smoothing"].get(wd, [])
                 maes["exp_smoothing"] = mad([abs(e) for e in errs]) if errs else 1.0
+
+            p = _linear_trend_for_weekday(demands, prod_wds, wd)
+            if p is not None:
+                preds["linear_trend"] = p
+                errs = holdout["linear_trend"].get(wd, [])
+                maes["linear_trend"] = mad([abs(e) for e in errs]) if errs else 1.0
+
+            p = same_date_last_year(dates, demands, target)
+            if p is not None:
+                preds["same_date_last_year"] = p
+                errs = holdout["same_date_last_year"].get(wd, [])
+                maes["same_date_last_year"] = mad([abs(e) for e in errs]) if errs else 1.0
 
             if not preds:
                 continue
@@ -1136,6 +1215,25 @@ def get_product_forecast(
         suggested_qty = _round_qty(constrained_qty, unit_mode)
         order_now = prod.current_stock is not None and prod.current_stock <= rop
 
+        # ── projected stock runout warning ────────────────────────────────────
+        runout_warning = False
+        if prod.current_stock is not None and avg_daily > 0 and forecast_days:
+            pending_orders = (
+                db.query(OrderRecord)
+                .filter_by(business_id=biz.id, product_id=prod.id, status="pending")
+                .all()
+            )
+            # Build arrivals as (day_offset, quantity); day_offset = days from today
+            arrivals: list[tuple[int, float]] = []
+            for o in pending_orders:
+                offset = (o.expected_arrival_date - today).days
+                if offset >= 0:
+                    arrivals.append((offset, o.quantity))
+            # Use the forecast's daily units as the depletion rate
+            depletion = [d.predicted_units for d in forecast_days]
+            projected = projected_stock_timeline(prod.current_stock, depletion, arrivals)
+            runout_warning = will_stock_run_out(projected)
+
         result.append(ProductForecastItem(
             product_id=prod.id,
             name=prod.name,
@@ -1154,6 +1252,7 @@ def get_product_forecast(
             eoq=eoq_val,
             n_days_data=n_data,
             constraint_notes=cap_notes,
+            projected_runout_warning=runout_warning,
         ))
 
     return ProductForecastResponse(status="ok", products=result)
@@ -1179,9 +1278,17 @@ def get_hourly_by_weekday(
     """
     settings = biz.settings or {}
     avg_svc = float(settings.get("avg_service_time_minutes", 5.0))
-    opening_hour = int(settings.get("opening_hour", 0))
-    closing_hour = int(settings.get("closing_hour", 24))
-    open_hours = set(range(opening_hour, closing_hour)) if closing_hour > opening_hour else None
+    # Only apply the open-hours filter when the owner has explicitly configured
+    # their hours.  Defaulting to 0/24 would silently include all 24 hours
+    # (even overnight) when no hours have been saved yet.
+    _raw_oh2 = settings.get("opening_hour")
+    _raw_ch2 = settings.get("closing_hour")
+    if _raw_oh2 is not None and _raw_ch2 is not None:
+        _oh2 = int(_raw_oh2)
+        _ch2 = int(_raw_ch2)
+        open_hours: set[int] | None = set(range(_oh2, _ch2)) if _ch2 > _oh2 else None
+    else:
+        open_hours = None  # hours not configured: no filter
 
     events = (
         db.query(SaleEvent)
@@ -1217,18 +1324,19 @@ def get_hourly_by_weekday(
         avgs = hourly_averages(ev_subset, open_hours)
         mix = hourly_product_mix(ev_subset, open_hours)
         slots: list[WeekdayHourlySlot] = []
-        for hour, avg_taps, _ in avgs:
+        for hour, avg_taps_raw, _ in avgs:
+            avg_taps_int = int(round(avg_taps_raw))  # customers are whole people
             hour_mix = mix.get(hour, {})
             pairs = [(qty, svc_by_pid.get(pid)) for pid, qty in hour_mix.items()]
             eff_svc = effective_service_time(pairs, avg_svc) if pairs else avg_svc
-            staff = _recommended_staff(avg_taps, eff_svc, settings)
+            staff = _recommended_staff(avg_taps_raw, eff_svc, settings)
             slots.append(WeekdayHourlySlot(
                 hour=hour,
-                avg_taps=avg_taps,
+                avg_taps=avg_taps_int,
                 recommended_staff=staff,
                 label=_fmt_hour_range(hour),
-                expected_wait_minutes=round(expected_wait_minutes(avg_taps, eff_svc, staff), 1),
-                marginal_note=marginal_note(avg_taps, eff_svc, staff),
+                expected_wait_minutes=round(expected_wait_minutes(avg_taps_raw, eff_svc, staff), 1),
+                marginal_note=marginal_note(avg_taps_raw, eff_svc, staff),
             ))
         return slots
 

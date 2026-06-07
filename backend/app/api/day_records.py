@@ -182,6 +182,9 @@ def get_day_record(record_id: int, db: Session = Depends(get_db), biz: Business 
 def update_day_record(record_id: int, body: DayRecordUpdate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     row = _get_or_404(db, record_id, biz.id)
     _timing_check(row.date, biz)
+    # Save current values as the previous version before overwriting (one-step undo)
+    row.prev_customers = row.customers
+    row.prev_notes = row.notes
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(row, field, value)
     db.commit()
@@ -192,6 +195,27 @@ def update_day_record(record_id: int, body: DayRecordUpdate, db: Session = Depen
     result = DayRecordRead.model_validate(row)
     result.warning = warning
     return result
+
+
+@router.post("/{record_id}/undo", response_model=DayRecordRead)
+def undo_day_record(record_id: int, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+    """Restore the immediately-previous version of a day record (one step back).
+
+    Swaps current ↔ prev so a second call re-applies the overwrite (undo-of-undo).
+    Raises 404 when no previous version exists.
+    """
+    row = _get_or_404(db, record_id, biz.id)
+    if row.prev_customers is None:
+        raise HTTPException(404, "No previous version to restore for this record.")
+    # Swap current ↔ prev
+    cur_customers, cur_notes = row.customers, row.notes
+    row.customers = row.prev_customers
+    row.notes = row.prev_notes
+    row.prev_customers = cur_customers
+    row.prev_notes = cur_notes
+    db.commit()
+    db.refresh(row)
+    return DayRecordRead.model_validate(row)
 
 
 @router.patch("/{record_id}/outlier", response_model=DayRecordRead)

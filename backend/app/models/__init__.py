@@ -2,6 +2,7 @@ from app.models.base import Base
 from app.models.business import Business
 from app.models.day_record import DayRecord
 from app.models.forecast_run import ForecastRun
+from app.models.order_record import OrderRecord
 from app.models.period import Period
 from app.models.product import Product
 from app.models.recurring_pattern import RecurringPattern
@@ -16,6 +17,7 @@ __all__ = [
     "Business",
     "DayRecord",
     "ForecastRun",
+    "OrderRecord",
     "Period",
     "Product",
     "RecurringPattern",

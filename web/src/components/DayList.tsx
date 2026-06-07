@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
 import { dayRecords, products as productsApi, sales as salesApi } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
 import type { DayRecordRead, ProductRead, SaleRead } from '../api/types'
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-function weekdayLabel(dateStr: string): string {
+function weekdayLabel(dateStr: string, t: ReturnType<typeof useLanguage>['t']): string {
   const [y, m, d] = dateStr.split('-').map(Number)
-  return WEEKDAYS[new Date(y, m - 1, d).getDay()]
+  const jsDay = new Date(y, m - 1, d).getDay()  // 0=Sun…6=Sat
+  const keys = ['daySun', 'dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat'] as const
+  return t(keys[jsDay])
 }
 
 interface Props { refreshKey: number }
 
 export default function DayList({ refreshKey }: Props) {
+  const { t } = useLanguage()
   const [days, setDays]         = useState<DayRecordRead[]>([])
   const [allSales, setAllSales] = useState<SaleRead[]>([])
   const [productList, setProductList] = useState<ProductRead[]>([])
@@ -33,11 +35,11 @@ export default function DayList({ refreshKey }: Props) {
         salesApi.list(),
         productsApi.list(),
       ])
-      setDays([...d].reverse())   // most-recent first
+      setDays([...d].reverse())
       setAllSales(s)
       setProductList(p)
     } catch {
-      setError('Failed to load data. Is the backend running?')
+      setError(t('failedToLoadData'))
     } finally {
       setLoading(false)
     }
@@ -85,9 +87,8 @@ export default function DayList({ refreshKey }: Props) {
   }
 
   async function handleDelete(id: number) {
-    if (!window.confirm('Delete this day and its sales?')) return
+    if (!window.confirm(t('deleteDayConfirm'))) return
     try {
-      // Delete associated sales first (SQLite may not enforce FK cascade)
       for (const s of allSales.filter(s => s.day_record_id === id)) {
         await salesApi.delete(s.id)
       }
@@ -98,7 +99,16 @@ export default function DayList({ refreshKey }: Props) {
     }
   }
 
-  if (loading) return <p className="text-teal-500 text-sm animate-pulse">Loading your days…</p>
+  async function handleUndo(id: number) {
+    try {
+      await dayRecords.undo(id)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Undo failed')
+    }
+  }
+
+  if (loading) return <p className="text-teal-500 text-sm animate-pulse">{t('loadingYourDays')}</p>
   if (error)   return <p className="text-red-700 text-sm bg-red-50 rounded-xl p-3">{error}</p>
   if (!days.length) return (
     <div className="py-12 text-center">
@@ -109,8 +119,7 @@ export default function DayList({ refreshKey }: Props) {
         </svg>
       </div>
       <p className="text-slate-500 text-sm max-w-xs mx-auto leading-relaxed">
-        No days logged yet — and that's a fine place to start!
-        Switch to <strong className="text-teal-600">Add Today</strong> to record your first day.
+        {t('noDaysLoggedYet', { addToday: t('logToday') })}
       </p>
     </div>
   )
@@ -121,9 +130,9 @@ export default function DayList({ refreshKey }: Props) {
         <thead>
           <tr className="border-b-2 border-slate-200 text-left text-xs font-semibold
                          text-slate-500 uppercase tracking-wider">
-            <th className="py-2 pr-4 whitespace-nowrap">Date</th>
-            <th className="py-2 pr-4">Day</th>
-            <th className="py-2 pr-4">Customers</th>
+            <th className="py-2 pr-4 whitespace-nowrap">{t('dateColLabel')}</th>
+            <th className="py-2 pr-4">{t('dayColLabel')}</th>
+            <th className="py-2 pr-4">{t('customersLabel')}</th>
             {productList.map(p => (
               <th key={p.id} className="py-2 pr-4 whitespace-nowrap">
                 {p.name} <span className="font-normal text-slate-400">({p.unit})</span>
@@ -141,7 +150,7 @@ export default function DayList({ refreshKey }: Props) {
               return (
                 <tr key={day.id} className="border-b border-slate-100 bg-teal-50">
                   <td className="py-2 pr-4 text-slate-500 text-xs">{day.date}</td>
-                  <td className="py-2 pr-4 text-slate-400">{weekdayLabel(day.date)}</td>
+                  <td className="py-2 pr-4 text-slate-400">{weekdayLabel(day.date, t)}</td>
                   <td className="py-2 pr-4">
                     <input
                       type="number" min="0"
@@ -171,7 +180,7 @@ export default function DayList({ refreshKey }: Props) {
                           onClick={() => { setEditId(null); setEditError(null) }}
                           className="text-xs text-slate-400 hover:underline text-left"
                         >
-                          Dismiss
+                          {t('dismissBtn')}
                         </button>
                       </div>
                     ) : (
@@ -180,13 +189,13 @@ export default function DayList({ refreshKey }: Props) {
                           onClick={() => saveEdit(day)} disabled={saving}
                           className="text-teal-600 hover:underline font-medium disabled:opacity-50"
                         >
-                          {saving ? '…' : 'Save'}
+                          {saving ? '…' : t('saveLabel')}
                         </button>
                         <button
                           onClick={() => { setEditId(null); setEditError(null) }}
                           className="text-slate-400 hover:underline"
                         >
-                          Cancel
+                          {t('cancelBtn')}
                         </button>
                       </div>
                     )}
@@ -206,11 +215,11 @@ export default function DayList({ refreshKey }: Props) {
                   {day.date}
                   {isFlagged && (
                     <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
-                      unusual
+                      {t('unusualBadge')}
                     </span>
                   )}
                 </td>
-                <td className="py-2 pr-4 text-slate-400">{weekdayLabel(day.date)}</td>
+                <td className="py-2 pr-4 text-slate-400">{weekdayLabel(day.date, t)}</td>
                 <td className="py-2 pr-4 font-semibold text-slate-800">{day.customers}</td>
                 {productList.map(p => {
                   const sale = daySales.find(s => s.product_id === p.id)
@@ -226,8 +235,17 @@ export default function DayList({ refreshKey }: Props) {
                       onClick={() => startEdit(day)}
                       className="text-teal-500 hover:text-teal-700 text-xs font-medium"
                     >
-                      Edit
+                      {t('editBtn')}
                     </button>
+                    {day.prev_customers != null && (
+                      <button
+                        onClick={() => handleUndo(day.id)}
+                        title={`${t('undoLabel')}: ${t('restoreToPrevious', { n: String(day.prev_customers) })}`}
+                        className="text-amber-500 hover:text-amber-700 text-xs font-medium"
+                      >
+                        ↩ {t('undoLabel')}
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDelete(day.id)}
                       className="text-slate-300 hover:text-red-500 text-xs"
@@ -242,7 +260,7 @@ export default function DayList({ refreshKey }: Props) {
           })}
         </tbody>
       </table>
-      <p className="text-xs text-slate-400 mt-3">{days.length} days total</p>
+      <p className="text-xs text-slate-400 mt-3">{t('daysTotal', { n: String(days.length) })}</p>
     </div>
   )
 }

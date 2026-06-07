@@ -25,15 +25,27 @@ function fmtHour(h: number, lang?: string): string {
   return `${h24 - 12} pm`
 }
 
-const WEEKDAY_FULL_TRANSLATIONS: Record<string, Record<string, string>> = {
-  he: {
-    Monday: 'שני', Tuesday: 'שלישי', Wednesday: 'רביעי', Thursday: 'חמישי',
-    Friday: 'שישי', Saturday: 'שבת', Sunday: 'ראשון',
-  },
+/** Format a 1-hour slot as a range, e.g. "9–10 am" or "9:00–10:00" in Hebrew. */
+function fmtHourRange(h: number, lang?: string): string {
+  const h24 = ((h % 24) + 24) % 24
+  const e24 = ((h + 1) % 24 + 24) % 24
+  if (lang === 'he') return `${h24}:00–${e24}:00`
+  // English 12h range: collapse suffix when both sides share it
+  function h12(n: number) { return n === 0 ? '12' : n <= 12 ? String(n) : String(n - 12) }
+  function suf(n: number) { return n < 12 ? 'am' : 'pm' }
+  if (suf(h24) === suf(e24)) return `${h12(h24)}–${h12(e24)} ${suf(h24)}`
+  return `${h12(h24)} ${suf(h24)}–${h12(e24)} ${suf(e24)}`
 }
 
-function translateWeekdayFull(weekday: string, lang: string): string {
-  return WEEKDAY_FULL_TRANSLATIONS[lang]?.[weekday] ?? weekday
+const WDAY_FULL_KEY: Record<string, string> = {
+  Monday: 'weekdayFull_Monday', Tuesday: 'weekdayFull_Tuesday',
+  Wednesday: 'weekdayFull_Wednesday', Thursday: 'weekdayFull_Thursday',
+  Friday: 'weekdayFull_Friday', Saturday: 'weekdayFull_Saturday', Sunday: 'weekdayFull_Sunday',
+}
+
+function translateWeekdayFull(weekday: string, t: ReturnType<typeof useLanguage>['t']): string {
+  const key = WDAY_FULL_KEY[weekday]
+  return key ? t(key as Parameters<typeof t>[0]) : weekday
 }
 
 function jsDayToPython(jsDay: number): number {
@@ -183,7 +195,7 @@ function TomorrowPanel({
                     )}
                     <div>
                       <p className={`text-sm font-medium leading-tight ${isBusiest ? 'text-teal-800 dark:text-teal-200' : 'text-slate-700 dark:text-slate-200'}`}>
-                        {h.label}
+                        {fmtHourRange(h.hour, lang)}
                       </p>
                       <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                         ~{Math.round(h.avg_taps)} {t('avgCustomersTooltip')}/hr ·{' '}
@@ -250,7 +262,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                 onClick={() => setOpen(isOpen ? null : wd.weekday_idx)}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{translateWeekdayFull(wd.weekday, lang)}</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{translateWeekdayFull(wd.weekday, t)}</span>
                   {isTomorrow && (
                     <span className="text-xs bg-teal-100 dark:bg-teal-800 text-teal-700 dark:text-teal-300 font-semibold px-2 py-0.5 rounded-full">
                       {t('tomorrowBadge')}
@@ -259,7 +271,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {fmtHour(busiest.hour, lang)} · {busiest.recommended_staff} {bStaffWord}
+                    {fmtHourRange(busiest.hour, lang)} · {busiest.recommended_staff} {bStaffWord}
                   </span>
                   <svg
                     className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -283,7 +295,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className={`text-xs font-medium ${isBest ? 'text-teal-700 dark:text-teal-300' : 'text-slate-600 dark:text-slate-300'}`}>
-                            {h.label}
+                            {fmtHourRange(h.hour, lang)}
                           </span>
                           <span className="text-xs text-slate-400 dark:text-slate-500">
                             ~{Math.round(h.avg_taps)}/hr · {h.recommended_staff} {hStaffWord}
@@ -300,7 +312,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                   <p className="text-xs text-slate-400 dark:text-slate-500 pt-1">
                     {t('basedOnNDays', {
                       n: String(wd.n_days_data),
-                      weekday: translateWeekdayFull(wd.weekday, lang),
+                      weekday: translateWeekdayFull(wd.weekday, t),
                       s: wd.n_days_data !== 1 ? 's' : '',
                     })}
                   </p>

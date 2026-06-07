@@ -49,12 +49,12 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
     e.preventDefault()
     const name = form.name.trim()
     const unit = form.unit.trim()
-    if (!name) { setError('Give this product a name.'); return }
-    if (!unit) { setError('What unit do you sell it in? (e.g. kg, box, bottle)'); return }
+    if (!name) { setError(t('productNameRequired')); return }
+    if (!unit) { setError(t('productUnitRequired')); return }
 
     const lead_time_days = parseInt(form.lead_time_days)
     if (isNaN(lead_time_days) || lead_time_days < 1) {
-      setError('Lead time must be at least 1 day.'); return
+      setError(t('productLeadTimeMin')); return
     }
 
     const price                = parseOptionalNumber(form.price)
@@ -63,11 +63,11 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
     const shelf_life_days_n    = form.shelf_life_days.trim() === '' ? null : parseInt(form.shelf_life_days)
     const service_time_minutes = parseOptionalNumber(form.service_time_minutes)
 
-    if (price                !== null && price                < 0) { setError("Price can't be negative."); return }
-    if (current_stock        !== null && current_stock        < 0) { setError("Stock on hand can't be negative."); return }
-    if (storage_capacity     !== null && storage_capacity     <= 0) { setError('Storage capacity must be greater than zero.'); return }
-    if (shelf_life_days_n    !== null && (isNaN(shelf_life_days_n) || shelf_life_days_n < 1)) { setError('Shelf life must be at least 1 day.'); return }
-    if (service_time_minutes !== null && service_time_minutes <= 0) { setError('Serving time must be greater than zero.'); return }
+    if (price                !== null && price                < 0) { setError(t('productPriceNeg')); return }
+    if (current_stock        !== null && current_stock        < 0) { setError(t('productStockNeg')); return }
+    if (storage_capacity     !== null && storage_capacity     <= 0) { setError(t('productCapacityPos')); return }
+    if (shelf_life_days_n    !== null && (isNaN(shelf_life_days_n) || shelf_life_days_n < 1)) { setError(t('productShelfLifeMin')); return }
+    if (service_time_minutes !== null && service_time_minutes <= 0) { setError(t('productServicePos')); return }
 
     setSaving(true)
     setError(null)
@@ -258,7 +258,7 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
               type="number"
               min="0.1"
               step="any"
-              placeholder="Blank = use your settings default"
+              placeholder={t('productServicePlaceholder')}
               value={form.service_time_minutes}
               onChange={e => set('service_time_minutes', e.target.value)}
               className="w-full px-4 py-3 text-base border border-slate-200 dark:border-slate-600 rounded-xl
@@ -339,12 +339,12 @@ function EditProductForm({
     e.preventDefault()
     const name = form.name.trim()
     const unit = form.unit.trim()
-    if (!name) { setError('Name is required.'); return }
-    if (!unit) { setError('Unit is required.'); return }
+    if (!name) { setError(t('productNameRequired')); return }
+    if (!unit) { setError(t('productUnitRequired')); return }
 
     const lead_time_days = parseInt(form.lead_time_days)
     if (isNaN(lead_time_days) || lead_time_days < 1) {
-      setError('Lead time must be at least 1 day.'); return
+      setError(t('productLeadTimeMin')); return
     }
 
     setSaving(true)
@@ -488,7 +488,7 @@ function EditProductForm({
             type="number"
             min="0.1"
             step="any"
-            placeholder="Blank = use your settings default"
+            placeholder={t('productServicePlaceholder')}
             value={form.service_time_minutes}
             onChange={e => set('service_time_minutes', e.target.value)}
             className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg

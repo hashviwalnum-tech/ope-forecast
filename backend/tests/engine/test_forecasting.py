@@ -2,11 +2,13 @@
 Known-answer tests for engine/forecasting.py — every formula from spec section 12.
 """
 import pytest
+from datetime import date
 from app.engine.forecasting import (
     simple_moving_average,
     weighted_moving_average,
     exponential_smoothing,
     linear_trend,
+    same_date_last_year,
     seasonality_index,
 )
 
@@ -152,3 +154,72 @@ def test_seasonality_index_applied_to_base_forecast():
 def test_seasonality_index_zero_overall_avg():
     with pytest.raises(ValueError):
         seasonality_index(150, 0)
+
+
+# ---------------------------------------------------------------------------
+# linear_trend — trend model: rising series forecasts ABOVE trailing average
+# ---------------------------------------------------------------------------
+
+def test_linear_trend_forecasts_above_trailing_average_for_rising_series():
+    """A steadily rising same-weekday series must forecast ABOVE the trailing average."""
+    from app.engine.seasonality import seasonal_naive_forecast
+
+    # Sunday series rising by 5 each week: 50, 55, 60, 65, 70
+    obs = [50.0, 55.0, 60.0, 65.0, 70.0]
+    wds = [6, 6, 6, 6, 6]
+
+    trailing_avg = seasonal_naive_forecast(obs, wds, 6)   # = 60.0
+    assert trailing_avg == pytest.approx(60.0)
+
+    # OLS on indices 0–4, predict at index 5: slope=5, intercept=50, t=5 → 75
+    lt = linear_trend(list(range(5)), obs, 5.0)
+    assert lt == pytest.approx(75.0)
+    assert lt > trailing_avg, "trend model must forecast above trailing average for a rising series"
+
+
+# ---------------------------------------------------------------------------
+# same_date_last_year
+# ---------------------------------------------------------------------------
+
+def test_sdly_returns_none_without_year_of_data():
+    """When data doesn't span a year, SDLY returns None."""
+    dates = [date(2025, 3, 1), date(2025, 3, 8), date(2025, 3, 15)]
+    values = [50.0, 55.0, 60.0]
+    target = date(2025, 6, 7)
+    assert same_date_last_year(dates, values, target) is None
+
+
+def test_sdly_finds_matching_same_weekday_data():
+    """SDLY averages same-weekday observations within ±7 days of the same date last year."""
+    # Target: 2025-06-07 (Saturday, weekday 5)
+    # Anchor: 2024-06-07. Saturday 2024-06-01 is 6 days before anchor (in window).
+    # Saturday 2024-06-08 is 1 day after anchor (in window).
+    # Saturday 2024-06-15 is 8 days after anchor (outside default ±7 window).
+    target = date(2025, 6, 7)
+    dates = [date(2024, 6, 1), date(2024, 6, 8), date(2024, 6, 15)]
+    values = [80.0, 90.0, 70.0]
+
+    result = same_date_last_year(dates, values, target)
+    assert result is not None
+    assert result == pytest.approx(85.0)  # avg of 80 and 90; Jun15 is outside window
+
+
+def test_sdly_filters_by_weekday():
+    """Non-matching weekdays within the window are excluded."""
+    # Target: 2025-06-07 (Saturday)
+    target = date(2025, 6, 7)
+    # 2024-06-05 = Wednesday (weekday 2), 2024-06-08 = Saturday (weekday 5)
+    dates = [date(2024, 6, 5), date(2024, 6, 8)]
+    values = [200.0, 90.0]  # the Wednesday value should be ignored
+
+    result = same_date_last_year(dates, values, target)
+    assert result == pytest.approx(90.0)  # only the Saturday is matched
+
+
+def test_sdly_empty_returns_none():
+    assert same_date_last_year([], [], date(2025, 6, 7)) is None
+
+
+def test_sdly_mismatched_lengths_raises():
+    with pytest.raises(ValueError):
+        same_date_last_year([date(2024, 6, 1)], [10.0, 20.0], date(2025, 6, 7))

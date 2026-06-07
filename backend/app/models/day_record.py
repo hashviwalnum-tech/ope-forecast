@@ -21,3 +21,6 @@ class DayRecord(Base):
     # NULL=normal, 'flagged'=unreviewed outlier, 'kept'=user confirmed valid,
     # 'excluded'=user marked as fluke, 'event'=user marked as real event
     outlier_status: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    # One-step undo: stores the value immediately before the last PUT overwrite
+    prev_customers: Mapped[Optional[int]] = mapped_column(nullable=True)
+    prev_notes: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)

@@ -193,16 +193,16 @@ export default function BusinessSettings({ onTierChanged }: Props) {
       {/* Staffing threshold */}
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-          Staffing goal
+          {t('staffingGoalLabel')}
         </label>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">
-          How do you want to size your team? Pick the thing that matters most to you — the app will recommend the smallest number of people that keeps your queue under control.
+          {t('staffingGoalDesc')}
         </p>
 
         <div className="space-y-2 mb-3">
-          {([ ['none', 'Keep servers busy (default — 85% utilisation)'],
-               ['wait', 'Max time a customer waits'],
-               ['queue', 'Max people in line at once'],
+          {([ ['none', t('staffingOptionBusy')],
+               ['wait', t('staffingOptionWait')],
+               ['queue', t('staffingOptionQueue')],
           ] as const).map(([val, label]) => (
             <label key={val} className="flex items-center gap-2.5 cursor-pointer">
               <input
@@ -229,7 +229,7 @@ export default function BusinessSettings({ onTierChanged }: Props) {
               className="w-24 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
                          bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
             />
-            <span className="text-sm text-slate-500 dark:text-slate-400">minutes max wait</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">{t('minutesMaxWait')}</span>
           </div>
         )}
 
@@ -244,7 +244,7 @@ export default function BusinessSettings({ onTierChanged }: Props) {
               className="w-24 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
                          bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
             />
-            <span className="text-sm text-slate-500 dark:text-slate-400">people max in line</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">{t('peopleMaxInLine')}</span>
           </div>
         )}
       </div>

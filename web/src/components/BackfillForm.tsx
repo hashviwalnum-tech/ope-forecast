@@ -14,9 +14,10 @@ function localYesterday(): string {
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
 }
 
-function fmtHour(h: number): string {
+function fmtHour(h: number, lang: string): string {
+  if (lang === 'he') return `${h}:00`
   if (h === 0)  return '12 am'
-  if (h < 12)  return `${h} am`
+  if (h < 12)   return `${h} am`
   if (h === 12) return '12 pm'
   return `${h - 12} pm`
 }
@@ -43,7 +44,7 @@ function isNonWorkingDay(dateStr: string, biz: BusinessRead | null): boolean {
 }
 
 export default function BackfillForm({ onSaved }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [date, setDate]           = useState(localYesterday)
   const [customers, setCustomers] = useState('')
   const [productList, setProductList] = useState<ProductRead[]>([])
@@ -65,33 +66,65 @@ export default function BackfillForm({ onSaved }: Props) {
   const locked = isTodayLocked(biz)
   const nonWorking = isNonWorkingDay(date, biz)
 
-  // Hourly reconciliation: compare sum of typed hours to daily customer total
-  const typedHoursTotal = showHourly
-    ? Object.values(hourlyData).reduce((sum, v) => sum + (parseFloat(v) || 0), 0)
+  // Compute the set of open hours from business settings (null = all hours allowed)
+  const openHours: Set<number> | null = (() => {
+    const oh = biz?.settings?.opening_hour
+    const ch = biz?.settings?.closing_hour
+    if (typeof oh !== 'number' || typeof ch !== 'number' || ch <= oh) return null
+    const s = new Set<number>()
+    for (let h = oh; h < ch; h++) s.add(h)
+    return s
+  })()
+
+  // Hours to show in the UI — only open hours when configured, else all 24
+  const visibleHours = openHours !== null
+    ? Array.from({ length: 24 }, (_, h) => h).filter(h => openHours.has(h))
+    : Array.from({ length: 24 }, (_, h) => h)
+
+  // Sum only open-hours entries (closed hours are discarded per spec §6)
+  const openHoursTotal = showHourly
+    ? Object.entries(hourlyData).reduce((sum, [h, v]) => {
+        const hour = parseInt(h)
+        if (openHours !== null && !openHours.has(hour)) return sum
+        return sum + (parseFloat(v) || 0)
+      }, 0)
     : 0
+
   const custNum = parseInt(customers)
-  const hasTypedHours = showHourly && typedHoursTotal > 0
-  const hourlyExceedsTotal = hasTypedHours && !isNaN(custNum) && custNum >= 0 && typedHoursTotal > custNum
-  const hourlyUnderTotal = hasTypedHours && !isNaN(custNum) && custNum > 0 && typedHoursTotal < custNum
+  const hasManualTotal = customers.trim() !== '' && !isNaN(custNum) && custNum > 0
+  const hasOpenHours = showHourly && openHoursTotal > 0
+
+  // Apply three-case hours-vs-total reconciliation rule (spec §9):
+  // Case 1: hours > manual  → hours become the total
+  // Case 2: no manual total → hours become the total
+  // Case 3: hours ≤ manual  → keep manual, gap is unattributed
+  const effectiveCustomers: number = (() => {
+    if (!hasOpenHours) return isNaN(custNum) ? 0 : custNum
+    if (!hasManualTotal) return Math.round(openHoursTotal)               // Case 2
+    if (openHoursTotal > custNum) return Math.round(openHoursTotal)      // Case 1
+    return custNum                                                         // Case 3
+  })()
+
+  const hoursCase: 'none' | 'becomes-total' | 'no-manual' | 'under-total' = (() => {
+    if (!hasOpenHours) return 'none'
+    if (!hasManualTotal) return 'no-manual'
+    if (openHoursTotal > custNum) return 'becomes-total'
+    if (openHoursTotal < custNum) return 'under-total'
+    return 'none'
+  })()
+
+  const hourlyUnderTotal = hoursCase === 'under-total'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (nonWorking) return
-    const cust = parseInt(customers)
-    if (isNaN(cust) || cust < 0) return
-    // Block save if typed hourly entries exceed the daily total (mathematically impossible)
-    if (hourlyExceedsTotal) {
-      setFeedback({
-        ok: false,
-        msg: `Typed hours add up to ${Math.round(typedHoursTotal)} customers, which exceeds your daily total of ${cust}. Adjust the hourly breakdown or the daily total before saving.`,
-      })
-      return
-    }
+    // Require either a manual total or hourly data to produce a non-zero total
+    if (effectiveCustomers <= 0) return
     setSaving(true)
     setFeedback(null)
     setOverwriteId(null)
     try {
-      const day = await dayRecords.create({ date, customers: cust })
+      const day = await dayRecords.create({ date, customers: effectiveCustomers })
       for (const p of productList) {
         const val = parseFloat(unitsSold[p.id] ?? '')
         if (!isNaN(val) && val > 0) {
@@ -100,9 +133,11 @@ export default function BackfillForm({ onSaved }: Props) {
       }
 
       if (showHourly) {
+        // Only save open-hours entries; discard closed-hour data (spec §6)
         const slots = Object.entries(hourlyData)
           .map(([h, v]) => ({ hour: parseInt(h), customers: parseFloat(v) }))
           .filter(s => !isNaN(s.customers) && s.customers > 0)
+          .filter(s => openHours === null || openHours.has(s.hour))
         if (slots.length > 0) {
           await saleEvents.backfillHourly(date, slots)
         }
@@ -112,7 +147,7 @@ export default function BackfillForm({ onSaved }: Props) {
       setCustomers('')
       setUnitsSold({})
       setHourlyData({})
-      setFeedback({ ok: true, msg: 'Saved!' })
+      setFeedback({ ok: true, msg: t('savedFeedback') })
       onSaved()
     } catch (err) {
       const raw = err instanceof Error ? err.message : 'Save failed'
@@ -139,12 +174,11 @@ export default function BackfillForm({ onSaved }: Props) {
 
   async function handleOverwrite() {
     if (overwriteId === null) return
-    const cust = parseInt(customers)
-    if (isNaN(cust) || cust < 0) return
+    if (effectiveCustomers <= 0) return
     setSaving(true)
     setFeedback(null)
     try {
-      await dayRecords.update(overwriteId, { customers: cust })
+      await dayRecords.update(overwriteId, { customers: effectiveCustomers })
       const existingSales: SaleRead[] = await sales.list(overwriteId)
       for (const p of productList) {
         const val = parseFloat(unitsSold[p.id] ?? '')
@@ -159,7 +193,7 @@ export default function BackfillForm({ onSaved }: Props) {
       setCustomers('')
       setUnitsSold({})
       setHourlyData({})
-      setFeedback({ ok: true, msg: 'Updated!' })
+      setFeedback({ ok: true, msg: t('savedFeedback') })
       onSaved()
     } catch (err) {
       setFeedback({ ok: false, msg: err instanceof Error ? err.message : 'Update failed' })
@@ -265,21 +299,35 @@ export default function BackfillForm({ onSaved }: Props) {
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               {t('hourlyBreakdownDesc')}
             </p>
+            {openHours !== null && (
+              <p className="text-xs text-slate-400 dark:text-slate-500 italic">
+                {t('openHoursOnlyShown')}
+              </p>
+            )}
+            {hoursCase === 'no-manual' && (
+              <p className="text-xs text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
+                {t('hoursBecomeTotalNoManual', { typed: String(Math.round(openHoursTotal)) })}
+              </p>
+            )}
+            {hoursCase === 'becomes-total' && (
+              <p className="text-xs text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
+                {t('hoursBecomeTotalNote', { typed: String(Math.round(openHoursTotal)) })}
+              </p>
+            )}
             {hourlyUnderTotal && (
               <p className="text-xs text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
-                {`${Math.round(typedHoursTotal)} of ${custNum} customers are in typed hours. The remaining ${Math.round(custNum - typedHoursTotal)} count as unattributed time — your daily total of ${custNum} stays correct.`}
+                {t('hoursUnderTotalNote', {
+                  typed: String(Math.round(openHoursTotal)),
+                  cust: String(custNum),
+                  rem: String(Math.round(custNum - openHoursTotal)),
+                })}
               </p>
             )}
-            {hourlyExceedsTotal && (
-              <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg px-3 py-2 leading-relaxed">
-                {`Typed hours add up to ${Math.round(typedHoursTotal)} customers, which exceeds your daily total of ${custNum}. Adjust the breakdown or the daily total.`}
-              </p>
-            )}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 max-w-xs">
-              {Array.from({ length: 24 }, (_, h) => (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 max-w-xs">
+              {visibleHours.map(h => (
                 <div key={h} className="flex items-center gap-2">
                   <span className="text-xs text-slate-500 dark:text-slate-400 w-11 shrink-0 text-right tabular-nums">
-                    {fmtHour(h)}
+                    {fmtHour(h, lang)}
                   </span>
                   <input
                     type="number" min="0" placeholder="—"
@@ -307,7 +355,7 @@ export default function BackfillForm({ onSaved }: Props) {
       {overwriteId !== null ? (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-4 space-y-3">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-            A record for this date already exists. Overwrite it with this data, or cancel?
+            {t('dateOverwritePrompt')}
           </p>
           <div className="flex gap-2">
             <button
@@ -315,7 +363,7 @@ export default function BackfillForm({ onSaved }: Props) {
               className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300
                          text-white font-medium py-2 rounded-xl text-sm transition-colors"
             >
-              {saving ? t('savingLabel') : 'Overwrite'}
+              {saving ? t('savingLabel') : t('overwriteBtn')}
             </button>
             <button
               type="button" onClick={() => setOverwriteId(null)} disabled={saving}
@@ -323,7 +371,7 @@ export default function BackfillForm({ onSaved }: Props) {
                          border border-slate-300 dark:border-slate-600
                          text-slate-700 dark:text-slate-200 font-medium py-2 rounded-xl text-sm transition-colors"
             >
-              Cancel
+              {t('cancelBtn')}
             </button>
           </div>
         </div>

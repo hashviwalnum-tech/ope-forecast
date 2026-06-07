@@ -54,6 +54,35 @@ def hourly_product_mix(
     return {h: dict(mix) for h, mix in totals.items()}
 
 
+def reconcile_customers_with_hours(
+    manual_total: int | None,
+    hours_sum: float,
+) -> tuple[int, str]:
+    """Three-case hours-vs-total reconciliation (spec §9).
+
+    Assumes hours_sum has already been filtered to open hours only.
+
+    Cases:
+    1. hours_sum > manual_total  → hours sum wins (more granular data)
+    2. manual_total is None/0, hours_sum > 0 → hours sum used (derive total)
+    3. hours_sum <= manual_total → keep manual total (gap = unknown hours)
+
+    Returns (effective_customers, note).
+    """
+    has_hours = hours_sum > 0
+
+    if not has_hours:
+        return (manual_total or 0, "manual")
+
+    if manual_total is None or manual_total == 0:
+        return (round(hours_sum), "hours")
+
+    if hours_sum > manual_total:
+        return (round(hours_sum), "hours-greater")
+
+    return (manual_total, "manual-with-unknown")
+
+
 def hourly_averages(
     events: list[tuple[date, int, int | None, float]],
     open_hours: set[int] | None = None,
@@ -70,8 +99,14 @@ def hourly_averages(
         The average denominates over the full dataset size (days with zero
         taps at that hour count as zero, not as absent).
     """
-    all_dates: set[date] = {ev[0] for ev in events}
-    n_days = len(all_dates)
+    # Count only days that had at least one event within open hours.
+    # Days whose taps are all outside the opening-hours window are not "tracked"
+    # during open hours and must not dilute the per-hour averages.
+    filtered_dates: set[date] = {
+        day for day, hour, _pid, _qty in events
+        if open_hours is None or hour in open_hours
+    }
+    n_days = len(filtered_dates)
     if n_days == 0:
         return []
 

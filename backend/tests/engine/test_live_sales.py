@@ -1,7 +1,7 @@
 """Known-answer tests for engine.live_sales.rollup_by_hour and hourly_averages."""
 from datetime import date
 
-from app.engine.live_sales import hourly_averages, rollup_by_hour
+from app.engine.live_sales import hourly_averages, reconcile_customers_with_hours, rollup_by_hour
 
 
 def test_empty_returns_empty():
@@ -122,3 +122,93 @@ def test_hourly_averages_open_hours_filter_excludes_outside():
 
 def test_hourly_averages_empty_returns_empty():
     assert hourly_averages([]) == []
+
+
+def test_hourly_averages_open_hours_only_days_count_in_denominator():
+    """Days with exclusively out-of-hours taps must not inflate the denominator.
+
+    Without the fix: n_days = 2 (D1 and D2 both counted), avg = 10.0/2 = 5.0.
+    With the fix: n_days = 1 (only D1 had an open-hours tap), avg = 10.0/1 = 10.0.
+    """
+    d1 = date(2025, 9, 8)
+    d2 = date(2025, 9, 9)
+    events = [
+        (d1, 9, None, 10.0),   # D1: tap within open hours
+        (d2, 22, None, 5.0),   # D2: tap outside open hours only
+    ]
+    result = hourly_averages(events, open_hours={9, 10, 11})
+    assert len(result) == 1
+    _, avg, n = result[0]
+    assert n == 1
+    assert avg == 10.0  # not dragged down to 5.0 by D2
+
+
+# ── reconcile_customers_with_hours — hours-vs-total three-case rule ────────────
+
+def test_reconcile_no_hours_uses_manual():
+    """No hourly data at all → manual total returned unchanged."""
+    customers, note = reconcile_customers_with_hours(50, 0.0)
+    assert customers == 50
+    assert "manual" in note
+
+
+def test_reconcile_case1_hours_greater_than_manual():
+    """Case 1: hours_sum > manual_total → hours sum becomes the total."""
+    customers, note = reconcile_customers_with_hours(50, 70.0)
+    assert customers == 70
+    assert "hours" in note
+
+
+def test_reconcile_case1_rounds_correctly():
+    """Case 1: fractional hours sum is rounded to the nearest integer."""
+    customers, _ = reconcile_customers_with_hours(30, 42.6)
+    assert customers == 43
+
+
+def test_reconcile_case2_no_manual_uses_hours():
+    """Case 2: no manual total (None) → derive total from hours sum."""
+    customers, note = reconcile_customers_with_hours(None, 35.0)
+    assert customers == 35
+    assert "hours" in note
+
+
+def test_reconcile_case2_zero_manual_uses_hours():
+    """Case 2: manual_total=0 treated as 'not entered' → hours sum used."""
+    customers, note = reconcile_customers_with_hours(0, 40.0)
+    assert customers == 40
+    assert "hours" in note
+
+
+def test_reconcile_case3_hours_equal_keeps_manual():
+    """Case 3 boundary: hours_sum == manual_total → keep manual."""
+    customers, note = reconcile_customers_with_hours(50, 50.0)
+    assert customers == 50
+    assert "manual" in note
+
+
+def test_reconcile_case3_hours_less_keeps_manual():
+    """Case 3: hours_sum < manual_total → keep manual (gap = unknown hours)."""
+    customers, note = reconcile_customers_with_hours(60, 40.0)
+    assert customers == 60
+    assert "manual" in note
+
+
+def test_reconcile_closed_hour_not_counted():
+    """Closed-hour entries must be excluded from the hours sum before reconciliation.
+
+    A day with open hours 9–17 has 30 customers at hour 9 (open) and
+    20 at hour 22 (closed). The correct sum is 30; 50 would be wrong.
+    This proves the caller must filter to open hours before calling reconcile.
+    """
+    all_entries = {9: 30, 22: 20}
+    open_hours = set(range(9, 17))
+
+    open_sum = sum(v for h, v in all_entries.items() if h in open_hours)   # 30
+    full_sum = sum(all_entries.values())                                     # 50
+
+    eff_correct, _ = reconcile_customers_with_hours(None, open_sum)
+    eff_wrong,   _ = reconcile_customers_with_hours(None, full_sum)
+
+    assert eff_correct == 30, "Only open-hours sum must be used"
+    assert eff_wrong   == 50, "Shows what happens when closed hour is NOT filtered"
+    assert eff_correct != eff_wrong

@@ -110,6 +110,42 @@ def apply_order_constraints(
     return order, notes
 
 
+def projected_stock_timeline(
+    current_stock: float,
+    daily_forecast: list[float],
+    arrivals: list[tuple[int, float]],
+) -> list[float]:
+    """Day-by-day projected stock levels.
+
+    Args:
+        current_stock: units on hand right now.
+        daily_forecast: expected units sold per future day (index 0 = today/day 0,
+                        index 1 = tomorrow, …).
+        arrivals: list of (day_offset, quantity) pairs representing pending orders.
+                  An arrival on day_offset means stock is added BEFORE that day's sales.
+
+    Returns a list the same length as daily_forecast.  Negative values mean
+    projected stockout — the engine does not clamp at zero so callers can
+    detect the first day stock runs out.
+    """
+    if current_stock < 0:
+        raise ValueError("current_stock must be non-negative")
+    stocks: list[float] = []
+    stock = float(current_stock)
+    for day, forecast in enumerate(daily_forecast):
+        for offset, qty in arrivals:
+            if offset == day:
+                stock += qty
+        stock -= forecast
+        stocks.append(stock)
+    return stocks
+
+
+def will_stock_run_out(projected: list[float]) -> bool:
+    """Return True when any projected stock level drops to or below zero."""
+    return any(s <= 0 for s in projected)
+
+
 def service_level_z(service_level: float) -> float:
     """Normal-distribution z-score for a given service level (e.g. 0.95 → 1.645).
 

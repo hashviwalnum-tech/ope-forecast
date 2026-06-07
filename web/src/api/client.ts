@@ -15,6 +15,9 @@ import type {
   ForecastResponse,
   LiftResponse,
   OrderingResponse,
+  OrderRecordCreate,
+  OrderRecordRead,
+  OrderRecordUpdate,
   OutlierListResponse,
   PeriodCreate,
   PeriodRead,
@@ -158,9 +161,17 @@ export const dayRecords = {
   list: ()                              => GET<DayRecordRead[]>('/day-records'),
   create: (body: DayRecordCreate)       => POST<DayRecordRead>('/day-records', body),
   update: (id: number, b: DayRecordUpdate) => PUT<DayRecordRead>(`/day-records/${id}`, b),
+  undo: (id: number)                    => POST<DayRecordRead>(`/day-records/${id}/undo`, {}),
   resolveOutlier: (id: number, action: 'keep' | 'excluded' | 'event' | 'ad' | 'recurring') =>
     PATCH<DayRecordRead>(`/day-records/${id}/outlier`, { action }),
   delete: (id: number)                  => DELETE(`/day-records/${id}`),
+}
+
+export const orders = {
+  list:   ()                                    => GET<OrderRecordRead[]>('/orders'),
+  create: (body: OrderRecordCreate)             => POST<OrderRecordRead>('/orders', body),
+  update: (id: number, body: OrderRecordUpdate) => PUT<OrderRecordRead>(`/orders/${id}`, body),
+  cancel: (id: number)                          => DELETE(`/orders/${id}`),
 }
 
 export const outliers = {

@@ -314,6 +314,83 @@ export const translations = {
     profitabilityNoData: 'No visit amounts recorded yet. Record a visit with an amount to see revenue.',
     profitabilityTooltipLabel: 'Revenue',
 
+    // Hour labels
+    midnightLabel: 'midnight',
+    noonLabel: 'noon',
+
+    // Hours-vs-total reconciliation notes (BackfillForm)
+    hoursBecomeTotalNote: 'Hours add up to {typed} — using as the day total (greater than manual entry).',
+    hoursBecomeTotalNoManual: 'No daily total entered — using the hourly sum: {typed}.',
+    hoursUnderTotalNote: '{typed} of {cust} customers accounted for in typed hours. The remaining {rem} count as unattributed time — your daily total of {cust} stays correct.',
+    openHoursOnlyShown: 'Only your open hours are shown here.',
+    overwriteBtn: 'Overwrite',
+    savedFeedback: 'Saved!',
+
+    // BackfillForm — duplicate-date overwrite prompt
+    dateOverwritePrompt: 'A record for this date already exists — overwrite it with this data, or cancel?',
+
+    // LogDayForm
+    howManyCustomersToday: 'How many customers today?',
+    whatDidYouSellToday: 'What did you sell today?',
+    todayNotStarted: "Today hasn\'t started yet (opens at {opens}). Come back after closing ({closes}) to log today\'s numbers.",
+    todayStillOpenMsg: "Your business is still open until {closes}. Log today\'s totals after you close — that way the count will be complete.",
+    notReadyToLogYet: 'Not ready to log yet',
+    fixEarlierDayNote: 'Need to fix an earlier day? Use Past Days instead.',
+    todayOverwritePrompt: 'A record for today already exists. Overwrite it with this data, or cancel?',
+    saveTodayBtn: 'Save today',
+    todayAlreadyLoggedMsg: 'Today is already logged — find it in Past Days to edit it.',
+
+    // DayList
+    failedToLoadData: "Failed to load data. Is the backend running?",
+    deleteDayConfirm: 'Delete this day and its sales?',
+    loadingYourDays: 'Loading your days…',
+    noDaysLoggedYet: "No days logged yet — and that\'s a fine place to start! Switch to {addToday} to record your first day.",
+    dateColLabel: 'Date',
+    dayColLabel: 'Day',
+    daysTotal: '{n} days total',
+    unusualBadge: 'unusual',
+    dismissBtn: 'Dismiss',
+
+    // BusinessSettings — staffing goal
+    staffingGoalLabel: 'Staffing goal',
+    staffingGoalDesc: "How do you want to size your team? Pick the thing that matters most to you — the app will recommend the smallest number of people that keeps your queue under control.",
+    staffingOptionBusy: 'Keep servers busy (default — 85% utilisation)',
+    staffingOptionWait: 'Max time a customer waits',
+    staffingOptionQueue: 'Max people in line at once',
+    minutesMaxWait: 'minutes max wait',
+    peopleMaxInLine: 'people max in line',
+
+    // ForecastDashboard — model name labels
+    modelNameSeasonal: 'seasonal',
+    modelNameWma: 'WMA',
+    modelNameExpSmooth: 'exp. smooth.',
+    modelNameLinearTrend: 'trend',
+    modelNameLastYear: 'last year',
+
+    // PeriodsPanel — month abbreviations
+    monthJan: 'Jan', monthFeb: 'Feb', monthMar: 'Mar', monthApr: 'Apr',
+    monthMay: 'May', monthJun: 'Jun', monthJul: 'Jul', monthAug: 'Aug',
+    monthSep: 'Sep', monthOct: 'Oct', monthNov: 'Nov', monthDec: 'Dec',
+
+    // PeriodsPanel — validation errors
+    periodLabelRequired: 'Label is required.',
+    periodStartRequired: 'Start date is required.',
+    periodEndRequired: 'End date is required.',
+    periodEndAfterStart: 'End date must be on or after start date.',
+    periodCostPositive: 'Cost must be a positive number.',
+    periodNamePlaceholder: 'e.g. Summer sale, Facebook campaign',
+
+    // ProductsPanel — validation errors
+    productNameRequired: 'Give this product a name.',
+    productUnitRequired: 'What unit do you sell it in? (e.g. kg, box, bottle)',
+    productLeadTimeMin: 'Lead time must be at least 1 day.',
+    productPriceNeg: "Price can\'t be negative.",
+    productStockNeg: "Stock on hand can\'t be negative.",
+    productCapacityPos: 'Storage capacity must be greater than zero.',
+    productShelfLifeMin: 'Shelf life must be at least 1 day.',
+    productServicePos: 'Serving time must be greater than zero.',
+    productServicePlaceholder: 'Blank = use your settings default',
+
     // Chart / data-derived labels (bypass normal text path — must be translated explicitly)
     perDaySuffix: '/day',
     perHourSuffix: '/hr',
@@ -436,6 +513,43 @@ export const translations = {
     couldntLoadHourly: "Couldn't load hourly data — is the backend running?",
     marginalNoteLabel: 'Adding or removing staff:',
 
+    // ProductForecastPanel — strings missing translation (identified in audit)
+    forecastByProduct: 'Forecast by product',
+    productForecastNoProducts: "Add products in My Products, then log sales for each one — you'll see per-product demand forecasts and ordering advice here.",
+    productSelectorDesc: 'Select a product to see how much you\'ll need this week and when to reorder. Red = order now · Green = stock fine · Grey = not enough data yet.',
+    noOpenDaysWeek: 'No open days in the next 7 days match your schedule.',
+    forecastDemandWhileWaiting: 'forecast demand while waiting for stock',
+    expectedOverNDays: 'Expected over {n} day{s}',
+    reorderPointForecastNote: 'Reorder point uses the forecasted demand, not just the average.',
+    basedOnAvgDays: 'Based on your average of {qty}/day from {n} logged days.',
+
+    // CSV Import page — all strings go through translation so Hebrew works
+    csvPageTitle: 'Bring in your past data',
+    csvFormatTitle: 'Expected format',
+    csvDateHelp: 'The date column accepts YYYY-MM-DD (e.g. 2026-01-01), DD/MM/YYYY, or MM/DD/YYYY. The preview always shows how we read your dates — check it before saving.',
+    csvExampleNote: 'The example row in the downloaded template starts with # and is automatically skipped when you import — no need to delete it manually.',
+    csvDownloadTemplate: 'Download blank template',
+    csvDownloadHourly: 'Download hourly template',
+    csvForRegisterExports: '(for register exports)',
+    csvSumTip: 'Tip — to add up your hour cells in Excel: click an empty cell, type =SUM( then select your hour cells and press Enter.',
+    csvEarlierDatesTip: 'To add older history, add a new row for each earlier day and put its date in the first column (YYYY-MM-DD). You can go back as far as you have records.',
+    csvChooseFile: 'Click to choose a CSV file',
+    csvAmbiguousWarning: 'Some dates could be DD/MM or MM/DD — we assumed DD/MM for those. Check the Read as column below and make sure the dates look right before importing.',
+    csvAmbiguousCheck: 'Rows with a',
+    csvAmbiguousCheck2: 'badge are the ones to double-check.',
+    csvAutoSumTitle: 'Daily totals auto-computed from hourly data',
+    csvAutoSumDesc: 'for some rows (marked ★ below). Hourly data is the most granular source, so it takes precedence when it sums to more than the customers column.',
+    csvPreviewTitle: 'Preview — {n} rows ready to import',
+    csvColInFile: 'In your file',
+    csvColReadAs: 'Read as',
+    csvColCustomers: 'Customers',
+    csvMoreRows: '…and {n} more rows',
+    csvImportBtn: 'Import {n} rows',
+    csvImportingLabel: 'Importing…',
+    csvImportSuccess: '{ok} row{s} imported successfully',
+    csvImportPartial: '{ok} row{s} imported successfully, {skipped} skipped',
+    csvImportSkipped: "Couldn't import (already logged or invalid): {dates}",
+
     // Telegram Connect
     telegramLabel: 'Connect Telegram',
     telegramDesc: 'Link your Ope account to a Telegram bot so you can log sales and get forecasts by chat.',
@@ -451,6 +565,20 @@ export const translations = {
     telegramGenerateError: 'Could not generate a code — please try again.',
     telegramRevokeError: 'Could not disconnect — please try again.',
     copyToClipboard: 'Copy to clipboard',
+
+    // Day record undo
+    restoreToPrevious: 'Restore to {n} customers',
+
+    // Ordering lifecycle — "I ordered this"
+    iOrderedThis: 'I ordered this',
+    quantityOrdered: 'How many did you order?',
+    confirmOrder: 'Confirm order',
+    cancelOrder: 'Cancel order',
+    orderLoggedConfirm: 'Ordered {qty} {unit} · Arrives {arrival}',
+
+    // Low stock warning (fires only when projected stock about to run out)
+    lowStockWarning: 'You may run out of {name} before your next order arrives.',
+    leaveItBe: 'Leave it be',
   },
   he: {
     // Nav
@@ -765,6 +893,83 @@ export const translations = {
     profitabilityNoData: 'עדיין לא נרשמו סכומי ביקורים. רשום ביקור עם סכום כדי לראות הכנסות.',
     profitabilityTooltipLabel: 'הכנסות',
 
+    // Hour labels
+    midnightLabel: 'חצות',
+    noonLabel: 'צהריים',
+
+    // Hours-vs-total reconciliation notes (BackfillForm)
+    hoursBecomeTotalNote: 'השעות מסתכמות ל-{typed} — ישמשו כסך הלקוחות (גבוה מהערך שהוזן ידנית).',
+    hoursBecomeTotalNoManual: 'לא הוזן סך יומי — שימוש בסכום השעתי: {typed}.',
+    hoursUnderTotalNote: '{typed} מתוך {cust} לקוחות בשעות מרושמות. ה-{rem} הנותרים נרשמים כ"זמן לא מיוחס" — הסך הכולל {cust} נשאר נכון.',
+    openHoursOnlyShown: 'מוצגות רק שעות הפתיחה שלך.',
+    overwriteBtn: 'דרוס',
+    savedFeedback: 'נשמר!',
+
+    // BackfillForm — duplicate-date overwrite prompt
+    dateOverwritePrompt: 'כבר קיים רשומה לתאריך זה — לדרוס אותה בנתונים אלה, או לבטל?',
+
+    // LogDayForm
+    howManyCustomersToday: 'כמה לקוחות היום?',
+    whatDidYouSellToday: 'מה מכרת היום?',
+    todayNotStarted: "היום טרם התחיל (נפתח ב-{opens}). חזור לאחר הסגירה ({closes}) כדי לרשום את המספרים.",
+    todayStillOpenMsg: "העסק שלך עדיין פתוח עד {closes}. רשום את הסיכומים לאחר הסגירה — כך הספירה תהיה מלאה.",
+    notReadyToLogYet: 'עדיין לא מוכן לתיעוד',
+    fixEarlierDayNote: 'צריך לתקן יום קודם? השתמש ב"ימים קודמים".',
+    todayOverwritePrompt: 'כבר קיים רישום להיום. לדרוס אותו בנתונים אלה, או לבטל?',
+    saveTodayBtn: 'שמור היום',
+    todayAlreadyLoggedMsg: 'היום כבר מתועד — מצא אותו ב"ימים קודמים" לעריכה.',
+
+    // DayList
+    failedToLoadData: "טעינת הנתונים נכשלה. האם השרת פועל?",
+    deleteDayConfirm: 'למחוק את היום הזה ואת המכירות שלו?',
+    loadingYourDays: 'טוען את הימים שלך…',
+    noDaysLoggedYet: "עדיין לא תועדו ימים — זה מקום טוב להתחיל! עבור ל-{addToday} כדי לרשום את היום הראשון.",
+    dateColLabel: 'תאריך',
+    dayColLabel: 'יום',
+    daysTotal: 'סה"כ {n} ימים',
+    unusualBadge: 'חריג',
+    dismissBtn: 'סגור',
+
+    // BusinessSettings — staffing goal
+    staffingGoalLabel: 'יעד סגל',
+    staffingGoalDesc: "איך אתה רוצה לקבוע את גודל הצוות? בחר את מה שהכי חשוב לך — האפליקציה תמליץ על המינימום לשמירת התור בשליטה.",
+    staffingOptionBusy: 'שמור על עומס שרתים (ברירת מחדל — 85% ניצולת)',
+    staffingOptionWait: 'זמן המתנה מקסימלי ללקוח',
+    staffingOptionQueue: 'מספר מקסימלי של אנשים בתור',
+    minutesMaxWait: 'דקות המתנה מקסימלית',
+    peopleMaxInLine: 'אנשים מקסימלית בתור',
+
+    // ForecastDashboard — model name labels
+    modelNameSeasonal: 'עונתי',
+    modelNameWma: 'WMA',
+    modelNameExpSmooth: 'החלקה מעריכית',
+    modelNameLinearTrend: 'מגמה',
+    modelNameLastYear: 'שנה שעברה',
+
+    // PeriodsPanel — month abbreviations
+    monthJan: 'ינו', monthFeb: 'פבר', monthMar: 'מרץ', monthApr: 'אפר',
+    monthMay: 'מאי', monthJun: 'יוני', monthJul: 'יולי', monthAug: 'אוג',
+    monthSep: 'ספט', monthOct: 'אוק', monthNov: 'נוב', monthDec: 'דצמ',
+
+    // PeriodsPanel — validation errors
+    periodLabelRequired: 'נדרשת תווית.',
+    periodStartRequired: 'נדרש תאריך התחלה.',
+    periodEndRequired: 'נדרש תאריך סיום.',
+    periodEndAfterStart: 'תאריך הסיום חייב להיות על/אחרי תאריך ההתחלה.',
+    periodCostPositive: 'העלות חייבת להיות מספר חיובי.',
+    periodNamePlaceholder: 'למשל מבצע קיץ, קמפיין פייסבוק',
+
+    // ProductsPanel — validation errors
+    productNameRequired: 'תן שם למוצר זה.',
+    productUnitRequired: 'באיזו יחידה אתה מוכר אותו? (למשל ק"ג, קופסה, בקבוק)',
+    productLeadTimeMin: 'זמן האספקה חייב להיות לפחות יום אחד.',
+    productPriceNeg: 'המחיר לא יכול להיות שלילי.',
+    productStockNeg: 'המלאי הנוכחי לא יכול להיות שלילי.',
+    productCapacityPos: 'קיבולת האחסון חייבת להיות גדולה מאפס.',
+    productShelfLifeMin: 'חיי המדף חייבים להיות לפחות יום אחד.',
+    productServicePos: 'זמן השירות חייב להיות גדול מאפס.',
+    productServicePlaceholder: 'ריק = השתמש בברירת המחדל מההגדרות',
+
     // Chart / data-derived labels
     perDaySuffix: '/יום',
     perHourSuffix: '/שעה',
@@ -887,6 +1092,43 @@ export const translations = {
     couldntLoadHourly: 'לא ניתן לטעון נתוני שעות — האם השרת פועל?',
     marginalNoteLabel: 'הוספה/הסרה של עובד:',
 
+    // ProductForecastPanel — Hebrew translations
+    forecastByProduct: 'תחזית לפי מוצר',
+    productForecastNoProducts: 'הוסף מוצרים ב"המוצרים שלי", ואז רשום מכירות לכל אחד — כאן תראה תחזיות ביקוש הזמנה לכל מוצר.',
+    productSelectorDesc: 'בחר מוצר כדי לראות כמה תצטרך השבוע ומתי להזמין. אדום = הזמן עכשיו · ירוק = מלאי בסדר · אפור = אין מספיק נתונים.',
+    noOpenDaysWeek: 'אין ימי פתיחה ב-7 הימים הבאים שמתאימים ללוח הזמנים שלך.',
+    forecastDemandWhileWaiting: 'ביקוש חזוי במהלך המתנה למלאי',
+    expectedOverNDays: 'צפוי על פני {n} יום{s}',
+    reorderPointForecastNote: 'נקודת ההזמנה מחדש משתמשת בביקוש החזוי, לא רק בממוצע.',
+    basedOnAvgDays: 'מבוסס על ממוצע של {qty}/יום מ-{n} ימים מתועדים.',
+
+    // CSV Import page — Hebrew translations
+    csvPageTitle: 'ייבוא נתוני עבר',
+    csvFormatTitle: 'פורמט נדרש',
+    csvDateHelp: 'עמודת התאריך מקבלת YYYY-MM-DD (למשל 2026-01-01), DD/MM/YYYY, או MM/DD/YYYY. התצוגה המקדימה מציגה כיצד פענחנו את התאריכים שלך — בדוק לפני שמירה.',
+    csvExampleNote: 'שורת הדוגמה בתבנית המורדת מתחילה ב-# ומדולגת אוטומטית בייבוא — אין צורך למחוק אותה ידנית.',
+    csvDownloadTemplate: 'הורד תבנית ריקה',
+    csvDownloadHourly: 'הורד תבנית שעתית',
+    csvForRegisterExports: '(לייצוא מקופות)',
+    csvSumTip: 'טיפ — לסכום תאי השעות שלך ב-Excel: לחץ על תא ריק, הקלד =SUM( ואז בחר את תאי השעות שלך ולחץ Enter.',
+    csvEarlierDatesTip: 'להוספת היסטוריה ישנה יותר, הוסף שורה חדשה לכל יום קודם ושים את התאריך שלו בעמודה הראשונה (YYYY-MM-DD). תוכל לחזור כל עוד יש לך רשומות.',
+    csvChooseFile: 'לחץ לבחירת קובץ CSV',
+    csvAmbiguousWarning: 'חלק מהתאריכים יכולים להיות DD/MM או MM/DD — הנחנו DD/MM עבורם. בדוק את עמודת "נקרא כ" למטה וודא שהתאריכים נראים נכון לפני הייבוא.',
+    csvAmbiguousCheck: 'שורות עם',
+    csvAmbiguousCheck2: 'הן אלו לבדיקה כפולה.',
+    csvAutoSumTitle: 'סכומים יומיים חושבו אוטומטית מנתונים שעתיים',
+    csvAutoSumDesc: 'עבור חלק מהשורות (מסומנות ★ למטה). נתונים שעתיים הם המקור המפורט ביותר ועדיפים כשסכומם גדול מעמודת הלקוחות.',
+    csvPreviewTitle: 'תצוגה מקדימה — {n} שורות מוכנות לייבוא',
+    csvColInFile: 'בקובץ שלך',
+    csvColReadAs: 'נקרא כ',
+    csvColCustomers: 'לקוחות',
+    csvMoreRows: '…ועוד {n} שורות',
+    csvImportBtn: 'ייבוא {n} שורות',
+    csvImportingLabel: 'מייבא…',
+    csvImportSuccess: '{ok} שורה{s} יובאו בהצלחה',
+    csvImportPartial: '{ok} שורה{s} יובאו בהצלחה, {skipped} דולגו',
+    csvImportSkipped: 'לא ניתן לייבא (כבר מתועד או לא תקין): {dates}',
+
     // Telegram Connect
     telegramLabel: 'חיבור לטלגרם',
     telegramDesc: 'קשר את חשבון Ope שלך לבוט טלגרם כדי לרשום מכירות ולקבל תחזיות בצ׳אט.',
@@ -902,6 +1144,20 @@ export const translations = {
     telegramGenerateError: 'לא ניתן ליצור קוד — נסה שוב.',
     telegramRevokeError: 'לא ניתן לנתק — נסה שוב.',
     copyToClipboard: 'העתק ללוח',
+
+    // Day record undo
+    restoreToPrevious: 'שחזר ל-{n} לקוחות',
+
+    // Ordering lifecycle — "I ordered this"
+    iOrderedThis: 'הזמנתי את זה',
+    quantityOrdered: 'כמה הזמנת?',
+    confirmOrder: 'אשר הזמנה',
+    cancelOrder: 'בטל הזמנה',
+    orderLoggedConfirm: 'הוזמנו {qty} {unit} · מגיע ב-{arrival}',
+
+    // Low stock warning
+    lowStockWarning: 'ייתכן שתיגמר לך {name} לפני שהמלאי הבא יגיע.',
+    leaveItBe: 'השאר כך',
   },
 } as const satisfies Record<Lang, Record<string, string>>
 

@@ -22,7 +22,7 @@ ALLOWED_ORIGINS = [o.strip() for o in _origins.split(",")]
 
 from app.db import engine
 from app.models import Base
-from app.api import businesses, day_records, products, sale_events, sales, periods, analytics, recurring_patterns, regulars
+from app.api import businesses, day_records, orders, products, sale_events, sales, periods, analytics, recurring_patterns, regulars
 from app.api import telegram as telegram_api
 from app.api import bot as bot_api
 
@@ -48,6 +48,34 @@ def _migrate_sqlite_products(eng) -> None:
         conn.commit()
 
 
+def _migrate_sqlite_day_records(eng) -> None:
+    """Add undo columns to day_records if they don't exist yet."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(eng)
+    if "day_records" not in inspector.get_table_names():
+        return
+    existing = {col["name"] for col in inspector.get_columns("day_records")}
+    with eng.connect() as conn:
+        if "prev_customers" not in existing:
+            conn.execute(text("ALTER TABLE day_records ADD COLUMN prev_customers INTEGER"))
+        if "prev_notes" not in existing:
+            conn.execute(text("ALTER TABLE day_records ADD COLUMN prev_notes TEXT"))
+        conn.commit()
+
+
+def _migrate_sqlite_products_v2(eng) -> None:
+    """Add created_at column to products if it doesn't exist yet."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(eng)
+    if "products" not in inspector.get_table_names():
+        return
+    existing = {col["name"] for col in inspector.get_columns("products")}
+    with eng.connect() as conn:
+        if "created_at" not in existing:
+            conn.execute(text("ALTER TABLE products ADD COLUMN created_at TIMESTAMP"))
+        conn.commit()
+
+
 def _migrate_sqlite_telegram_links(eng) -> None:
     """Create telegram_links table columns if the table already exists without them."""
     from sqlalchemy import inspect, text
@@ -67,6 +95,8 @@ def _migrate_sqlite_telegram_links(eng) -> None:
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(engine)
     _migrate_sqlite_products(engine)
+    _migrate_sqlite_products_v2(engine)
+    _migrate_sqlite_day_records(engine)
     _migrate_sqlite_telegram_links(engine)
     yield
 
@@ -95,6 +125,7 @@ async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSON
 
 app.include_router(businesses.router)
 app.include_router(day_records.router)
+app.include_router(orders.router)
 app.include_router(products.router)
 app.include_router(sale_events.router)
 app.include_router(sales.router)

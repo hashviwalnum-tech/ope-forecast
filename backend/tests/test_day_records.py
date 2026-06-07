@@ -137,3 +137,115 @@ def test_no_warning_when_no_hourly_events(day_client):
     r = day_client.post("/day-records", json={"date": DATE_A, "customers": 50})
     assert r.status_code == 201
     assert r.json()["warning"] is None
+
+
+# ── Import integrity: stored value must exactly match what was sent ────────────
+
+def test_import_stores_exact_customer_value(day_client):
+    """The stored customers value must equal the value passed in the POST body.
+
+    This is the regression guard for the data-corruption bug where the
+    hours-vs-total reconciliation (frontend) was overwriting an explicitly
+    entered customer total with the hourly sum.  The backend stores whatever
+    customers value it receives — if that value is correct (the frontend fix
+    ensures the user's explicit entry is sent), the stored value must match.
+    """
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 70})
+    assert r.status_code == 201
+    assert r.json()["customers"] == 70, (
+        "Stored customers value must equal the value sent in the POST body."
+    )
+
+
+def test_import_backfill_does_not_overwrite_customer_total(day_client, db, biz):
+    """After calling backfill-hourly for a day, the DayRecord.customers must
+    remain unchanged.  Historically the backfill endpoint touched only SaleEvents;
+    this test confirms it never overwrites the day-record customer count.
+    """
+    import datetime as dt
+    # Create a day record with a known customer count
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 70})
+    assert r.status_code == 201
+    record_id = r.json()["id"]
+
+    # Backfill hourly SaleEvents whose sum (89) is greater than 70
+    r2 = day_client.post(
+        "/sale-events/backfill-hourly",
+        json={"date": DATE_A, "hours": [{"hour": 9, "customers": 50}, {"hour": 10, "customers": 39}]},
+    )
+    assert r2.status_code == 201
+
+    # The DayRecord.customers must still be 70, not 89
+    from app.models import DayRecord
+    stored = db.get(DayRecord, record_id)
+    assert stored.customers == 70, (
+        f"backfill-hourly must not overwrite DayRecord.customers; "
+        f"expected 70, got {stored.customers}"
+    )
+
+
+def test_import_multiple_rows_all_stored_correctly(day_client):
+    """Simulate importing multiple days: every stored value must match the input."""
+    rows = [
+        ("2025-08-01", 42),
+        ("2025-08-02", 70),
+        ("2025-08-03", 100),
+        ("2025-08-04", 5),
+    ]
+    stored = {}
+    for date_str, customers in rows:
+        r = day_client.post("/day-records", json={"date": date_str, "customers": customers})
+        assert r.status_code == 201
+        stored[date_str] = r.json()["customers"]
+
+    for date_str, expected in rows:
+        assert stored[date_str] == expected, (
+            f"Row {date_str}: expected {expected}, stored {stored[date_str]}"
+        )
+
+
+# ── Undo override ──────────────────────────────────────────────────────────────
+
+def test_undo_not_available_before_any_update(day_client):
+    """A freshly created record has no previous version — undo returns 404."""
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 10})
+    assert r.status_code == 201
+    record_id = r.json()["id"]
+    # No previous version yet
+    assert r.json()["prev_customers"] is None
+    r2 = day_client.post(f"/day-records/{record_id}/undo")
+    assert r2.status_code == 404
+
+
+def test_undo_restores_previous_customer_count(day_client):
+    """After a PUT overwrites a record, POST .../undo restores the old value."""
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 50})
+    assert r.status_code == 201
+    record_id = r.json()["id"]
+
+    # Overwrite
+    r2 = day_client.put(f"/day-records/{record_id}", json={"customers": 99})
+    assert r2.status_code == 200
+    assert r2.json()["customers"] == 99
+    assert r2.json()["prev_customers"] == 50
+
+    # Undo → back to 50
+    r3 = day_client.post(f"/day-records/{record_id}/undo")
+    assert r3.status_code == 200
+    assert r3.json()["customers"] == 50
+
+
+def test_undo_of_undo_re_applies_overwrite(day_client):
+    """A second undo re-applies the overwritten value (swap is bidirectional)."""
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 50})
+    record_id = r.json()["id"]
+
+    day_client.put(f"/day-records/{record_id}", json={"customers": 99})
+
+    # First undo: back to 50
+    day_client.post(f"/day-records/{record_id}/undo")
+
+    # Second undo: re-apply 99
+    r3 = day_client.post(f"/day-records/{record_id}/undo")
+    assert r3.status_code == 200
+    assert r3.json()["customers"] == 99

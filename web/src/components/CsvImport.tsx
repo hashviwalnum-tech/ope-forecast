@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { dayRecords, products as productsApi, sales as salesApi, saleEvents } from '../api/client'
+import { useLanguage } from '../contexts/LanguageContext'
 import type { HourlyBackfillSlot, ProductRead } from '../api/types'
 
 // ── Date parsing ────────────────────────────────────────────────────────────
@@ -88,6 +89,7 @@ interface CsvRow {
 interface Props { onImported: () => void }
 
 export default function CsvImport({ onImported }: Props) {
+  const { t } = useLanguage()
   const [productList, setProductList] = useState<ProductRead[]>([])
   const [preview, setPreview]         = useState<CsvRow[]>([])
   const [parseErrors, setParseErrors] = useState<string[]>([])
@@ -101,8 +103,9 @@ export default function CsvImport({ onImported }: Props) {
 
   function downloadTemplate() {
     const headers = ['date', 'customers', ...productList.map(p => p.name)]
-    // Prefix the example row with # so the parser skips it automatically on import
-    const example = ['# EXAMPLE — delete this row before importing: 2024-01-15', '95', ...productList.map(() => '0')]
+    // Prefix the example row with # so the parser skips it automatically on import.
+    // Default date is 2026-01-01 so owners have a clear starting point to work from.
+    const example = ['# EXAMPLE — delete this row before importing: 2026-01-01', '95', ...productList.map(() => '0')]
     const csv = [headers, example].map(r => r.join(',')).join('\n')
     triggerDownload(csv, 'ope-template.csv')
   }
@@ -110,10 +113,10 @@ export default function CsvImport({ onImported }: Props) {
   function downloadHourlyTemplate() {
     const hourCols = Array.from({ length: 24 }, (_, i) => `h${String(i).padStart(2, '0')}`)
     const headers  = ['date', 'customers', ...productList.map(p => p.name), ...hourCols]
-    // Prefix both the note and the example row with # so both are skipped on import
+    // Prefix both the note and the example row with # so both are skipped on import.
     const note     = `# Optional hourly columns h00–h23: customers per hour (leave blank if unknown). When hourly data is present, the daily total is auto-computed if customers column is 0.`
-    // Prefix example row so it is skipped on import
-    const exampleCells = ['# EXAMPLE — delete this row before importing: 2024-01-15', '0 (or 95)', ...productList.map(() => '0'), ...Array(24).fill('')]
+    // Default date starts at 2026-01-01.
+    const exampleCells = ['# EXAMPLE — delete this row before importing: 2026-01-01', '0 (or 95)', ...productList.map(() => '0'), ...Array(24).fill('')]
     const csv      = [note, headers.join(','), exampleCells.join(',')].join('\n')
     triggerDownload(csv, 'ope-template-hourly.csv')
   }
@@ -196,13 +199,14 @@ export default function CsvImport({ onImported }: Props) {
             customers = hourlySum
             hourlyAutoSummed = true
           } else if (hourlySum > custRaw) {
-            // Hourly data is more granular and sums to more than the stated total
+            // Hourly columns sum to more than the daily total the user entered.
+            // The entered daily total is the source of truth — keep it.
+            // Only warn so the user can review; do NOT overwrite their value.
             errors.push(
               `Row ${line} (${dateParsed.display}): hourly columns sum to ${hourlySum} but customers column says ${custRaw}. ` +
-              `Using ${hourlySum} as the daily total (hourly data takes precedence).`
+              `Keeping your entered total of ${custRaw}. If ${hourlySum} is correct, update the customers column.`
             )
-            customers = hourlySum
-            hourlyAutoSummed = true
+            // customers stays at custRaw — intentional; the explicit entry wins
           }
         }
 
@@ -280,32 +284,35 @@ export default function CsvImport({ onImported }: Props) {
 
       {/* Format guidance + template */}
       <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 space-y-2">
-        <p className="text-sm text-slate-700 font-medium">Expected format</p>
-        <p className="text-sm text-slate-600">
-          The <strong>date</strong> column accepts <code className="bg-white px-1 rounded">YYYY-MM-DD</code> (e.g.{' '}
-          <code className="bg-white px-1 rounded">2024-01-15</code>), <code className="bg-white px-1 rounded">DD/MM/YYYY</code>,
-          or <code className="bg-white px-1 rounded">MM/DD/YYYY</code>. The preview always shows how we read your
-          dates — check it before saving.
-        </p>
-        <p className="text-xs text-slate-500">
-          The example row in the downloaded template starts with <code className="bg-white px-1 rounded">#</code> and
-          is automatically skipped when you import — no need to delete it manually.
-        </p>
-        <div className="flex flex-wrap gap-2">
+        <p className="text-sm text-slate-700 font-medium">{t('csvFormatTitle')}</p>
+        <p className="text-sm text-slate-600">{t('csvDateHelp')}</p>
+        <p className="text-xs text-slate-500">{t('csvExampleNote')}</p>
+
+        {/* Excel SUM formula tip */}
+        <div className="mt-2 bg-white border border-teal-100 rounded-lg px-3 py-2">
+          <p className="text-xs text-slate-600 leading-relaxed">📋 {t('csvSumTip')}</p>
+        </div>
+
+        {/* Earlier dates tip */}
+        <div className="bg-white border border-teal-100 rounded-lg px-3 py-2">
+          <p className="text-xs text-slate-600 leading-relaxed">📅 {t('csvEarlierDatesTip')}</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 pt-1">
           <button
             onClick={downloadTemplate}
             className="text-sm text-teal-600 border border-teal-200 rounded-lg
                        px-3 py-1.5 hover:bg-white transition-colors"
           >
-            Download blank template
+            {t('csvDownloadTemplate')}
           </button>
           <button
             onClick={downloadHourlyTemplate}
             className="text-sm text-slate-600 border border-slate-200 rounded-lg
                        px-3 py-1.5 hover:bg-white transition-colors"
           >
-            Download hourly template
-            <span className="ml-1.5 text-xs text-slate-400">(for register exports)</span>
+            {t('csvDownloadHourly')}
+            <span className="ml-1.5 text-xs text-slate-400">{t('csvForRegisterExports')}</span>
           </button>
         </div>
       </div>
@@ -320,7 +327,7 @@ export default function CsvImport({ onImported }: Props) {
         <span className="text-3xl block mb-2">📂</span>
         {fileName
           ? <span className="text-slate-700 font-medium">{fileName}</span>
-          : <span className="text-slate-400 text-sm">Click to choose a CSV file</span>
+          : <span className="text-slate-400 text-sm">{t('csvChooseFile')}</span>
         }
       </div>
 
@@ -334,18 +341,17 @@ export default function CsvImport({ onImported }: Props) {
       {/* Auto-sum notice */}
       {hasAutoSummed && (
         <div className="text-sm text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-4 py-3">
-          <strong>Daily totals auto-computed from hourly data</strong> for some rows (marked ★ below).
-          Hourly data is the most granular source, so it takes precedence when it sums to more than the customers column.
+          <strong>{t('csvAutoSumTitle')}</strong> {t('csvAutoSumDesc')}
         </div>
       )}
 
       {/* Date-ambiguity warning */}
       {hasAmbiguous && (
         <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
-          <strong>Some dates could be DD/MM or MM/DD</strong> — we assumed DD/MM for those. Check the{' '}
-          <strong>Read as</strong> column below and make sure the dates look right before importing.
-          Rows with a <span className="bg-amber-200 text-amber-800 px-1 rounded text-xs font-medium">?</span>{' '}
-          badge are the ones to double-check.
+          {t('csvAmbiguousWarning')}{' '}
+          {t('csvAmbiguousCheck')}{' '}
+          <span className="bg-amber-200 text-amber-800 px-1 rounded text-xs font-medium">?</span>{' '}
+          {t('csvAmbiguousCheck2')}
         </div>
       )}
 
@@ -353,15 +359,15 @@ export default function CsvImport({ onImported }: Props) {
       {preview.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold text-slate-700 mb-2">
-            Preview — {preview.length} rows ready to import
+            {t('csvPreviewTitle', { n: String(preview.length) })}
           </h3>
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="w-full text-sm border-collapse">
               <thead className="bg-slate-50">
                 <tr className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  <th className="py-2 px-3">In your file</th>
-                  <th className="py-2 px-3">Read as</th>
-                  <th className="py-2 px-3">Customers</th>
+                  <th className="py-2 px-3">{t('csvColInFile')}</th>
+                  <th className="py-2 px-3">{t('csvColReadAs')}</th>
+                  <th className="py-2 px-3">{t('csvColCustomers')}</th>
                   {productList.map(p => (
                     <th key={p.id} className="py-2 px-3">{p.name} ({p.unit})</th>
                   ))}
@@ -394,7 +400,7 @@ export default function CsvImport({ onImported }: Props) {
             </table>
             {preview.length > 10 && (
               <p className="text-xs text-slate-400 px-3 py-2 border-t border-slate-100">
-                …and {preview.length - 10} more rows
+                {t('csvMoreRows', { n: String(preview.length - 10) })}
               </p>
             )}
           </div>
@@ -403,7 +409,7 @@ export default function CsvImport({ onImported }: Props) {
           {importing && progress && (
             <div className="mt-3">
               <div className="flex justify-between text-xs text-slate-500 mb-1">
-                <span>Importing…</span>
+                <span>{t('csvImportingLabel')}</span>
                 <span>{progress.done} / {progress.total}</span>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -421,7 +427,7 @@ export default function CsvImport({ onImported }: Props) {
               className="mt-4 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300
                          text-white font-medium py-2 px-5 rounded-lg transition-colors"
             >
-              Import {preview.length} rows
+              {t('csvImportBtn', { n: String(preview.length) })}
             </button>
           )}
         </div>
@@ -435,13 +441,14 @@ export default function CsvImport({ onImported }: Props) {
             : 'text-amber-700 bg-amber-50 border-amber-200'
         }`}>
           <p className="font-medium">
-            {result.ok} row{result.ok !== 1 ? 's' : ''} imported successfully
-            {result.skipped > 0 ? `, ${result.skipped} skipped` : ''}.
+            {result.skipped === 0
+              ? t('csvImportSuccess', { ok: String(result.ok), s: result.ok !== 1 ? 's' : '' })
+              : t('csvImportPartial', { ok: String(result.ok), s: result.ok !== 1 ? 's' : '', skipped: String(result.skipped) })
+            }
           </p>
           {result.failedDates.length > 0 && (
             <p className="mt-1 text-xs">
-              Couldn&apos;t import (already logged or invalid):{' '}
-              {result.failedDates.join(', ')}.
+              {t('csvImportSkipped', { dates: result.failedDates.join(', ') })}
             </p>
           )}
         </div>
