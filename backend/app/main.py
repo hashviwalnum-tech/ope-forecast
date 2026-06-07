@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -12,8 +13,9 @@ if _sentry_dsn:
         integrations=[StarletteIntegration(), FastApiIntegration()],
     )
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 _origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173")
 ALLOWED_ORIGINS = [o.strip() for o in _origins.split(",")]
@@ -77,6 +79,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+_log = logging.getLogger(__name__)
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    # Returning a response here (rather than re-raising) keeps the response
+    # flowing back through CORSMiddleware so CORS headers are included.
+    # Without this, ServerErrorMiddleware intercepts the exception before
+    # CORSMiddleware can add headers, making every backend crash look like a
+    # CORS error in the browser.
+    _log.exception("Unhandled exception: %s %s", request.method, request.url)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 app.include_router(businesses.router)
 app.include_router(day_records.router)
