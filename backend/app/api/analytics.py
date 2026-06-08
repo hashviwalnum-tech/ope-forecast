@@ -217,6 +217,21 @@ def _linear_trend_for_weekday(obs: list[float], wds: list[int], wd: int) -> floa
     return linear_trend(xs, same, float(len(same)))
 
 
+def _cap_linear_trend(pred: float, same_wd_obs: list[float]) -> float:
+    """Clamp a linear-trend extrapolation to mean ± max(3σ, 50% of mean).
+
+    A genuine steady rise/fall stays within this band; only extreme OLS
+    extrapolations from a handful of data points are pulled back in.
+    Customer counts are non-negative, so the lower bound is always 0.
+    """
+    if not same_wd_obs:
+        return max(0.0, pred)
+    mu = mean(same_wd_obs)
+    sigma = stdev(same_wd_obs) if len(same_wd_obs) > 1 else 0.0
+    half_band = max(3.0 * sigma, 0.5 * mu) if mu > 0 else 3.0 * sigma + 1.0
+    return float(max(0.0, min(pred, mu + half_band)))
+
+
 def _holdout_errors(
     obs: list[float],
     wds: list[int],
@@ -449,35 +464,42 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         maes: dict[str, float] = {}
 
         try:
-            preds["seasonal_naive"] = seasonal_naive_forecast(obs, wds, wd)
+            _sn = seasonal_naive_forecast(obs, wds, wd)
             errs = holdout["seasonal_naive"].get(wd, [])
-            maes["seasonal_naive"] = mad([abs(e) for e in errs]) if errs else 1.0
+            if errs:
+                preds["seasonal_naive"] = _sn
+                maes["seasonal_naive"] = mad([abs(e) for e in errs])
         except ValueError:
             pass
 
         p = _wma_for_weekday(obs, wds, wd)
         if p is not None:
-            preds["wma"] = p
             errs = holdout["wma"].get(wd, [])
-            maes["wma"] = mad([abs(e) for e in errs]) if errs else 1.0
+            if errs:
+                preds["wma"] = p
+                maes["wma"] = mad([abs(e) for e in errs])
 
         p = _exp_for_weekday(obs, wds, wd)
         if p is not None:
-            preds["exp_smoothing"] = p
             errs = holdout["exp_smoothing"].get(wd, [])
-            maes["exp_smoothing"] = mad([abs(e) for e in errs]) if errs else 1.0
+            if errs:
+                preds["exp_smoothing"] = p
+                maes["exp_smoothing"] = mad([abs(e) for e in errs])
 
         p = _linear_trend_for_weekday(obs, wds, wd)
         if p is not None:
-            preds["linear_trend"] = p
             errs = holdout["linear_trend"].get(wd, [])
-            maes["linear_trend"] = mad([abs(e) for e in errs]) if errs else 1.0
+            if errs:
+                same_wd = [v for v, w in zip(obs, wds) if w == wd]
+                preds["linear_trend"] = _cap_linear_trend(p, same_wd)
+                maes["linear_trend"] = mad([abs(e) for e in errs])
 
         p = same_date_last_year(dates, obs, target_date)
         if p is not None:
-            preds["same_date_last_year"] = p
             errs = holdout["same_date_last_year"].get(wd, [])
-            maes["same_date_last_year"] = mad([abs(e) for e in errs]) if errs else 1.0
+            if errs:
+                preds["same_date_last_year"] = p
+                maes["same_date_last_year"] = mad([abs(e) for e in errs])
 
         if not preds:
             continue
@@ -485,12 +507,15 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         weights = model_weights(list(maes.values()))
         forecast_val = blend(list(preds.values()), weights)
 
+        # Only use errors from models that were actually included in the blend,
+        # so unvalidated models' wild holdout errors don't inflate the spread.
         all_wd_errs: list[float] = []
-        for m_errs in holdout.values():
-            all_wd_errs.extend(m_errs.get(wd, []))
+        for model_name in preds:
+            all_wd_errs.extend(holdout[model_name].get(wd, []))
 
         if len(all_wd_errs) >= 2:
             lo, hi = prediction_interval(forecast_val, all_wd_errs)
+            lo = max(0.0, lo)  # customer counts can't be negative
         else:
             lo, hi = forecast_val, forecast_val
 
@@ -1140,35 +1165,42 @@ def get_product_forecast(
             maes: dict[str, float] = {}
 
             try:
-                preds["seasonal_naive"] = seasonal_naive_forecast(demands, prod_wds, wd)
+                _sn = seasonal_naive_forecast(demands, prod_wds, wd)
                 errs = holdout["seasonal_naive"].get(wd, [])
-                maes["seasonal_naive"] = mad([abs(e) for e in errs]) if errs else 1.0
+                if errs:
+                    preds["seasonal_naive"] = _sn
+                    maes["seasonal_naive"] = mad([abs(e) for e in errs])
             except ValueError:
                 pass
 
             p = _wma_for_weekday(demands, prod_wds, wd)
             if p is not None:
-                preds["wma"] = p
                 errs = holdout["wma"].get(wd, [])
-                maes["wma"] = mad([abs(e) for e in errs]) if errs else 1.0
+                if errs:
+                    preds["wma"] = p
+                    maes["wma"] = mad([abs(e) for e in errs])
 
             p = _exp_for_weekday(demands, prod_wds, wd)
             if p is not None:
-                preds["exp_smoothing"] = p
                 errs = holdout["exp_smoothing"].get(wd, [])
-                maes["exp_smoothing"] = mad([abs(e) for e in errs]) if errs else 1.0
+                if errs:
+                    preds["exp_smoothing"] = p
+                    maes["exp_smoothing"] = mad([abs(e) for e in errs])
 
             p = _linear_trend_for_weekday(demands, prod_wds, wd)
             if p is not None:
-                preds["linear_trend"] = p
                 errs = holdout["linear_trend"].get(wd, [])
-                maes["linear_trend"] = mad([abs(e) for e in errs]) if errs else 1.0
+                if errs:
+                    same_wd = [v for v, w in zip(demands, prod_wds) if w == wd]
+                    preds["linear_trend"] = _cap_linear_trend(p, same_wd)
+                    maes["linear_trend"] = mad([abs(e) for e in errs])
 
             p = same_date_last_year(dates, demands, target)
             if p is not None:
-                preds["same_date_last_year"] = p
                 errs = holdout["same_date_last_year"].get(wd, [])
-                maes["same_date_last_year"] = mad([abs(e) for e in errs]) if errs else 1.0
+                if errs:
+                    preds["same_date_last_year"] = p
+                    maes["same_date_last_year"] = mad([abs(e) for e in errs])
 
             if not preds:
                 continue
@@ -1177,8 +1209,8 @@ def get_product_forecast(
             fval = max(0.0, blend(list(preds.values()), weights))
 
             all_wd_errs: list[float] = []
-            for m_errs in holdout.values():
-                all_wd_errs.extend(m_errs.get(wd, []))
+            for model_name in preds:
+                all_wd_errs.extend(holdout[model_name].get(wd, []))
 
             lo, hi = prediction_interval(fval, all_wd_errs) if len(all_wd_errs) >= 2 else (fval, fval)
 
