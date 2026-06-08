@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { analytics, periods as periodsApi } from '../api/client'
+import { analytics, periods as periodsApi, products as productsApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { LiftResponse, PeriodLift, PeriodRead } from '../api/types'
+import type { LiftResponse, PeriodLift, PeriodRead, ProductRead } from '../api/types'
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
@@ -103,16 +103,20 @@ type FormState = {
   start_date: string
   end_date: string
   cost: string
+  target_product_id: number | null  // null = measure total customers
 }
 
-const EMPTY: FormState = { label: '', type: 'event', start_date: '', end_date: '', cost: '' }
+const EMPTY: FormState = { label: '', type: 'event', start_date: '', end_date: '', cost: '', target_product_id: null }
 
 function CreateForm({ onCreated }: { onCreated: () => void }) {
   const { t } = useLanguage()
   const [form, setForm] = useState<FormState>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [productList, setProductList] = useState<ProductRead[]>([])
   const labelRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { productsApi.list().then(setProductList).catch(() => {}) }, [])
 
   function set(key: keyof FormState, val: string) {
     setForm(f => ({ ...f, [key]: val }))
@@ -139,6 +143,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
         start_date: form.start_date,
         end_date: form.end_date,
         cost,
+        target_product_id: form.target_product_id ?? undefined,
       })
       setForm(EMPTY)
       labelRef.current?.focus()
@@ -207,6 +212,26 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
                        focus:outline-none focus:ring-2 focus:ring-teal-400
                        bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
           />
+        </div>
+
+        {/* Product target — what this ad/event is meant to promote */}
+        <div className="sm:col-span-2">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+            {t('periodsTargetLabel')}
+          </label>
+          <select
+            value={form.target_product_id ?? ''}
+            onChange={e => setForm(f => ({ ...f, target_product_id: e.target.value ? parseInt(e.target.value) : null }))}
+            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+                       focus:outline-none focus:ring-2 focus:ring-teal-400
+                       bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
+          >
+            <option value="">{t('periodsTargetCustomers')}</option>
+            {productList.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{t('periodsTargetNote')}</p>
         </div>
 
         {/* Dates */}

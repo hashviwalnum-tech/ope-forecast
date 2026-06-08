@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_business
 from app.db import get_db
 from app.engine.limits import check_entry_timing, check_history, check_non_working_day, history_cutoff
+from app.engine.live_sales import compute_open_hours, reconcile_customers_with_hours
 from app.engine.outliers import detect_outliers
 from app.models import Business, DayRecord, Period, RecurringPattern, SaleEvent
 from app.schemas.day_record import (
@@ -73,6 +74,36 @@ def _hourly_consistency_warning(
             f"or choose 'rely on daily total only' and the extra hourly detail will be kept as-is."
         )
     return None
+
+
+def _apply_reconciliation(db: Session, biz: Business, record_date: date, manual_total: int | None) -> int:
+    """Query open-hours customer-tap SaleEvents for the date and apply reconciliation.
+
+    Implements spec §9: hours sum > manual total → hours win; no manual total →
+    use hours sum; hours sum ≤ total → keep manual total.  Only open-hours events
+    count so closed-hour taps (if any) never inflate the total.
+    """
+    settings = biz.settings or {}
+    open_hours = compute_open_hours(settings)
+    day_start = datetime.combine(record_date, datetime.min.time())
+    day_end = datetime.combine(record_date, datetime.max.time())
+
+    events = (
+        db.query(SaleEvent)
+        .filter(
+            SaleEvent.business_id == biz.id,
+            SaleEvent.product_id.is_(None),  # customer-arrival taps only
+            SaleEvent.timestamp >= day_start,
+            SaleEvent.timestamp <= day_end,
+        )
+        .all()
+    )
+    hours_sum = sum(
+        float(e.quantity) for e in events
+        if e.timestamp.hour in open_hours
+    )
+    effective, _ = reconcile_customers_with_hours(manual_total, hours_sum)
+    return effective
 
 
 def _get_or_404(db: Session, record_id: int, biz_id: int) -> DayRecord:
@@ -156,7 +187,12 @@ def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db), biz:
     # clean 409 rather than an unhandled IntegrityError that looks like CORS.
     if db.query(DayRecord).filter_by(business_id=biz.id, date=body.date).first():
         raise HTTPException(status_code=409, detail="A record for this date already exists.")
-    row = DayRecord(business_id=biz.id, **body.model_dump())
+    data = body.model_dump()
+    # Apply hours-vs-total reconciliation: if open-hours SaleEvent sum is
+    # larger than the entered total, the more granular hourly data wins.
+    reconciled_customers = _apply_reconciliation(db, biz, body.date, body.customers)
+    data["customers"] = reconciled_customers
+    row = DayRecord(business_id=biz.id, **data)
     db.add(row)
     try:
         db.commit()
@@ -166,8 +202,9 @@ def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db), biz:
     db.refresh(row)
     _auto_flag_outliers(db, biz.id)
     db.refresh(row)
-    # Non-blocking data-consistency check: warn when known hourly data exceeds the daily total
-    warning = _hourly_consistency_warning(db, biz.id, body.date, body.customers)
+    # Non-blocking data-consistency check: warn only if hourly data STILL exceeds
+    # the reconciled total (after reconciliation this should be rare)
+    warning = _hourly_consistency_warning(db, biz.id, body.date, reconciled_customers)
     result = DayRecordRead.model_validate(row)
     result.warning = warning
     return result
@@ -187,6 +224,10 @@ def update_day_record(record_id: int, body: DayRecordUpdate, db: Session = Depen
     row.prev_notes = row.notes
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(row, field, value)
+    # Apply hours-vs-total reconciliation after updating the customers field
+    reconciled = _apply_reconciliation(db, biz, row.date, row.customers)
+    if reconciled != row.customers:
+        row.customers = reconciled
     db.commit()
     db.refresh(row)
     # Non-blocking data-consistency check

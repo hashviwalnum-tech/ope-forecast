@@ -12,6 +12,7 @@ class PeriodCreate(BaseModel):
     type: Literal["event", "ad"]
     label: str
     cost: Optional[float] = Field(None, ge=0)
+    target_product_id: Optional[int] = None
 
     @model_validator(mode="after")
     def end_not_before_start(self) -> "PeriodCreate":
@@ -26,6 +27,7 @@ class PeriodUpdate(BaseModel):
     type: Optional[Literal["event", "ad"]] = None
     label: Optional[str] = None
     cost: Optional[float] = Field(None, ge=0)
+    target_product_id: Optional[int] = None
 
 
 class PeriodRead(BaseModel):
@@ -36,5 +38,6 @@ class PeriodRead(BaseModel):
     type: str
     label: str
     cost: Optional[float]
+    target_product_id: Optional[int] = None
 
     model_config = {"from_attributes": True}

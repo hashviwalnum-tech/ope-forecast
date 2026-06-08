@@ -10,6 +10,38 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import date
 
+# Used when opening hours are not configured: cover most business windows
+# without silently including overnight hours that shouldn't exist for any
+# normal business (avoids 1–5am data leaking into peak-hours / staffing).
+_DEFAULT_OPEN_HOURS: frozenset[int] = frozenset(range(6, 23))
+
+
+def compute_open_hours(settings: dict) -> frozenset[int]:
+    """Return the set of open hours for a business from its settings dict.
+
+    Three cases:
+    - Both opening_hour and closing_hour set, close > open: range(open, close).
+    - Both set, overnight wrap-around (close < open, e.g. 22→06):
+      range(open, 24) ∪ range(0, close).
+    - Both equal (24/7): all 24 hours.
+    - Not configured: _DEFAULT_OPEN_HOURS (6am–10pm).
+
+    Out-of-hours data must never appear in peak-hours, hourly charts, or staffing.
+    This function is the single source of truth for that filter.
+    """
+    raw_oh = settings.get("opening_hour")
+    raw_ch = settings.get("closing_hour")
+    if raw_oh is not None and raw_ch is not None:
+        oh = int(raw_oh)
+        ch = int(raw_ch)
+        if ch > oh:
+            return frozenset(range(oh, ch))
+        if ch < oh:  # overnight wrap-around (e.g. 22:00–06:00)
+            return frozenset(range(oh, 24)) | frozenset(range(0, ch))
+        # oh == ch → treat as 24-hour open
+        return frozenset(range(0, 24))
+    return _DEFAULT_OPEN_HOURS
+
 
 def rollup_by_hour(
     events: list[tuple[int, int | None, float]],

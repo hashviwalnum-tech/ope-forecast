@@ -44,13 +44,16 @@ def blend(predictions: list[float], weights: list[float]) -> float:
 def prediction_interval(
     forecast: float,
     recent_errors: list[float],
-    z: float = 1.645,
+    z: float = 0.7,
 ) -> tuple[float, float]:
-    """(low, high) interval around the forecast based on recent error spread.
+    """(low, high) PROBABLE range around the forecast based on recent error spread.
 
     recent_errors: signed errors (actual − forecast) from recent comparable periods.
-    Width = z × sample_std(errors). Default z=1.645 gives a 90% interval.
+    Width = z × sample_std(errors). Default z=0.7 gives a ~52% probable-day band
+    (the range where demand *usually* lands — not an extreme confidence interval).
+    A ~90 business shows ~80–100 rather than 47–123.
     Returns (forecast, forecast) when all recent errors are identical (zero spread).
+    Pass z=1.645 explicitly for a 90% interval when needed.
     """
     if not recent_errors:
         raise ValueError("recent_errors must not be empty")

@@ -97,14 +97,20 @@ export default function CsvImport({ onImported }: Props) {
   const [importing, setImporting]     = useState(false)
   const [progress, setProgress]       = useState<{ done: number; total: number } | null>(null)
   const [result, setResult]           = useState<{ ok: number; skipped: number; failedDates: string[] } | null>(null)
+  // Product column confirmation: detected columns wait for explicit user sign-off
+  const [detectedProductCols, setDetectedProductCols] = useState<ProductRead[]>([])
+  const [confirmedProductIds, setConfirmedProductIds] = useState<Set<number>>(new Set())
+  const [productColsConfirmed, setProductColsConfirmed] = useState(false)
+  // Hold raw rows until the user has confirmed which product columns to include
+  const [pendingRawRows, setPendingRawRows] = useState<string[][] | null>(null)
+  const [pendingProductColMap, setPendingProductColMap] = useState<{ idx: number; product: ProductRead }[]>([])
+  const [pendingHourlyCols, setPendingHourlyCols] = useState<{ idx: number; hour: number }[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { productsApi.list().then(setProductList).catch(() => {}) }, [])
 
   function downloadTemplate() {
     const headers = ['date', 'customers', ...productList.map(p => p.name)]
-    // Prefix the example row with # so the parser skips it automatically on import.
-    // Default date is 2026-01-01 so owners have a clear starting point to work from.
     const example = ['# EXAMPLE — delete this row before importing: 2026-01-01', '95', ...productList.map(() => '0')]
     const csv = [headers, example].map(r => r.join(',')).join('\n')
     triggerDownload(csv, 'ope-template.csv')
@@ -113,10 +119,8 @@ export default function CsvImport({ onImported }: Props) {
   function downloadHourlyTemplate() {
     const hourCols = Array.from({ length: 24 }, (_, i) => `h${String(i).padStart(2, '0')}`)
     const headers  = ['date', 'customers', ...productList.map(p => p.name), ...hourCols]
-    // Prefix both the note and the example row with # so both are skipped on import.
     const note     = `# Optional hourly columns h00–h23: customers per hour (leave blank if unknown). When hourly data is present, the daily total is auto-computed if customers column is 0.`
-    // Default date starts at 2026-01-01.
-    const exampleCells = ['# EXAMPLE — delete this row before importing: 2026-01-01', '0 (or 95)', ...productList.map(() => '0'), ...Array(24).fill('')]
+    const exampleCells = ['# EXAMPLE — delete this row before importing: 2026-01-01', '0', ...productList.map(() => '0'), ...Array(24).fill('')]
     const csv      = [note, headers.join(','), exampleCells.join(',')].join('\n')
     triggerDownload(csv, 'ope-template-hourly.csv')
   }
@@ -130,16 +134,94 @@ export default function CsvImport({ onImported }: Props) {
     URL.revokeObjectURL(a.href)
   }
 
+  function buildPreview(
+    rows: string[][],
+    productCols: { idx: number; product: ProductRead }[],
+    hourlyCols: { idx: number; hour: number }[],
+    existingErrors: string[],
+  ) {
+    const errors = [...existingErrors]
+    const parsed: CsvRow[] = []
+
+    rows.forEach((row, ri) => {
+      if (row[0]?.trim().startsWith('#')) return
+      const line = ri + 2
+      const rawDate = row[0] ?? ''
+      const custRaw = parseInt(row[1] ?? '')
+
+      const dateParsed = parseDate(rawDate)
+      if (!dateParsed) {
+        errors.push(`Row ${line}: can't read date "${rawDate}" — use YYYY-MM-DD, DD/MM/YYYY, or MM/DD/YYYY`)
+        return
+      }
+
+      const productUnits: Record<string, number> = {}
+      for (const { idx, product } of productCols) {
+        const v = parseFloat(row[idx] ?? '')
+        if (!isNaN(v) && v > 0) productUnits[product.name] = v
+      }
+
+      const hourlyCustomers: HourlyBackfillSlot[] = []
+      for (const { idx, hour } of hourlyCols) {
+        const v = parseInt(row[idx] ?? '', 10)
+        if (!isNaN(v) && v > 0) hourlyCustomers.push({ hour, customers: v })
+      }
+
+      const hourlySum = hourlyCustomers.reduce((s, h) => s + h.customers, 0)
+      let customers = custRaw
+      let hourlyAutoSummed = false
+
+      if (hourlySum > 0) {
+        if (isNaN(custRaw) || custRaw <= 0) {
+          // No explicit daily total — derive from hourly (spec §9 case 2)
+          customers = hourlySum
+          hourlyAutoSummed = true
+        } else if (hourlySum > custRaw) {
+          // Hourly data is more granular and sums to MORE than the manual entry
+          // → hourly wins (spec §9 case 1: "hours sum > manual total → hours win")
+          customers = hourlySum
+          hourlyAutoSummed = true
+        }
+        // else: hourlySum <= custRaw → keep manual total (spec §9 case 3)
+      }
+
+      if (isNaN(customers) || customers < 0) {
+        errors.push(`Row ${line}: invalid customer count "${row[1]}"`)
+        return
+      }
+
+      parsed.push({
+        date: dateParsed.iso,
+        dateRaw: rawDate,
+        dateDisplay: dateParsed.display,
+        dateAmbiguous: dateParsed.ambiguous,
+        customers,
+        productUnits,
+        hourlyCustomers,
+        hourlyAutoSummed,
+      })
+    })
+
+    setParseErrors(errors)
+    setPreview(parsed)
+  }
+
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setFileName(file.name)
     setResult(null)
+    setPreview([])
+    setParseErrors([])
+    setProductColsConfirmed(false)
+    setDetectedProductCols([])
+    setConfirmedProductIds(new Set())
+    setPendingRawRows(null)
+
     const reader = new FileReader()
     reader.onload = evt => {
       const { headers, rows } = parseCSV((evt.target?.result ?? '') as string)
-      const errors: string[] = []
-      const parsed: CsvRow[] = []
+      const detectionErrors: string[] = []
 
       const productCols: { idx: number; product: ProductRead }[] = []
       const hourlyCols: { idx: number; hour: number }[] = []
@@ -152,85 +234,46 @@ export default function CsvImport({ onImported }: Props) {
           const hr = parseInt(hourMatch[1], 10)
           if (hr >= 0 && hr <= 23) { hourlyCols.push({ idx: i, hour: hr }); continue }
         }
-        if (h.startsWith('#')) continue   // comment columns
+        if (h.startsWith('#')) continue
         const prod = productList.find(p => p.name.toLowerCase() === h.toLowerCase())
         if (prod) {
           productCols.push({ idx: i, product: prod })
         } else {
-          errors.push(`Column "${h}" doesn't match any of your products — it will be skipped.`)
+          detectionErrors.push(`Column "${h}" doesn't match any of your products — it will be skipped.`)
         }
       }
 
-      rows.forEach((row, ri) => {
-        if (row[0]?.trim().startsWith('#')) return   // skip comment/example rows
-        const line = ri + 2
-        const rawDate = row[0] ?? ''
-        const custRaw = parseInt(row[1] ?? '')
-
-        const dateParsed = parseDate(rawDate)
-        if (!dateParsed) {
-          errors.push(`Row ${line}: can't read date "${rawDate}" — use YYYY-MM-DD, DD/MM/YYYY, or MM/DD/YYYY`)
-          return
-        }
-
-        const productUnits: Record<string, number> = {}
-        for (const { idx, product } of productCols) {
-          const v = parseFloat(row[idx] ?? '')
-          if (!isNaN(v) && v > 0) productUnits[product.name] = v
-        }
-
-        const hourlyCustomers: HourlyBackfillSlot[] = []
-        for (const { idx, hour } of hourlyCols) {
-          const v = parseInt(row[idx] ?? '', 10)
-          if (!isNaN(v) && v > 0) hourlyCustomers.push({ hour, customers: v })
-        }
-
-        // Auto-sum: when hourly columns are present and their total exceeds (or
-        // replaces) the explicit customers column, use the hourly sum as the
-        // daily total.  The daily total is always the source of truth, and
-        // hourly data is the most granular form of it.
-        const hourlySum = hourlyCustomers.reduce((s, h) => s + h.customers, 0)
-        let customers = custRaw
-        let hourlyAutoSummed = false
-
-        if (hourlySum > 0) {
-          if (isNaN(custRaw) || custRaw <= 0) {
-            // No explicit daily total — derive from hourly
-            customers = hourlySum
-            hourlyAutoSummed = true
-          } else if (hourlySum > custRaw) {
-            // Hourly columns sum to more than the daily total the user entered.
-            // The entered daily total is the source of truth — keep it.
-            // Only warn so the user can review; do NOT overwrite their value.
-            errors.push(
-              `Row ${line} (${dateParsed.display}): hourly columns sum to ${hourlySum} but customers column says ${custRaw}. ` +
-              `Keeping your entered total of ${custRaw}. If ${hourlySum} is correct, update the customers column.`
-            )
-            // customers stays at custRaw — intentional; the explicit entry wins
-          }
-        }
-
-        if (isNaN(customers) || customers < 0) {
-          errors.push(`Row ${line}: invalid customer count "${row[1]}"`)
-          return
-        }
-
-        parsed.push({
-          date:             dateParsed.iso,
-          dateRaw:          rawDate,
-          dateDisplay:      dateParsed.display,
-          dateAmbiguous:    dateParsed.ambiguous,
-          customers,
-          productUnits,
-          hourlyCustomers,
-          hourlyAutoSummed,
-        })
-      })
-
-      setParseErrors(errors)
-      setPreview(parsed)
+      if (productCols.length > 0) {
+        // Require explicit confirmation before including any product columns
+        setPendingRawRows(rows)
+        setPendingProductColMap(productCols)
+        setPendingHourlyCols(hourlyCols)
+        setDetectedProductCols(productCols.map(c => c.product))
+        setConfirmedProductIds(new Set())
+        setProductColsConfirmed(false)
+        setParseErrors(detectionErrors)
+      } else {
+        // No product columns: proceed straight to preview (date+customers+hourly only)
+        buildPreview(rows, [], hourlyCols, detectionErrors)
+        setProductColsConfirmed(true)
+      }
     }
     reader.readAsText(file)
+  }
+
+  function confirmProductCols() {
+    if (!pendingRawRows) return
+    const confirmedCols = pendingProductColMap.filter(c => confirmedProductIds.has(c.product.id))
+    buildPreview(pendingRawRows, confirmedCols, pendingHourlyCols, parseErrors)
+    setProductColsConfirmed(true)
+  }
+
+  function toggleProduct(id: number) {
+    setConfirmedProductIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
   }
 
   async function handleImport() {
@@ -241,14 +284,12 @@ export default function CsvImport({ onImported }: Props) {
     let skipped = 0
     const failedDates: string[] = []
 
-    // Process rows concurrently in small batches to balance speed vs server load
     const BATCH = 4
     for (let i = 0; i < preview.length; i += BATCH) {
       const batch = preview.slice(i, i + BATCH)
       await Promise.all(batch.map(async row => {
         try {
           const day = await dayRecords.create({ date: row.date, customers: row.customers })
-          // Product sales and hourly data can run in parallel for this row
           await Promise.all([
             ...Object.entries(row.productUnits).map(([name, units]) => {
               const prod = productList.find(p => p.name === name)
@@ -272,6 +313,9 @@ export default function CsvImport({ onImported }: Props) {
     setResult({ ok, skipped, failedDates })
     setPreview([])
     setFileName('')
+    setProductColsConfirmed(false)
+    setDetectedProductCols([])
+    setPendingRawRows(null)
     if (fileRef.current) fileRef.current.value = ''
     if (ok > 0) onImported()
   }
@@ -287,30 +331,19 @@ export default function CsvImport({ onImported }: Props) {
         <p className="text-sm text-slate-700 font-medium">{t('csvFormatTitle')}</p>
         <p className="text-sm text-slate-600">{t('csvDateHelp')}</p>
         <p className="text-xs text-slate-500">{t('csvExampleNote')}</p>
-
-        {/* Excel SUM formula tip */}
         <div className="mt-2 bg-white border border-teal-100 rounded-lg px-3 py-2">
           <p className="text-xs text-slate-600 leading-relaxed">📋 {t('csvSumTip')}</p>
         </div>
-
-        {/* Earlier dates tip */}
         <div className="bg-white border border-teal-100 rounded-lg px-3 py-2">
           <p className="text-xs text-slate-600 leading-relaxed">📅 {t('csvEarlierDatesTip')}</p>
         </div>
-
         <div className="flex flex-wrap gap-2 pt-1">
-          <button
-            onClick={downloadTemplate}
-            className="text-sm text-teal-600 border border-teal-200 rounded-lg
-                       px-3 py-1.5 hover:bg-white transition-colors"
-          >
+          <button onClick={downloadTemplate}
+            className="text-sm text-teal-600 border border-teal-200 rounded-lg px-3 py-1.5 hover:bg-white transition-colors">
             {t('csvDownloadTemplate')}
           </button>
-          <button
-            onClick={downloadHourlyTemplate}
-            className="text-sm text-slate-600 border border-slate-200 rounded-lg
-                       px-3 py-1.5 hover:bg-white transition-colors"
-          >
+          <button onClick={downloadHourlyTemplate}
+            className="text-sm text-slate-600 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-white transition-colors">
             {t('csvDownloadHourly')}
             <span className="ml-1.5 text-xs text-slate-400">{t('csvForRegisterExports')}</span>
           </button>
@@ -336,6 +369,46 @@ export default function CsvImport({ onImported }: Props) {
         <ul className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
           {parseErrors.map((msg, i) => <li key={i}>⚠ {msg}</li>)}
         </ul>
+      )}
+
+      {/* ── Product column confirmation step ────────────────────────────────── */}
+      {detectedProductCols.length > 0 && !productColsConfirmed && (
+        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+          <p className="text-sm font-semibold text-slate-700">
+            {t('csvConfirmProductColsTitle')}
+          </p>
+          <p className="text-xs text-slate-500">
+            {t('csvConfirmProductColsDesc')}
+          </p>
+          <div className="space-y-2">
+            {detectedProductCols.map(prod => (
+              <label key={prod.id} className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={confirmedProductIds.has(prod.id)}
+                  onChange={() => toggleProduct(prod.id)}
+                  className="w-4 h-4 accent-teal-600"
+                />
+                <span className="text-sm text-slate-700 group-hover:text-teal-700">
+                  {prod.name}
+                  <span className="ml-1.5 text-xs text-slate-400">({prod.unit})</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          {confirmedProductIds.size === 0 && (
+            <p className="text-xs text-slate-400">
+              {t('csvNoProductsSelectedNote')}
+            </p>
+          )}
+          <button
+            onClick={confirmProductCols}
+            className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium
+                       px-4 py-2 rounded-lg transition-colors"
+          >
+            {t('csvConfirmProductColsBtn', { n: String(confirmedProductIds.size), s: confirmedProductIds.size !== 1 ? 's' : '' })}
+          </button>
+        </div>
       )}
 
       {/* Auto-sum notice */}
@@ -368,9 +441,12 @@ export default function CsvImport({ onImported }: Props) {
                   <th className="py-2 px-3">{t('csvColInFile')}</th>
                   <th className="py-2 px-3">{t('csvColReadAs')}</th>
                   <th className="py-2 px-3">{t('csvColCustomers')}</th>
-                  {productList.map(p => (
-                    <th key={p.id} className="py-2 px-3">{p.name} ({p.unit})</th>
-                  ))}
+                  {productList
+                    .filter(p => confirmedProductIds.has(p.id))
+                    .map(p => (
+                      <th key={p.id} className="py-2 px-3">{p.name} ({p.unit})</th>
+                    ))
+                  }
                 </tr>
               </thead>
               <tbody>
@@ -389,11 +465,14 @@ export default function CsvImport({ onImported }: Props) {
                         <span className="ml-1 text-teal-600 text-xs" title="Auto-computed from hourly columns">★</span>
                       )}
                     </td>
-                    {productList.map(p => (
-                      <td key={p.id} className="py-1.5 px-3 text-slate-500">
-                        {row.productUnits[p.name] ?? <span className="text-slate-300">—</span>}
-                      </td>
-                    ))}
+                    {productList
+                      .filter(p => confirmedProductIds.has(p.id))
+                      .map(p => (
+                        <td key={p.id} className="py-1.5 px-3 text-slate-500">
+                          {row.productUnits[p.name] ?? <span className="text-slate-300">—</span>}
+                        </td>
+                      ))
+                    }
                   </tr>
                 ))}
               </tbody>
@@ -405,7 +484,6 @@ export default function CsvImport({ onImported }: Props) {
             )}
           </div>
 
-          {/* Progress bar (visible during import) */}
           {importing && progress && (
             <div className="mt-3">
               <div className="flex justify-between text-xs text-slate-500 mb-1">

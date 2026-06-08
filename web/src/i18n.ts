@@ -431,6 +431,11 @@ export const translations = {
     outlierKeep: 'Keep it as-is',
     outlierDownweightNote: 'Until you decide, unusual days are down-weighted so they don\'t skew your forecast. Marking a day as recurring teaches Ope to expect it in the future.',
 
+    // Periods (promos & events) panel — product targeting
+    periodsTargetLabel: 'What is this promoting?',
+    periodsTargetCustomers: 'Overall customers (default)',
+    periodsTargetNote: 'The lift chart will measure the effect on this specific metric.',
+
     // Periods (promos & events) panel
     periodsSomethingSpecial: 'Did something special happen?',
     periodsTagDesc: "Tag a special event or ad campaign below. We'll keep it out of your normal baseline and show you how much extra business it brought.",
@@ -522,6 +527,12 @@ export const translations = {
     expectedOverNDays: 'Expected over {n} day{s}',
     reorderPointForecastNote: 'Reorder point uses the forecasted demand, not just the average.',
     basedOnAvgDays: 'Based on your average of {qty}/day from {n} logged days.',
+
+    // CSV Import — product column confirmation step
+    csvConfirmProductColsTitle: 'Which product columns should be imported?',
+    csvConfirmProductColsDesc: 'We found columns that match your products. Check the ones you want to import — uncheck any you did not intentionally fill in.',
+    csvConfirmProductColsBtn: 'Confirm and preview ({n} product{s} selected)',
+    csvNoProductsSelectedNote: 'No products selected — only dates and customer counts will be imported.',
 
     // CSV Import page — all strings go through translation so Hebrew works
     csvPageTitle: 'Bring in your past data',
@@ -1010,6 +1021,11 @@ export const translations = {
     outlierKeep: 'השאר כפי שהוא',
     outlierDownweightNote: 'עד שתחליט, ימים חריגים מקבלים משקל נמוך כדי לא לעוות את התחזית. סימון יום כחוזר מלמד את Ope לצפות לו בעתיד.',
 
+    // Periods (promos & events) panel — product targeting
+    periodsTargetLabel: 'מה זה מקדם?',
+    periodsTargetCustomers: 'לקוחות כלליים (ברירת מחדל)',
+    periodsTargetNote: 'תרשים ההשפעה יודד את ההשפעה על מדד ספציפי זה.',
+
     // Periods (promos & events) panel
     periodsSomethingSpecial: 'קרה משהו מיוחד?',
     periodsTagDesc: 'תייג אירוע מיוחד או קמפיין מודעות למטה. נשמור אותו מחוץ לבסיס הרגיל שלך ונראה לך כמה עסקים נוספים הוא הביא.',
@@ -1101,6 +1117,12 @@ export const translations = {
     expectedOverNDays: 'צפוי על פני {n} יום{s}',
     reorderPointForecastNote: 'נקודת ההזמנה מחדש משתמשת בביקוש החזוי, לא רק בממוצע.',
     basedOnAvgDays: 'מבוסס על ממוצע של {qty}/יום מ-{n} ימים מתועדים.',
+
+    // CSV Import — product column confirmation step
+    csvConfirmProductColsTitle: 'אילו עמודות מוצרים לייבא?',
+    csvConfirmProductColsDesc: 'מצאנו עמודות התואמות את המוצרים שלך. סמן אלה שברצונך לייבא — בטל סימון כל עמודה שלא מילאת בכוונה.',
+    csvConfirmProductColsBtn: 'אשר ותצוגה מקדימה ({n} מוצרים נבחרו)',
+    csvNoProductsSelectedNote: 'לא נבחרו מוצרים — ייובאו רק תאריכים וספירות לקוחות.',
 
     // CSV Import page — Hebrew translations
     csvPageTitle: 'ייבוא נתוני עבר',

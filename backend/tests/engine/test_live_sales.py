@@ -1,7 +1,13 @@
 """Known-answer tests for engine.live_sales.rollup_by_hour and hourly_averages."""
 from datetime import date
 
-from app.engine.live_sales import hourly_averages, reconcile_customers_with_hours, rollup_by_hour
+from app.engine.live_sales import (
+    compute_open_hours,
+    hourly_averages,
+    reconcile_customers_with_hours,
+    rollup_by_hour,
+    _DEFAULT_OPEN_HOURS,
+)
 
 
 def test_empty_returns_empty():
@@ -191,6 +197,80 @@ def test_reconcile_case3_hours_less_keeps_manual():
     customers, note = reconcile_customers_with_hours(60, 40.0)
     assert customers == 60
     assert "manual" in note
+
+
+# ── compute_open_hours — ROOT 2 opening-hours filter ─────────────────────────
+
+def test_compute_open_hours_normal_range():
+    """Normal case: close > open → set(range(open, close))."""
+    result = compute_open_hours({"opening_hour": 9, "closing_hour": 17})
+    assert result == frozenset(range(9, 17))
+    assert 9 in result
+    assert 16 in result
+    assert 17 not in result
+    assert 1 not in result  # 1am must be excluded
+
+
+def test_compute_open_hours_no_1am_for_9_17():
+    """Spec requirement: with hours 9–17, no 1–5am hours ever appear."""
+    result = compute_open_hours({"opening_hour": 9, "closing_hour": 17})
+    for h in range(0, 9):
+        assert h not in result, f"hour {h} must be excluded for 9–17 business"
+    for h in range(17, 24):
+        assert h not in result, f"hour {h} must be excluded for 9–17 business"
+
+
+def test_compute_open_hours_overnight_wrap():
+    """Overnight wrap-around (e.g. 22:00–06:00): range(22,24) ∪ range(0,6)."""
+    result = compute_open_hours({"opening_hour": 22, "closing_hour": 6})
+    expected = frozenset(range(22, 24)) | frozenset(range(0, 6))
+    assert result == expected
+    assert 22 in result
+    assert 23 in result
+    assert 0 in result
+    assert 5 in result
+    assert 6 not in result  # closing hour excluded (open = [open, close))
+    assert 10 not in result  # midday is closed
+
+
+def test_compute_open_hours_not_configured_returns_default():
+    """No opening_hour/closing_hour → returns _DEFAULT_OPEN_HOURS, not all 24 hours."""
+    result = compute_open_hours({})
+    assert result == _DEFAULT_OPEN_HOURS
+    # Default must exclude overnight hours (e.g. 1–5am)
+    for h in range(0, 6):
+        assert h not in result, f"overnight hour {h} must be excluded from default"
+
+
+def test_compute_open_hours_not_configured_excludes_midnight():
+    """Unconfigured business must never include 1–5am (spec: prompt/default sensibly)."""
+    result = compute_open_hours({"some_other_setting": "value"})
+    assert 1 not in result
+    assert 3 not in result
+    assert 5 not in result
+
+
+def test_compute_open_hours_24h_when_equal():
+    """open == close → treat as 24-hour operation (all hours)."""
+    result = compute_open_hours({"opening_hour": 9, "closing_hour": 9})
+    assert result == frozenset(range(0, 24))
+
+
+def test_hourly_analytics_respects_open_hours_9_17():
+    """With 9–17 hours, no taps from 1–5am ever appear in hourly averages."""
+    events = [
+        (date(2025, 9, 1), 9,  None, 10.0),   # open hour
+        (date(2025, 9, 1), 13, None, 8.0),    # open hour
+        (date(2025, 9, 1), 1,  None, 99.0),   # 1am — must be excluded
+        (date(2025, 9, 1), 3,  None, 50.0),   # 3am — must be excluded
+    ]
+    open_hrs = compute_open_hours({"opening_hour": 9, "closing_hour": 17})
+    avgs = hourly_averages(events, open_hours=open_hrs)
+    returned_hours = {h for h, _, _ in avgs}
+    assert 1 not in returned_hours, "1am must never appear in peak hours for 9–17 business"
+    assert 3 not in returned_hours, "3am must never appear in peak hours for 9–17 business"
+    assert 9 in returned_hours
+    assert 13 in returned_hours
 
 
 def test_reconcile_closed_hour_not_counted():

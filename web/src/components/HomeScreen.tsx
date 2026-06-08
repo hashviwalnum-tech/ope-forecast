@@ -58,7 +58,7 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
       .then(data => {
         setRows(data)
         const defaults: Record<number, string> = {}
-        for (const r of data) defaults[r.id] = String(r.avg_spend)
+        for (const r of data) defaults[r.id] = String(r.today_amount ?? r.avg_spend)
         setAmounts(defaults)
       })
       .catch(() => {})
@@ -102,7 +102,7 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
           <div className="flex-1 min-w-0">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{r.name}</span>
             <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">
-              {t('visitsLogged', { n: String(r.visit_count), s: r.visit_count !== 1 ? 'ים' : '', ו: r.visit_count !== 1 ? 'ו' : '' })}
+              {t('visitsLogged', { n: String(r.visit_count), s: r.visit_count !== 1 ? 's' : '', ים: r.visit_count !== 1 ? 'ים' : '', ו: r.visit_count !== 1 ? 'ו' : '' })}
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">

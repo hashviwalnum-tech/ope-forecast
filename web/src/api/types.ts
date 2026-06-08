@@ -177,6 +177,7 @@ export interface PeriodLift {
   type: string
   start_date: string
   end_date: string
+  target_product_id?: number | null
   total_actual: number
   total_baseline: number
   total_lift_customers: number
@@ -200,6 +201,7 @@ export interface PeriodRead {
   type: string
   label: string
   cost: number | null
+  target_product_id?: number | null
 }
 
 export interface PeriodCreate {
@@ -208,6 +210,7 @@ export interface PeriodCreate {
   type: 'event' | 'ad'
   label: string
   cost?: number
+  target_product_id?: number
 }
 
 export interface DayRecordRead {

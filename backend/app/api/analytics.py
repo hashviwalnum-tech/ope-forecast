@@ -26,7 +26,7 @@ from app.engine.forecasting import (
     same_date_last_year,
     weighted_moving_average,
 )
-from app.engine.live_sales import hourly_averages, hourly_product_mix
+from app.engine.live_sales import compute_open_hours, hourly_averages, hourly_product_mix
 from app.engine.ordering import (
     apply_order_constraints,
     economic_order_quantity,
@@ -521,22 +521,26 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
         weights_out = {m: round(w, 4) for m, w in zip(preds.keys(), weights)}
 
+        pred_int = round(forecast_val)
+        lo_int = max(0, round(lo))
+        hi_int = max(0, round(hi))
+
         db.add(ForecastRun(
             business_id=biz.id,
             created_at=datetime.utcnow(),
             target_date=target_date,
-            predicted_value=round(forecast_val, 2),
-            interval_low=round(lo, 2),
-            interval_high=round(hi, 2),
+            predicted_value=pred_int,
+            interval_low=lo_int,
+            interval_high=hi_int,
             model_weights=weights_out,
         ))
 
         days.append(ForecastDay(
             date=target_date,
             weekday=target_date.strftime("%A"),
-            predicted_customers=round(forecast_val, 1),
-            interval_low=round(lo, 1),
-            interval_high=round(hi, 1),
+            predicted_customers=pred_int,
+            interval_low=lo_int,
+            interval_high=hi_int,
             model_weights=weights_out,
         ))
 
@@ -562,7 +566,7 @@ def get_accuracy(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     obs = _effective_obs(records)
     wds = [r.date.weekday() for r in records]
 
-    n_eval = min(42, len(obs) - 7)
+    n_eval = min(90, len(obs) - 7)
     actuals: list[float] = []
     predictions: list[float] = []
 
@@ -651,19 +655,46 @@ def get_lift(db: Session = Depends(get_db), biz: Business = Depends(get_business
             and r.outlier_status not in ("excluded", "event")
             and (open_days is None or r.date.weekday() in open_days)
         ]
-        train_obs = _effective_obs(train_records)
-        train_wds = [r.date.weekday() for r in train_records]
 
-        total_actual = 0.0
-        total_baseline = 0.0
-        for r in period_records:
-            total_actual += r.customers
-            try:
-                total_baseline += seasonal_naive_forecast(
-                    train_obs, train_wds, r.date.weekday()
-                )
-            except ValueError:
-                total_baseline += float(mean(train_obs)) if train_obs else 0.0
+        # Determine what to measure: product-level sales or total customers.
+        # target_product_id=None → measure total customers (default).
+        # target_product_id set → measure that product's daily units sold.
+        target_pid = getattr(period, "target_product_id", None)
+
+        if target_pid is not None:
+            # Build product-level demand series for the target product
+            prod_sale_map: dict[int, float] = {}
+            for sr in db.query(SaleRecord).join(
+                DayRecord, SaleRecord.day_record_id == DayRecord.id
+            ).filter(
+                DayRecord.business_id == biz.id,
+                SaleRecord.product_id == target_pid,
+            ).all():
+                prod_sale_map[sr.day_record_id] = float(sr.units_sold)
+
+            # Actual = sum of product units during the period
+            total_actual = sum(prod_sale_map.get(r.id, 0.0) for r in period_records)
+
+            # Baseline: use product demand series for training
+            train_prod_obs = [prod_sale_map.get(r.id, 0.0) for r in train_records if r.id in prod_sale_map]
+            train_prod_wds = [r.date.weekday() for r in train_records if r.id in prod_sale_map]
+            total_baseline = 0.0
+            for r in period_records:
+                try:
+                    total_baseline += seasonal_naive_forecast(train_prod_obs, train_prod_wds, r.date.weekday())
+                except ValueError:
+                    total_baseline += float(mean(train_prod_obs)) if train_prod_obs else 0.0
+        else:
+            # Default: measure total customers
+            train_obs = _effective_obs(train_records)
+            train_wds = [r.date.weekday() for r in train_records]
+            total_actual = sum(float(r.customers) for r in period_records)
+            total_baseline = 0.0
+            for r in period_records:
+                try:
+                    total_baseline += seasonal_naive_forecast(train_obs, train_wds, r.date.weekday())
+                except ValueError:
+                    total_baseline += float(mean(train_obs)) if train_obs else 0.0
 
         total_lift = total_actual - total_baseline
         pct_lift = (total_lift / total_baseline * 100) if total_baseline else 0.0
@@ -675,6 +706,7 @@ def get_lift(db: Session = Depends(get_db), biz: Business = Depends(get_business
             type=period.type,
             start_date=period.start_date,
             end_date=period.end_date,
+            target_product_id=target_pid,
             total_actual=round(total_actual, 1),
             total_baseline=round(total_baseline, 1),
             total_lift_customers=round(total_lift, 1),
@@ -847,10 +879,10 @@ def get_forecast_history(db: Session = Depends(get_db), biz: Business = Depends(
         history.append(ForecastHistoryPoint(
             date=fr.target_date,
             weekday=fr.target_date.strftime("%A"),
-            predicted=fr.predicted_value,
+            predicted=round(fr.predicted_value),
             actual=float(actual.customers),
-            interval_low=fr.interval_low,
-            interval_high=fr.interval_high,
+            interval_low=round(fr.interval_low) if fr.interval_low is not None else None,
+            interval_high=round(fr.interval_high) if fr.interval_high is not None else None,
         ))
 
     if not history:
@@ -924,17 +956,7 @@ def get_hourly_analytics(
     """
     settings = biz.settings or {}
     avg_svc = float(settings.get("avg_service_time_minutes", 5.0))
-    # Only apply the open-hours filter when the owner has explicitly configured
-    # their hours.  Defaulting to 0/24 would silently include all 24 hours
-    # (even overnight) when no hours have been saved yet.
-    _raw_oh = settings.get("opening_hour")
-    _raw_ch = settings.get("closing_hour")
-    if _raw_oh is not None and _raw_ch is not None:
-        _oh = int(_raw_oh)
-        _ch = int(_raw_ch)
-        open_hours: set[int] | None = set(range(_oh, _ch)) if _ch > _oh else None
-    else:
-        open_hours = None  # hours not configured: no filter
+    open_hours = compute_open_hours(settings)
 
     events = (
         db.query(SaleEvent)
@@ -1310,17 +1332,7 @@ def get_hourly_by_weekday(
     """
     settings = biz.settings or {}
     avg_svc = float(settings.get("avg_service_time_minutes", 5.0))
-    # Only apply the open-hours filter when the owner has explicitly configured
-    # their hours.  Defaulting to 0/24 would silently include all 24 hours
-    # (even overnight) when no hours have been saved yet.
-    _raw_oh2 = settings.get("opening_hour")
-    _raw_ch2 = settings.get("closing_hour")
-    if _raw_oh2 is not None and _raw_ch2 is not None:
-        _oh2 = int(_raw_oh2)
-        _ch2 = int(_raw_ch2)
-        open_hours: set[int] | None = set(range(_oh2, _ch2)) if _ch2 > _oh2 else None
-    else:
-        open_hours = None  # hours not configured: no filter
+    open_hours = compute_open_hours(settings)
 
     events = (
         db.query(SaleEvent)

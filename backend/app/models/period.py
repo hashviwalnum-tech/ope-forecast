@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date as _date
 from typing import Optional
 
-from sqlalchemy import CheckConstraint, Date, ForeignKey, String
+from sqlalchemy import CheckConstraint, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -14,6 +14,8 @@ class Period(Base):
 
     These rows are excluded from the 'normal' baseline when training forecasting
     models, and are used to measure lift against that baseline.
+    target_product_id: when set, lift analysis measures effect on this product's
+    sales rather than total customers (NULL → measure total customers, spec §5).
     """
 
     __tablename__ = "periods"
@@ -28,3 +30,6 @@ class Period(Base):
     type: Mapped[str] = mapped_column(String(10))
     label: Mapped[str] = mapped_column(String(200))
     cost: Mapped[Optional[float]] = mapped_column(nullable=True)
+    target_product_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("products.id"), nullable=True
+    )

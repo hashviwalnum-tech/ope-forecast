@@ -79,21 +79,18 @@ def test_put_overwrites_existing_record(day_client):
     assert r2.json()["customers"] == 99
 
 
-# ── Hourly consistency warning ─────────────────────────────────────────────────
+# ── Hourly reconciliation (hours-vs-total rule wired into create/update) ───────
 
-def test_hourly_warning_when_events_exceed_total(day_client, db, biz):
-    """When hourly SaleEvents (product_id=None) sum to more than the daily
-    customer total, the endpoint must return a non-None warning string.
+def test_reconciliation_hours_exceed_manual_uses_hours_sum(day_client, db, biz):
+    """When open-hours SaleEvents sum to MORE than the manual customer total,
+    the stored customers must equal the SaleEvent sum (hours win — spec §9 case 1).
 
-    Root cause of the previous non-implementation:
-    BackfillForm submits hourly SaleEvents AFTER the day record is created,
-    so the server-side warning check (run at creation time) always sees zero
-    hourly data.  The real guard is frontend reconciliation before submit;
-    this test covers the server-side path used when live tap-sales exist."""
+    Reconciliation is now wired into create/update so the correction happens
+    automatically with no warning needed (the inconsistency is resolved, not warned)."""
     import datetime
     from app.models import SaleEvent
 
-    # Create 15 customer taps for DATE_A — each is a product_id=None SaleEvent
+    # Create 15 customer taps at hour 10 (within default open-hours 6–22)
     for minute in range(15):
         db.add(SaleEvent(
             business_id=biz.id,
@@ -103,12 +100,55 @@ def test_hourly_warning_when_events_exceed_total(day_client, db, biz):
         ))
     db.commit()
 
-    # Create day record with only 10 customers — less than the 15 tap events
+    # Enter manual total of 10 — less than the 15 tap events
     r = day_client.post("/day-records", json={"date": DATE_A, "customers": 10})
     assert r.status_code == 201
     data = r.json()
-    assert data["warning"] is not None, "Expected a warning when hourly data exceeds daily total"
-    assert "15" in data["warning"], f"Warning should mention the 15-customer hourly total; got: {data['warning']}"
+    # Reconciliation must have promoted the customers value to the SaleEvent sum
+    assert data["customers"] == 15, (
+        f"hours_sum (15) > manual (10) → hours win; expected customers=15, got {data['customers']}"
+    )
+    # No warning expected because the inconsistency was resolved automatically
+    assert data["warning"] is None, "No warning expected after reconciliation resolves the gap"
+
+
+def test_reconciliation_closed_hour_events_excluded(day_client, db, biz):
+    """SaleEvents outside open hours must NOT count toward the hours sum.
+
+    Business is configured 9–17.  Taps at hour 22 (closed) must be ignored;
+    taps at hour 10 (open) count.  With open-hours sum = 5 and manual total = 10,
+    hours_sum < manual, so manual wins (case 3).
+    """
+    import datetime
+    from app.models import SaleEvent
+
+    biz.settings = {"opening_hour": 9, "closing_hour": 17}
+    db.commit()
+
+    # 5 taps at hour 10 (open) + 50 taps at hour 22 (closed)
+    for minute in range(5):
+        db.add(SaleEvent(
+            business_id=biz.id,
+            product_id=None,
+            timestamp=datetime.datetime(2025, 9, 10, 10, minute, 0),
+            quantity=1.0,
+        ))
+    for minute in range(50):
+        db.add(SaleEvent(
+            business_id=biz.id,
+            product_id=None,
+            timestamp=datetime.datetime(2025, 9, 10, 22, minute, 0),
+            quantity=1.0,
+        ))
+    db.commit()
+
+    # Manual total is 10; open-hours sum is 5 (closed-hour 50 must be excluded)
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 10})
+    assert r.status_code == 201
+    data = r.json()
+    assert data["customers"] == 10, (
+        f"Closed-hour taps must not inflate total; expected 10, got {data['customers']}"
+    )
 
 
 def test_no_warning_when_events_under_total(day_client, db, biz):

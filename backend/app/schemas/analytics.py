@@ -57,6 +57,7 @@ class PeriodLift(BaseModel):
     type: str
     start_date: date
     end_date: date
+    target_product_id: Optional[int] = None
     total_actual: float
     total_baseline: float
     total_lift_customers: float
