@@ -472,11 +472,6 @@ export default function RegularsPanel() {
                                      rounded-full px-2 py-0.5 font-medium">
                       CLV {fmtCLV(r.clv)}
                     </span>
-                    {r.visit_count > 0 && (
-                      <span className="text-xs text-slate-400 dark:text-slate-500">
-                        {t('visitsLogged', { n: String(r.visit_count), s: r.visit_count !== 1 ? 's' : '', ים: r.visit_count !== 1 ? 'ים' : '', ו: r.visit_count !== 1 ? 'ו' : '' })}
-                      </span>
-                    )}
                   </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                     {r.visit_frequency_per_week}×/week · ${r.avg_spend}/visit · {r.expected_lifespan_years} yr

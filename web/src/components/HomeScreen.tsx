@@ -98,14 +98,19 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
       {msg && <p className="text-sm text-teal-700 dark:text-teal-300 font-medium">{msg}</p>}
       {errMsg && <p className="text-sm text-rose-600 dark:text-rose-400">{errMsg}</p>}
       {!msg && rows.map(r => (
-        <div key={r.id} className="flex items-center gap-3 py-1 flex-wrap">
-          <div className="flex-1 min-w-0">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{r.name}</span>
-            <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">
-              {t('visitsLogged', { n: String(r.visit_count), s: r.visit_count !== 1 ? 's' : '', ים: r.visit_count !== 1 ? 'ים' : '', ו: r.visit_count !== 1 ? 'ו' : '' })}
-            </span>
+        <div key={r.id} className="py-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200 flex-1 min-w-0">{r.name}</span>
+            {r.today_amount != null && (
+              <span className="text-xs text-teal-600 dark:text-teal-400 font-medium shrink-0">
+                {t('todayLoggedLabel', { amount: String(r.today_amount.toFixed(2)) })}
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+              {r.today_amount != null ? t('updateTodaysTotalLabel') : t('recordVisitAmountLabel')}
+            </span>
             <div className="flex items-center gap-1">
               <span className="text-xs text-slate-400 dark:text-slate-500">$</span>
               <input
@@ -122,10 +127,11 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
             <button
               onClick={() => record(r.id, r.name)}
               disabled={recording === r.id}
-              className="px-3 py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-lg
-                         hover:bg-teal-700 disabled:opacity-50 transition-colors"
+              className={`px-3 py-1.5 text-white text-xs font-semibold rounded-lg
+                         hover:bg-teal-700 disabled:opacity-50 transition-colors
+                         ${r.today_amount != null ? 'bg-teal-500' : 'bg-teal-600'}`}
             >
-              {recording === r.id ? '…' : t('recordVisit')}
+              {recording === r.id ? '…' : r.today_amount != null ? t('updateVisitBtn') : t('recordVisit')}
             </button>
           </div>
         </div>
