@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "Ope",
+    "slug": "ope-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ope.forecast"
+    },
+    "android": {
+      "package": "com.ope.forecast"
+    }
+  }
+}

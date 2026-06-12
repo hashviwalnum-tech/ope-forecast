@@ -137,7 +137,23 @@ Concrete decisions:
 - For mobile, App Store / Play in-app purchases are usually **required** for digital subscriptions (15–30% cut, own rules) — design the premium flow with that in mind.
 
 ### Phase 4 — Mobile
-React Native (Expo) app reusing the same backend API and a shared TypeScript package (types + API client).
+**Goal:** a React Native (Expo) app for **both iOS and Android** with **full feature parity** with the web app, reusing the **same Render backend API** (the forecasting/ordering/auth/database brain is unchanged — only a new front-end). Decided: Expo (handles build tooling, on-device testing via QR, and store submission), both platforms, full parity as the end state.
+
+**Build order (foundation-first, verified before stacking — the approach that worked in Phase 3):**
+1. **Scaffold + auth + one screen.** Expo project; Supabase auth working on a phone; one screen pulling real data from the Render backend. This proves the hardest part (auth + backend connectivity from a phone) before any features. Run on a real device via Expo Go.
+2. **Core daily-use screens:** log a sale (tap capture), see the forecast, what to order. The everyday loop.
+3. **Then port the rest in waves** to reach full parity: past days / backfill, products, regulars, staffing/busy-hours, ad/event lift, analytics, settings, Telegram connect, premium gating, home customization, Hebrew + dark mode.
+
+**Reuse:** share TypeScript types and an API client between web and mobile where practical (a shared package or copied client) so the two front-ends stay consistent with the backend. The backend, database, and auth do NOT change.
+
+**App-store path (the unpredictable tail — plan for it):**
+- **Google Play developer account** (~$25 one-time) and **Apple developer account** (~$99/year).
+- App icons, screenshots, store descriptions, a privacy policy, and content for review.
+- **Apple review can reject and require resubmission** — budget time for back-and-forth. For digital subscriptions, Apple/Google usually require their in-app purchase (15–30% cut) — affects how premium billing works on mobile vs web.
+- Expo EAS Build / Submit can streamline building and submitting to both stores.
+- **Test on a real device throughout** (Expo Go / development builds) — don't wait until the end.
+
+**Timeline (honest):** the app reusing the backend is a few weeks of iterative work; the store-submission tail is unpredictable (days to weeks). ~1–2 months to live in both stores, coding being the predictable part.
 
 ### Phase 5 — Integrations
 Smart register / POS connectors to auto-import sales.
