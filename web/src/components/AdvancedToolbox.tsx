@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useLanguage } from '../contexts/LanguageContext'
 
 // ── shared primitives ─────────────────────────────────────────────────────────
 
@@ -99,9 +100,10 @@ function num(s: string): number {
 }
 
 function DecisionPlanner() {
+  const { t } = useLanguage()
   const [decisions, setDecisions] = useState<Decision[]>([
-    { name: 'Option A', best: '', worst: '', likely: '' },
-    { name: 'Option B', best: '', worst: '', likely: '' },
+    { name: t('toolboxOptionPlaceholder', { n: 'A' }), best: '', worst: '', likely: '' },
+    { name: t('toolboxOptionPlaceholder', { n: 'B' }), best: '', worst: '', likely: '' },
   ])
   const [alpha, setAlpha] = useState(50)  // Hurwicz optimism 0–100
   const [calculated, setCalculated] = useState(false)
@@ -127,29 +129,26 @@ function DecisionPlanner() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-slate-500 leading-relaxed">
-        Enter your options with best, worst, and most-likely outcomes — Ope tells you which wins
-        under different mindsets.
-      </p>
+      <p className="text-sm text-slate-500 leading-relaxed">{t('toolboxDecisionDesc')}</p>
 
       {decisions.map((d, i) => (
         <div key={i} className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/40 dark:bg-slate-900/20 p-4 space-y-3">
           <div>
-            <Label>Option {i + 1} name</Label>
-            <Input value={d.name} onChange={v => update(i, 'name', v)} placeholder={`Option ${i + 1}`} />
+            <Label>{t('toolboxOptionName', { n: String(i + 1) })}</Label>
+            <Input value={d.name} onChange={v => update(i, 'name', v)} placeholder={t('toolboxOptionPlaceholder', { n: String(i + 1) })} />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <Label>Best case</Label>
-              <Input value={d.best}   onChange={v => update(i, 'best', v)}   placeholder="e.g. 400" type="number" />
+              <Label>{t('toolboxBestCase')}</Label>
+              <Input value={d.best}   onChange={v => update(i, 'best', v)}   placeholder={t('toolboxNumPlaceholder400')} type="number" />
             </div>
             <div>
-              <Label>Most likely</Label>
-              <Input value={d.likely} onChange={v => update(i, 'likely', v)} placeholder="e.g. 250" type="number" />
+              <Label>{t('toolboxMostLikely')}</Label>
+              <Input value={d.likely} onChange={v => update(i, 'likely', v)} placeholder={t('toolboxNumPlaceholder250')} type="number" />
             </div>
             <div>
-              <Label>Worst case</Label>
-              <Input value={d.worst}  onChange={v => update(i, 'worst', v)}  placeholder="e.g. 100" type="number" />
+              <Label>{t('toolboxWorstCase')}</Label>
+              <Input value={d.worst}  onChange={v => update(i, 'worst', v)}  placeholder={t('toolboxNumPlaceholder100')} type="number" />
             </div>
           </div>
         </div>
@@ -162,7 +161,7 @@ function DecisionPlanner() {
             className="px-3 py-1.5 rounded-lg border border-teal-200 text-xs text-teal-600
                        hover:bg-teal-50 transition-colors"
           >
-            + Add another option
+            {t('toolboxAddOption')}
           </button>
         )}
         {decisions.length > 2 && (
@@ -171,7 +170,7 @@ function DecisionPlanner() {
             className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500
                        hover:bg-slate-50 transition-colors"
           >
-            Remove last
+            {t('toolboxRemoveOption')}
           </button>
         )}
       </div>
@@ -182,37 +181,23 @@ function DecisionPlanner() {
           className="w-full py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
                      hover:bg-teal-700 transition-colors"
         >
-          Which option is better?
+          {t('toolboxWhichBetter')}
         </button>
       )}
 
       {calculated && results.length >= 2 && (
         <div className="space-y-4 pt-2">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <ResultBadge
-              label="Playing it safe →"
-              value={`Go with ${safest?.name}`}
-              highlight={true}
-            />
-            <ResultBadge
-              label="On average →"
-              value={`Go with ${average?.name}`}
-              highlight={true}
-            />
-            <ResultBadge
-              label="Feeling bold →"
-              value={`Go with ${boldest?.name}`}
-              highlight={true}
-            />
+            <ResultBadge label={t('toolboxPlayingSafe')} value={t('toolboxGoWith', { name: safest?.name ?? '?' })} highlight={true} />
+            <ResultBadge label={t('toolboxOnAverage')}   value={t('toolboxGoWith', { name: average?.name ?? '?' })} highlight={true} />
+            <ResultBadge label={t('toolboxFeelingBold')} value={t('toolboxGoWith', { name: boldest?.name ?? '?' })} highlight={true} />
           </div>
 
           <div className="rounded-xl bg-teal-50/60 border border-teal-100 p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-slate-600">
-                How bold are you feeling right now?
-              </p>
+              <p className="text-xs font-semibold text-slate-600">{t('toolboxHowBold')}</p>
               <span className="text-xs text-teal-700 font-semibold">
-                {alpha < 30 ? 'Cautious' : alpha < 70 ? 'Balanced' : 'Bold'}
+                {alpha < 30 ? t('toolboxCautious') : alpha < 70 ? t('toolboxBalanced') : t('toolboxBold')}
               </span>
             </div>
             <input
@@ -221,12 +206,12 @@ function DecisionPlanner() {
               className="w-full accent-teal-600"
             />
             <p className="text-xs text-slate-500 mt-2">
-              At your confidence level → <strong className="text-teal-700">go with {hurwicz?.name}</strong>
+              {t('toolboxAtConfidence', { name: hurwicz?.name ?? '?' })}
             </p>
           </div>
 
           <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 p-4">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Expected values</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">{t('toolboxExpectedValues')}</p>
             <div className="space-y-1">
               {results.map((r, i) => (
                 <div key={i} className="flex justify-between text-xs text-slate-600">
@@ -235,9 +220,7 @@ function DecisionPlanner() {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-slate-400 mt-2">
-              Expected value uses a balanced weighting: worst 25%, likely 50%, best 25%.
-            </p>
+            <p className="text-xs text-slate-400 mt-2">{t('toolboxEVNote')}</p>
           </div>
         </div>
       )}
@@ -248,6 +231,7 @@ function DecisionPlanner() {
 // ── Tool 2: "How does this ordering decision feel?" (Gain vs. loss framing) ───
 
 function OrderFraming() {
+  const { t } = useLanguage()
   const [orderMore, setOrderMore]         = useState('')
   const [orderLess, setOrderLess]         = useState('')
   const [sellPrice, setSellPrice]         = useState('')
@@ -274,30 +258,27 @@ function OrderFraming() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-slate-500 leading-relaxed">
-        See the same ordering choice from two angles — what you could gain, and what you could lose.
-        Studies show losses feel about twice as bad as equal gains, so it helps to see both.
-      </p>
+      <p className="text-sm text-slate-500 leading-relaxed">{t('toolboxFramingDesc')}</p>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>If you order MORE (units)</Label>
+          <Label>{t('toolboxOrderMore')}</Label>
           <Input value={orderMore} onChange={setOrderMore} placeholder="e.g. 80" type="number" />
         </div>
         <div>
-          <Label>If you order LESS (units)</Label>
+          <Label>{t('toolboxOrderLess')}</Label>
           <Input value={orderLess} onChange={setOrderLess} placeholder="e.g. 50" type="number" />
         </div>
         <div>
-          <Label>Selling price per unit</Label>
+          <Label>{t('toolboxSellPrice')}</Label>
           <Input value={sellPrice} onChange={setSellPrice} placeholder="e.g. 5.00" type="number" prefix="€" />
         </div>
         <div>
-          <Label>What you pay per unit</Label>
+          <Label>{t('toolboxCostPrice')}</Label>
           <Input value={costPrice} onChange={setCostPrice} placeholder="e.g. 2.50" type="number" prefix="€" />
         </div>
         <div className="col-span-2">
-          <Label>How many you expect to sell</Label>
+          <Label>{t('toolboxExpectedSales')}</Label>
           <Input value={expectedDemand} onChange={setExpectedDemand} placeholder="e.g. 65" type="number" />
         </div>
       </div>
@@ -308,7 +289,7 @@ function OrderFraming() {
           className="w-full py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
                      hover:bg-teal-700 transition-colors"
         >
-          Show me both sides
+          {t('toolboxShowBothSides')}
         </button>
       )}
 
@@ -323,7 +304,7 @@ function OrderFraming() {
                   : 'border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700'
               }`}
             >
-              What could I gain?
+              {t('toolboxGainFrame')}
             </button>
             <button
               onClick={() => setFrame('loss')}
@@ -333,7 +314,7 @@ function OrderFraming() {
                   : 'border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-700'
               }`}
             >
-              What could I lose?
+              {t('toolboxLossFrame')}
             </button>
           </div>
 
@@ -341,56 +322,54 @@ function OrderFraming() {
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
                 <p className="text-xs font-semibold text-emerald-700 mb-1">
-                  Order {qMore} — if demand is strong
+                  {t('toolboxOrderDemandStrong', { qty: String(qMore) })}
                 </p>
                 <p className="text-2xl font-bold text-emerald-700 tabular-nums">
                   +€{moreGain.toFixed(2)}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">profit if you sell all {qMore} units</p>
+                <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitAllUnits', { qty: String(qMore) })}</p>
               </div>
               <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
                 <p className="text-xs font-semibold text-emerald-700 mb-1">
-                  Order {qLess} — if demand is strong
+                  {t('toolboxOrderDemandStrong', { qty: String(qLess) })}
                 </p>
                 <p className="text-2xl font-bold text-emerald-700 tabular-nums">
                   +€{lessGain.toFixed(2)}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">profit if demand exactly fills your {qLess}</p>
+                <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitFillOrder', { qty: String(qLess) })}</p>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-rose-50 border border-rose-100 p-4">
                 <p className="text-xs font-semibold text-rose-700 mb-1">
-                  Order {qMore} — if demand is weak
+                  {t('toolboxOrderDemandWeak', { qty: String(qMore) })}
                 </p>
                 <p className="text-2xl font-bold text-rose-700 tabular-nums">
                   €{moreLoss.toFixed(2)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
                   {qMore > demand
-                    ? `${qMore - demand} unsold units @ €${cost.toFixed(2)} each wasted`
-                    : 'demand exceeds order — you sell everything'}
+                    ? t('toolboxUnsoldWaste', { extra: String(qMore - demand) })
+                    : t('toolboxDemandExceeds')}
                 </p>
               </div>
               <div className="rounded-xl bg-rose-50 border border-rose-100 p-4">
                 <p className="text-xs font-semibold text-rose-700 mb-1">
-                  Order {qLess} — if demand is strong
+                  {t('toolboxOrderDemandStrong', { qty: String(qLess) })}
                 </p>
                 <p className="text-2xl font-bold text-rose-700 tabular-nums">
                   -€{lessMissed.toFixed(2)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  missed profit from {Math.max(0, demand - qLess)} customers you couldn't serve
+                  {t('toolboxMissedProfit', { n: String(Math.max(0, demand - qLess)) })}
                 </p>
               </div>
             </div>
           )}
 
           <div className="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3 text-xs text-slate-600 leading-relaxed">
-            <strong className="text-teal-700">Ope tip:</strong> Losses feel roughly twice as painful as equivalent
-            gains to most people. That's why Ope's default recommendations include a safety buffer — it's not
-            just math, it's accounting for how bad running out actually feels.
+            {t('toolboxOpeTip')}
           </div>
         </div>
       )}
@@ -408,6 +387,7 @@ interface BudgetItem {
 }
 
 function BudgetOptimizer() {
+  const { t } = useLanguage()
   const [budget, setBudget] = useState('')
   const [items, setItems] = useState<BudgetItem[]>([
     { name: '', cost: '', profit: '', maxQty: '' },
@@ -450,13 +430,10 @@ function BudgetOptimizer() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-slate-500 leading-relaxed">
-        Tell Ope what you could buy and how much profit each item makes — it'll suggest the best split
-        to get the most out of your budget.
-      </p>
+      <p className="text-sm text-slate-500 leading-relaxed">{t('toolboxBudgetDesc')}</p>
 
       <div>
-        <Label>My budget (optional — leave blank for unlimited)</Label>
+        <Label>{t('toolboxMyBudget')}</Label>
         <Input value={budget} onChange={setBudget} placeholder="e.g. 500" type="number" prefix="€" />
       </div>
 
@@ -464,20 +441,20 @@ function BudgetOptimizer() {
         {items.map((item, i) => (
           <div key={i} className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/40 dark:bg-slate-900/20 p-4 space-y-2">
             <div>
-              <Label>Item {i + 1} name</Label>
-              <Input value={item.name} onChange={v => updateItem(i, 'name', v)} placeholder="e.g. Oranges" />
+              <Label>{t('toolboxItemName', { n: String(i + 1) })}</Label>
+              <Input value={item.name} onChange={v => updateItem(i, 'name', v)} placeholder={t('toolboxItemNamePlaceholder')} />
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label>Cost/unit</Label>
+                <Label>{t('toolboxCostPerUnit')}</Label>
                 <Input value={item.cost}   onChange={v => updateItem(i, 'cost', v)}   prefix="€" type="number" placeholder="1.50" />
               </div>
               <div>
-                <Label>Profit/unit</Label>
+                <Label>{t('toolboxProfitPerUnit')}</Label>
                 <Input value={item.profit} onChange={v => updateItem(i, 'profit', v)} prefix="€" type="number" placeholder="2.00" />
               </div>
               <div>
-                <Label>Max units</Label>
+                <Label>{t('toolboxMaxUnits')}</Label>
                 <Input value={item.maxQty} onChange={v => updateItem(i, 'maxQty', v)} type="number" placeholder="100" />
               </div>
             </div>
@@ -492,7 +469,7 @@ function BudgetOptimizer() {
             className="px-3 py-1.5 rounded-lg border border-teal-200 text-xs text-teal-600
                        hover:bg-teal-50 transition-colors"
           >
-            + Add item
+            {t('toolboxAddItem')}
           </button>
         )}
         {items.length > 2 && (
@@ -501,7 +478,7 @@ function BudgetOptimizer() {
             className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500
                        hover:bg-slate-50 transition-colors"
           >
-            Remove last
+            {t('toolboxRemoveItem')}
           </button>
         )}
       </div>
@@ -512,48 +489,47 @@ function BudgetOptimizer() {
           className="w-full py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
                      hover:bg-teal-700 transition-colors"
         >
-          What should I order?
+          {t('toolboxWhatOrder')}
         </button>
       )}
 
       {result && result.length > 0 && (
         <div className="space-y-3">
           <p className="text-sm font-semibold text-slate-700">
-            {budget ? `With a €${num(budget).toFixed(0)} budget, order:` : 'Order:'}
+            {budget
+              ? t('toolboxWithBudget', { currency: '€', budget: num(budget).toFixed(0) })
+              : t('toolboxWithoutBudget')}
           </p>
           {result.map((r, i) => (
             <div key={i} className="flex items-center justify-between rounded-xl bg-teal-50/60
                                     border border-teal-100 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold text-slate-800">{r.name}</p>
-                <p className="text-xs text-slate-500">costs €{r.spend.toFixed(2)}</p>
+                <p className="text-xs text-slate-500">{t('toolboxItemCosts', { currency: '€', amount: r.spend.toFixed(2) })}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-teal-700">{r.qty} units</p>
-                <p className="text-xs text-emerald-600">+€{r.earn.toFixed(2)} profit</p>
+                <p className="text-sm font-bold text-teal-700">{t('toolboxItemUnits', { qty: String(r.qty) })}</p>
+                <p className="text-xs text-emerald-600">{t('toolboxItemProfit', { currency: '€', profit: r.earn.toFixed(2) })}</p>
               </div>
             </div>
           ))}
           <div className="flex justify-between rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 px-4 py-3">
             <div>
-              <p className="text-xs text-slate-500">Total spend</p>
+              <p className="text-xs text-slate-500">{t('toolboxTotalSpend')}</p>
               <p className="text-sm font-semibold text-slate-700 tabular-nums">€{totalSpend.toFixed(2)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-500">Expected profit</p>
+              <p className="text-xs text-slate-500">{t('toolboxTotalProfit')}</p>
               <p className="text-sm font-bold text-emerald-600 tabular-nums">+€{totalEarn.toFixed(2)}</p>
             </div>
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Items are ordered by profit-per-cost ratio. This is a simple guide — actual profit depends
-            on real demand, which Ope forecasts on your dashboard.
-          </p>
+          <p className="text-xs text-slate-400 leading-relaxed">{t('toolboxRatioNote')}</p>
         </div>
       )}
 
       {result && result.length === 0 && (
         <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 rounded-xl px-4 py-3">
-          No items could fit in the budget. Try increasing your budget or reducing item costs.
+          {t('toolboxNoBudgetFit')}
         </p>
       )}
     </div>
@@ -571,6 +547,7 @@ interface CheckItem {
 }
 
 function Checklist() {
+  const { t } = useLanguage()
   const nextId = useRef(1)
 
   const [items, setItems] = useState<CheckItem[]>(() => {
@@ -584,7 +561,7 @@ function Checklist() {
         return parsed
       }
     } catch { /* ignore */ }
-    // default starter list
+    // default starter list (use English keys so saved items stay consistent across language switches)
     return [
       { id: nextId.current++, text: 'Check this week\'s ordering recommendations', done: false },
       { id: nextId.current++, text: 'Log yesterday\'s sales', done: false },
@@ -620,15 +597,11 @@ function Checklist() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500 leading-relaxed">
-        Your personal action list — stays saved between visits.
-      </p>
+      <p className="text-sm text-slate-500 leading-relaxed">{t('toolboxChecklistDesc')}</p>
 
       <div className="space-y-2">
         {items.length === 0 && (
-          <p className="text-sm text-slate-400 text-center py-4">
-            Your list is empty. Add something to get started.
-          </p>
+          <p className="text-sm text-slate-400 text-center py-4">{t('toolboxChecklistEmpty')}</p>
         )}
         {items.map(item => (
           <div
@@ -672,7 +645,7 @@ function Checklist() {
           value={newText}
           onChange={e => setNewText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
-          placeholder="Add a task…"
+          placeholder={t('toolboxAddTaskPlaceholder')}
           className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600
                      text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700
                      placeholder:text-slate-400 dark:placeholder:text-slate-500
@@ -684,7 +657,7 @@ function Checklist() {
           className="px-4 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
                      hover:bg-teal-700 disabled:opacity-50 transition-colors"
         >
-          Add
+          {t('toolboxAddTaskBtn')}
         </button>
       </div>
 
@@ -693,7 +666,7 @@ function Checklist() {
           onClick={clearDone}
           className="text-xs text-slate-400 hover:text-rose-500 transition-colors"
         >
-          Clear {doneCount} completed item{doneCount !== 1 ? 's' : ''}
+          {t('toolboxClearDone', { n: String(doneCount), s: doneCount !== 1 ? 's' : '' })}
         </button>
       )}
     </div>
@@ -703,41 +676,40 @@ function Checklist() {
 // ── AdvancedToolbox ───────────────────────────────────────────────────────────
 
 export default function AdvancedToolbox() {
+  const { t } = useLanguage()
   return (
     <div className="space-y-4 max-w-2xl">
       <div className="bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 text-sm text-slate-600 leading-relaxed">
-        These tools help you think through decisions, compare choices, and plan your week — all in
-        plain language, no maths degree required. Most owners won't need them every day, but they're
-        here when you want to think a bit deeper.
+        {t('toolboxIntro')}
       </div>
 
       <Section
-        title="Which option is better?"
-        subtitle="Enter two or three choices with best, worst, and likely outcomes — get a plain-language recommendation."
+        title={t('toolboxDecisionTitle')}
+        subtitle={t('toolboxDecisionSubtitle')}
         defaultOpen={true}
       >
         <DecisionPlanner />
       </Section>
 
       <Section
-        title="How does this ordering decision feel?"
-        subtitle="See the same order choice framed as what you could gain vs. what you could lose."
-      >
-        <OrderFraming />
-      </Section>
-
-      <Section
-        title="Get the most from my budget"
-        subtitle="Enter items with their cost and profit — Ope shows the best way to spend your budget."
+        title={t('toolboxBudgetTitle')}
+        subtitle={t('toolboxBudgetSubtitle')}
       >
         <BudgetOptimizer />
       </Section>
 
       <Section
-        title="My action list"
-        subtitle="A simple to-do list that stays saved between visits."
+        title={t('toolboxChecklistTitle')}
+        subtitle={t('toolboxChecklistSubtitle')}
       >
         <Checklist />
+      </Section>
+
+      <Section
+        title={t('toolboxFramingTitle')}
+        subtitle={t('toolboxFramingSubtitle')}
+      >
+        <OrderFraming />
       </Section>
     </div>
   )

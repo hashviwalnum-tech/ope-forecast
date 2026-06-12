@@ -31,9 +31,12 @@ export default function BusinessSettings({ onTierChanged }: Props) {
   const { isDark, toggleTheme } = useTheme()
 
   function hourLabel(h: number): string {
-    if (h === 0)  return '12:00 midnight'
-    if (h === 12) return '12:00 noon'
-    return h < 12 ? `${h}:00 AM` : `${h - 12}:00 PM`
+    if (h === 0)  return t('hourMidnightLabel')
+    if (h === 12) return t('hourNoonLabel')
+    const am = t('amLabel')
+    const pm = t('pmLabel')
+    if (!am && !pm) return `${String(h).padStart(2, '0')}:00`  // 24-hour for languages without AM/PM
+    return h < 12 ? `${h}:00 ${am}` : `${h - 12}:00 ${pm}`
   }
 
   useEffect(() => {
@@ -79,7 +82,9 @@ export default function BusinessSettings({ onTierChanged }: Props) {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    if (closingHour <= openingHour) {
+    // Allow wrap-around (close < open = midnight-crossing, e.g. 22:00–02:00).
+    // Only block close === open (would make range empty).
+    if (closingHour === openingHour) {
       setFeedback({ ok: false, msg: t('closingAfterOpening') })
       return
     }

@@ -1,4 +1,5 @@
 from datetime import date
+from calendar import monthrange
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -8,6 +9,7 @@ from app.db import get_db
 from app.models import Business, Regular
 from app.models.regular_daily_spend import RegularDailySpend
 from app.schemas.regular import (
+    MonthlyVisits,
     RegularCreate, RegularProfitabilityRead, RegularRead, RegularUpdate, RegularVisitBody,
 )
 
@@ -28,6 +30,10 @@ def _today_amount(db: Session, regular_id: int) -> float | None:
 
 
 def _to_read(r: Regular, db: Session) -> RegularRead:
+    # Derive visit_count from actual spend records so the displayed count
+    # stays accurate even if the stored counter drifted (e.g. from early
+    # testing before the same-day uniqueness constraint was enforced).
+    actual_count = db.query(RegularDailySpend).filter_by(regular_id=r.id).count()
     return RegularRead(
         id=r.id,
         business_id=r.business_id,
@@ -36,7 +42,7 @@ def _to_read(r: Regular, db: Session) -> RegularRead:
         avg_spend=r.avg_spend,
         expected_lifespan_years=r.expected_lifespan_years,
         notes=r.notes,
-        visit_count=r.visit_count or 0,
+        visit_count=actual_count,
         first_visit_date=r.first_visit_date,
         last_visit_date=r.last_visit_date,
         clv=_clv(r),
@@ -124,13 +130,17 @@ def record_visit(
         existing.amount = amount
     else:
         db.add(RegularDailySpend(regular_id=reg_id, date=today, amount=amount))
-        row.visit_count = (row.visit_count or 0) + 1
         if row.first_visit_date is None:
             row.first_visit_date = today
         row.last_visit_date = today
 
     db.commit()
     db.refresh(row)
+    # Sync stored visit_count to actual records so it never drifts
+    actual_count = db.query(RegularDailySpend).filter_by(regular_id=reg_id).count()
+    if row.visit_count != actual_count:
+        row.visit_count = actual_count
+        db.commit()
     return _to_read(row, db)
 
 
@@ -153,6 +163,28 @@ def get_profitability(
     this_year = sum(s.amount for s in spends if s.date.year == today.year)
     all_time = sum(s.amount for s in spends)
 
+    # Build last 12 months (including current month), newest last
+    def _prev_months_seq(n: int) -> list[tuple[int, int]]:
+        y, m = today.year, today.month
+        months: list[tuple[int, int]] = []
+        for _ in range(n):
+            months.append((y, m))
+            m -= 1
+            if m == 0:
+                m = 12
+                y -= 1
+        return list(reversed(months))
+
+    monthly_visits: list[MonthlyVisits] = []
+    for y, m in _prev_months_seq(12):
+        month_spends = [s for s in spends if s.date.year == y and s.date.month == m]
+        monthly_visits.append(MonthlyVisits(
+            year=y,
+            month=m,
+            visits=len(month_spends),
+            total_spend=round(sum(s.amount for s in month_spends), 2),
+        ))
+
     return RegularProfitabilityRead(
         regular_id=reg_id,
         name=row.name,
@@ -160,4 +192,5 @@ def get_profitability(
         this_month=round(this_month, 2),
         this_year=round(this_year, 2),
         all_time=round(all_time, 2),
+        monthly_visits=monthly_visits,
     )

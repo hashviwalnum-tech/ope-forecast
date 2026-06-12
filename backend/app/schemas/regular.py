@@ -43,6 +43,13 @@ class RegularRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class MonthlyVisits(BaseModel):
+    year: int
+    month: int
+    visits: int
+    total_spend: float
+
+
 class RegularProfitabilityRead(BaseModel):
     regular_id: int
     name: str
@@ -50,3 +57,4 @@ class RegularProfitabilityRead(BaseModel):
     this_month: float
     this_year: float
     all_time: float
+    monthly_visits: list[MonthlyVisits] = []

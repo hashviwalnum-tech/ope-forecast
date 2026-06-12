@@ -70,6 +70,13 @@ export interface RegularVisitBody {
   amount_paid?: number
 }
 
+export interface MonthlyVisits {
+  year: number
+  month: number
+  visits: number
+  total_spend: number
+}
+
 export interface RegularProfitabilityRead {
   regular_id: number
   name: string
@@ -77,6 +84,7 @@ export interface RegularProfitabilityRead {
   this_month: number
   this_year: number
   all_time: number
+  monthly_visits: MonthlyVisits[]
 }
 
 export interface RegularUpdate {

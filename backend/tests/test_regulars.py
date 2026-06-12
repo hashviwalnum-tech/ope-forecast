@@ -81,6 +81,26 @@ def test_today_amount_returns_recorded_amount(db, regular):
     assert _today_amount(db, regular.id) == 42.0
 
 
+def test_edit_same_day_total_sarah_20_to_30(db, regular):
+    """Prove the Sarah edit flow: record $20 then edit to $30 — count stays 1."""
+    # First visit: $20
+    _do_record(db, regular, amount=20.0)
+    assert regular.visit_count == 1
+    row = db.query(RegularDailySpend).filter_by(
+        regular_id=regular.id, date=date.today()
+    ).one()
+    assert row.amount == 20.0
+
+    # Same day: edit total to $30
+    _do_record(db, regular, amount=30.0)
+    assert regular.visit_count == 1  # must NOT increment again
+
+    row = db.query(RegularDailySpend).filter_by(
+        regular_id=regular.id, date=date.today()
+    ).one()
+    assert row.amount == 30.0  # updated in-place
+
+
 def test_profitability_sums_correctly(db, regular):
     """Profitability sums daily spends by month/year/all-time."""
     today = date.today()

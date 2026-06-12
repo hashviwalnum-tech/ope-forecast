@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import {
-  Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Bar, BarChart, CartesianGrid, Cell, Line, LineChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { regulars as api } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
-import type { RegularCreate, RegularProfitabilityRead, RegularRead, RegularUpdate } from '../api/types'
+import type { MonthlyVisits, RegularCreate, RegularProfitabilityRead, RegularRead, RegularUpdate } from '../api/types'
 
 function fmtCLV(clv: number) {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(clv)
@@ -39,7 +40,9 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
     <p className="text-xs text-slate-400 dark:text-slate-500 py-2">{t('loadingLabel')}</p>
   )
 
-  if (!data || (data.this_month === 0 && data.this_year === 0 && data.all_time === 0)) return (
+  const hasAnyData = data && (data.this_month > 0 || data.this_year > 0 || data.all_time > 0)
+
+  if (!data || !hasAnyData) return (
     <p className="text-xs text-slate-400 dark:text-slate-500 py-2">{t('profitabilityNoData')}</p>
   )
 
@@ -56,47 +59,121 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
   const fmt = (v: number) =>
     new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
 
+  // Churn chart data — only include months that have at least one visit, OR the last 6 months to show trend
+  const monthNames = [
+    t('monthJan'), t('monthFeb'), t('monthMar'), t('monthApr'),
+    t('monthMay'), t('monthJun'), t('monthJul'), t('monthAug'),
+    t('monthSep'), t('monthOct'), t('monthNov'), t('monthDec'),
+  ]
+  const churnData = (data.monthly_visits ?? []).map((mv: MonthlyVisits) => ({
+    label: `${monthNames[mv.month - 1]} ${String(mv.year).slice(2)}`,
+    visits: mv.visits,
+  }))
+
+  const hasChurnData = churnData.some(d => d.visits > 0)
+
+  // Detect declining trend: last 3 months avg vs prior 3 months avg
+  const last3 = churnData.slice(-3)
+  const prior3 = churnData.slice(-6, -3)
+  const last3Avg = last3.reduce((s, d) => s + d.visits, 0) / Math.max(1, last3.length)
+  const prior3Avg = prior3.reduce((s, d) => s + d.visits, 0) / Math.max(1, prior3.length)
+  const declining = prior3Avg > 0 && last3Avg < prior3Avg * 0.7  // >30% drop
+
   return (
-    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
-        {t('profitabilityTitle', { name: data.name })}
-      </p>
-      <ResponsiveContainer width="100%" height={120}>
-        <BarChart data={chartData} margin={{ top: 4, right: 8, left: 4, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-          <XAxis
-            dataKey="label"
-            tick={{ fontSize: 10, fill: tickFill }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fontSize: 10, fill: tickFill }}
-            width={48}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={fmt}
-          />
-          <Tooltip
-            contentStyle={{
-              fontSize: 12, borderRadius: 8,
-              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-              background: isDark ? '#1e293b' : '#fff',
-              color: isDark ? '#e2e8f0' : '#334155',
-            }}
-            formatter={(value) => [fmt(typeof value === 'number' ? value : 0), t('profitabilityTooltipLabel')]}
-          />
-          <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={56}>
-            {chartData.map((_, i) => (
-              <Cell key={i} fill={barColors[i % barColors.length]} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-      {data.first_visit_date && (
-        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-          {t('firstVisitLabel', { date: fmtDate(data.first_visit_date) ?? '' })}
+    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-4">
+      {/* Revenue profitability chart */}
+      <div>
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+          {t('profitabilityTitle', { name: data.name })}
         </p>
+        <ResponsiveContainer width="100%" height={120}>
+          <BarChart data={chartData} margin={{ top: 4, right: 8, left: 4, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 10, fill: tickFill }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 10, fill: tickFill }}
+              width={48}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={fmt}
+            />
+            <Tooltip
+              contentStyle={{
+                fontSize: 12, borderRadius: 8,
+                border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                background: isDark ? '#1e293b' : '#fff',
+                color: isDark ? '#e2e8f0' : '#334155',
+              }}
+              formatter={(value) => [fmt(typeof value === 'number' ? value : 0), t('profitabilityTooltipLabel')]}
+            />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={56}>
+              {chartData.map((_, i) => (
+                <Cell key={i} fill={barColors[i % barColors.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+        {data.first_visit_date && (
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+            {t('firstVisitLabel', { date: fmtDate(data.first_visit_date) ?? '' })}
+          </p>
+        )}
+      </div>
+
+      {/* Churn / visit frequency chart */}
+      {hasChurnData && (
+        <div>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+            {t('churnChartTitle')}
+          </p>
+          {declining && (
+            <p className="text-[11px] text-amber-600 dark:text-amber-400 mb-2 font-medium">
+              ⚠ {t('churnDecliningNote')}
+            </p>
+          )}
+          <ResponsiveContainer width="100%" height={90}>
+            <LineChart data={churnData} margin={{ top: 4, right: 8, left: -24, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 9, fill: tickFill }}
+                axisLine={false}
+                tickLine={false}
+                interval={churnData.length > 6 ? 1 : 0}
+              />
+              <YAxis
+                tick={{ fontSize: 9, fill: tickFill }}
+                width={32}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+                minTickGap={4}
+              />
+              <Tooltip
+                contentStyle={{
+                  fontSize: 12, borderRadius: 8,
+                  border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                  background: isDark ? '#1e293b' : '#fff',
+                  color: isDark ? '#e2e8f0' : '#334155',
+                }}
+                formatter={(value) => [value, t('churnTooltipVisits')]}
+              />
+              <Line
+                type="monotone"
+                dataKey="visits"
+                stroke={declining ? '#f59e0b' : '#4e8b87'}
+                strokeWidth={2}
+                dot={{ r: 3, fill: declining ? '#f59e0b' : '#4e8b87' }}
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   )
