@@ -15,7 +15,7 @@ from dataclasses import dataclass
 import numpy as np
 
 # Minimum same-weekday observations before we're willing to flag anything.
-MIN_SAME_WEEKDAY = 4
+MIN_SAME_WEEKDAY = 6
 
 
 @dataclass

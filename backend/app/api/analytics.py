@@ -342,7 +342,7 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         for wd in (rp.weekdays or []):
             recurring_weekdays.add(int(wd))
 
-    # Clean detection set: exclude event periods, closed days, already-resolved records
+    # Candidate set: non-event-period open days that can be flagged.
     det_records = [
         r for r in all_records
         if r.date not in blocked
@@ -350,11 +350,28 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         and r.outlier_status not in ("excluded", "event", "kept")
     ]
 
-    if len(det_records) >= MIN_RECORDS:
-        det_obs = [float(r.customers) for r in det_records]
-        det_wds = [r.date.weekday() for r in det_records]
-        det_results = detect_outliers(det_obs, det_wds)
-        detected_by_id = {det_records[d.day_index].id: d for d in det_results}
+    # Reference set for IQR fence computation: full weekday history including
+    # event-period days.  Excluding event periods from the reference decimates
+    # same-weekday sample sizes and makes fences artificially tight (a normal
+    # day crosses the fence because the reference only saw the busier non-event
+    # days).  Days the owner explicitly resolved as "excluded" or "event" are
+    # still omitted — they're deliberate editorial signals, not population data.
+    ref_records = [
+        r for r in all_records
+        if (open_days is None or r.date.weekday() in open_days)
+        and r.outlier_status not in ("excluded", "event")
+    ]
+    candidate_ids: set[int] = {r.id for r in det_records}
+
+    if len(ref_records) >= MIN_RECORDS:
+        ref_obs = [float(r.customers) for r in ref_records]
+        ref_wds = [r.date.weekday() for r in ref_records]
+        det_results = detect_outliers(ref_obs, ref_wds)
+        detected_by_id = {
+            ref_records[d.day_index].id: d
+            for d in det_results
+            if ref_records[d.day_index].id in candidate_ids
+        }
     else:
         detected_by_id = {}
 
@@ -371,6 +388,15 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         if r.outlier_status == "flagged" and r.date.weekday() in recurring_weekdays:
             r.outlier_status = "kept"
             changed = True
+
+    # Auto-resolve stale flags: candidate days previously flagged that the wider
+    # reference set no longer considers extreme.  Only runs when detection executed;
+    # if the reference was too small, existing flags are left untouched.
+    if len(ref_records) >= MIN_RECORDS:
+        for r in all_records:
+            if r.outlier_status == "flagged" and r.id in candidate_ids and r.id not in detected_by_id:
+                r.outlier_status = None
+                changed = True
 
     # Flag newly detected records (only in detection set, only unreviewed, skip recurring)
     for r in det_records:
