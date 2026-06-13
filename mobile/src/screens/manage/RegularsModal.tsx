@@ -378,11 +378,12 @@ export default function RegularsModal({ onClose }: Props) {
                       <View style={styles.regularInfo}>
                         <Text style={styles.regularName}>{reg.name}</Text>
                         <Text style={styles.regularMeta}>
-                          CLV: ${reg.clv.toFixed(2)} ·{' '}
-                          {reg.visit_count} visit{reg.visit_count !== 1 ? 's' : ''}
-                          {reg.last_visit_date
-                            ? ` · last: ${reg.last_visit_date}`
-                            : ''}
+                          CLV: ${reg.clv.toFixed(2)} · {reg.visit_count} visit{reg.visit_count !== 1 ? 's' : ''} · ~${reg.avg_spend.toFixed(2)}/visit
+                        </Text>
+                        <Text style={styles.regularMeta}>
+                          {reg.visit_frequency_per_week}×/wk
+                          {reg.first_visit_date ? ` · since ${reg.first_visit_date}` : ''}
+                          {reg.last_visit_date ? ` · last ${reg.last_visit_date}` : ''}
                         </Text>
                         {reg.today_amount != null && (
                           <Text style={styles.todayBadge}>

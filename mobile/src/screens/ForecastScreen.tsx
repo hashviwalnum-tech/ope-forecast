@@ -4,8 +4,13 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   StyleSheet,
   ActivityIndicator,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
@@ -14,8 +19,11 @@ import * as api from '../api/client'
 import type {
   ForecastDay,
   OrderingResponse,
+  OrderingRow,
   WeekdayHourlyResponse,
   WeekdayHourlyEntry,
+  ProductForecastItem,
+  ProductForecastResponse,
 } from '../api/types'
 import { useBusiness } from '../contexts/BusinessContext'
 import { useTheme, type Theme } from '../lib/theme'
@@ -35,8 +43,13 @@ function fmt12(hour: number): string {
 function tomorrowWeekdayIdx(): number {
   const d = new Date()
   d.setDate(d.getDate() + 1)
-  const js = d.getDay() // 0=Sun
-  return js === 0 ? 6 : js - 1 // 0=Mon..6=Sun
+  const js = d.getDay()
+  return js === 0 ? 6 : js - 1
+}
+
+function todayStr(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 export default function ForecastScreen() {
@@ -47,16 +60,28 @@ export default function ForecastScreen() {
   const [forecast, setForecast] = useState<ForecastDay[]>([])
   const [ordering, setOrdering] = useState<OrderingResponse | null>(null)
   const [hourly, setHourly] = useState<WeekdayHourlyResponse | null>(null)
+  const [productForecasts, setProductForecasts] = useState<ProductForecastItem[]>([])
   const [initialLoading, setInitialLoading] = useState(true)
   const [dataError, setDataError] = useState<string | null>(null)
+
+  // View switcher: 'customers' or product_id (number)
+  const [viewMode, setViewMode] = useState<'customers' | number>('customers')
+
+  // Inline "Log Order" state
+  const [logOrderProduct, setLogOrderProduct] = useState<OrderingRow | null>(null)
+  const [logOrderQty, setLogOrderQty] = useState('')
+  const [logOrderSaving, setLogOrderSaving] = useState(false)
+
+  const stockEnabled = business?.settings?.stock_management_enabled !== false
 
   const loadData = useCallback(async () => {
     if (!business) return
     try {
-      const [forecastRes, orderingRes, hourlyRes] = await Promise.allSettled([
+      const [forecastRes, orderingRes, hourlyRes, prodFcRes] = await Promise.allSettled([
         api.analytics.forecast(),
         api.analytics.ordering(),
         api.analytics.hourlyByWeekday(),
+        api.analytics.productForecast(),
       ])
       if (forecastRes.status === 'fulfilled') {
         setForecast(forecastRes.value.status === 'ok' ? forecastRes.value.days : [])
@@ -66,6 +91,10 @@ export default function ForecastScreen() {
       }
       if (hourlyRes.status === 'fulfilled') {
         setHourly(hourlyRes.value)
+      }
+      if (prodFcRes.status === 'fulfilled') {
+        const pfr = prodFcRes.value as ProductForecastResponse
+        setProductForecasts(pfr.products ?? [])
       }
       if (
         forecastRes.status === 'rejected' &&
@@ -87,6 +116,30 @@ export default function ForecastScreen() {
       if (business) void loadData()
     }, [loadData, business])
   )
+
+  const handleLogOrder = async () => {
+    if (!logOrderProduct) return
+    const qty = parseFloat(logOrderQty)
+    if (isNaN(qty) || qty <= 0) {
+      Alert.alert('Invalid quantity', 'Enter a number greater than 0.')
+      return
+    }
+    setLogOrderSaving(true)
+    try {
+      await api.orders.create({
+        product_id: logOrderProduct.product_id,
+        ordered_date: todayStr(),
+        quantity: qty,
+      })
+      setLogOrderProduct(null)
+      setLogOrderQty('')
+      Alert.alert('Order logged!', `${qty} ${logOrderProduct.unit} of ${logOrderProduct.name} recorded.`)
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to log order.')
+    } finally {
+      setLogOrderSaving(false)
+    }
+  }
 
   if (bizLoading || (initialLoading && forecast.length === 0)) {
     return (
@@ -136,9 +189,23 @@ export default function ForecastScreen() {
   const urgentOrders = orderProducts.filter(p => p.order_now)
   const nonUrgentOrders = orderProducts.filter(p => !p.order_now)
 
+  const hasRunoutWarning = (productId: number): boolean =>
+    productForecasts.find(p => p.product_id === productId)?.projected_runout_warning ?? false
+
+  // Selected product forecast (when viewMode is a product_id)
+  const selectedProduct = typeof viewMode === 'number'
+    ? productForecasts.find(p => p.product_id === viewMode)
+    : null
+
+  // Build the switcher items
+  const switcherItems: Array<{ key: 'customers' | number; label: string }> = [
+    { key: 'customers', label: 'Customers' },
+    ...productForecasts.map(p => ({ key: p.product_id as 'customers' | number, label: p.name })),
+  ]
+
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      {/* ── Header ── */}
+      {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>Forecast</Text>
@@ -153,42 +220,114 @@ export default function ForecastScreen() {
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
 
-        {/* ── Week Forecast ── */}
+        {/* ── Forecast ── */}
         <Text style={styles.sectionTitle}>This Week's Forecast</Text>
-        {forecast.length === 0 ? (
-          <View style={styles.emptyBox}>
-            <Ionicons name="calendar-outline" size={28} color={c.textMuted} />
-            <Text style={styles.emptyText}>
-              Not enough data yet — log a few days first to see predictions.
-            </Text>
-          </View>
-        ) : (
-          forecast.map(day => (
-            <View key={day.date} style={styles.forecastRow}>
-              <View style={styles.dayCol}>
-                <Text style={styles.dayName}>
-                  {WEEKDAY_SHORT[day.weekday] ?? day.weekday}
+
+        {/* View switcher */}
+        {switcherItems.length > 1 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.switcherScroll}
+            contentContainerStyle={styles.switcherContent}
+          >
+            {switcherItems.map(item => (
+              <TouchableOpacity
+                key={String(item.key)}
+                style={[
+                  styles.switcherChip,
+                  viewMode === item.key && styles.switcherChipActive,
+                ]}
+                onPress={() => setViewMode(item.key)}
+                activeOpacity={0.75}
+              >
+                <Text style={[
+                  styles.switcherChipText,
+                  viewMode === item.key && styles.switcherChipTextActive,
+                ]}>
+                  {item.label}
                 </Text>
-                <Text style={styles.dayDate}>{day.date.slice(5)}</Text>
-              </View>
-              <View style={styles.predCol}>
-                <Text style={styles.predNumber}>
-                  {Math.round(day.predicted_customers)}
-                </Text>
-                <Text style={styles.predLabel}>customers</Text>
-              </View>
-              <View style={styles.rangeCol}>
-                <Text style={styles.rangeText}>
-                  {Math.round(day.interval_low)}–{Math.round(day.interval_high)}
-                </Text>
-                <Text style={styles.rangeLabel}>range</Text>
-              </View>
-            </View>
-          ))
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         )}
 
-        {/* ── Busy Hours ── */}
-        <Text style={[styles.sectionTitle, styles.sectionGap]}>Busy Hours</Text>
+        {/* Customers view */}
+        {viewMode === 'customers' && (
+          forecast.length === 0 ? (
+            <View style={styles.emptyBox}>
+              <Ionicons name="calendar-outline" size={28} color={c.textMuted} />
+              <Text style={styles.emptyText}>
+                Not enough data yet — log a few days first to see predictions.
+              </Text>
+            </View>
+          ) : (
+            forecast.map(day => (
+              <View key={day.date} style={styles.forecastRow}>
+                <View style={styles.dayCol}>
+                  <Text style={styles.dayName}>
+                    {WEEKDAY_SHORT[day.weekday] ?? day.weekday}
+                  </Text>
+                  <Text style={styles.dayDate}>{day.date.slice(5)}</Text>
+                </View>
+                <View style={styles.predCol}>
+                  <Text style={styles.predNumber}>
+                    {Math.round(day.predicted_customers)}
+                  </Text>
+                  <Text style={styles.predLabel}>customers</Text>
+                </View>
+                <View style={styles.rangeCol}>
+                  <Text style={styles.rangeText}>
+                    {Math.round(day.interval_low)}–{Math.round(day.interval_high)}
+                  </Text>
+                  <Text style={styles.rangeLabel}>range</Text>
+                </View>
+              </View>
+            ))
+          )
+        )}
+
+        {/* Product view */}
+        {typeof viewMode === 'number' && (
+          selectedProduct == null || selectedProduct.status !== 'ok' || selectedProduct.days.length === 0 ? (
+            <View style={styles.emptyBox}>
+              <Ionicons name="cube-outline" size={28} color={c.textMuted} />
+              <Text style={styles.emptyText}>
+                {selectedProduct?.message ?? 'Not enough sales data yet for this product.'}
+              </Text>
+            </View>
+          ) : (
+            selectedProduct.days.map(day => (
+              <View key={day.date} style={styles.forecastRow}>
+                <View style={styles.dayCol}>
+                  <Text style={styles.dayName}>
+                    {WEEKDAY_SHORT[day.weekday] ?? day.weekday}
+                  </Text>
+                  <Text style={styles.dayDate}>{day.date.slice(5)}</Text>
+                </View>
+                <View style={styles.predCol}>
+                  <Text style={styles.predNumber}>
+                    {selectedProduct.unit_mode === 'decimal'
+                      ? day.predicted_units.toFixed(1)
+                      : Math.round(day.predicted_units)}
+                  </Text>
+                  <Text style={styles.predLabel}>{selectedProduct.unit}</Text>
+                </View>
+                <View style={styles.rangeCol}>
+                  <Text style={styles.rangeText}>
+                    {selectedProduct.unit_mode === 'decimal'
+                      ? `${day.interval_low.toFixed(1)}–${day.interval_high.toFixed(1)}`
+                      : `${Math.round(day.interval_low)}–${Math.round(day.interval_high)}`}
+                  </Text>
+                  <Text style={styles.rangeLabel}>range</Text>
+                </View>
+              </View>
+            ))
+          )
+        )}
+
+        {/* ── Busy Hours + Staffing ── */}
+        <Text style={[styles.sectionTitle, styles.sectionGap]}>Busy Hours & Staffing</Text>
 
         {busyHours.length === 0 ? (
           <View style={styles.emptyBox}>
@@ -217,27 +356,48 @@ export default function ForecastScreen() {
                     ~{Math.round(peakHour.avg_taps)}
                   </Text>
                   <Text style={styles.peakCardUnit}>avg/hr</Text>
+                  {peakHour.recommended_staff > 0 && (
+                    <Text style={styles.peakStaffNote}>
+                      {peakHour.recommended_staff} staff
+                    </Text>
+                  )}
                 </View>
               )}
             </View>
 
-            {/* Hourly bars for tomorrow */}
+            {/* Hourly rows for tomorrow with staffing */}
             <View style={styles.card}>
               <Text style={styles.cardSubLabel}>Tomorrow hour by hour</Text>
               {busyHours.map(h => (
-                <View key={h.hour} style={styles.hourRow}>
-                  <Text style={styles.hourLabel}>{fmt12(h.hour)}</Text>
-                  <View style={styles.barBg}>
-                    <View
-                      style={[
-                        styles.barFill,
-                        { width: `${Math.round((h.avg_taps / maxTaps) * 100)}%` as `${number}%` },
-                      ]}
-                    />
+                <View key={h.hour} style={styles.hourBlock}>
+                  <View style={styles.hourRow}>
+                    <Text style={styles.hourLabel}>{fmt12(h.hour)}</Text>
+                    <View style={styles.barBg}>
+                      <View
+                        style={[
+                          styles.barFill,
+                          { width: `${Math.round((h.avg_taps / maxTaps) * 100)}%` as `${number}%` },
+                        ]}
+                      />
+                    </View>
+                    <Text style={styles.hourCount}>
+                      {h.avg_taps < 1 ? '<1' : Math.round(h.avg_taps)}
+                    </Text>
                   </View>
-                  <Text style={styles.hourCount}>
-                    {h.avg_taps < 1 ? '<1' : Math.round(h.avg_taps)}
-                  </Text>
+                  {(h.recommended_staff > 0 || h.expected_wait_minutes > 0) && (
+                    <Text style={styles.staffLine}>
+                      {h.recommended_staff > 0 ? `${h.recommended_staff} staff` : ''}
+                      {h.recommended_staff > 0 && h.expected_wait_minutes > 0 && h.expected_wait_minutes < 60 ? ' · ' : ''}
+                      {h.expected_wait_minutes > 0 && h.expected_wait_minutes < 60
+                        ? `~${Math.round(h.expected_wait_minutes)}m wait`
+                        : h.expected_wait_minutes >= 60
+                          ? 'severely understaffed'
+                          : ''}
+                    </Text>
+                  )}
+                  {h.marginal_note ? (
+                    <Text style={styles.marginalNote}>{h.marginal_note}</Text>
+                  ) : null}
                 </View>
               ))}
             </View>
@@ -265,87 +425,169 @@ export default function ForecastScreen() {
         )}
 
         {/* ── What to Order ── */}
-        <Text style={[styles.sectionTitle, styles.sectionGap]}>What to Order</Text>
-
-        {orderProducts.length === 0 ? (
-          <View style={styles.emptyBox}>
-            <Ionicons name="cube-outline" size={28} color={c.textMuted} />
-            <Text style={styles.emptyText}>
-              {ordering?.message ??
-                'Add products and log sales for a few weeks to get ordering advice.'}
-            </Text>
-          </View>
-        ) : (
+        {stockEnabled ? (
           <>
-            {urgentOrders.length > 0 && (
-              <>
-                <Text style={styles.orderSubLabel}>Order now</Text>
-                {urgentOrders.map(p => (
-                  <View key={p.product_id} style={[styles.orderCard, styles.orderCardUrgent]}>
-                    <View style={styles.orderCardLeft}>
-                      <View style={styles.urgentBadge}>
-                        <Text style={styles.urgentBadgeText}>Order now</Text>
-                      </View>
-                      <Text style={styles.orderName}>{p.name}</Text>
-                      <Text style={styles.orderMeta}>
-                        Avg demand: {
-                          p.avg_daily_demand < 1
-                            ? p.avg_daily_demand.toFixed(1)
-                            : Math.round(p.avg_daily_demand)
-                        } {p.unit}/day · lead time {p.lead_time_days}d
-                      </Text>
-                      {p.current_stock != null && (
-                        <Text style={styles.orderStock}>
-                          Stock: {p.current_stock} {p.unit}
-                        </Text>
-                      )}
-                    </View>
-                    <View style={styles.orderQtyBox}>
-                      <Text style={styles.orderQty}>
-                        {p.suggested_order_qty != null
-                          ? Math.ceil(p.suggested_order_qty)
-                          : '—'}
-                      </Text>
-                      <Text style={styles.orderQtyUnit}>{p.unit}</Text>
-                    </View>
-                  </View>
-                ))}
-              </>
-            )}
+            <Text style={[styles.sectionTitle, styles.sectionGap]}>What to Order</Text>
 
-            {nonUrgentOrders.length > 0 && (
-              <>
-                <Text style={[styles.orderSubLabel, { marginTop: urgentOrders.length > 0 ? 14 : 0 }]}>
-                  Stock OK
+            {orderProducts.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <Ionicons name="cube-outline" size={28} color={c.textMuted} />
+                <Text style={styles.emptyText}>
+                  {ordering?.message ??
+                    'Add products and log sales for a few weeks to get ordering advice.'}
                 </Text>
-                {nonUrgentOrders.map(p => (
-                  <View key={p.product_id} style={styles.orderCard}>
-                    <View style={styles.orderCardLeft}>
-                      <Text style={styles.orderName}>{p.name}</Text>
-                      <Text style={styles.orderMeta}>
-                        Avg demand: {
-                          p.avg_daily_demand < 1
-                            ? p.avg_daily_demand.toFixed(1)
-                            : Math.round(p.avg_daily_demand)
-                        } {p.unit}/day
-                      </Text>
-                      {p.current_stock != null && (
-                        <Text style={styles.orderStock}>
-                          Stock: {p.current_stock} {p.unit}
-                        </Text>
-                      )}
-                    </View>
-                    <View style={styles.orderQtyBox}>
-                      <Ionicons name="checkmark-circle" size={22} color={c.primary} />
-                    </View>
-                  </View>
-                ))}
+              </View>
+            ) : (
+              <>
+                {urgentOrders.length > 0 && (
+                  <>
+                    <Text style={styles.orderSubLabel}>Order now</Text>
+                    {urgentOrders.map(p => (
+                      <View key={p.product_id} style={[styles.orderCard, styles.orderCardUrgent]}>
+                        <View style={styles.orderCardLeft}>
+                          <View style={styles.urgentBadge}>
+                            <Text style={styles.urgentBadgeText}>Order now</Text>
+                          </View>
+                          <Text style={styles.orderName}>{p.name}</Text>
+                          <Text style={styles.orderMeta}>
+                            Avg demand: {
+                              p.avg_daily_demand < 1
+                                ? p.avg_daily_demand.toFixed(1)
+                                : Math.round(p.avg_daily_demand)
+                            } {p.unit}/day · lead time {p.lead_time_days}d
+                          </Text>
+                          {p.current_stock != null && (
+                            <Text style={styles.orderStock}>
+                              Stock: {p.current_stock} {p.unit}
+                            </Text>
+                          )}
+                          {hasRunoutWarning(p.product_id) && (
+                            <Text style={styles.runoutWarning}>
+                              ⚠ May run out before reorder arrives
+                            </Text>
+                          )}
+                          <TouchableOpacity
+                            style={styles.reorderBtn}
+                            onPress={() => {
+                              setLogOrderProduct(p)
+                              setLogOrderQty(
+                                p.suggested_order_qty != null
+                                  ? String(Math.ceil(p.suggested_order_qty))
+                                  : ''
+                              )
+                            }}
+                            activeOpacity={0.8}
+                          >
+                            <Ionicons name="checkmark-circle-outline" size={16} color={c.onPrimary} />
+                            <Text style={styles.reorderBtnText}>I reordered this</Text>
+                          </TouchableOpacity>
+                        </View>
+                        <View style={styles.orderQtyBox}>
+                          <Text style={styles.orderQty}>
+                            {p.suggested_order_qty != null
+                              ? Math.ceil(p.suggested_order_qty)
+                              : '—'}
+                          </Text>
+                          <Text style={styles.orderQtyUnit}>{p.unit}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </>
+                )}
+
+                {nonUrgentOrders.length > 0 && (
+                  <>
+                    <Text style={[styles.orderSubLabel, { marginTop: urgentOrders.length > 0 ? 14 : 0 }]}>
+                      Stock OK
+                    </Text>
+                    {nonUrgentOrders.map(p => (
+                      <View key={p.product_id} style={styles.orderCard}>
+                        <View style={styles.orderCardLeft}>
+                          <Text style={styles.orderName}>{p.name}</Text>
+                          <Text style={styles.orderMeta}>
+                            Avg demand: {
+                              p.avg_daily_demand < 1
+                                ? p.avg_daily_demand.toFixed(1)
+                                : Math.round(p.avg_daily_demand)
+                            } {p.unit}/day
+                          </Text>
+                          {p.current_stock != null && (
+                            <Text style={styles.orderStock}>
+                              Stock: {p.current_stock} {p.unit}
+                            </Text>
+                          )}
+                        </View>
+                        <View style={styles.orderQtyBox}>
+                          <Ionicons name="checkmark-circle" size={22} color={c.primary} />
+                        </View>
+                      </View>
+                    ))}
+                  </>
+                )}
               </>
             )}
           </>
+        ) : (
+          <View style={[styles.emptyBox, { marginTop: 28 }]}>
+            <Ionicons name="cube-outline" size={24} color={c.textMuted} />
+            <Text style={styles.emptyText}>
+              Stock & reorder tracking is turned off. Enable it in Business Settings.
+            </Text>
+          </View>
         )}
 
       </ScrollView>
+
+      {/* Log Order Modal */}
+      <Modal
+        visible={logOrderProduct !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLogOrderProduct(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <View style={styles.logOrderModal}>
+              <Text style={styles.logOrderTitle}>
+                I reordered — {logOrderProduct?.name}
+              </Text>
+              <Text style={styles.logOrderSub}>
+                How many {logOrderProduct?.unit} did you order?
+              </Text>
+              <TextInput
+                style={styles.logOrderInput}
+                value={logOrderQty}
+                onChangeText={setLogOrderQty}
+                keyboardType="decimal-pad"
+                placeholder={logOrderProduct?.suggested_order_qty != null
+                  ? String(Math.ceil(logOrderProduct.suggested_order_qty))
+                  : 'e.g. 50'}
+                placeholderTextColor={c.textMuted}
+                autoFocus
+              />
+              <View style={styles.logOrderBtns}>
+                <TouchableOpacity
+                  style={styles.logOrderCancel}
+                  onPress={() => { setLogOrderProduct(null); setLogOrderQty('') }}
+                >
+                  <Text style={styles.logOrderCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.logOrderConfirm, logOrderSaving && { opacity: 0.6 }]}
+                  onPress={() => void handleLogOrder()}
+                  disabled={logOrderSaving}
+                >
+                  {logOrderSaving
+                    ? <ActivityIndicator size="small" color={c.onPrimary} />
+                    : <Text style={styles.logOrderConfirmText}>Log</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -396,6 +638,17 @@ function makeStyles(c: Theme) {
     },
     emptyText: { color: c.textSub, fontSize: 14, textAlign: 'center', lineHeight: 22 },
 
+    // View switcher
+    switcherScroll: { marginBottom: 12 },
+    switcherContent: { gap: 8, paddingRight: 4 },
+    switcherChip: {
+      backgroundColor: c.card, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 14,
+      borderWidth: 1, borderColor: c.border,
+    },
+    switcherChipActive: { backgroundColor: c.primary, borderColor: c.primary },
+    switcherChipText: { fontSize: 13, fontWeight: '600', color: c.textSub },
+    switcherChipTextActive: { color: c.onPrimary },
+
     // Week forecast rows
     forecastRow: {
       backgroundColor: c.card, borderRadius: 14, padding: 14, marginBottom: 8,
@@ -425,6 +678,7 @@ function makeStyles(c: Theme) {
     peakCardRight: { alignItems: 'flex-end' },
     peakCardCount: { fontSize: 28, fontWeight: '700', color: c.primaryDark },
     peakCardUnit: { fontSize: 11, color: c.textMuted },
+    peakStaffNote: { fontSize: 11, color: c.primaryDark, fontWeight: '600', marginTop: 2 },
 
     card: {
       backgroundColor: c.card, borderRadius: 14, padding: 14, marginBottom: 10,
@@ -434,8 +688,9 @@ function makeStyles(c: Theme) {
       fontSize: 11, fontWeight: '700', color: c.textMuted,
       textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10,
     },
+    hourBlock: { marginBottom: 10 },
     hourRow: {
-      flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8,
+      flexDirection: 'row', alignItems: 'center', gap: 8,
     },
     hourLabel: { width: 36, fontSize: 12, color: c.textSub, textAlign: 'right' },
     barBg: {
@@ -443,6 +698,8 @@ function makeStyles(c: Theme) {
     },
     barFill: { height: 8, backgroundColor: c.primary, borderRadius: 4 },
     hourCount: { width: 24, fontSize: 12, color: c.text, fontWeight: '600', textAlign: 'right' },
+    staffLine: { fontSize: 11, color: c.textSub, marginTop: 2, marginLeft: 44 },
+    marginalNote: { fontSize: 11, color: '#a16207', fontStyle: 'italic', marginTop: 1, marginLeft: 44 },
 
     weekdayPeakRow: {
       flexDirection: 'row', alignItems: 'center', paddingVertical: 8,
@@ -476,8 +733,46 @@ function makeStyles(c: Theme) {
     orderName: { fontSize: 15, fontWeight: '700', color: c.text },
     orderMeta: { fontSize: 12, color: c.textSub },
     orderStock: { fontSize: 12, color: c.textMuted },
+    runoutWarning: { fontSize: 11, color: '#b45309', fontWeight: '600', marginTop: 2 },
+    reorderBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      backgroundColor: '#e06b2e', borderRadius: 8,
+      paddingVertical: 7, paddingHorizontal: 12, alignSelf: 'flex-start',
+      marginTop: 8,
+    },
+    reorderBtnText: { fontSize: 13, color: '#fff', fontWeight: '700' },
     orderQtyBox: { alignItems: 'center', marginLeft: 12 },
     orderQty: { fontSize: 26, fontWeight: '700', color: c.primaryDark },
     orderQtyUnit: { fontSize: 11, color: c.textMuted },
+
+    // Log order modal
+    modalOverlay: {
+      flex: 1, backgroundColor: 'rgba(0,0,0,0.45)',
+      justifyContent: 'flex-end',
+    },
+    logOrderModal: {
+      backgroundColor: c.bg, borderTopLeftRadius: 20, borderTopRightRadius: 20,
+      padding: 24, paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+      gap: 12,
+    },
+    logOrderTitle: { fontSize: 18, fontWeight: '700', color: c.text },
+    logOrderSub: { fontSize: 14, color: c.textSub },
+    logOrderInput: {
+      backgroundColor: c.card, borderWidth: 1, borderColor: c.border,
+      borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14,
+      fontSize: 18, color: c.text, fontWeight: '600',
+    },
+    logOrderBtns: { flexDirection: 'row', gap: 10, marginTop: 4 },
+    logOrderCancel: {
+      flex: 1, backgroundColor: c.card, borderRadius: 12,
+      paddingVertical: 14, alignItems: 'center',
+      borderWidth: 1, borderColor: c.border,
+    },
+    logOrderCancelText: { fontSize: 15, color: c.textSub, fontWeight: '600' },
+    logOrderConfirm: {
+      flex: 2, backgroundColor: '#e06b2e', borderRadius: 12,
+      paddingVertical: 14, alignItems: 'center',
+    },
+    logOrderConfirmText: { fontSize: 15, color: '#fff', fontWeight: '700' },
   })
 }

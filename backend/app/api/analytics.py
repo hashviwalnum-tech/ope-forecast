@@ -29,6 +29,7 @@ from app.engine.forecasting import (
 from app.engine.live_sales import compute_open_hours, hourly_averages, hourly_product_mix
 from app.engine.ordering import (
     apply_order_constraints,
+    compute_current_projected_stock,
     economic_order_quantity,
     projected_stock_timeline,
     reorder_point,
@@ -97,6 +98,73 @@ _WD_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
 _SERVICE_LEVEL = 0.95
 
 MIN_RECORDS = 14  # ~2 weeks before forecasts are attempted
+
+
+# ── stock projection helper ────────────────────────────────────────────────
+
+def _compute_projected_stock(
+    db: Session,
+    biz_id: int,
+    prod: Product,
+    today: date,
+    tap_by_prod_date: dict | None = None,
+) -> tuple[float | None, bool]:
+    """Compute projected current stock from the last known baseline.
+
+    Returns (projected_stock, stock_untracked) where:
+    - projected_stock is None when stock_untracked is True or no date anchor exists
+    - stock_untracked is True when no current_stock has ever been set
+    """
+    if prod.current_stock is None:
+        return None, True
+
+    baseline_date = prod.stock_as_of_date
+    if baseline_date is None:
+        # Fall back to product creation date so existing products aren't penalised
+        if prod.created_at:
+            baseline_date = prod.created_at.date()
+        else:
+            # No anchor — return raw current_stock with no deductions
+            return prod.current_stock, False
+
+    # Sum all SaleRecords for this product since the baseline date
+    rows = (
+        db.query(SaleRecord.units_sold, DayRecord.date)
+        .join(DayRecord, SaleRecord.day_record_id == DayRecord.id)
+        .filter(
+            DayRecord.business_id == biz_id,
+            SaleRecord.product_id == prod.id,
+            DayRecord.date > baseline_date,
+        )
+        .all()
+    )
+    sales_since = sum(float(r[0]) for r in rows)
+    sale_record_dates: set[date] = {r[1] for r in rows}
+
+    # Also count live taps (SaleEvents) on days that have no manual SaleRecord
+    if tap_by_prod_date is not None:
+        for (pid, d), qty in tap_by_prod_date.items():
+            if pid == prod.id and d > baseline_date and d not in sale_record_dates:
+                sales_since += qty
+
+    # Sum arrivals from OrderRecords with expected_arrival_date in (baseline_date, today]
+    arrived = (
+        db.query(OrderRecord)
+        .filter(
+            OrderRecord.business_id == biz_id,
+            OrderRecord.product_id == prod.id,
+            OrderRecord.status != "cancelled",
+            OrderRecord.expected_arrival_date > baseline_date,
+            OrderRecord.expected_arrival_date <= today,
+        )
+        .all()
+    )
+    arrivals_since = sum(float(o.quantity) for o in arrived)
+
+    projected = compute_current_projected_stock(
+        prod.current_stock, sales_since, arrivals_since
+    )
+    return projected, False
 
 
 # ── private helpers ────────────────────────────────────────────────────────
@@ -802,6 +870,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
     ids_and_dates = [(r.id, r.date) for r in all_records]
     z = service_level_z(_SERVICE_LEVEL)
+    today = date.today()
     result: list[OrderingRow] = []
 
     for prod in products_list:
@@ -820,6 +889,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
         n_data = len(daily_demand)
         if n_data == 0:
+            proj_s, s_untracked = _compute_projected_stock(db, biz.id, prod, today)
             result.append(OrderingRow(
                 product_id=prod.id,
                 name=prod.name,
@@ -829,6 +899,9 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
                 safety_stock_units=0.0,
                 reorder_point=0.0,
                 current_stock=prod.current_stock,
+                projected_stock=proj_s,
+                stock_untracked=s_untracked,
+                approaching_reorder=False,
                 order_now=False,
                 eoq=None,
                 suggested_order_qty=0.0,
@@ -845,15 +918,25 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         eoq_val = None
         base_qty = avg_daily * prod.lead_time_days + ss
         unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
+
+        proj_stock, stock_untracked = _compute_projected_stock(db, biz.id, prod, today)
+        effective_stock = proj_stock if proj_stock is not None else prod.current_stock
+
         constrained_qty, cap_notes = apply_order_constraints(
             base_qty,
             storage_capacity=prod.storage_capacity,
-            current_stock=prod.current_stock,
+            current_stock=effective_stock,
             shelf_life_days=prod.shelf_life_days,
             avg_daily_demand=avg_daily,
         )
         suggested_qty = _round_qty(constrained_qty, unit_mode)
-        order_now = prod.current_stock is not None and prod.current_stock <= rop
+        order_now = effective_stock is not None and not stock_untracked and effective_stock <= rop
+        approaching_reorder = (
+            not stock_untracked and
+            effective_stock is not None and
+            effective_stock > rop and
+            effective_stock <= rop + avg_daily * prod.lead_time_days
+        )
 
         result.append(OrderingRow(
             product_id=prod.id,
@@ -865,6 +948,9 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             safety_stock_units=_round_qty(ss, unit_mode),
             reorder_point=_round_qty(rop, unit_mode),
             current_stock=prod.current_stock,
+            projected_stock=_round_qty(proj_stock, unit_mode) if proj_stock is not None else None,
+            stock_untracked=stock_untracked,
+            approaching_reorder=approaching_reorder,
             order_now=order_now,
             eoq=eoq_val,
             suggested_order_qty=suggested_qty,
@@ -1189,11 +1275,16 @@ def get_product_forecast(
                     f"of {prod.name} sales for a reliable forecast "
                     f"({n_data} recorded so far)."
                 )
+            ne_proj, ne_untracked = _compute_projected_stock(
+                db, biz.id, prod, today, tap_by_prod_date
+            )
             result.append(ProductForecastItem(
                 product_id=prod.id, name=prod.name, unit=prod.unit,
                 status="not_enough_data", message=msg,
                 lead_time_days=prod.lead_time_days,
                 current_stock=prod.current_stock,
+                projected_stock=ne_proj,
+                stock_untracked=ne_untracked,
                 n_days_data=n_data,
             ))
             continue
@@ -1285,34 +1376,51 @@ def get_product_forecast(
         eoq_val: float | None = None
         unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
         base_qty = forecast_demand_lt + ss
+
+        # ── projected stock (dynamic: baseline − sales + arrivals) ────────────
+        proj_stock, stock_untracked = _compute_projected_stock(
+            db, biz.id, prod, today, tap_by_prod_date
+        )
+        effective_stock = proj_stock if proj_stock is not None else prod.current_stock
+
         constrained_qty, cap_notes = apply_order_constraints(
             base_qty,
             storage_capacity=prod.storage_capacity,
-            current_stock=prod.current_stock,
+            current_stock=effective_stock,
             shelf_life_days=prod.shelf_life_days,
             avg_daily_demand=avg_daily,
         )
         suggested_qty = _round_qty(constrained_qty, unit_mode)
-        order_now = prod.current_stock is not None and prod.current_stock <= rop
+        order_now = (
+            not stock_untracked and
+            effective_stock is not None and
+            effective_stock <= rop
+        )
+        approaching_reorder = (
+            not stock_untracked and
+            effective_stock is not None and
+            effective_stock > rop and
+            effective_stock <= rop + avg_daily * prod.lead_time_days
+        )
 
-        # ── projected stock runout warning ────────────────────────────────────
+        # ── projected stock runout warning (future projection) ────────────────
         runout_warning = False
-        if prod.current_stock is not None and avg_daily > 0 and forecast_days:
+        if effective_stock is not None and not stock_untracked and avg_daily > 0 and forecast_days:
             pending_orders = (
                 db.query(OrderRecord)
                 .filter_by(business_id=biz.id, product_id=prod.id, status="pending")
                 .all()
             )
-            # Build arrivals as (day_offset, quantity); day_offset = days from today
             arrivals: list[tuple[int, float]] = []
             for o in pending_orders:
                 offset = (o.expected_arrival_date - today).days
                 if offset >= 0:
                     arrivals.append((offset, o.quantity))
-            # Use the forecast's daily units as the depletion rate
             depletion = [d.predicted_units for d in forecast_days]
-            projected = projected_stock_timeline(prod.current_stock, depletion, arrivals)
-            runout_warning = will_stock_run_out(projected)
+            future = projected_stock_timeline(max(0.0, effective_stock), depletion, arrivals)
+            runout_warning = will_stock_run_out(future)
+
+        rounded_proj = _round_qty(proj_stock, unit_mode) if proj_stock is not None else None
 
         result.append(ProductForecastItem(
             product_id=prod.id,
@@ -1328,6 +1436,9 @@ def get_product_forecast(
             reorder_point=_round_qty(rop, unit_mode),
             suggested_order_qty=suggested_qty,
             current_stock=prod.current_stock,
+            projected_stock=rounded_proj,
+            stock_untracked=stock_untracked,
+            approaching_reorder=approaching_reorder,
             order_now=order_now,
             eoq=eoq_val,
             n_days_data=n_data,

@@ -1,3 +1,5 @@
+from datetime import date as _date
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -23,7 +25,10 @@ def list_products(db: Session = Depends(get_db), biz: Business = Depends(get_bus
 
 @router.post("", response_model=ProductRead, status_code=201)
 def create_product(body: ProductCreate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    row = Product(business_id=biz.id, **body.model_dump())
+    data = body.model_dump()
+    if data.get("current_stock") is not None:
+        data["stock_as_of_date"] = _date.today()
+    row = Product(business_id=biz.id, **data)
     db.add(row)
     db.commit()
     db.refresh(row)
@@ -40,6 +45,9 @@ def update_product(product_id: int, body: ProductUpdate, db: Session = Depends(g
     row = _get_or_404(db, product_id, biz.id)
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(row, field, value)
+    # Auto-advance the stock baseline date whenever current_stock is explicitly set
+    if "current_stock" in body.model_fields_set and body.current_stock is not None:
+        row.stock_as_of_date = _date.today()
     db.commit()
     db.refresh(row)
     return row

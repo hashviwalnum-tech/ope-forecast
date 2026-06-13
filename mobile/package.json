@@ -14,6 +14,8 @@
     "@supabase/supabase-js": "^2.39.0",
     "expo": "~52.0.0",
     "expo-asset": "^56.0.17",
+    "expo-document-picker": "~12.0.2",
+    "expo-file-system": "~18.0.11",
     "expo-font": "~13.0.4",
     "expo-status-bar": "~2.0.0",
     "react": "18.3.1",

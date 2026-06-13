@@ -76,6 +76,19 @@ def _migrate_sqlite_products_v2(eng) -> None:
         conn.commit()
 
 
+def _migrate_sqlite_products_v3(eng) -> None:
+    """Add stock_as_of_date column to products if it doesn't exist yet."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(eng)
+    if "products" not in inspector.get_table_names():
+        return
+    existing = {col["name"] for col in inspector.get_columns("products")}
+    with eng.connect() as conn:
+        if "stock_as_of_date" not in existing:
+            conn.execute(text("ALTER TABLE products ADD COLUMN stock_as_of_date DATE"))
+        conn.commit()
+
+
 def _migrate_sqlite_telegram_links(eng) -> None:
     """Create telegram_links table columns if the table already exists without them."""
     from sqlalchemy import inspect, text
@@ -96,6 +109,7 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(engine)
     _migrate_sqlite_products(engine)
     _migrate_sqlite_products_v2(engine)
+    _migrate_sqlite_products_v3(engine)
     _migrate_sqlite_day_records(engine)
     _migrate_sqlite_telegram_links(engine)
     yield

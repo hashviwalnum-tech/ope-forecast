@@ -41,6 +41,13 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   {
+    key: 'settings',
+    icon: 'settings-outline',
+    label: 'Business Settings',
+    sub: 'Opening hours, days, service time & stock tracking',
+    requiresBusiness: true,
+  },
+  {
     key: 'products',
     icon: 'cube-outline',
     label: 'Products',
@@ -63,13 +70,6 @@ const MENU_ITEMS: MenuItem[] = [
     icon: 'cart-outline',
     label: 'Orders',
     sub: 'Log "I ordered this" & track arrivals',
-  },
-  {
-    key: 'settings',
-    icon: 'settings-outline',
-    label: 'Business Settings',
-    sub: 'Opening hours, days & service time',
-    requiresBusiness: true,
   },
   {
     key: 'telegram',

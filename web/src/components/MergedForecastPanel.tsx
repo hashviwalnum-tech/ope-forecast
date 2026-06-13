@@ -8,11 +8,11 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { analytics } from '../api/client'
+import { analytics, orders as ordersApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { Lang } from '../i18n'
-import type { ForecastResponse, ProductForecastItem, ProductForecastResponse } from '../api/types'
+import type { ForecastResponse, OrderRecordRead, ProductForecastItem, ProductForecastResponse } from '../api/types'
 
 // ── weekday translation map ───────────────────────────────────────────────────
 
@@ -45,20 +45,76 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
   const qty = item.suggested_order_qty
   const notes = item.constraint_notes ?? []
 
-  const haveNow = item.current_stock != null
-    ? t('haveNow', { qty: fmtQty(item.current_stock, uMode, unit) })
-    : t('trackStockAlerts')
+  const [showOrderForm, setShowOrderForm] = useState(false)
+  const [orderQty, setOrderQty]           = useState(String(Math.ceil(qty || 1)))
+  const [submitting, setSubmitting]       = useState(false)
+  const [recentOrder, setRecentOrder]     = useState<OrderRecordRead | null>(null)
+
+  // Use projected stock (dynamic) when available, fall back to raw current_stock
+  const stockUntracked = item.stock_untracked ?? false
+  const displayStock = item.projected_stock ?? item.current_stock
+
+  const haveNow = stockUntracked
+    ? t('setStartingStockHint')
+    : displayStock != null
+      ? t('haveNow', { qty: fmtQty(displayStock, uMode, unit) })
+      : t('trackStockAlerts')
+
+  async function submitOrder() {
+    const q = parseFloat(orderQty)
+    if (isNaN(q) || q <= 0) return
+    setSubmitting(true)
+    try {
+      const today = new Date().toISOString().slice(0, 10)
+      const order = await ordersApi.create({ product_id: item.product_id, ordered_date: today, quantity: q })
+      setRecentOrder(order)
+      setShowOrderForm(false)
+    } catch { /* keep form open; user can retry */ }
+    finally { setSubmitting(false) }
+  }
+
+  async function cancelRecentOrder() {
+    if (!recentOrder) return
+    try { await ordersApi.cancel(recentOrder.id); setRecentOrder(null) } catch { }
+  }
 
   return (
     <div className="mt-4 rounded-xl border border-teal-100 dark:border-teal-800 overflow-hidden">
+      {/* Approaching reorder — heads-up before running low */}
+      {item.approaching_reorder && !item.projected_runout_warning && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-900">
+          <span className="text-amber-500 shrink-0">⚠</span>
+          <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">
+            {t('approachingReorderMsg', { name: item.name })}
+          </p>
+        </div>
+      )}
+      {/* Low stock / projected run-out */}
+      {item.projected_runout_warning && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 border-b border-red-100 dark:border-red-900">
+          <span className="text-red-500 shrink-0">⚠</span>
+          <p className="text-xs text-red-800 dark:text-red-300 flex-1">
+            {t('lowStockWarning', { name: item.name })}
+          </p>
+        </div>
+      )}
+      {/* No baseline set — honest fallback */}
+      {stockUntracked && (
+        <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-700/40 border-b border-slate-100 dark:border-slate-600">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {t('stockUntrackedMsg')}
+          </p>
+        </div>
+      )}
+
       <div className="bg-teal-50/60 dark:bg-teal-900/20 px-4 py-2.5 border-b border-teal-100 dark:border-teal-800 flex items-center justify-between">
         <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{t('orderingAdvice')}</p>
         <div className="flex items-center gap-2">
           {item.order_now ? (
-            <span className="px-2.5 py-1 bg-teal-600 text-white rounded-full text-xs font-bold">
+            <span className="px-2.5 py-1 bg-red-500 text-white rounded-full text-xs font-bold">
               {t('orderNowBadge', { qty: fmtQty(qty, uMode, unit) })}
             </span>
-          ) : item.current_stock != null ? (
+          ) : displayStock != null && !stockUntracked ? (
             <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">
               {t('youreGood')}
             </span>
@@ -76,11 +132,11 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
           <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-100">{fmtQty(item.safety_stock_units, uMode, unit)}</p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{t('extraAbsorbSwings')}</p>
         </div>
-        <div className={`px-4 py-3 ${item.order_now ? 'bg-teal-50/40 dark:bg-teal-900/10' : ''}`}>
+        <div className={`px-4 py-3 ${item.order_now ? 'bg-red-50/40 dark:bg-red-900/10' : ''}`}>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">
             {item.eoq != null ? t('idealOrderEOQ') : t('suggestedOrder')}
           </p>
-          <p className={`text-base font-bold tabular-nums ${item.order_now ? 'text-teal-700 dark:text-teal-400' : 'text-slate-800 dark:text-slate-100'}`}>
+          <p className={`text-base font-bold tabular-nums ${item.order_now ? 'text-red-700 dark:text-red-400' : 'text-slate-800 dark:text-slate-100'}`}>
             {fmtQty(qty, uMode, unit)}
           </p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
@@ -98,7 +154,8 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
           ))}
         </div>
       )}
-      <div className="px-4 py-2 bg-teal-50/40 dark:bg-teal-900/10 border-t border-teal-100 dark:border-teal-800">
+      {/* Footer: avg data note + "I ordered this" button */}
+      <div className="px-4 py-3 bg-teal-50/40 dark:bg-teal-900/10 border-t border-teal-100 dark:border-teal-800 space-y-2">
         <p className="text-xs text-slate-400 dark:text-slate-500">
           {t('avgPerDayData', {
             qty: fmtQty(item.avg_daily_demand, uMode, unit),
@@ -106,6 +163,57 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
             lt: String(item.lead_time_days),
           })}
         </p>
+
+        {/* Recent order confirmation row */}
+        {recentOrder && (
+          <div className="flex items-center gap-3 text-sm text-emerald-700 dark:text-emerald-400
+                          bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200
+                          dark:border-emerald-800 rounded-lg px-3 py-2">
+            <span className="flex-1 text-xs">
+              ✓ {t('orderLoggedConfirm', { qty: String(recentOrder.quantity), unit, arrival: recentOrder.expected_arrival_date })}
+            </span>
+            <button onClick={cancelRecentOrder} className="text-xs text-slate-400 hover:text-red-500 shrink-0">
+              {t('cancelOrder')}
+            </button>
+          </div>
+        )}
+
+        {/* "I ordered this" prominent button */}
+        {!recentOrder && !showOrderForm && (
+          <button
+            onClick={() => { setShowOrderForm(true); setOrderQty(String(Math.ceil(qty || 1))) }}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-white
+                       bg-teal-600 hover:bg-teal-700 rounded-xl px-4 py-2 transition-colors shadow-sm"
+          >
+            📦 {t('iOrderedThis')}
+          </button>
+        )}
+
+        {/* Inline order quantity form */}
+        {!recentOrder && showOrderForm && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
+            <input
+              type="number" min="0.1" step="0.1"
+              value={orderQty}
+              onChange={e => setOrderQty(e.target.value)}
+              className="w-20 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm
+                         bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+            />
+            <span className="text-xs text-slate-400 shrink-0">{unit}</span>
+            <button
+              onClick={submitOrder}
+              disabled={submitting}
+              className="text-sm font-medium text-white bg-teal-600 hover:bg-teal-700
+                         disabled:opacity-50 rounded-lg px-3 py-1.5 transition-colors"
+            >
+              {submitting ? '…' : t('confirmOrder')}
+            </button>
+            <button onClick={() => setShowOrderForm(false)} className="text-sm text-slate-400 hover:underline">
+              {t('cancelBtn')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

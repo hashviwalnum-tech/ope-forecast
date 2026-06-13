@@ -99,6 +99,9 @@ class OrderingRow(BaseModel):
     safety_stock_units: float
     reorder_point: float
     current_stock: Optional[float] = None
+    projected_stock: Optional[float] = None   # dynamically computed; None when untracked
+    stock_untracked: bool = False              # no baseline set; stock can't be projected
+    approaching_reorder: bool = False          # heads-up before hitting the reorder point
     order_now: bool
     eoq: Optional[float] = None
     suggested_order_qty: float = 0.0
@@ -200,12 +203,14 @@ class ProductForecastItem(BaseModel):
     reorder_point: float = 0.0
     suggested_order_qty: float = 0.0      # EOQ if costs known, else ROP-based
     current_stock: Optional[float] = None
+    projected_stock: Optional[float] = None   # dynamically computed; None when untracked
+    stock_untracked: bool = False              # no baseline set; stock can't be projected
+    approaching_reorder: bool = False          # heads-up before hitting the reorder point
     order_now: bool = False
     eoq: Optional[float] = None
     n_days_data: int = 0
     constraint_notes: list[str] = []
-    # True when current_stock is set and projected stock will hit zero before
-    # any pending order arrives — fires the "about to run out" warning in the UI
+    # True when projected stock will hit zero before any pending order arrives
     projected_runout_warning: bool = False
 
 

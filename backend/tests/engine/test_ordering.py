@@ -5,6 +5,7 @@ import math
 import pytest
 from app.engine.ordering import (
     apply_order_constraints,
+    compute_current_projected_stock,
     demand_over_lead_time,
     projected_stock_timeline,
     safety_stock,
@@ -310,3 +311,50 @@ def test_will_stock_run_out_true_goes_negative():
 
 def test_will_stock_run_out_empty_list():
     assert will_stock_run_out([]) is False
+
+
+# ---------------------------------------------------------------------------
+# compute_current_projected_stock
+# ---------------------------------------------------------------------------
+
+def test_projected_stock_sales_draw_down():
+    """Sales since baseline reduce the projected stock."""
+    # 100 units on hand, sold 30 since baseline, no arrivals → 70 remaining
+    assert compute_current_projected_stock(100.0, 30.0, 0.0) == pytest.approx(70.0)
+
+
+def test_projected_stock_arrivals_add():
+    """Arrived orders add to the projected stock."""
+    # 50 units on hand, sold 20, received 40 → 70 projected
+    assert compute_current_projected_stock(50.0, 20.0, 40.0) == pytest.approx(70.0)
+
+
+def test_projected_stock_override_resets_baseline():
+    """After a manual override the new baseline produces a fresh projection.
+
+    Simulates the owner correcting the count: yesterday's projection was wrong
+    (say 10 units), owner counts 25 actual units, sets 25 as the new baseline.
+    The next projection from that new baseline correctly starts from 25.
+    """
+    # Override: new baseline = 25, then sold 5, no arrivals → 20 projected
+    assert compute_current_projected_stock(25.0, 5.0, 0.0) == pytest.approx(20.0)
+
+
+def test_projected_stock_negative_allowed():
+    """Stockout: projected stock may go negative (signals the owner ran out)."""
+    assert compute_current_projected_stock(10.0, 15.0, 0.0) == pytest.approx(-5.0)
+
+
+def test_projected_stock_bad_baseline():
+    with pytest.raises(ValueError):
+        compute_current_projected_stock(-1.0, 0.0, 0.0)
+
+
+def test_projected_stock_bad_sales():
+    with pytest.raises(ValueError):
+        compute_current_projected_stock(10.0, -1.0, 0.0)
+
+
+def test_projected_stock_bad_arrivals():
+    with pytest.raises(ValueError):
+        compute_current_projected_stock(10.0, 0.0, -1.0)

@@ -145,26 +145,30 @@ function OrderingTable({ data }: { data: OrderingResponse }) {
       <div className="space-y-3">
         {data.products.map(p => {
           const hasQty = p.suggested_order_qty != null && p.suggested_order_qty > 0
+          const stockUntracked = p.stock_untracked ?? false
+          const displayStock = p.projected_stock ?? p.current_stock
           return (
             <div
               key={p.product_id}
               className={`rounded-xl border overflow-hidden
-                ${p.order_now ? 'border-teal-200 dark:border-teal-700' : 'border-slate-100 dark:border-slate-700'}`}
+                ${p.order_now ? 'border-red-200 dark:border-red-800' : p.approaching_reorder ? 'border-amber-200 dark:border-amber-700' : 'border-slate-100 dark:border-slate-700'}`}
             >
               <div className={`flex items-center justify-between gap-3 px-4 py-3
-                ${p.order_now ? 'bg-teal-50/60 dark:bg-teal-900/20' : 'bg-slate-50/60 dark:bg-slate-700/40'}`}
+                ${p.order_now ? 'bg-red-50/60 dark:bg-red-900/20' : p.approaching_reorder ? 'bg-amber-50/60 dark:bg-amber-900/20' : 'bg-slate-50/60 dark:bg-slate-700/40'}`}
               >
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.name}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     ~{p.avg_daily_demand} {p.unit}{t('perDaySuffix')} · {t('restockInNDays', { n: String(p.lead_time_days) })}
-                    {p.current_stock != null && ` · ${t('inStockSuffix', { qty: `${p.current_stock} ${p.unit}` })}`}
+                    {displayStock != null && !stockUntracked
+                      ? ` · ${t('inStockSuffix', { qty: `${displayStock} ${p.unit}` })}`
+                      : stockUntracked ? ` · ${t('setStartingStockHint')}` : ''}
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
                   {p.order_now ? (
                     hasQty ? (
-                      <span className="inline-block px-3 py-1 bg-teal-600 text-white rounded-full text-xs font-bold">
+                      <span className="inline-block px-3 py-1 bg-red-500 text-white rounded-full text-xs font-bold">
                         {t('orderNowBadge', { qty: `${Math.round(p.suggested_order_qty!)} ${p.unit}` })}
                       </span>
                     ) : (
@@ -172,7 +176,11 @@ function OrderingTable({ data }: { data: OrderingResponse }) {
                         {t('orderNowLabel')}
                       </span>
                     )
-                  ) : p.current_stock != null ? (
+                  ) : p.approaching_reorder ? (
+                    <span className="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold">
+                      ⚠ {t('reorderWhenBelow')}
+                    </span>
+                  ) : displayStock != null && !stockUntracked ? (
                     <span className="inline-block px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">
                       {t('youreGood')}
                     </span>

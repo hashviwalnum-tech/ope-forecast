@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Switch,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -46,6 +47,9 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
   const [maxWait, setMaxWait] = useState(
     s.staffing_max_wait_minutes != null ? String(s.staffing_max_wait_minutes) : ''
   )
+  const [stockEnabled, setStockEnabled] = useState(
+    s.stock_management_enabled !== false
+  )
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -59,6 +63,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
     setServiceTime(String(parseSetting<number>(fresh.avg_service_time_minutes, 5)))
     setMaxWait(fresh.staffing_max_wait_minutes != null
       ? String(fresh.staffing_max_wait_minutes) : '')
+    setStockEnabled(fresh.stock_management_enabled !== false)
   }, [business])
 
   const toggleDay = (idx: number) => {
@@ -100,6 +105,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
         closing_hour: closeHour,
         avg_service_time_minutes: stMin,
         staffing_max_wait_minutes: maxWait ? parseFloat(maxWait) : null,
+        stock_management_enabled: stockEnabled,
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -220,6 +226,23 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
             <Text style={styles.fieldHint}>
               The longest queue you're comfortable with. Used to compute how many staff are needed.
             </Text>
+
+            {/* Stock tracking */}
+            <Text style={styles.sectionLabel}>Stock & Reorder Tracking</Text>
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleText}>
+                <Text style={styles.toggleLabel}>Show stock & reorder advice</Text>
+                <Text style={styles.fieldHint}>
+                  Turn off if you don't want ordering recommendations on the Forecast screen.
+                </Text>
+              </View>
+              <Switch
+                value={stockEnabled}
+                onValueChange={setStockEnabled}
+                trackColor={{ false: c.border, true: c.primary }}
+                thumbColor={c.onPrimary}
+              />
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -331,5 +354,13 @@ function makeStyles(c: Theme) {
       fontSize: 15, color: c.text,
     },
     fieldHint: { fontSize: 11, color: c.textMuted, marginTop: 6, lineHeight: 16 },
+
+    toggleRow: {
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      backgroundColor: c.card, borderRadius: 14, padding: 14,
+      borderWidth: 1, borderColor: c.border,
+    },
+    toggleText: { flex: 1 },
+    toggleLabel: { fontSize: 14, fontWeight: '600', color: c.text, marginBottom: 2 },
   })
 }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -41,5 +42,6 @@ class ProductRead(BaseModel):
     service_time_minutes: Optional[float]
     storage_capacity: Optional[float]
     shelf_life_days: Optional[int]
+    stock_as_of_date: Optional[date] = None
 
     model_config = {"from_attributes": True}

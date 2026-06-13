@@ -25,6 +25,7 @@ export default function BusinessSettings({ onTierChanged }: Props) {
   const [saving,          setSaving]          = useState(false)
   const [feedback,        setFeedback]        = useState<{ ok: boolean; msg: string } | null>(null)
 
+  const [stockMgmtEnabled, setStockMgmtEnabled] = useState(true)
   const [currentTier,   setCurrentTier]   = useState<string>('free')
   const [tierSaving,    setTierSaving]    = useState(false)
   const [tierFeedback,  setTierFeedback]  = useState<{ ok: boolean; msg: string } | null>(null)
@@ -52,6 +53,9 @@ export default function BusinessSettings({ onTierChanged }: Props) {
       } else if (typeof s.staffing_max_queue_length === 'number') {
         setThresholdType('queue')
         setMaxQueueLength(s.staffing_max_queue_length)
+      }
+      if (typeof s.stock_management_enabled === 'boolean') {
+        setStockMgmtEnabled(s.stock_management_enabled)
       }
       setCurrentTier(biz.tier ?? 'free')
     }).catch(() => {})
@@ -98,6 +102,7 @@ export default function BusinessSettings({ onTierChanged }: Props) {
         avg_service_time_minutes: avgServiceTime,
         staffing_max_wait_minutes:  thresholdType === 'wait'  ? maxWaitMinutes  : null,
         staffing_max_queue_length: thresholdType === 'queue' ? maxQueueLength  : null,
+        stock_management_enabled: stockMgmtEnabled,
       })
       setFeedback({ ok: true, msg: t('settingsSavedOk') })
     } catch {
@@ -252,6 +257,25 @@ export default function BusinessSettings({ onTierChanged }: Props) {
             <span className="text-sm text-slate-500 dark:text-slate-400">{t('peopleMaxInLine')}</span>
           </div>
         )}
+      </div>
+
+      {/* Stock & reorder management toggle */}
+      <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('stockMgmtLabel')}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('stockMgmtDesc')}</p>
+        <button
+          type="button"
+          onClick={() => setStockMgmtEnabled(v => !v)}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors w-full text-left
+            ${stockMgmtEnabled
+              ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-700 text-teal-800 dark:text-teal-300'
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'}`}
+        >
+          <span className={`w-9 h-5 rounded-full flex-shrink-0 relative transition-colors ${stockMgmtEnabled ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${stockMgmtEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+          </span>
+          <span className="text-sm font-medium">{stockMgmtEnabled ? t('stockMgmtOn') : t('stockMgmtOff')}</span>
+        </button>
       </div>
 
       {/* Dark mode toggle */}

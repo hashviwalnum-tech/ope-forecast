@@ -688,6 +688,18 @@ export const translations = {
     churnNoVisits: '—',
     churnDecliningNote: 'Visits have been dropping off — worth reaching out.',
     churnTooltipVisits: 'Visits',
+
+    // Stock tracking & reorder reminders
+    setStartingStockHint: 'Set a starting count to track this',
+    stockUntrackedMsg: "Set a starting stock count so Ope can track how much you have left — edit this product and fill in 'Stock on hand'.",
+    approachingReorderMsg: 'Stock is getting low for {name} — consider reordering soon.',
+    projectedStockLabel: 'Projected stock now',
+
+    // Stock management settings toggle
+    stockMgmtLabel: 'Stock & reorder management',
+    stockMgmtDesc: 'Turn off to hide ordering advice and stock tracking across all products.',
+    stockMgmtOn: 'On — showing ordering advice',
+    stockMgmtOff: 'Off — ordering advice hidden',
   },
   he: {
     // Nav
@@ -1376,6 +1388,18 @@ export const translations = {
     churnNoVisits: '—',
     churnDecliningNote: 'הביקורים פוחתים — כדאי ליצור קשר.',
     churnTooltipVisits: 'ביקורים',
+
+    // Stock tracking & reorder reminders
+    setStartingStockHint: 'הגדר מספר התחלתי למעקב',
+    stockUntrackedMsg: 'הגדר מלאי התחלתי כדי ש-Ope יוכל לעקוב אחרי הכמות — ערוך מוצר זה ומלא "מלאי נוכחי".',
+    approachingReorderMsg: 'המלאי של {name} מתמעט — שקול להזמין בקרוב.',
+    projectedStockLabel: 'מלאי משוער עכשיו',
+
+    // Stock management settings toggle
+    stockMgmtLabel: 'ניהול מלאי והזמנות',
+    stockMgmtDesc: 'כבה כדי להסתיר ייעוץ הזמנות ומעקב מלאי עבור כל המוצרים.',
+    stockMgmtOn: 'פעיל — מציג ייעוץ הזמנות',
+    stockMgmtOff: 'כבוי — ייעוץ הזמנות מוסתר',
   },
 } as const satisfies Record<Lang, Record<string, string>>
 

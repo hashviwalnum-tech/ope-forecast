@@ -146,6 +146,28 @@ def will_stock_run_out(projected: list[float]) -> bool:
     return any(s <= 0 for s in projected)
 
 
+def compute_current_projected_stock(
+    baseline_stock: float,
+    sales_since_baseline: float,
+    arrivals_since_baseline: float,
+) -> float:
+    """Current projected stock from a known baseline.
+
+    baseline_stock: units on hand at the baseline date (last manual count or starting stock).
+    sales_since_baseline: total units sold since that date (draws stock down).
+    arrivals_since_baseline: total units from orders that arrived since that date (adds to stock).
+
+    Returns the projected current stock (may be negative if a stockout has occurred).
+    """
+    if baseline_stock < 0:
+        raise ValueError("baseline_stock must be non-negative")
+    if sales_since_baseline < 0:
+        raise ValueError("sales_since_baseline must be non-negative")
+    if arrivals_since_baseline < 0:
+        raise ValueError("arrivals_since_baseline must be non-negative")
+    return baseline_stock - sales_since_baseline + arrivals_since_baseline
+
+
 def service_level_z(service_level: float) -> float:
     """Normal-distribution z-score for a given service level (e.g. 0.95 → 1.645).
 

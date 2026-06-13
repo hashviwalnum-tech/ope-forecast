@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date as _date, datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, func
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -25,3 +25,5 @@ class Product(Base):
     storage_capacity: Mapped[Optional[float]] = mapped_column(nullable=True)
     shelf_life_days: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=func.now())
+    # Date the current_stock baseline was set (auto-set whenever current_stock is written)
+    stock_as_of_date: Mapped[Optional[_date]] = mapped_column(Date, nullable=True)

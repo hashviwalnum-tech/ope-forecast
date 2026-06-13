@@ -153,6 +153,9 @@ export interface OrderingRow {
   safety_stock_units: number
   reorder_point: number
   current_stock?: number
+  projected_stock?: number | null
+  stock_untracked?: boolean
+  approaching_reorder?: boolean
   order_now: boolean
   eoq?: number
   suggested_order_qty?: number
@@ -268,6 +271,7 @@ export interface ProductRead {
   unit_mode: 'whole' | 'decimal'
   price: number | null
   current_stock: number | null
+  stock_as_of_date: string | null   // "YYYY-MM-DD"
   lead_time_days: number
   service_time_minutes: number | null
   storage_capacity: number | null
@@ -468,7 +472,10 @@ export interface ProductForecastItem {
   safety_stock_units: number
   reorder_point: number
   suggested_order_qty: number
-  current_stock?: number
+  current_stock?: number | null
+  projected_stock?: number | null      // dynamically computed; null when untracked
+  stock_untracked?: boolean            // true = no baseline set; can't track
+  approaching_reorder?: boolean        // heads-up before hitting the reorder point
   order_now: boolean
   eoq?: number
   n_days_data: number

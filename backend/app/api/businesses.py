@@ -35,6 +35,7 @@ class BusinessSettingsUpdate(BaseModel):
     avg_service_time_minutes: float | None = None   # minutes to serve one customer
     staffing_max_wait_minutes: float | None = None  # owner's max acceptable wait (None = use utilisation cap)
     staffing_max_queue_length: float | None = None  # owner's max queue length (None = use utilisation cap)
+    stock_management_enabled: bool | None = None    # toggle to hide ordering/stock advice entirely
 
 
 @router.get("", response_model=list[BusinessRead])
