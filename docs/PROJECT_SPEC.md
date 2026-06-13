@@ -140,9 +140,20 @@ Concrete decisions:
 **Goal:** a React Native (Expo) app for **both iOS and Android** with **full feature parity** with the web app, reusing the **same Render backend API** (the forecasting/ordering/auth/database brain is unchanged — only a new front-end). Decided: Expo (handles build tooling, on-device testing via QR, and store submission), both platforms, full parity as the end state.
 
 **Build order (foundation-first, verified before stacking — the approach that worked in Phase 3):**
-1. **Scaffold + auth + one screen.** Expo project; Supabase auth working on a phone; one screen pulling real data from the Render backend. This proves the hardest part (auth + backend connectivity from a phone) before any features. Run on a real device via Expo Go.
-2. **Core daily-use screens:** log a sale (tap capture), see the forecast, what to order. The everyday loop.
-3. **Then port the rest in waves** to reach full parity: past days / backfill, products, regulars, staffing/busy-hours, ad/event lift, analytics, settings, Telegram connect, premium gating, home customization, Hebrew + dark mode.
+1. **Scaffold + auth + one screen.** Expo project; Supabase auth working on a phone; one screen pulling real data from the Render backend. This proves the hardest part (auth + backend connectivity from a phone) before any features. Run on a real device via Expo Go. **DONE — app runs on phone, login + live forecast data working.**
+
+**Mobile UX — its own design, NOT a shrunk web app.** A phone is tap-first and one-job-per-screen. Use a **bottom tab bar** (thumb-reachable, mobile-native) with **4 tabs**, large touch targets, generous spacing, one focused job per screen:
+- **Log (default landing screen)** — the tap screen. Big, thumb-friendly buttons to record a sale/customer and tap each product. Opens first because logging is the most frequent action. Built for quick tapping while busy, not a shrunk form.
+- **Forecast** — week prediction, busy hours (tomorrow + by weekday), what to order.
+- **Analytics** — staffing/marginal-worker, ad/event lift, accuracy, deeper charts.
+- **Manage** — products, regulars, past days/backfill, settings, Telegram connect, premium.
+Each screen does ONE job with large tap targets; switch via the bottom bar. Full feature parity with web reached by building these out in waves.
+
+2. **Navigation shell + Log screen** (the core daily action), tested on a real phone.
+3. **Forecast screen** (week prediction, busy hours, ordering).
+4. **Analytics screen** (staffing, ad/event lift, accuracy).
+5. **Manage screen** (products, regulars, past days, settings, Telegram, premium) + remaining parity items: Hebrew + dark mode, home customization equivalent, etc.
+Test each screen on the actual device before moving on — mobile feel (target size, spacing, flow) can only be judged in-hand.
 
 **Reuse:** share TypeScript types and an API client between web and mobile where practical (a shared package or copied client) so the two front-ends stay consistent with the backend. The backend, database, and auth do NOT change.
 

@@ -1,11 +1,16 @@
 import 'react-native-url-polyfill/auto'
+import { enableScreens } from 'react-native-screens'
 import { useEffect, useState } from 'react'
-import { View, ActivityIndicator, StyleSheet } from 'react-native'
+
+enableScreens()
+import { View, ActivityIndicator } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './src/lib/supabase'
 import LoginScreen from './src/screens/LoginScreen'
-import DashboardScreen from './src/screens/DashboardScreen'
+import AppNavigator from './src/navigation/AppNavigator'
+import { BusinessProvider } from './src/contexts/BusinessContext'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -24,21 +29,25 @@ export default function App() {
 
   if (loading) {
     return (
-      <View style={styles.splash}>
-        <ActivityIndicator size="large" color="#0d9488" />
-        <StatusBar style="auto" />
-      </View>
+      <SafeAreaProvider>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0fdfa' }}>
+          <ActivityIndicator size="large" color="#0d9488" />
+          <StatusBar style="auto" />
+        </View>
+      </SafeAreaProvider>
     )
   }
 
   return (
-    <>
-      {session ? <DashboardScreen /> : <LoginScreen />}
+    <SafeAreaProvider>
       <StatusBar style="auto" />
-    </>
+      {session ? (
+        <BusinessProvider>
+          <AppNavigator />
+        </BusinessProvider>
+      ) : (
+        <LoginScreen />
+      )}
+    </SafeAreaProvider>
   )
 }
-
-const styles = StyleSheet.create({
-  splash: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0fdfa' },
-})
