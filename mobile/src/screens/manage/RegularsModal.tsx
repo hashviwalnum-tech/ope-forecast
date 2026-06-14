@@ -16,7 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { RegularProfitabilityRead, RegularRead } from '../../api/types'
-import { useTheme, type Theme } from '../../lib/theme'
+import { useTheme } from '../../contexts/ThemeContext'
+import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+﻿import { useState, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
@@ -16,7 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { OrderRecordRead, ProductRead } from '../../api/types'
-import { useTheme, type Theme } from '../../lib/theme'
+import { useTheme } from '../../contexts/ThemeContext'
+import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
 
@@ -278,7 +279,7 @@ export default function OrdersModal({ onClose }: Props) {
                             {order.quantity} {productUnit(order.product_id)}
                           </Text>
                           <Text style={styles.orderDates}>
-                            Ordered {order.ordered_date} ·{' '}
+                            Ordered {order.ordered_date} ֲ·{' '}
                             Expected {order.expected_arrival_date}
                           </Text>
                         </View>
@@ -316,7 +317,7 @@ export default function OrdersModal({ onClose }: Props) {
                             {order.quantity} {productUnit(order.product_id)}
                           </Text>
                           <Text style={styles.orderDates}>
-                            {order.ordered_date} · {STATUS_LABELS[order.status]}
+                            {order.ordered_date} ֲ· {STATUS_LABELS[order.status]}
                           </Text>
                         </View>
                       </View>
@@ -410,3 +411,4 @@ function makeStyles(c: Theme) {
     },
   })
 }
+

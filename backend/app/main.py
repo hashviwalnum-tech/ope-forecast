@@ -21,7 +21,7 @@ _origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173")
 ALLOWED_ORIGINS = [o.strip() for o in _origins.split(",")]
 
 from app.db import engine
-from app.models import Base
+from app.models import Base, StockBatch  # noqa: F401 — ensure table is registered
 from app.api import businesses, day_records, orders, products, sale_events, sales, periods, analytics, recurring_patterns, regulars
 from app.api import telegram as telegram_api
 from app.api import bot as bot_api
@@ -104,6 +104,22 @@ def _migrate_sqlite_telegram_links(eng) -> None:
         conn.commit()
 
 
+def _migrate_sqlite_stock_batches(eng) -> None:
+    """Create stock_batches table and add order_record_id FK if missing."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(eng)
+    # create_all handles new tables; this only patches existing partially-created tables
+    if "stock_batches" not in inspector.get_table_names():
+        return
+    existing = {col["name"] for col in inspector.get_columns("stock_batches")}
+    with eng.connect() as conn:
+        if "order_record_id" not in existing:
+            conn.execute(text(
+                "ALTER TABLE stock_batches ADD COLUMN order_record_id INTEGER REFERENCES order_records(id)"
+            ))
+        conn.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(engine)
@@ -112,6 +128,7 @@ async def lifespan(app: FastAPI):
     _migrate_sqlite_products_v3(engine)
     _migrate_sqlite_day_records(engine)
     _migrate_sqlite_telegram_links(engine)
+    _migrate_sqlite_stock_batches(engine)
     yield
 
 

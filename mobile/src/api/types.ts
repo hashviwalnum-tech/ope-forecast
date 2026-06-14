@@ -56,9 +56,16 @@ export interface OrderingRow {
   safety_stock_units: number
   reorder_point: number
   current_stock?: number
+  projected_stock?: number
+  stock_untracked?: boolean
   order_now: boolean
   eoq?: number
   suggested_order_qty?: number
+  constraint_notes?: string[]
+  // Batch-FIFO fields
+  fifo_note?: string
+  older_stock_warning?: string
+  spoilage_alert?: string
 }
 
 export interface OrderingResponse {

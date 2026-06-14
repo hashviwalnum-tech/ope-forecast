@@ -1,5 +1,3 @@
-import { useColorScheme } from 'react-native'
-
 export const light = {
   bg: '#f0fdfa',
   headerBg: '#0d9488',
@@ -46,7 +44,5 @@ export const dark = {
 
 export type Theme = typeof light
 
-export function useTheme(): Theme {
-  const scheme = useColorScheme()
-  return scheme === 'dark' ? dark : light
-}
+// useTheme is exported from contexts/ThemeContext so it reads the user preference.
+// This fallback is only used in AppNavigator which imports before ThemeProvider wraps.

@@ -28,13 +28,18 @@ from app.engine.forecasting import (
 )
 from app.engine.live_sales import compute_open_hours, hourly_averages, hourly_product_mix
 from app.engine.ordering import (
+    BatchInfo,
     apply_order_constraints,
+    batches_expiring_before,
     compute_current_projected_stock,
     economic_order_quantity,
+    fifo_deplete,
     projected_stock_timeline,
     reorder_point,
     safety_stock,
     service_level_z,
+    spoiled_or_at_risk,
+    total_remaining,
     will_stock_run_out,
 )
 from app.engine.outliers import detect_outliers
@@ -51,6 +56,7 @@ from app.engine.queueing import (
 from app.engine.seasonality import seasonal_naive_forecast
 from app.models import Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, SaleEvent, SaleRecord
 from app.models.order_record import OrderRecord
+from app.models.stock_batch import StockBatch
 from app.schemas.analytics import (
     AccuracyResponse,
     ForecastDay,
@@ -165,6 +171,73 @@ def _compute_projected_stock(
         prod.current_stock, sales_since, arrivals_since
     )
     return projected, False
+
+
+# ── batch FIFO advice helper ───────────────────────────────────────────────
+
+def _batch_fifo_advice(
+    db: Session,
+    biz_id: int,
+    prod: Product,
+    today: date,
+    lead_time_days: int,
+) -> tuple[str | None, str | None, str | None]:
+    """Compute FIFO-related advice strings for the ordering view.
+
+    Returns (fifo_note, older_stock_warning, spoilage_alert).
+    - fifo_note: shown whenever batches exist; reminds the owner FIFO is assumed.
+    - older_stock_warning: when older batches will expire before new stock arrives.
+    - spoilage_alert: when batches have already expired with units left.
+    """
+    from datetime import timedelta
+
+    batches_db = (
+        db.query(StockBatch)
+        .filter_by(business_id=biz_id, product_id=prod.id)
+        .filter(StockBatch.quantity_remaining > 0)
+        .order_by(StockBatch.arrival_date)
+        .all()
+    )
+    if not batches_db:
+        return None, None, None
+
+    batches = [
+        BatchInfo(
+            id=b.id,
+            quantity_remaining=b.quantity_remaining,
+            arrival_date=b.arrival_date,
+            expiry_date=b.expiry_date,
+        )
+        for b in batches_db
+    ]
+
+    fifo_note = "Stock ordering assumes you sell oldest stock first (FIFO). Correct below if you sell newest-first."
+
+    # Spoiled batches (expiry_date <= today, units still left)
+    spoiled = spoiled_or_at_risk(batches, today)
+    spoilage_alert: str | None = None
+    if spoiled:
+        names_and_qty = ", ".join(
+            f"~{round(b.quantity_remaining)} {prod.unit} (expired {b.expiry_date})"
+            for b in spoiled[:3]
+        )
+        spoilage_alert = f"Spoiled / at risk: {names_and_qty}. These should be removed from stock."
+
+    # Older batches expiring before a new order could arrive (cutoff = today + lead_time)
+    cutoff = today + timedelta(days=lead_time_days)
+    expiring_soon = batches_expiring_before(batches, cutoff)
+    # Exclude already-spoiled ones (already alerted above)
+    expiring_soon = [b for b in expiring_soon if b not in spoiled]
+    older_stock_warning: str | None = None
+    if expiring_soon:
+        total_qty = sum(b.quantity_remaining for b in expiring_soon)
+        earliest_expiry = min(b.expiry_date for b in expiring_soon)  # type: ignore[arg-type]
+        older_stock_warning = (
+            f"You still have ~{round(total_qty)} {prod.unit} expiring around {earliest_expiry} "
+            f"— sell those first before reordering. The new order becomes a separate, later-expiring batch."
+        )
+
+    return fifo_note, older_stock_warning, spoilage_alert
 
 
 # ── private helpers ────────────────────────────────────────────────────────
@@ -890,6 +963,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         n_data = len(daily_demand)
         if n_data == 0:
             proj_s, s_untracked = _compute_projected_stock(db, biz.id, prod, today)
+            fifo_n, older_w, spoil_a = _batch_fifo_advice(db, biz.id, prod, today, prod.lead_time_days)
             result.append(OrderingRow(
                 product_id=prod.id,
                 name=prod.name,
@@ -905,6 +979,9 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
                 order_now=False,
                 eoq=None,
                 suggested_order_qty=0.0,
+                fifo_note=fifo_n,
+                older_stock_warning=older_w,
+                spoilage_alert=spoil_a,
             ))
             continue
 
@@ -938,6 +1015,8 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             effective_stock <= rop + avg_daily * prod.lead_time_days
         )
 
+        fifo_n, older_w, spoil_a = _batch_fifo_advice(db, biz.id, prod, today, prod.lead_time_days)
+
         result.append(OrderingRow(
             product_id=prod.id,
             name=prod.name,
@@ -955,6 +1034,9 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             eoq=eoq_val,
             suggested_order_qty=suggested_qty,
             constraint_notes=cap_notes,
+            fifo_note=fifo_n,
+            older_stock_warning=older_w,
+            spoilage_alert=spoil_a,
         ))
 
     return OrderingResponse(status="ok", products=result)

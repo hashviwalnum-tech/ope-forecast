@@ -19,7 +19,10 @@ import type {
   RegularRead,
 } from '../api/types'
 import { useBusiness } from '../contexts/BusinessContext'
-import { useTheme, type Theme } from '../lib/theme'
+import { useTheme } from '../contexts/ThemeContext'
+import { useLanguage } from '../contexts/LanguageContext'
+import type { Theme } from '../lib/theme'
+import AppHeader from '../components/AppHeader'
 
 function fmt12(hour: number): string {
   if (hour === 0) return '12am'
@@ -40,6 +43,7 @@ const MONTH_NAMES = [
 export default function AnalyticsScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
+  const { t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [accuracy, setAccuracy] = useState<AccuracyResponse | null>(null)
@@ -102,15 +106,11 @@ export default function AnalyticsScreen() {
 
   if (bizLoading || initialLoading) {
     return (
-      <SafeAreaView style={styles.root} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Analytics</Text>
-        </View>
+      <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]} edges={['top']}>
+        <AppHeader title={t('analytics')} subtitle={business?.name} />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={c.primary} />
-          <Text style={styles.loadingText}>
-            Loading… first load may take ~45 s if the server is waking up
-          </Text>
+          <Text style={[styles.loadingText, { color: c.textSub }]}>{t('serverWakeup')}</Text>
         </View>
       </SafeAreaView>
     )
@@ -118,14 +118,12 @@ export default function AnalyticsScreen() {
 
   if (bizError || dataError) {
     return (
-      <SafeAreaView style={styles.root} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Analytics</Text>
-        </View>
+      <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]} edges={['top']}>
+        <AppHeader title={t('analytics')} subtitle={business?.name} />
         <View style={styles.center}>
-          <Text style={styles.errorText}>{bizError ?? dataError}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => void loadData()}>
-            <Text style={styles.retryText}>Retry</Text>
+          <Text style={[styles.errorText, { color: c.danger }]}>{bizError ?? dataError}</Text>
+          <TouchableOpacity style={[styles.retryBtn, { backgroundColor: c.primary }]} onPress={() => void loadData()}>
+            <Text style={[styles.retryText, { color: c.onPrimary }]}>{t('retry')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -137,18 +135,16 @@ export default function AnalyticsScreen() {
   const liftPeriods = lift?.periods ?? []
 
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Analytics</Text>
-          {business !== null && (
-            <Text style={styles.headerSub}>{business.name}</Text>
-          )}
-        </View>
-        <TouchableOpacity onPress={() => void loadData()} style={styles.reloadBtn}>
-          <Ionicons name="refresh-outline" size={20} color={c.onPrimary} />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]} edges={['top']}>
+      <AppHeader
+        title={t('analytics')}
+        subtitle={business?.name}
+        rightExtra={
+          <TouchableOpacity onPress={() => void loadData()} style={styles.reloadBtn}>
+            <Ionicons name="refresh-outline" size={20} color={c.onPrimary} />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
 
@@ -429,19 +425,7 @@ function ProfitTile({ label, value, c }: { label: string; value: string; c: Them
 
 function makeStyles(c: Theme) {
   return StyleSheet.create({
-    root: { flex: 1, backgroundColor: c.bg },
-
-    header: {
-      backgroundColor: c.headerBg,
-      paddingHorizontal: 20,
-      paddingBottom: 16,
-      paddingTop: 10,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-end',
-    },
-    headerTitle: { fontSize: 26, fontWeight: '700', color: c.onPrimary },
-    headerSub: { fontSize: 12, color: c.onPrimarySub, marginTop: 2 },
+    root: { flex: 1 },
     reloadBtn: {
       backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 20, padding: 8,
     },

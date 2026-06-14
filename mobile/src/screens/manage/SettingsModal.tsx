@@ -16,15 +16,17 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { BusinessRead } from '../../api/types'
-import { useTheme, type Theme } from '../../lib/theme'
+import { useTheme, useAppTheme } from '../../contexts/ThemeContext'
+import { useLanguage } from '../../contexts/LanguageContext'
+import type { Theme } from '../../lib/theme'
 
 interface Props {
   business: BusinessRead
   onClose: () => void
-  onSaved: (updated: BusinessRead) => void
+  onSaved: (updated: BusinessRead) => Promise<void> | void
 }
 
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
 
 function parseSetting<T>(v: unknown, fallback: T): T {
   return v !== undefined && v !== null ? (v as T) : fallback
@@ -32,6 +34,8 @@ function parseSetting<T>(v: unknown, fallback: T): T {
 
 export default function SettingsModal({ business, onClose, onSaved }: Props) {
   const c = useTheme()
+  const { preference, setPreference } = useAppTheme()
+  const { lang, setLang, t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const s = business.settings
@@ -84,15 +88,15 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
   const save = async () => {
     const stMin = parseFloat(serviceTime)
     if (isNaN(stMin) || stMin <= 0) {
-      setError('Service time must be greater than 0 minutes.')
+      setError(t('serviceTimeError'))
       return
     }
     if (openHour >= closeHour) {
-      setError('Opening hour must be earlier than closing hour.')
+      setError(t('openHourError'))
       return
     }
     if (openingDays.length === 0) {
-      setError('Select at least one opening day.')
+      setError(t('openDayError'))
       return
     }
 
@@ -109,7 +113,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-      onSaved(updated)
+      await onSaved(updated)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to save settings.')
     } finally {
@@ -119,13 +123,13 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.root} edges={['top']}>
-        <View style={styles.header}>
+      <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]} edges={['top']}>
+        <View style={[styles.header, { backgroundColor: c.headerBg }]}>
           <TouchableOpacity onPress={onClose} style={styles.backBtn} hitSlop={8}>
             <Ionicons name="chevron-back" size={22} color={c.onPrimary} />
-            <Text style={styles.backLabel}>Manage</Text>
+            <Text style={[styles.backLabel, { color: c.onPrimary }]}>{t('manage')}</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Business Settings</Text>
+          <Text style={[styles.headerTitle, { color: c.onPrimary }]}>{t('settings')}</Text>
           <TouchableOpacity
             onPress={() => void save()}
             style={styles.saveBtn}
@@ -134,7 +138,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
           >
             {saving
               ? <ActivityIndicator size="small" color={c.onPrimary} />
-              : <Text style={styles.saveBtnText}>Save</Text>}
+              : <Text style={[styles.saveBtnText, { color: c.onPrimary }]}>{t('save')}</Text>}
           </TouchableOpacity>
         </View>
 
@@ -150,48 +154,108 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
             {saved && (
               <View style={styles.successBanner}>
                 <Ionicons name="checkmark-circle" size={16} color="#16a34a" />
-                <Text style={styles.successText}>Settings saved!</Text>
+                <Text style={styles.successText}>{t('settingsSaved')}</Text>
               </View>
             )}
             {error && (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorBannerText}>{error}</Text>
+              <View style={[styles.errorBanner, { backgroundColor: c.dangerBg }]}>
+                <Text style={[styles.errorBannerText, { color: c.danger }]}>{error}</Text>
               </View>
             )}
 
-            {/* Opening days */}
-            <Text style={styles.sectionLabel}>Opening Days</Text>
+            {/* ── Language ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('language')}</Text>
+            <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('languageHint')}</Text>
+            <View style={styles.segmentRow}>
+              {(['en', 'he'] as const).map(l => (
+                <TouchableOpacity
+                  key={l}
+                  style={[
+                    styles.segmentBtn,
+                    { backgroundColor: c.card, borderColor: c.border },
+                    lang === l && { backgroundColor: c.primary, borderColor: c.primary },
+                  ]}
+                  onPress={() => setLang(l)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[
+                    styles.segmentBtnText,
+                    { color: c.textSub },
+                    lang === l && { color: c.onPrimary },
+                  ]}>
+                    {l === 'en' ? 'English' : 'עברית'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* ── Appearance / Dark mode ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('appearance')}</Text>
+            <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('appearanceHint')}</Text>
+            <View style={styles.segmentRow}>
+              {(['system', 'light', 'dark'] as const).map(p => (
+                <TouchableOpacity
+                  key={p}
+                  style={[
+                    styles.segmentBtn,
+                    { backgroundColor: c.card, borderColor: c.border },
+                    preference === p && { backgroundColor: c.primary, borderColor: c.primary },
+                  ]}
+                  onPress={() => setPreference(p)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[
+                    styles.segmentBtnText,
+                    { color: c.textSub },
+                    preference === p && { color: c.onPrimary },
+                  ]}>
+                    {p === 'system' ? t('followSystem') : p === 'light' ? t('lightMode') : t('darkMode')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* ── Opening days ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('openingDays')}</Text>
             <View style={styles.daysRow}>
-              {DAY_LABELS.map((label, idx) => {
+              {DAY_KEYS.map((key, idx) => {
                 const active = openingDays.includes(idx)
                 return (
                   <TouchableOpacity
                     key={idx}
-                    style={[styles.dayBtn, active && styles.dayBtnActive]}
+                    style={[
+                      styles.dayBtn,
+                      { backgroundColor: c.card, borderColor: c.border },
+                      active && { backgroundColor: c.primary, borderColor: c.primary },
+                    ]}
                     onPress={() => toggleDay(idx)}
                     activeOpacity={0.75}
                   >
-                    <Text style={[styles.dayBtnText, active && styles.dayBtnTextActive]}>
-                      {label}
+                    <Text style={[
+                      styles.dayBtnText,
+                      { color: c.textSub },
+                      active && { color: c.onPrimary },
+                    ]}>
+                      {t(key)}
                     </Text>
                   </TouchableOpacity>
                 )
               })}
             </View>
 
-            {/* Hours */}
-            <Text style={styles.sectionLabel}>Opening Hours</Text>
-            <View style={styles.hoursRow}>
+            {/* ── Hours ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('openingHours')}</Text>
+            <View style={[styles.hoursRow, { backgroundColor: c.card, borderColor: c.border }]}>
               <HourStepper
-                label="Opens"
+                label={t('opens')}
                 value={openHour}
                 onDecrement={() => stepHour(setOpenHour, -1, 0, 23)}
                 onIncrement={() => stepHour(setOpenHour, 1, 0, 23)}
                 c={c}
               />
-              <Text style={styles.hoursDash}>–</Text>
+              <Text style={[styles.hoursDash, { color: c.textMuted }]}>–</Text>
               <HourStepper
-                label="Closes"
+                label={t('closes')}
                 value={closeHour}
                 onDecrement={() => stepHour(setCloseHour, -1, 0, 23)}
                 onIncrement={() => stepHour(setCloseHour, 1, 0, 23)}
@@ -199,42 +263,36 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
               />
             </View>
 
-            {/* Service time */}
-            <Text style={styles.sectionLabel}>Avg Service Time (minutes)</Text>
+            {/* ── Service time ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('avgServiceTime')}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
               value={serviceTime}
               onChangeText={setServiceTime}
               keyboardType="decimal-pad"
               placeholder="e.g. 5"
               placeholderTextColor={c.textMuted}
             />
-            <Text style={styles.fieldHint}>
-              How long it takes to serve one customer on average. Used for staffing recommendations.
-            </Text>
+            <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('avgServiceTimeHint')}</Text>
 
-            {/* Max wait */}
-            <Text style={styles.sectionLabel}>Max Acceptable Wait Time (minutes, optional)</Text>
+            {/* ── Max wait ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('maxWaitTime')}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
               value={maxWait}
               onChangeText={setMaxWait}
               keyboardType="decimal-pad"
               placeholder="e.g. 5 (leave blank to skip)"
               placeholderTextColor={c.textMuted}
             />
-            <Text style={styles.fieldHint}>
-              The longest queue you're comfortable with. Used to compute how many staff are needed.
-            </Text>
+            <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('maxWaitHint')}</Text>
 
-            {/* Stock tracking */}
-            <Text style={styles.sectionLabel}>Stock & Reorder Tracking</Text>
-            <View style={styles.toggleRow}>
+            {/* ── Stock tracking ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('stockReorderTracking')}</Text>
+            <View style={[styles.toggleRow, { backgroundColor: c.card, borderColor: c.border }]}>
               <View style={styles.toggleText}>
-                <Text style={styles.toggleLabel}>Show stock & reorder advice</Text>
-                <Text style={styles.fieldHint}>
-                  Turn off if you don't want ordering recommendations on the Forecast screen.
-                </Text>
+                <Text style={[styles.toggleLabel, { color: c.text }]}>{t('showStockReorderAdvice')}</Text>
+                <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('stockToggleHint')}</Text>
               </View>
               <Switch
                 value={stockEnabled}
@@ -272,7 +330,7 @@ function HourStepper({
         <TouchableOpacity
           onPress={onDecrement}
           style={{
-            width: 36, height: 36, backgroundColor: c.card,
+            width: 36, height: 36, backgroundColor: c.primaryXBg,
             borderRadius: 18, alignItems: 'center', justifyContent: 'center',
             borderWidth: 1, borderColor: c.border,
           }}
@@ -285,7 +343,7 @@ function HourStepper({
         <TouchableOpacity
           onPress={onIncrement}
           style={{
-            width: 36, height: 36, backgroundColor: c.card,
+            width: 36, height: 36, backgroundColor: c.primaryXBg,
             borderRadius: 18, alignItems: 'center', justifyContent: 'center',
             borderWidth: 1, borderColor: c.border,
           }}
@@ -299,16 +357,16 @@ function HourStepper({
 
 function makeStyles(c: Theme) {
   return StyleSheet.create({
-    root: { flex: 1, backgroundColor: c.bg },
+    root: { flex: 1 },
     header: {
-      backgroundColor: c.headerBg, paddingHorizontal: 16, paddingBottom: 14, paddingTop: 10,
+      paddingHorizontal: 16, paddingBottom: 14, paddingTop: 10,
       flexDirection: 'row', alignItems: 'center',
     },
     backBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, marginRight: 8 },
-    backLabel: { fontSize: 14, color: c.onPrimary },
-    headerTitle: { flex: 1, fontSize: 20, fontWeight: '700', color: c.onPrimary, textAlign: 'center' },
+    backLabel: { fontSize: 14 },
+    headerTitle: { flex: 1, fontSize: 20, fontWeight: '700', textAlign: 'center' },
     saveBtn: { paddingHorizontal: 4 },
-    saveBtnText: { fontSize: 15, fontWeight: '700', color: c.onPrimary },
+    saveBtnText: { fontSize: 15, fontWeight: '700' },
 
     body: { flex: 1 },
     bodyContent: { padding: 16, paddingBottom: 40 },
@@ -319,48 +377,41 @@ function makeStyles(c: Theme) {
       borderWidth: 1, borderColor: '#86efac',
     },
     successText: { fontSize: 13, color: '#16a34a', fontWeight: '600' },
-    errorBanner: {
-      backgroundColor: c.dangerBg, borderRadius: 10, padding: 12, marginBottom: 14,
-    },
-    errorBannerText: { color: c.danger, fontSize: 13 },
+    errorBanner: { borderRadius: 10, padding: 12, marginBottom: 14 },
+    errorBannerText: { fontSize: 13 },
 
-    sectionLabel: {
-      fontSize: 13, fontWeight: '700', color: c.text, marginTop: 20, marginBottom: 10,
-    },
+    sectionLabel: { fontSize: 13, fontWeight: '700', marginTop: 20, marginBottom: 6 },
 
-    daysRow: {
-      flexDirection: 'row', flexWrap: 'wrap', gap: 8,
+    segmentRow: { flexDirection: 'row', gap: 8, marginBottom: 4 },
+    segmentBtn: {
+      flex: 1, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 6,
+      borderWidth: 1, alignItems: 'center',
     },
+    segmentBtnText: { fontSize: 13, fontWeight: '600' },
+
+    daysRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     dayBtn: {
-      backgroundColor: c.card, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12,
-      borderWidth: 1, borderColor: c.border, minWidth: 46, alignItems: 'center',
+      borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12,
+      borderWidth: 1, minWidth: 46, alignItems: 'center',
     },
-    dayBtnActive: {
-      backgroundColor: c.primary, borderColor: c.primary,
-    },
-    dayBtnText: { fontSize: 13, fontWeight: '600', color: c.textSub },
-    dayBtnTextActive: { color: c.onPrimary },
+    dayBtnText: { fontSize: 13, fontWeight: '600' },
 
     hoursRow: {
       flexDirection: 'row', alignItems: 'center', gap: 8,
-      backgroundColor: c.card, borderRadius: 14, padding: 16,
-      borderWidth: 1, borderColor: c.border,
+      borderRadius: 14, padding: 16, borderWidth: 1,
     },
-    hoursDash: { fontSize: 20, color: c.textMuted, fontWeight: '300' },
+    hoursDash: { fontSize: 20, fontWeight: '300' },
 
     input: {
-      backgroundColor: c.card, borderWidth: 1, borderColor: c.border,
-      borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
-      fontSize: 15, color: c.text,
+      borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15,
     },
-    fieldHint: { fontSize: 11, color: c.textMuted, marginTop: 6, lineHeight: 16 },
+    fieldHint: { fontSize: 11, marginTop: 6, lineHeight: 16 },
 
     toggleRow: {
       flexDirection: 'row', alignItems: 'center', gap: 12,
-      backgroundColor: c.card, borderRadius: 14, padding: 14,
-      borderWidth: 1, borderColor: c.border,
+      borderRadius: 14, padding: 14, borderWidth: 1,
     },
     toggleText: { flex: 1 },
-    toggleLabel: { fontSize: 14, fontWeight: '600', color: c.text, marginBottom: 2 },
+    toggleLabel: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
   })
 }

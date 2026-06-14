@@ -1,12 +1,15 @@
-import { useColorScheme } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Ionicons } from '@expo/vector-icons'
-import { light, dark } from '../lib/theme'
+import { useTheme } from '../contexts/ThemeContext'
+import { useSettingsSheet } from '../contexts/SettingsContext'
+import { useBusiness } from '../contexts/BusinessContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import LogScreen from '../screens/LogScreen'
 import ForecastScreen from '../screens/ForecastScreen'
 import AnalyticsScreen from '../screens/AnalyticsScreen'
 import ManageScreen from '../screens/ManageScreen'
+import SettingsModal from '../screens/manage/SettingsModal'
 
 const Tab = createBottomTabNavigator()
 
@@ -16,12 +19,14 @@ const TAB_ICONS: Record<string, { outline: IoniconsName; filled: IoniconsName }>
   Log:       { outline: 'add-circle-outline', filled: 'add-circle' },
   Forecast:  { outline: 'calendar-outline',   filled: 'calendar' },
   Analytics: { outline: 'bar-chart-outline',  filled: 'bar-chart' },
-  Manage:    { outline: 'settings-outline',   filled: 'settings' },
+  Manage:    { outline: 'grid-outline',        filled: 'grid' },
 }
 
 export default function AppNavigator() {
-  const scheme = useColorScheme()
-  const c = scheme === 'dark' ? dark : light
+  const c = useTheme()
+  const { settingsOpen, closeSettings } = useSettingsSheet()
+  const { business, reload } = useBusiness()
+  const { t } = useLanguage()
 
   return (
     <NavigationContainer>
@@ -44,11 +49,20 @@ export default function AppNavigator() {
           },
         })}
       >
-        <Tab.Screen name="Log" component={LogScreen} />
-        <Tab.Screen name="Forecast" component={ForecastScreen} />
-        <Tab.Screen name="Analytics" component={AnalyticsScreen} />
-        <Tab.Screen name="Manage" component={ManageScreen} />
+        <Tab.Screen name="Log" component={LogScreen} options={{ tabBarLabel: t('log') }} />
+        <Tab.Screen name="Forecast" component={ForecastScreen} options={{ tabBarLabel: t('forecast') }} />
+        <Tab.Screen name="Analytics" component={AnalyticsScreen} options={{ tabBarLabel: t('analytics') }} />
+        <Tab.Screen name="Manage" component={ManageScreen} options={{ tabBarLabel: t('manage') }} />
       </Tab.Navigator>
+
+      {/* Global settings sheet — opened by the gear icon in any screen's header */}
+      {settingsOpen && business !== null && (
+        <SettingsModal
+          business={business}
+          onClose={closeSettings}
+          onSaved={async () => { await reload() }}
+        />
+      )}
     </NavigationContainer>
   )
 }

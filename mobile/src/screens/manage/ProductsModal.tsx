@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+﻿import { useState, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
@@ -17,7 +17,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { ProductRead } from '../../api/types'
-import { useTheme, type Theme } from '../../lib/theme'
+import { useTheme } from '../../contexts/ThemeContext'
+import type { Theme } from '../../lib/theme'
 
 interface Props {
   onClose: () => void
@@ -347,10 +348,10 @@ export default function ProductsModal({ onClose }: Props) {
                   <View style={styles.productInfo}>
                     <Text style={styles.productName}>{p.name}</Text>
                     <Text style={styles.productMeta}>
-                      {p.unit} · {p.unit_mode === 'decimal' ? 'decimal' : 'whole'} ·{' '}
+                      {p.unit} ֲ· {p.unit_mode === 'decimal' ? 'decimal' : 'whole'} ֲ·{' '}
                       lead {p.lead_time_days}d
-                      {p.price != null ? ` · $${p.price}` : ''}
-                      {p.current_stock != null ? ` · stock: ${p.current_stock}` : ''}
+                      {p.price != null ? ` ֲ· $${p.price}` : ''}
+                      {p.current_stock != null ? ` ֲ· stock: ${p.current_stock}` : ''}
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -445,3 +446,4 @@ function makeStyles(c: Theme) {
     optionalToggleText: { fontSize: 14, fontWeight: '600', color: c.primary },
   })
 }
+

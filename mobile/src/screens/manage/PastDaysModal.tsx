@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+﻿import { useState, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
@@ -16,7 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { DayRecordRead, ProductRead, SaleRead } from '../../api/types'
-import { useTheme, type Theme } from '../../lib/theme'
+import { useTheme } from '../../contexts/ThemeContext'
+import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
 
@@ -30,7 +31,7 @@ function isValidDate(s: string): boolean {
   return !isNaN(new Date(s).getTime())
 }
 
-// ── CSV helpers ────────────────────────────────────────────────────────────────
+// ג”€ג”€ CSV helpers ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 function parseCSV(text: string): string[][] {
   return text
@@ -68,7 +69,7 @@ function parseDateStr(raw: string): string | null {
 interface ParsedRow {
   date: string
   customers: number
-  products: Record<string, number>  // product name → units
+  products: Record<string, number>  // product name ג†’ units
 }
 
 function parseCSVRows(
@@ -114,7 +115,7 @@ function parseCSVRows(
   return { parsed, skipped }
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
+// ג”€ג”€ Main component ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 export default function PastDaysModal({ onClose }: Props) {
   const c = useTheme()
@@ -310,7 +311,7 @@ export default function PastDaysModal({ onClose }: Props) {
     )
   }
 
-  // ── CSV import ───────────────────────────────────────────────────────────────
+  // ג”€ג”€ CSV import ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
   const openImport = () => {
     setCsvRows([])
@@ -401,7 +402,7 @@ export default function PastDaysModal({ onClose }: Props) {
     else { onClose() }
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // ג”€ג”€ Render ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
   const headerTitle = showForm
     ? (editId ? 'Edit Day' : 'Add Past Day')
@@ -448,7 +449,7 @@ export default function PastDaysModal({ onClose }: Props) {
           )}
         </View>
 
-        {/* ── Add / Edit form ── */}
+        {/* ג”€ג”€ Add / Edit form ג”€ג”€ */}
         {showForm && (
           <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -524,7 +525,7 @@ export default function PastDaysModal({ onClose }: Props) {
           </KeyboardAvoidingView>
         )}
 
-        {/* ── CSV Import view ── */}
+        {/* ג”€ג”€ CSV Import view ג”€ג”€ */}
         {showImport && (
           <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
             <Text style={styles.importHint}>
@@ -569,18 +570,18 @@ export default function PastDaysModal({ onClose }: Props) {
                   <View style={styles.previewBox}>
                     <Text style={styles.previewTitle}>
                       {csvRows.length} day{csvRows.length !== 1 ? 's' : ''} ready to import
-                      {csvSkipped > 0 ? ` (${csvSkipped} rows skipped — couldn't parse)` : ''}
+                      {csvSkipped > 0 ? ` (${csvSkipped} rows skipped ג€” couldn't parse)` : ''}
                     </Text>
                     {csvRows.slice(0, 5).map(row => (
                       <Text key={row.date} style={styles.previewRow}>
-                        {row.date} — {row.customers} customers
+                        {row.date} ג€” {row.customers} customers
                         {Object.entries(row.products).length > 0
-                          ? ' · ' + Object.entries(row.products).map(([n, u]) => `${u} ${n}`).join(', ')
+                          ? ' ֲ· ' + Object.entries(row.products).map(([n, u]) => `${u} ${n}`).join(', ')
                           : ''}
                       </Text>
                     ))}
                     {csvRows.length > 5 && (
-                      <Text style={styles.previewMore}>…and {csvRows.length - 5} more</Text>
+                      <Text style={styles.previewMore}>ג€¦and {csvRows.length - 5} more</Text>
                     )}
 
                     <TouchableOpacity
@@ -601,7 +602,7 @@ export default function PastDaysModal({ onClose }: Props) {
           </ScrollView>
         )}
 
-        {/* ── Record list ── */}
+        {/* ג”€ג”€ Record list ג”€ג”€ */}
         {!showForm && !showImport && (
           <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
             {loading ? (
@@ -782,3 +783,4 @@ function makeStyles(c: Theme) {
     importSuccessText: { fontSize: 14, color: '#16a34a', fontWeight: '600', flex: 1 },
   })
 }
+

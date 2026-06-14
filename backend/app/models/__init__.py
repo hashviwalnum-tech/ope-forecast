@@ -10,6 +10,7 @@ from app.models.regular import Regular
 from app.models.regular_daily_spend import RegularDailySpend
 from app.models.sale_event import SaleEvent
 from app.models.sale_record import SaleRecord
+from app.models.stock_batch import StockBatch
 from app.models.telegram_link import TelegramLink
 
 __all__ = [
@@ -25,5 +26,6 @@ __all__ = [
     "RegularDailySpend",
     "SaleEvent",
     "SaleRecord",
+    "StockBatch",
     "TelegramLink",
 ]

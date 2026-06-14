@@ -11,8 +11,12 @@ import { supabase } from './src/lib/supabase'
 import LoginScreen from './src/screens/LoginScreen'
 import AppNavigator from './src/navigation/AppNavigator'
 import { BusinessProvider } from './src/contexts/BusinessContext'
+import { LanguageProvider } from './src/contexts/LanguageContext'
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext'
+import { SettingsProvider } from './src/contexts/SettingsContext'
 
-export default function App() {
+function AppRoot() {
+  const c = useTheme()
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -29,25 +33,37 @@ export default function App() {
 
   if (loading) {
     return (
-      <SafeAreaProvider>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0fdfa' }}>
-          <ActivityIndicator size="large" color="#0d9488" />
-          <StatusBar style="auto" />
-        </View>
-      </SafeAreaProvider>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: c.bg }}>
+        <ActivityIndicator size="large" color={c.primary} />
+        <StatusBar style="auto" />
+      </View>
     )
   }
 
   return (
-    <SafeAreaProvider>
+    <>
       <StatusBar style="auto" />
       {session ? (
         <BusinessProvider>
-          <AppNavigator />
+          <SettingsProvider>
+            <AppNavigator />
+          </SettingsProvider>
         </BusinessProvider>
       ) : (
         <LoginScreen />
       )}
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <AppRoot />
+        </ThemeProvider>
+      </LanguageProvider>
     </SafeAreaProvider>
   )
 }

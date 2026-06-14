@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
 import {
   View,
   Text,
@@ -13,7 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { BusinessRead } from '../../api/types'
-import { useTheme, type Theme } from '../../lib/theme'
+import { useTheme } from '../../contexts/ThemeContext'
+import type { Theme } from '../../lib/theme'
 
 interface Props {
   business: BusinessRead
@@ -242,3 +243,4 @@ function makeStyles(c: Theme) {
     },
   })
 }
+

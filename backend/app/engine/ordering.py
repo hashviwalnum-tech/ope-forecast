@@ -1,12 +1,83 @@
 """
-Ordering decisions: reorder point, safety stock, EOQ.
+Ordering decisions: reorder point, safety stock, EOQ, and batch-FIFO tracking.
 Pure functions — no DB, no framework imports.
 """
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
+from datetime import date
 
 from scipy.stats import norm
+
+
+# ── Batch FIFO tracking ───────────────────────────────────────────────────────
+
+@dataclass
+class BatchInfo:
+    """Snapshot of one stock batch sufficient for FIFO and spoilage math."""
+    id: int
+    quantity_remaining: float
+    arrival_date: date
+    expiry_date: date | None  # None when the product has no shelf-life set
+
+
+def fifo_deplete(batches: list[BatchInfo], amount: float) -> tuple[list[BatchInfo], float]:
+    """Deplete *amount* units from *batches* oldest-first (FIFO).
+
+    Returns (updated_batches, actually_depleted) where actually_depleted may be
+    less than amount if total remaining stock is insufficient.
+    Batches are consumed oldest-first (sorted by arrival_date ascending).
+    """
+    if amount < 0:
+        raise ValueError("amount must be non-negative")
+    sorted_batches = sorted(batches, key=lambda b: b.arrival_date)
+    remaining = amount
+    updated: list[BatchInfo] = []
+    for b in sorted_batches:
+        if remaining <= 0:
+            updated.append(b)
+            continue
+        take = min(b.quantity_remaining, remaining)
+        remaining -= take
+        updated.append(
+            BatchInfo(
+                id=b.id,
+                quantity_remaining=b.quantity_remaining - take,
+                arrival_date=b.arrival_date,
+                expiry_date=b.expiry_date,
+            )
+        )
+    actually_depleted = amount - max(remaining, 0.0)
+    return updated, actually_depleted
+
+
+def spoiled_or_at_risk(batches: list[BatchInfo], today: date) -> list[BatchInfo]:
+    """Return batches that have expired (expiry_date <= today) with units still left.
+
+    These are spoiled — the owner should be alerted.  Batches with no expiry_date
+    (product has no shelf life set) are never considered spoiled.
+    """
+    return [
+        b for b in batches
+        if b.expiry_date is not None and b.expiry_date <= today and b.quantity_remaining > 0
+    ]
+
+
+def batches_expiring_before(batches: list[BatchInfo], cutoff: date) -> list[BatchInfo]:
+    """Return batches that will expire strictly before *cutoff* with units remaining.
+
+    Used to warn the owner about older stock that needs to sell before new stock arrives.
+    """
+    return [
+        b for b in batches
+        if b.expiry_date is not None and b.expiry_date < cutoff and b.quantity_remaining > 0
+    ]
+
+
+def total_remaining(batches: list[BatchInfo]) -> float:
+    """Sum of quantity_remaining across all batches."""
+    return sum(b.quantity_remaining for b in batches)
 
 
 def demand_over_lead_time(avg_daily_demand: float, lead_time_days: int) -> float:

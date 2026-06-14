@@ -17,6 +17,7 @@ from app.api.deps import get_business
 from app.db import get_db
 from app.models import Business, Product
 from app.models.order_record import OrderRecord
+from app.models.stock_batch import StockBatch
 from app.schemas.order_record import OrderRecordCreate, OrderRecordRead, OrderRecordUpdate
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
@@ -68,6 +69,25 @@ def create_order(
         status="pending",
     )
     db.add(row)
+    db.flush()  # get row.id before batch creation
+
+    # Create a stock batch for this order (arrives after lead time)
+    expiry = (
+        arrival + timedelta(days=product.shelf_life_days)
+        if product.shelf_life_days is not None
+        else None
+    )
+    batch = StockBatch(
+        business_id=biz.id,
+        product_id=body.product_id,
+        quantity_initial=body.quantity,
+        quantity_remaining=body.quantity,
+        arrival_date=arrival,
+        expiry_date=expiry,
+        source="reorder",
+        order_record_id=row.id,
+    )
+    db.add(batch)
     db.commit()
     db.refresh(row)
     return row

@@ -106,6 +106,10 @@ class OrderingRow(BaseModel):
     eoq: Optional[float] = None
     suggested_order_qty: float = 0.0
     constraint_notes: list[str] = []
+    # Batch-FIFO fields
+    fifo_note: Optional[str] = None           # always shown when batches exist: "assumes oldest first (FIFO)"
+    older_stock_warning: Optional[str] = None # older batches expiring before new order arrives
+    spoilage_alert: Optional[str] = None      # batches that have already expired with stock left
 
 
 class OrderingResponse(BaseModel):

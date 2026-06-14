@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+﻿import { useState, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { TelegramLinkCodeResponse, TelegramLinkStatus } from '../../api/types'
-import { useTheme, type Theme } from '../../lib/theme'
+import { useTheme } from '../../contexts/ThemeContext'
+import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
 
@@ -107,7 +108,7 @@ export default function TelegramModal({ onClose }: Props) {
               </TouchableOpacity>
             </View>
           ) : status?.linked ? (
-            /* ── Linked ── */
+            /* ג”€ג”€ Linked ג”€ג”€ */
             <>
               <View style={styles.connectedCard}>
                 <Ionicons name="checkmark-circle" size={36} color="#16a34a" />
@@ -135,7 +136,7 @@ export default function TelegramModal({ onClose }: Props) {
               </TouchableOpacity>
             </>
           ) : (
-            /* ── Not linked ── */
+            /* ג”€ג”€ Not linked ג”€ג”€ */
             <>
               <View style={styles.heroIcon}>
                 <Ionicons name="paper-plane-outline" size={48} color={c.primary} />
@@ -143,7 +144,7 @@ export default function TelegramModal({ onClose }: Props) {
               <Text style={styles.heroTitle}>Connect Telegram</Text>
               <Text style={styles.infoText}>
                 Link your Ope account to a Telegram bot so you can log sales and ask for forecasts
-                in plain language — without opening the app.
+                in plain language ג€” without opening the app.
               </Text>
 
               <Text style={styles.stepsTitle}>How to connect:</Text>
@@ -180,7 +181,7 @@ export default function TelegramModal({ onClose }: Props) {
                     activeOpacity={0.8}
                   >
                     <Text style={styles.primaryBtnText}>
-                      {generating ? 'Generating…' : 'Generate a new code'}
+                      {generating ? 'Generatingג€¦' : 'Generate a new code'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -282,3 +283,4 @@ function makeStyles(c: Theme) {
     dangerBtnText: { fontSize: 15, fontWeight: '600', color: c.danger },
   })
 }
+

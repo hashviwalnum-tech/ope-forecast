@@ -26,7 +26,10 @@ import type {
   ProductForecastResponse,
 } from '../api/types'
 import { useBusiness } from '../contexts/BusinessContext'
-import { useTheme, type Theme } from '../lib/theme'
+import { useTheme } from '../contexts/ThemeContext'
+import { useLanguage } from '../contexts/LanguageContext'
+import type { Theme } from '../lib/theme'
+import AppHeader from '../components/AppHeader'
 
 const WEEKDAY_SHORT: Record<string, string> = {
   Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu',
@@ -55,6 +58,7 @@ function todayStr(): string {
 export default function ForecastScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
+  const { t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [forecast, setForecast] = useState<ForecastDay[]>([])
@@ -143,15 +147,11 @@ export default function ForecastScreen() {
 
   if (bizLoading || (initialLoading && forecast.length === 0)) {
     return (
-      <SafeAreaView style={styles.root} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Forecast</Text>
-        </View>
+      <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]} edges={['top']}>
+        <AppHeader title={t('forecast')} subtitle={business?.name} />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={c.primary} />
-          <Text style={styles.loadingText}>
-            Loading… first load may take ~45 s if the server is waking up
-          </Text>
+          <Text style={[styles.loadingText, { color: c.textSub }]}>{t('serverWakeup')}</Text>
         </View>
       </SafeAreaView>
     )
@@ -159,14 +159,12 @@ export default function ForecastScreen() {
 
   if (bizError || dataError) {
     return (
-      <SafeAreaView style={styles.root} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Forecast</Text>
-        </View>
+      <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]} edges={['top']}>
+        <AppHeader title={t('forecast')} subtitle={business?.name} />
         <View style={styles.center}>
-          <Text style={styles.errorText}>{bizError ?? dataError}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => void loadData()}>
-            <Text style={styles.retryText}>Retry</Text>
+          <Text style={[styles.errorText, { color: c.danger }]}>{bizError ?? dataError}</Text>
+          <TouchableOpacity style={[styles.retryBtn, { backgroundColor: c.primary }]} onPress={() => void loadData()}>
+            <Text style={[styles.retryText, { color: c.onPrimary }]}>{t('retry')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -204,24 +202,21 @@ export default function ForecastScreen() {
   ]
 
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Forecast</Text>
-          {business !== null && (
-            <Text style={styles.headerSub}>{business.name}</Text>
-          )}
-        </View>
-        <TouchableOpacity onPress={() => void loadData()} style={styles.reloadBtn}>
-          <Ionicons name="refresh-outline" size={20} color={c.onPrimary} />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={[styles.root, { backgroundColor: c.bg }]} edges={['top']}>
+      <AppHeader
+        title={t('forecast')}
+        subtitle={business?.name}
+        rightExtra={
+          <TouchableOpacity onPress={() => void loadData()} style={styles.reloadBtn}>
+            <Ionicons name="refresh-outline" size={20} color={c.onPrimary} />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
 
         {/* ── Forecast ── */}
-        <Text style={styles.sectionTitle}>This Week's Forecast</Text>
+        <Text style={[styles.sectionTitle, { color: c.primaryDark }]}>{t('thisWeekForecast')}</Text>
 
         {/* View switcher */}
         {switcherItems.length > 1 && (
@@ -255,32 +250,30 @@ export default function ForecastScreen() {
         {/* Customers view */}
         {viewMode === 'customers' && (
           forecast.length === 0 ? (
-            <View style={styles.emptyBox}>
+            <View style={[styles.emptyBox, { backgroundColor: c.card, borderColor: c.border }]}>
               <Ionicons name="calendar-outline" size={28} color={c.textMuted} />
-              <Text style={styles.emptyText}>
-                Not enough data yet — log a few days first to see predictions.
-              </Text>
+              <Text style={[styles.emptyText, { color: c.textSub }]}>{t('notEnoughDataYet')}</Text>
             </View>
           ) : (
             forecast.map(day => (
-              <View key={day.date} style={styles.forecastRow}>
+              <View key={day.date} style={[styles.forecastRow, { backgroundColor: c.card }]}>
                 <View style={styles.dayCol}>
-                  <Text style={styles.dayName}>
+                  <Text style={[styles.dayName, { color: c.primaryDark }]}>
                     {WEEKDAY_SHORT[day.weekday] ?? day.weekday}
                   </Text>
-                  <Text style={styles.dayDate}>{day.date.slice(5)}</Text>
+                  <Text style={[styles.dayDate, { color: c.textMuted }]}>{day.date.slice(5)}</Text>
                 </View>
                 <View style={styles.predCol}>
-                  <Text style={styles.predNumber}>
+                  <Text style={[styles.predNumber, { color: c.text }]}>
                     {Math.round(day.predicted_customers)}
                   </Text>
-                  <Text style={styles.predLabel}>customers</Text>
+                  <Text style={[styles.predLabel, { color: c.textMuted }]}>{t('customers')}</Text>
                 </View>
                 <View style={styles.rangeCol}>
-                  <Text style={styles.rangeText}>
+                  <Text style={[styles.rangeText, { color: c.textSub }]}>
                     {Math.round(day.interval_low)}–{Math.round(day.interval_high)}
                   </Text>
-                  <Text style={styles.rangeLabel}>range</Text>
+                  <Text style={[styles.rangeLabel, { color: c.textMuted }]}>{t('range')}</Text>
                 </View>
               </View>
             ))
@@ -290,10 +283,10 @@ export default function ForecastScreen() {
         {/* Product view */}
         {typeof viewMode === 'number' && (
           selectedProduct == null || selectedProduct.status !== 'ok' || selectedProduct.days.length === 0 ? (
-            <View style={styles.emptyBox}>
+            <View style={[styles.emptyBox, { backgroundColor: c.card, borderColor: c.border }]}>
               <Ionicons name="cube-outline" size={28} color={c.textMuted} />
-              <Text style={styles.emptyText}>
-                {selectedProduct?.message ?? 'Not enough sales data yet for this product.'}
+              <Text style={[styles.emptyText, { color: c.textSub }]}>
+                {selectedProduct?.message ?? t('noProductDataYet')}
               </Text>
             </View>
           ) : (
@@ -327,38 +320,36 @@ export default function ForecastScreen() {
         )}
 
         {/* ── Busy Hours + Staffing ── */}
-        <Text style={[styles.sectionTitle, styles.sectionGap]}>Busy Hours & Staffing</Text>
+        <Text style={[styles.sectionTitle, styles.sectionGap, { color: c.primaryDark }]}>{t('busyHoursStaffing')}</Text>
 
         {busyHours.length === 0 ? (
-          <View style={styles.emptyBox}>
+          <View style={[styles.emptyBox, { backgroundColor: c.card, borderColor: c.border }]}>
             <Ionicons name="time-outline" size={28} color={c.textMuted} />
-            <Text style={styles.emptyText}>
-              Record live sales for a few weeks to see busy-hour patterns.
-            </Text>
+            <Text style={[styles.emptyText, { color: c.textSub }]}>{t('tapSalesWeeks')}</Text>
           </View>
         ) : (
           <>
             {/* Tomorrow's peak */}
-            <View style={styles.peakCard}>
+            <View style={[styles.peakCard, { backgroundColor: c.primaryBg, borderColor: c.primary }]}>
               <View style={styles.peakCardLeft}>
-                <Text style={styles.peakCardLabel}>
-                  Tomorrow ({tomorrowEntry?.weekday ?? ''})
+                <Text style={[styles.peakCardLabel, { color: c.primaryDark }]}>
+                  {t('tomorrowLabel', { day: tomorrowEntry?.weekday ?? '' })}
                 </Text>
                 {peakHour && (
-                  <Text style={styles.peakCardTime}>
-                    Peak: {fmt12(peakHour.hour)}
+                  <Text style={[styles.peakCardTime, { color: c.text }]}>
+                    {t('peakLabel', { time: fmt12(peakHour.hour) })}
                   </Text>
                 )}
               </View>
               {peakHour && (
                 <View style={styles.peakCardRight}>
-                  <Text style={styles.peakCardCount}>
+                  <Text style={[styles.peakCardCount, { color: c.primaryDark }]}>
                     ~{Math.round(peakHour.avg_taps)}
                   </Text>
-                  <Text style={styles.peakCardUnit}>avg/hr</Text>
+                  <Text style={[styles.peakCardUnit, { color: c.textMuted }]}>{t('avgPerHour')}</Text>
                   {peakHour.recommended_staff > 0 && (
-                    <Text style={styles.peakStaffNote}>
-                      {peakHour.recommended_staff} staff
+                    <Text style={[styles.peakStaffNote, { color: c.primaryDark }]}>
+                      {t('staffLabel', { n: peakHour.recommended_staff })}
                     </Text>
                   )}
                 </View>
@@ -366,32 +357,33 @@ export default function ForecastScreen() {
             </View>
 
             {/* Hourly rows for tomorrow with staffing */}
-            <View style={styles.card}>
-              <Text style={styles.cardSubLabel}>Tomorrow hour by hour</Text>
+            <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+              <Text style={[styles.cardSubLabel, { color: c.textMuted }]}>{t('tomorrowHourByHour')}</Text>
               {busyHours.map(h => (
                 <View key={h.hour} style={styles.hourBlock}>
                   <View style={styles.hourRow}>
-                    <Text style={styles.hourLabel}>{fmt12(h.hour)}</Text>
-                    <View style={styles.barBg}>
+                    <Text style={[styles.hourLabel, { color: c.textSub }]}>{fmt12(h.hour)}</Text>
+                    <View style={[styles.barBg, { backgroundColor: c.border }]}>
                       <View
                         style={[
                           styles.barFill,
+                          { backgroundColor: c.primary },
                           { width: `${Math.round((h.avg_taps / maxTaps) * 100)}%` as `${number}%` },
                         ]}
                       />
                     </View>
-                    <Text style={styles.hourCount}>
+                    <Text style={[styles.hourCount, { color: c.text }]}>
                       {h.avg_taps < 1 ? '<1' : Math.round(h.avg_taps)}
                     </Text>
                   </View>
                   {(h.recommended_staff > 0 || h.expected_wait_minutes > 0) && (
-                    <Text style={styles.staffLine}>
-                      {h.recommended_staff > 0 ? `${h.recommended_staff} staff` : ''}
+                    <Text style={[styles.staffLine, { color: c.textSub }]}>
+                      {h.recommended_staff > 0 ? t('staffLabel', { n: h.recommended_staff }) : ''}
                       {h.recommended_staff > 0 && h.expected_wait_minutes > 0 && h.expected_wait_minutes < 60 ? ' · ' : ''}
                       {h.expected_wait_minutes > 0 && h.expected_wait_minutes < 60
-                        ? `~${Math.round(h.expected_wait_minutes)}m wait`
+                        ? t('waitLabel', { n: Math.round(h.expected_wait_minutes) })
                         : h.expected_wait_minutes >= 60
-                          ? 'severely understaffed'
+                          ? t('severelyUnderstaffed')
                           : ''}
                     </Text>
                   )}
@@ -404,17 +396,17 @@ export default function ForecastScreen() {
 
             {/* Peak by weekday */}
             {(hourly?.weekdays.length ?? 0) > 1 && (
-              <View style={styles.card}>
-                <Text style={styles.cardSubLabel}>Peak hour by weekday</Text>
+              <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+                <Text style={[styles.cardSubLabel, { color: c.textMuted }]}>{t('peakHourByWeekday')}</Text>
                 {(hourly?.weekdays ?? []).map(entry => (
-                  <View key={entry.weekday_idx} style={styles.weekdayPeakRow}>
-                    <Text style={styles.weekdayPeakDay}>
+                  <View key={entry.weekday_idx} style={[styles.weekdayPeakRow, { borderBottomColor: c.border }]}>
+                    <Text style={[styles.weekdayPeakDay, { color: c.primaryDark }]}>
                       {WEEKDAY_SHORT[entry.weekday] ?? entry.weekday}
                     </Text>
-                    <Text style={styles.weekdayPeakTime}>
+                    <Text style={[styles.weekdayPeakTime, { color: c.text }]}>
                       {fmt12(entry.peak_hour)}
                     </Text>
-                    <Text style={styles.weekdayPeakCount}>
+                    <Text style={[styles.weekdayPeakCount, { color: c.textSub }]}>
                       ~{Math.round(entry.peak_avg_taps)}/hr
                     </Text>
                   </View>
@@ -427,43 +419,64 @@ export default function ForecastScreen() {
         {/* ── What to Order ── */}
         {stockEnabled ? (
           <>
-            <Text style={[styles.sectionTitle, styles.sectionGap]}>What to Order</Text>
+            <Text style={[styles.sectionTitle, styles.sectionGap, { color: c.primaryDark }]}>{t('whatToOrder')}</Text>
 
             {orderProducts.length === 0 ? (
-              <View style={styles.emptyBox}>
+              <View style={[styles.emptyBox, { backgroundColor: c.card, borderColor: c.border }]}>
                 <Ionicons name="cube-outline" size={28} color={c.textMuted} />
-                <Text style={styles.emptyText}>
-                  {ordering?.message ??
-                    'Add products and log sales for a few weeks to get ordering advice.'}
+                <Text style={[styles.emptyText, { color: c.textSub }]}>
+                  {ordering?.message ?? t('addProductsLog')}
                 </Text>
               </View>
             ) : (
               <>
                 {urgentOrders.length > 0 && (
                   <>
-                    <Text style={styles.orderSubLabel}>Order now</Text>
+                    <Text style={[styles.orderSubLabel, { color: c.textMuted }]}>{t('orderNow')}</Text>
                     {urgentOrders.map(p => (
-                      <View key={p.product_id} style={[styles.orderCard, styles.orderCardUrgent]}>
+                      <View key={p.product_id} style={[styles.orderCard, styles.orderCardUrgent, { borderColor: '#e06b2e', backgroundColor: c.bg }]}>
                         <View style={styles.orderCardLeft}>
                           <View style={styles.urgentBadge}>
-                            <Text style={styles.urgentBadgeText}>Order now</Text>
+                            <Text style={styles.urgentBadgeText}>{t('orderNow')}</Text>
                           </View>
-                          <Text style={styles.orderName}>{p.name}</Text>
-                          <Text style={styles.orderMeta}>
-                            Avg demand: {
-                              p.avg_daily_demand < 1
-                                ? p.avg_daily_demand.toFixed(1)
-                                : Math.round(p.avg_daily_demand)
-                            } {p.unit}/day · lead time {p.lead_time_days}d
+                          <Text style={[styles.orderName, { color: c.text }]}>{p.name}</Text>
+                          <Text style={[styles.orderMeta, { color: c.textSub }]}>
+                            {t('avgDemand', {
+                              qty: p.avg_daily_demand < 1 ? p.avg_daily_demand.toFixed(1) : Math.round(p.avg_daily_demand),
+                              unit: p.unit,
+                              lt: p.lead_time_days,
+                            })}
                           </Text>
-                          {p.current_stock != null && (
-                            <Text style={styles.orderStock}>
-                              Stock: {p.current_stock} {p.unit}
+                          {p.stock_untracked ? (
+                            <View style={[styles.stockUntracked, { backgroundColor: c.primaryXBg, borderColor: c.border }]}>
+                              <Ionicons name="information-circle-outline" size={14} color={c.primaryDark} />
+                              <Text style={[styles.stockUntrackedText, { color: c.primaryDark }]}>
+                                {t('enterStockForTracking')}
+                              </Text>
+                            </View>
+                          ) : p.current_stock != null ? (
+                            <Text style={[styles.orderStock, { color: c.textMuted }]}>
+                              {t('stock', { qty: p.current_stock, unit: p.unit })}
+                            </Text>
+                          ) : null}
+                          {hasRunoutWarning(p.product_id) && (
+                            <Text style={[styles.runoutWarning, { color: '#b45309' }]}>
+                              {t('mayRunOut')}
                             </Text>
                           )}
-                          {hasRunoutWarning(p.product_id) && (
-                            <Text style={styles.runoutWarning}>
-                              ⚠ May run out before reorder arrives
+                          {(p as OrderingRow & { older_stock_warning?: string }).older_stock_warning && (
+                            <Text style={[styles.fifoWarning, { color: '#b45309' }]}>
+                              {(p as OrderingRow & { older_stock_warning?: string }).older_stock_warning}
+                            </Text>
+                          )}
+                          {(p as OrderingRow & { spoilage_alert?: string }).spoilage_alert && (
+                            <Text style={[styles.spoilageAlert, { color: c.danger }]}>
+                              {(p as OrderingRow & { spoilage_alert?: string }).spoilage_alert}
+                            </Text>
+                          )}
+                          {(p as OrderingRow & { fifo_note?: string }).fifo_note && (
+                            <Text style={[styles.fifoNote, { color: c.textMuted }]}>
+                              {t('fifoAssumptionNote')}
                             </Text>
                           )}
                           <TouchableOpacity
@@ -479,16 +492,16 @@ export default function ForecastScreen() {
                             activeOpacity={0.8}
                           >
                             <Ionicons name="checkmark-circle-outline" size={16} color={c.onPrimary} />
-                            <Text style={styles.reorderBtnText}>I reordered this</Text>
+                            <Text style={styles.reorderBtnText}>{t('iReorderedThis')}</Text>
                           </TouchableOpacity>
                         </View>
                         <View style={styles.orderQtyBox}>
-                          <Text style={styles.orderQty}>
+                          <Text style={[styles.orderQty, { color: c.primaryDark }]}>
                             {p.suggested_order_qty != null
                               ? Math.ceil(p.suggested_order_qty)
                               : '—'}
                           </Text>
-                          <Text style={styles.orderQtyUnit}>{p.unit}</Text>
+                          <Text style={[styles.orderQtyUnit, { color: c.textMuted }]}>{p.unit}</Text>
                         </View>
                       </View>
                     ))}
@@ -497,23 +510,32 @@ export default function ForecastScreen() {
 
                 {nonUrgentOrders.length > 0 && (
                   <>
-                    <Text style={[styles.orderSubLabel, { marginTop: urgentOrders.length > 0 ? 14 : 0 }]}>
-                      Stock OK
+                    <Text style={[styles.orderSubLabel, { color: c.textMuted, marginTop: urgentOrders.length > 0 ? 14 : 0 }]}>
+                      {t('stockOk')}
                     </Text>
                     {nonUrgentOrders.map(p => (
-                      <View key={p.product_id} style={styles.orderCard}>
+                      <View key={p.product_id} style={[styles.orderCard, { backgroundColor: c.card, borderColor: c.border }]}>
                         <View style={styles.orderCardLeft}>
-                          <Text style={styles.orderName}>{p.name}</Text>
-                          <Text style={styles.orderMeta}>
-                            Avg demand: {
-                              p.avg_daily_demand < 1
-                                ? p.avg_daily_demand.toFixed(1)
-                                : Math.round(p.avg_daily_demand)
-                            } {p.unit}/day
+                          <Text style={[styles.orderName, { color: c.text }]}>{p.name}</Text>
+                          <Text style={[styles.orderMeta, { color: c.textSub }]}>
+                            {t('avgDemand', {
+                              qty: p.avg_daily_demand < 1 ? p.avg_daily_demand.toFixed(1) : Math.round(p.avg_daily_demand),
+                              unit: p.unit,
+                              lt: p.lead_time_days,
+                            })}
                           </Text>
-                          {p.current_stock != null && (
-                            <Text style={styles.orderStock}>
-                              Stock: {p.current_stock} {p.unit}
+                          {p.stock_untracked ? (
+                            <Text style={[styles.stockUntrackedText, { color: c.primaryDark }]}>
+                              {t('enterStockForTracking')}
+                            </Text>
+                          ) : p.current_stock != null ? (
+                            <Text style={[styles.orderStock, { color: c.textMuted }]}>
+                              {t('stock', { qty: p.current_stock, unit: p.unit })}
+                            </Text>
+                          ) : null}
+                          {(p as OrderingRow & { fifo_note?: string }).fifo_note && (
+                            <Text style={[styles.fifoNote, { color: c.textMuted }]}>
+                              {t('fifoAssumptionNote')}
                             </Text>
                           )}
                         </View>
@@ -528,11 +550,9 @@ export default function ForecastScreen() {
             )}
           </>
         ) : (
-          <View style={[styles.emptyBox, { marginTop: 28 }]}>
+          <View style={[styles.emptyBox, { marginTop: 28, backgroundColor: c.card, borderColor: c.border }]}>
             <Ionicons name="cube-outline" size={24} color={c.textMuted} />
-            <Text style={styles.emptyText}>
-              Stock & reorder tracking is turned off. Enable it in Business Settings.
-            </Text>
+            <Text style={[styles.emptyText, { color: c.textSub }]}>{t('stockReorderOff')}</Text>
           </View>
         )}
 
@@ -549,15 +569,15 @@ export default function ForecastScreen() {
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
-            <View style={styles.logOrderModal}>
-              <Text style={styles.logOrderTitle}>
-                I reordered — {logOrderProduct?.name}
+            <View style={[styles.logOrderModal, { backgroundColor: c.bg }]}>
+              <Text style={[styles.logOrderTitle, { color: c.text }]}>
+                {t('iReorderedThis')} — {logOrderProduct?.name}
               </Text>
-              <Text style={styles.logOrderSub}>
+              <Text style={[styles.logOrderSub, { color: c.textSub }]}>
                 How many {logOrderProduct?.unit} did you order?
               </Text>
               <TextInput
-                style={styles.logOrderInput}
+                style={[styles.logOrderInput, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
                 value={logOrderQty}
                 onChangeText={setLogOrderQty}
                 keyboardType="decimal-pad"
@@ -569,10 +589,10 @@ export default function ForecastScreen() {
               />
               <View style={styles.logOrderBtns}>
                 <TouchableOpacity
-                  style={styles.logOrderCancel}
+                  style={[styles.logOrderCancel, { backgroundColor: c.card, borderColor: c.border }]}
                   onPress={() => { setLogOrderProduct(null); setLogOrderQty('') }}
                 >
-                  <Text style={styles.logOrderCancelText}>Cancel</Text>
+                  <Text style={[styles.logOrderCancelText, { color: c.textSub }]}>{t('cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.logOrderConfirm, logOrderSaving && { opacity: 0.6 }]}
@@ -581,7 +601,7 @@ export default function ForecastScreen() {
                 >
                   {logOrderSaving
                     ? <ActivityIndicator size="small" color={c.onPrimary} />
-                    : <Text style={styles.logOrderConfirmText}>Log</Text>}
+                    : <Text style={styles.logOrderConfirmText}>{t('save')}</Text>}
                 </TouchableOpacity>
               </View>
             </View>
@@ -594,19 +614,7 @@ export default function ForecastScreen() {
 
 function makeStyles(c: Theme) {
   return StyleSheet.create({
-    root: { flex: 1, backgroundColor: c.bg },
-
-    header: {
-      backgroundColor: c.headerBg,
-      paddingHorizontal: 20,
-      paddingBottom: 16,
-      paddingTop: 10,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-end',
-    },
-    headerTitle: { fontSize: 26, fontWeight: '700', color: c.onPrimary },
-    headerSub: { fontSize: 12, color: c.onPrimarySub, marginTop: 2 },
+    root: { flex: 1 },
     reloadBtn: {
       backgroundColor: 'rgba(255,255,255,0.18)',
       borderRadius: 20,
@@ -721,19 +729,26 @@ function makeStyles(c: Theme) {
       shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.04, shadowRadius: 3, elevation: 1,
     },
-    orderCardUrgent: {
-      borderColor: '#e06b2e', backgroundColor: '#fff8f4',
-    },
+    orderCardUrgent: { borderColor: '#e06b2e' },
     orderCardLeft: { flex: 1, gap: 3 },
     urgentBadge: {
       alignSelf: 'flex-start', backgroundColor: '#e06b2e',
       borderRadius: 6, paddingVertical: 2, paddingHorizontal: 7, marginBottom: 4,
     },
     urgentBadgeText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-    orderName: { fontSize: 15, fontWeight: '700', color: c.text },
-    orderMeta: { fontSize: 12, color: c.textSub },
-    orderStock: { fontSize: 12, color: c.textMuted },
-    runoutWarning: { fontSize: 11, color: '#b45309', fontWeight: '600', marginTop: 2 },
+    orderName: { fontSize: 15, fontWeight: '700' },
+    orderMeta: { fontSize: 12 },
+    orderStock: { fontSize: 12 },
+    runoutWarning: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+    fifoWarning: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+    spoilageAlert: { fontSize: 11, fontWeight: '700', marginTop: 2 },
+    fifoNote: { fontSize: 10, fontStyle: 'italic', marginTop: 2 },
+    stockUntracked: {
+      flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4,
+      borderRadius: 8, paddingVertical: 6, paddingHorizontal: 10, borderWidth: 1,
+      alignSelf: 'flex-start',
+    },
+    stockUntrackedText: { fontSize: 11, fontWeight: '600', flex: 1 },
     reorderBtn: {
       flexDirection: 'row', alignItems: 'center', gap: 6,
       backgroundColor: '#e06b2e', borderRadius: 8,
@@ -742,33 +757,28 @@ function makeStyles(c: Theme) {
     },
     reorderBtnText: { fontSize: 13, color: '#fff', fontWeight: '700' },
     orderQtyBox: { alignItems: 'center', marginLeft: 12 },
-    orderQty: { fontSize: 26, fontWeight: '700', color: c.primaryDark },
-    orderQtyUnit: { fontSize: 11, color: c.textMuted },
+    orderQty: { fontSize: 26, fontWeight: '700' },
+    orderQtyUnit: { fontSize: 11 },
 
     // Log order modal
     modalOverlay: {
-      flex: 1, backgroundColor: 'rgba(0,0,0,0.45)',
-      justifyContent: 'flex-end',
+      flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end',
     },
     logOrderModal: {
-      backgroundColor: c.bg, borderTopLeftRadius: 20, borderTopRightRadius: 20,
-      padding: 24, paddingBottom: Platform.OS === 'ios' ? 36 : 24,
-      gap: 12,
+      borderTopLeftRadius: 20, borderTopRightRadius: 20,
+      padding: 24, paddingBottom: Platform.OS === 'ios' ? 36 : 24, gap: 12,
     },
-    logOrderTitle: { fontSize: 18, fontWeight: '700', color: c.text },
-    logOrderSub: { fontSize: 14, color: c.textSub },
+    logOrderTitle: { fontSize: 18, fontWeight: '700' },
+    logOrderSub: { fontSize: 14 },
     logOrderInput: {
-      backgroundColor: c.card, borderWidth: 1, borderColor: c.border,
-      borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14,
-      fontSize: 18, color: c.text, fontWeight: '600',
+      borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14,
+      fontSize: 18, fontWeight: '600',
     },
     logOrderBtns: { flexDirection: 'row', gap: 10, marginTop: 4 },
     logOrderCancel: {
-      flex: 1, backgroundColor: c.card, borderRadius: 12,
-      paddingVertical: 14, alignItems: 'center',
-      borderWidth: 1, borderColor: c.border,
+      flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderWidth: 1,
     },
-    logOrderCancelText: { fontSize: 15, color: c.textSub, fontWeight: '600' },
+    logOrderCancelText: { fontSize: 15, fontWeight: '600' },
     logOrderConfirm: {
       flex: 2, backgroundColor: '#e06b2e', borderRadius: 12,
       paddingVertical: 14, alignItems: 'center',
