@@ -8,12 +8,26 @@ so the function is trivially testable without ORM objects.
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime, timezone as _UTC
+from zoneinfo import ZoneInfo
 
 # Used when opening hours are not configured: cover most business windows
 # without silently including overnight hours that shouldn't exist for any
 # normal business (avoids 1–5am data leaking into peak-hours / staffing).
 _DEFAULT_OPEN_HOURS: frozenset[int] = frozenset(range(6, 23))
+
+
+def utc_to_local_hour(ts: datetime, tz_name: str) -> int:
+    """Return the local hour of a timestamp.
+
+    Naive datetimes are assumed to be UTC (matching how SaleEvents are stored
+    via ``datetime.now()`` on a UTC server).  The result is the hour in the
+    business's local timezone so it can be compared against opening_hour /
+    closing_hour, which are always expressed in local time.
+    """
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=_UTC)
+    return ts.astimezone(ZoneInfo(tz_name)).hour
 
 
 def compute_open_hours(settings: dict) -> frozenset[int]:

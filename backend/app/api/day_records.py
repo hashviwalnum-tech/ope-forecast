@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_business
 from app.db import get_db
 from app.engine.limits import check_entry_timing, check_history, check_non_working_day, history_cutoff
-from app.engine.live_sales import compute_open_hours, reconcile_customers_with_hours
+from app.engine.live_sales import compute_open_hours, reconcile_customers_with_hours, utc_to_local_hour
 from app.engine.outliers import detect_outliers
 from app.models import Business, DayRecord, Period, RecurringPattern, SaleEvent
 from app.schemas.day_record import (
@@ -34,6 +34,7 @@ def rollup_tap_days(db: Session, biz: Business) -> list[date]:
     today = date.today()
     settings = biz.settings or {}
     open_hours = compute_open_hours(settings)
+    tz_name: str = settings.get("timezone", "UTC")
 
     # Distinct dates with SaleEvents before today for this business
     raw = (
@@ -75,7 +76,8 @@ def rollup_tap_days(db: Session, biz: Business) -> list[date]:
             .all()
         )
         customers = round(sum(
-            float(e.quantity) for e in cust_events if e.timestamp.hour in open_hours
+            float(e.quantity) for e in cust_events
+            if utc_to_local_hour(e.timestamp, tz_name) in open_hours
         ))
 
         # Fall back to total open-hours event count when no customer taps
@@ -89,7 +91,10 @@ def rollup_tap_days(db: Session, biz: Business) -> list[date]:
                 )
                 .all()
             )
-            customers = sum(1 for e in all_events if e.timestamp.hour in open_hours)
+            customers = sum(
+                1 for e in all_events
+                if utc_to_local_hour(e.timestamp, tz_name) in open_hours
+            )
 
         if customers == 0:
             continue
@@ -259,8 +264,12 @@ def rollup_tap_days_endpoint(db: Session = Depends(get_db), biz: Business = Depe
 
     Backfills the customer count from SaleEvent data for each missing date.
     Safe to call multiple times — already-existing records are left untouched.
+    Also triggers outlier detection so any newly created records are flagged
+    immediately rather than waiting for the next LogScreen load.
     """
     created = rollup_tap_days(db, biz)
+    if created:
+        _auto_flag_outliers(db, biz.id)
     return {"created_dates": [str(d) for d in created], "count": len(created)}
 
 

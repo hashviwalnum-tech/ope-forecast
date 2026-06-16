@@ -143,6 +143,7 @@ export const businesses = {
     opening_days?: number[]
     opening_hour?: number
     closing_hour?: number
+    timezone?: string
     avg_service_time_minutes?: number
     staffing_max_wait_minutes?: number | null
     staffing_max_queue_length?: number | null

@@ -57,6 +57,9 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
   const [assumeOnTime, setAssumeOnTime] = useState(
     s.assume_orders_arrive_on_time === true
   )
+  const [timezone, setTimezone] = useState(
+    typeof s.timezone === 'string' ? s.timezone : ''
+  )
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -72,6 +75,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
       ? String(fresh.staffing_max_wait_minutes) : '')
     setStockEnabled(fresh.stock_management_enabled !== false)
     setAssumeOnTime(fresh.assume_orders_arrive_on_time === true)
+    setTimezone(typeof fresh.timezone === 'string' ? fresh.timezone : '')
   }, [business])
 
   const toggleDay = (idx: number) => {
@@ -111,6 +115,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
         opening_days: openingDays,
         opening_hour: openHour,
         closing_hour: closeHour,
+        timezone: timezone.trim() || undefined,
         avg_service_time_minutes: stMin,
         staffing_max_wait_minutes: maxWait ? parseFloat(maxWait) : null,
         stock_management_enabled: stockEnabled,
@@ -267,6 +272,21 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
                 c={c}
               />
             </View>
+
+            {/* ── Timezone ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>Timezone</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
+              value={timezone}
+              onChangeText={setTimezone}
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="e.g. Asia/Jerusalem"
+              placeholderTextColor={c.textMuted}
+            />
+            <Text style={[styles.fieldHint, { color: c.textMuted }]}>
+              IANA timezone name used to match your tap timestamps to opening hours. Leave blank to use UTC.
+            </Text>
 
             {/* ── Service time ── */}
             <Text style={[styles.sectionLabel, { color: c.text }]}>{t('avgServiceTime')}</Text>

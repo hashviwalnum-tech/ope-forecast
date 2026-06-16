@@ -472,11 +472,15 @@ def _holdout_errors(
 def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     """Detect and return unreviewed outlier days.
 
-    Detection uses only the clean baseline: event/ad period dates and closed
-    weekdays are excluded from the reference set so their legitimate
-    spikes/zeros never contaminate the normal-day pattern or produce false
-    flags.  Records flagged while inside an event period are auto-resolved.
+    Automatically rolls up any past tap-only days that don't yet have a
+    DayRecord so that yesterday's taps always reach detection without requiring
+    a manual trigger.  Detection uses only the clean baseline: event/ad period
+    dates and closed weekdays are excluded from the reference set.
     """
+    # Auto-roll up any past tap-only days before running detection so that a
+    # day the owner tapped but never manually closed still gets evaluated.
+    rollup_tap_days(db, biz)
+
     all_records = (
         db.query(DayRecord)
         .filter_by(business_id=biz.id)
