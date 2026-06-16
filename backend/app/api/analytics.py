@@ -14,6 +14,7 @@ from statistics import mean, median, stdev
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.api.day_records import rollup_tap_days
 from app.api.deps import get_business
 from app.db import get_db
 from app.engine.accuracy import detect_drift, forecast_errors, mad, mape, mse, tracking_signal
@@ -279,6 +280,9 @@ def _clean_records(db: Session, biz: Business) -> list[DayRecord]:
     values are down-weighted by _effective_obs() rather than discarded.
     Un-logged open days are simply absent — never filled with zero.
     """
+    # Auto-create DayRecords for any past tap-only days not yet rolled up.
+    rollup_tap_days(db, biz)
+
     open_days = _open_days(biz)
     cutoff = history_cutoff(biz.tier, date.today())
 

@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -17,6 +18,91 @@ from app.schemas.day_record import (
 )
 
 router = APIRouter(prefix="/day-records", tags=["Day Records"])
+
+
+def rollup_tap_days(db: Session, biz: Business) -> list[date]:
+    """Create DayRecords for past dates that have SaleEvents but no DayRecord.
+
+    Implements the spec §9 requirement that tap-only days roll into past-days
+    automatically after closing hours.  Customer count = sum of customer-tap
+    (product_id=None) SaleEvent quantities within open hours.  Falls back to
+    the total open-hours event count when no customer taps exist.
+
+    Safe to call repeatedly — skips dates that already have a DayRecord.
+    Returns the list of dates for which new records were created.
+    """
+    today = date.today()
+    settings = biz.settings or {}
+    open_hours = compute_open_hours(settings)
+
+    # Distinct dates with SaleEvents before today for this business
+    raw = (
+        db.query(func.date(SaleEvent.timestamp).label("d"))
+        .filter(
+            SaleEvent.business_id == biz.id,
+            SaleEvent.timestamp < datetime.combine(today, datetime.min.time()),
+        )
+        .distinct()
+        .all()
+    )
+    if not raw:
+        return []
+
+    # Existing DayRecord dates — skip these
+    existing: set[date] = {
+        r[0] for r in db.query(DayRecord.date).filter(DayRecord.business_id == biz.id).all()
+    }
+
+    created: list[date] = []
+    for (raw_date,) in raw:
+        # SQLite returns strings; Postgres returns date objects
+        event_date: date = raw_date if isinstance(raw_date, date) else date.fromisoformat(str(raw_date))
+        if event_date in existing:
+            continue
+
+        day_start = datetime.combine(event_date, datetime.min.time())
+        day_end = datetime.combine(event_date, datetime.max.time())
+
+        # Sum customer-arrival taps (product_id=None) within open hours
+        cust_events = (
+            db.query(SaleEvent)
+            .filter(
+                SaleEvent.business_id == biz.id,
+                SaleEvent.product_id.is_(None),
+                SaleEvent.timestamp >= day_start,
+                SaleEvent.timestamp <= day_end,
+            )
+            .all()
+        )
+        customers = round(sum(
+            float(e.quantity) for e in cust_events if e.timestamp.hour in open_hours
+        ))
+
+        # Fall back to total open-hours event count when no customer taps
+        if customers == 0:
+            all_events = (
+                db.query(SaleEvent)
+                .filter(
+                    SaleEvent.business_id == biz.id,
+                    SaleEvent.timestamp >= day_start,
+                    SaleEvent.timestamp <= day_end,
+                )
+                .all()
+            )
+            customers = sum(1 for e in all_events if e.timestamp.hour in open_hours)
+
+        if customers == 0:
+            continue
+
+        try:
+            db.add(DayRecord(business_id=biz.id, date=event_date, customers=customers))
+            db.commit()
+            existing.add(event_date)
+            created.append(event_date)
+        except IntegrityError:
+            db.rollback()  # another request created it concurrently — harmless
+
+    return created
 
 _MIN_FOR_DETECTION = 14  # mirror analytics.MIN_RECORDS
 _WD_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -165,6 +251,17 @@ def _auto_flag_outliers(db: Session, business_id: int) -> None:
             changed = True
     if changed:
         db.commit()
+
+
+@router.post("/rollup-tap-days", status_code=200)
+def rollup_tap_days_endpoint(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+    """Create DayRecords for any past tap-only days that don't yet have one.
+
+    Backfills the customer count from SaleEvent data for each missing date.
+    Safe to call multiple times — already-existing records are left untouched.
+    """
+    created = rollup_tap_days(db, biz)
+    return {"created_dates": [str(d) for d in created], "count": len(created)}
 
 
 @router.get("", response_model=list[DayRecordRead])
