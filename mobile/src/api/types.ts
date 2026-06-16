@@ -400,3 +400,15 @@ export interface HourlyBackfillSlot {
 export interface HourlyBackfillResponse {
   inserted: number
 }
+
+export interface OutlierFlag {
+  day_record_id: number
+  date: string
+  weekday: string
+  customers: number
+  message: string
+}
+
+export interface OutlierListResponse {
+  flags: OutlierFlag[]
+}

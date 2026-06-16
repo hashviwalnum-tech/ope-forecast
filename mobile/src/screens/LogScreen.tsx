@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../api/client'
-import type { ProductRead, RegularRead, TodaySummaryResponse } from '../api/types'
+import type { OutlierFlag, ProductRead, RegularRead, TodaySummaryResponse } from '../api/types'
 import { useBusiness } from '../contexts/BusinessContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -46,6 +46,11 @@ export default function LogScreen() {
   const [tappingKey, setTappingKey] = useState<string | null>(null)
   const [tapError, setTapError] = useState<string | null>(null)
 
+  // Outlier / fluke prompt
+  const [outlierFlags, setOutlierFlags] = useState<OutlierFlag[]>([])
+  const [outlierExpanded, setOutlierExpanded] = useState(false)
+  const [resolvingOutlierId, setResolvingOutlierId] = useState<number | null>(null)
+
   // Record-a-regular inline state
   const [regularsExpanded, setRegularsExpanded] = useState(false)
   const [visitRegId, setVisitRegId] = useState<number | null>(null)
@@ -55,17 +60,25 @@ export default function LogScreen() {
   const loadData = useCallback(async () => {
     if (!business) return
     try {
-      const [prods, tod, regs] = await Promise.all([
+      const [prods, tod, regs, outlierRes] = await Promise.allSettled([
         api.products.list(),
         api.saleEvents.today(),
         api.regulars.list(),
+        api.outliers.list(),
       ])
-      setProducts(prods)
-      setSummary(tod)
-      setRegulars(regs)
-      setDataError(null)
-    } catch (e: unknown) {
-      setDataError(e instanceof Error ? e.message : 'Failed to load.')
+      if (prods.status === 'fulfilled') setProducts(prods.value)
+      if (tod.status === 'fulfilled') setSummary(tod.value)
+      if (regs.status === 'fulfilled') setRegulars(regs.value)
+      if (outlierRes.status === 'fulfilled') setOutlierFlags(outlierRes.value.flags)
+      if (
+        prods.status === 'rejected' &&
+        tod.status === 'rejected'
+      ) {
+        const err = prods.reason as Error
+        setDataError(err instanceof Error ? err.message : 'Failed to load.')
+      } else {
+        setDataError(null)
+      }
     } finally {
       setInitialLoading(false)
     }
@@ -143,6 +156,22 @@ export default function LogScreen() {
     }
   }
 
+  const resolveOutlier = async (
+    id: number,
+    action: 'keep' | 'excluded' | 'event' | 'ad' | 'recurring',
+  ) => {
+    setResolvingOutlierId(id)
+    try {
+      await api.dayRecords.resolveOutlier(id, action)
+      setOutlierFlags(fs => fs.filter(f => f.day_record_id !== id))
+      if (outlierFlags.length <= 1) setOutlierExpanded(false)
+    } catch {
+      // silent — flag stays visible
+    } finally {
+      setResolvingOutlierId(null)
+    }
+  }
+
   const displayCount = (productId: number | null): number => {
     const key = tapKey(productId)
     const serverEntry = summary?.product_totals.find(t => t.product_id === productId)
@@ -215,6 +244,63 @@ export default function LogScreen() {
             <Text style={[styles.errorBannerText, { color: c.danger }]}>{tapError}</Text>
             <Ionicons name="close-circle" size={18} color={c.danger} />
           </TouchableOpacity>
+        )}
+
+        {/* ── Outlier / fluke prompt ── */}
+        {outlierFlags.length > 0 && (
+          <View style={styles.outlierSection}>
+            <TouchableOpacity
+              style={styles.outlierToggle}
+              onPress={() => setOutlierExpanded(e => !e)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="warning-outline" size={18} color="#92400e" />
+              <Text style={styles.outlierToggleText}>
+                {outlierFlags.length === 1
+                  ? t('unusualDaySingular')
+                  : t('unusualDayPlural', { n: outlierFlags.length })}
+              </Text>
+              <Ionicons
+                name={outlierExpanded ? 'chevron-up' : 'chevron-down'}
+                size={16}
+                color="#92400e"
+              />
+            </TouchableOpacity>
+
+            {outlierExpanded && outlierFlags.map(flag => (
+              <View key={flag.day_record_id} style={styles.outlierCard}>
+                <Text style={styles.outlierMessage}>{flag.message}</Text>
+                <View style={styles.outlierBtns}>
+                  {(
+                    [
+                      { action: 'event' as const, label: t('outlierResolveEvent') },
+                      { action: 'ad' as const, label: t('outlierResolveAd') },
+                      { action: 'recurring' as const, label: t('outlierResolveRecurring', { weekday: flag.weekday }) },
+                      { action: 'excluded' as const, label: t('outlierResolveExclude') },
+                      { action: 'keep' as const, label: t('outlierResolveKeep') },
+                    ] as const
+                  ).map(({ action, label }) => (
+                    <TouchableOpacity
+                      key={action}
+                      style={[
+                        styles.outlierActionBtn,
+                        resolvingOutlierId === flag.day_record_id && { opacity: 0.5 },
+                      ]}
+                      onPress={() => void resolveOutlier(flag.day_record_id, action)}
+                      disabled={resolvingOutlierId === flag.day_record_id}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={styles.outlierActionText}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            ))}
+
+            {outlierExpanded && (
+              <Text style={styles.outlierNote}>{t('outlierDownweightNote')}</Text>
+            )}
+          </View>
         )}
 
         {/* ── Customer button ── */}
@@ -450,6 +536,36 @@ function makeStyles(c: Theme) {
       alignItems: 'center', gap: 12, borderWidth: 1,
     },
     noProductsText: { fontSize: 14, textAlign: 'center', lineHeight: 22 },
+
+    // Outlier prompt
+    outlierSection: {
+      backgroundColor: '#fffbeb', borderRadius: 14, marginBottom: 16,
+      borderWidth: 1, borderColor: '#fcd34d', overflow: 'hidden',
+    },
+    outlierToggle: {
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      paddingVertical: 12, paddingHorizontal: 14,
+    },
+    outlierToggleText: {
+      flex: 1, fontSize: 14, fontWeight: '700', color: '#92400e',
+    },
+    outlierCard: {
+      borderTopWidth: 1, borderTopColor: '#fde68a',
+      paddingHorizontal: 14, paddingVertical: 12,
+    },
+    outlierMessage: {
+      fontSize: 13, color: '#78350f', lineHeight: 20, marginBottom: 10,
+    },
+    outlierBtns: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+    outlierActionBtn: {
+      backgroundColor: '#fef3c7', borderRadius: 8, borderWidth: 1, borderColor: '#fcd34d',
+      paddingVertical: 7, paddingHorizontal: 10,
+    },
+    outlierActionText: { fontSize: 12, fontWeight: '600', color: '#92400e' },
+    outlierNote: {
+      fontSize: 11, color: '#a16207', paddingHorizontal: 14, paddingBottom: 10,
+      lineHeight: 16,
+    },
 
     // Record-a-regular section
     regularsToggle: {

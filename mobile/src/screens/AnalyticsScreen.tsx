@@ -249,7 +249,7 @@ export default function AnalyticsScreen() {
             <Ionicons name="megaphone-outline" size={28} color={c.textMuted} />
             <Text style={styles.emptyText}>
               {lift?.message ??
-                'No ads or events recorded yet. Add them in Past Days on the web app.'}
+                'No ads or events recorded yet. Add them in Manage → Ads & Events.'}
             </Text>
           </View>
         ) : (

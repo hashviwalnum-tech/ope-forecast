@@ -126,6 +126,11 @@ export default function PastDaysModal({ onClose }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Expandable product detail per record
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [salesCache, setSalesCache] = useState<Record<number, SaleRead[]>>({})
+  const [loadingSalesId, setLoadingSalesId] = useState<number | null>(null)
+
   // Add/edit form
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState<number | null>(null)
@@ -396,6 +401,21 @@ export default function PastDaysModal({ onClose }: Props) {
     )
   }
 
+  const toggleExpand = async (id: number) => {
+    if (expandedId === id) { setExpandedId(null); return }
+    setExpandedId(id)
+    if (salesCache[id] !== undefined) return
+    setLoadingSalesId(id)
+    try {
+      const s = await api.sales.list(id)
+      setSalesCache(m => ({ ...m, [id]: s }))
+    } catch {
+      setSalesCache(m => ({ ...m, [id]: [] }))
+    } finally {
+      setLoadingSalesId(null)
+    }
+  }
+
   const handleBack = () => {
     if (showForm) { closeForm() }
     else if (showImport) { setShowImport(false) }
@@ -628,33 +648,78 @@ export default function PastDaysModal({ onClose }: Props) {
                 </TouchableOpacity>
               </View>
             ) : (
-              records.map(r => (
-                <View key={r.id} style={styles.recordRow}>
-                  <View style={styles.recordInfo}>
-                    <Text style={styles.recordDate}>{r.date}</Text>
-                    <Text style={styles.recordCustomers}>
-                      {r.customers} customer{r.customers !== 1 ? 's' : ''}
-                    </Text>
-                    {r.outlier_status === 'flagged' && (
-                      <Text style={styles.outlierBadge}>Flagged as unusual</Text>
+              records.map(r => {
+                const isExpanded = expandedId === r.id
+                const recordSales = salesCache[r.id] ?? []
+                const isLoadingSales = loadingSalesId === r.id
+                return (
+                  <View key={r.id} style={[styles.recordRow, { flexDirection: 'column', alignItems: 'stretch', paddingBottom: isExpanded ? 0 : 14 }]}>
+                    {/* Main row */}
+                    <View style={styles.recordMainRow}>
+                      <TouchableOpacity
+                        style={styles.recordInfoArea}
+                        onPress={() => void toggleExpand(r.id)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.recordInfo}>
+                          <Text style={styles.recordDate}>{r.date}</Text>
+                          <Text style={styles.recordCustomers}>
+                            {r.customers} customer{r.customers !== 1 ? 's' : ''}
+                          </Text>
+                          {r.outlier_status === 'flagged' && (
+                            <Text style={styles.outlierBadge}>Flagged as unusual</Text>
+                          )}
+                        </View>
+                        <Ionicons
+                          name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                          size={16}
+                          color={c.textMuted}
+                          style={{ marginRight: 4 }}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.iconBtn}
+                        onPress={() => void openEdit(r)}
+                        hitSlop={8}
+                      >
+                        <Ionicons name="pencil-outline" size={18} color={c.primary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.iconBtn}
+                        onPress={() => deleteRecord(r.id, r.date)}
+                        hitSlop={8}
+                      >
+                        <Ionicons name="trash-outline" size={18} color={c.danger} />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Expanded product detail */}
+                    {isExpanded && (
+                      <View style={styles.productsSection}>
+                        {isLoadingSales ? (
+                          <ActivityIndicator size="small" color={c.primary} style={{ marginVertical: 8 }} />
+                        ) : recordSales.length === 0 ? (
+                          <Text style={styles.noSalesText}>No product sales recorded for this day.</Text>
+                        ) : (
+                          recordSales.map(s => {
+                            const prod = products.find(p => p.id === s.product_id)
+                            return (
+                              <View key={s.id} style={styles.saleRow}>
+                                <Text style={styles.saleName}>
+                                  {prod?.name ?? `Product #${s.product_id}`}
+                                </Text>
+                                <Text style={styles.saleUnits}>
+                                  {s.units_sold} {prod?.unit ?? ''}
+                                </Text>
+                              </View>
+                            )
+                          })
+                        )}
+                      </View>
                     )}
                   </View>
-                  <TouchableOpacity
-                    style={styles.iconBtn}
-                    onPress={() => void openEdit(r)}
-                    hitSlop={8}
-                  >
-                    <Ionicons name="pencil-outline" size={18} color={c.primary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.iconBtn}
-                    onPress={() => deleteRecord(r.id, r.date)}
-                    hitSlop={8}
-                  >
-                    <Ionicons name="trash-outline" size={18} color={c.danger} />
-                  </TouchableOpacity>
-                </View>
-              ))
+                )
+              })
             )}
           </ScrollView>
         )}
@@ -704,8 +769,12 @@ function makeStyles(c: Theme) {
     emptyAddBtnText: { color: c.onPrimary, fontWeight: '700', fontSize: 15 },
 
     recordRow: {
-      backgroundColor: c.card, borderRadius: 14, padding: 14, marginBottom: 8,
-      flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: c.border,
+      backgroundColor: c.card, borderRadius: 14, paddingTop: 14, paddingHorizontal: 14, marginBottom: 8,
+      borderWidth: 1, borderColor: c.border, overflow: 'hidden',
+    },
+    recordMainRow: { flexDirection: 'row', alignItems: 'center' },
+    recordInfoArea: {
+      flex: 1, flexDirection: 'row', alignItems: 'center',
     },
     recordInfo: { flex: 1, gap: 2 },
     recordDate: { fontSize: 14, fontWeight: '700', color: c.primaryDark },
@@ -716,6 +785,18 @@ function makeStyles(c: Theme) {
       paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start',
     },
     iconBtn: { padding: 8 },
+
+    productsSection: {
+      borderTopWidth: 1, borderTopColor: c.border,
+      marginTop: 10, paddingTop: 10, paddingBottom: 14,
+    },
+    noSalesText: { fontSize: 13, color: c.textMuted, fontStyle: 'italic' },
+    saleRow: {
+      flexDirection: 'row', justifyContent: 'space-between',
+      paddingVertical: 4,
+    },
+    saleName: { fontSize: 13, color: c.text, fontWeight: '600', flex: 1 },
+    saleUnits: { fontSize: 13, color: c.primaryDark, fontWeight: '700' },
 
     fieldLabel: {
       fontSize: 13, fontWeight: '600', color: c.text, marginTop: 14, marginBottom: 6,

@@ -114,12 +114,17 @@ def _compute_projected_stock(
     prod: Product,
     today: date,
     tap_by_prod_date: dict | None = None,
+    assume_on_time: bool = False,
 ) -> tuple[float | None, bool]:
     """Compute projected current stock from the last known baseline.
 
     Returns (projected_stock, stock_untracked) where:
     - projected_stock is None when stock_untracked is True or no date anchor exists
     - stock_untracked is True when no current_stock has ever been set
+
+    assume_on_time: when True, pending orders whose expected_arrival_date has
+    passed are counted as received (the "always assume on time" setting).
+    When False (default), only orders explicitly marked 'arrived' are counted.
     """
     if prod.current_stock is None:
         return None, True
@@ -153,19 +158,32 @@ def _compute_projected_stock(
             if pid == prod.id and d > baseline_date and d not in sale_record_dates:
                 sales_since += qty
 
-    # Sum arrivals from OrderRecords with expected_arrival_date in (baseline_date, today]
-    arrived = (
-        db.query(OrderRecord)
-        .filter(
-            OrderRecord.business_id == biz_id,
-            OrderRecord.product_id == prod.id,
-            OrderRecord.status != "cancelled",
-            OrderRecord.expected_arrival_date > baseline_date,
-            OrderRecord.expected_arrival_date <= today,
+    # Sum arrivals from OrderRecords with expected_arrival_date in (baseline_date, today].
+    # When assume_on_time is True: count pending orders whose expected date has passed.
+    # When False: only count orders the owner explicitly confirmed as arrived.
+    if assume_on_time:
+        arrived_q = (
+            db.query(OrderRecord)
+            .filter(
+                OrderRecord.business_id == biz_id,
+                OrderRecord.product_id == prod.id,
+                OrderRecord.status != "cancelled",
+                OrderRecord.expected_arrival_date > baseline_date,
+                OrderRecord.expected_arrival_date <= today,
+            )
         )
-        .all()
-    )
-    arrivals_since = sum(float(o.quantity) for o in arrived)
+    else:
+        arrived_q = (
+            db.query(OrderRecord)
+            .filter(
+                OrderRecord.business_id == biz_id,
+                OrderRecord.product_id == prod.id,
+                OrderRecord.status == "arrived",
+                OrderRecord.expected_arrival_date > baseline_date,
+                OrderRecord.expected_arrival_date <= today,
+            )
+        )
+    arrivals_since = sum(float(o.quantity) for o in arrived_q.all())
 
     projected = compute_current_projected_stock(
         prod.current_stock, sales_since, arrivals_since
@@ -483,11 +501,12 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         for wd in (rp.weekdays or []):
             recurring_weekdays.add(int(wd))
 
-    # Candidate set: non-event-period open days that can be flagged.
+    # Candidate set: all open days that can be flagged — including days inside
+    # event/ad periods.  The owner must still see the fluke prompt even during
+    # a tagged period; an unusually weak event day may mean the event underperformed.
     det_records = [
         r for r in all_records
-        if r.date not in blocked
-        and (open_days is None or r.date.weekday() in open_days)
+        if (open_days is None or r.date.weekday() in open_days)
         and r.outlier_status not in ("excluded", "event", "kept")
     ]
 
@@ -517,12 +536,6 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         detected_by_id = {}
 
     changed = False
-
-    # Auto-resolve: records now inside an event period should not remain flagged
-    for r in all_records:
-        if r.outlier_status == "flagged" and r.date in blocked:
-            r.outlier_status = None  # restored to unreviewed; period now explains it
-            changed = True
 
     # Auto-resolve records on recurring-pattern weekdays
     for r in all_records:
@@ -944,6 +957,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     ids_and_dates = [(r.id, r.date) for r in all_records]
     z = service_level_z(_SERVICE_LEVEL)
     today = date.today()
+    assume_on_time = bool((biz.settings or {}).get("assume_orders_arrive_on_time", False))
     result: list[OrderingRow] = []
 
     for prod in products_list:
@@ -962,7 +976,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
         n_data = len(daily_demand)
         if n_data == 0:
-            proj_s, s_untracked = _compute_projected_stock(db, biz.id, prod, today)
+            proj_s, s_untracked = _compute_projected_stock(db, biz.id, prod, today, assume_on_time=assume_on_time)
             fifo_n, older_w, spoil_a = _batch_fifo_advice(db, biz.id, prod, today, prod.lead_time_days)
             result.append(OrderingRow(
                 product_id=prod.id,
@@ -996,7 +1010,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         base_qty = avg_daily * prod.lead_time_days + ss
         unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
 
-        proj_stock, stock_untracked = _compute_projected_stock(db, biz.id, prod, today)
+        proj_stock, stock_untracked = _compute_projected_stock(db, biz.id, prod, today, assume_on_time=assume_on_time)
         effective_stock = proj_stock if proj_stock is not None else prod.current_stock
 
         constrained_qty, cap_notes = apply_order_constraints(
@@ -1317,6 +1331,7 @@ def get_product_forecast(
     today = date.today()
     open_days = _open_days(biz)
     z = service_level_z(_SERVICE_LEVEL)
+    assume_on_time = bool((biz.settings or {}).get("assume_orders_arrive_on_time", False))
     ids_and_dates = [(r.id, r.date) for r in clean_records]
 
     result: list[ProductForecastItem] = []
@@ -1358,7 +1373,7 @@ def get_product_forecast(
                     f"({n_data} recorded so far)."
                 )
             ne_proj, ne_untracked = _compute_projected_stock(
-                db, biz.id, prod, today, tap_by_prod_date
+                db, biz.id, prod, today, tap_by_prod_date, assume_on_time=assume_on_time
             )
             result.append(ProductForecastItem(
                 product_id=prod.id, name=prod.name, unit=prod.unit,
@@ -1461,7 +1476,7 @@ def get_product_forecast(
 
         # ── projected stock (dynamic: baseline − sales + arrivals) ────────────
         proj_stock, stock_untracked = _compute_projected_stock(
-            db, biz.id, prod, today, tap_by_prod_date
+            db, biz.id, prod, today, tap_by_prod_date, assume_on_time=assume_on_time
         )
         effective_stock = proj_stock if proj_stock is not None else prod.current_stock
 

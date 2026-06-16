@@ -54,6 +54,9 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
   const [stockEnabled, setStockEnabled] = useState(
     s.stock_management_enabled !== false
   )
+  const [assumeOnTime, setAssumeOnTime] = useState(
+    s.assume_orders_arrive_on_time === true
+  )
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -68,6 +71,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
     setMaxWait(fresh.staffing_max_wait_minutes != null
       ? String(fresh.staffing_max_wait_minutes) : '')
     setStockEnabled(fresh.stock_management_enabled !== false)
+    setAssumeOnTime(fresh.assume_orders_arrive_on_time === true)
   }, [business])
 
   const toggleDay = (idx: number) => {
@@ -110,6 +114,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
         avg_service_time_minutes: stMin,
         staffing_max_wait_minutes: maxWait ? parseFloat(maxWait) : null,
         stock_management_enabled: stockEnabled,
+        assume_orders_arrive_on_time: assumeOnTime,
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -297,6 +302,18 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
               <Switch
                 value={stockEnabled}
                 onValueChange={setStockEnabled}
+                trackColor={{ false: c.border, true: c.primary }}
+                thumbColor={c.onPrimary}
+              />
+            </View>
+            <View style={[styles.toggleRow, { backgroundColor: c.card, borderColor: c.border, marginTop: 8 }]}>
+              <View style={styles.toggleText}>
+                <Text style={[styles.toggleLabel, { color: c.text }]}>{t('assumeOrdersOnTime')}</Text>
+                <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('assumeOrdersOnTimeHint')}</Text>
+              </View>
+              <Switch
+                value={assumeOnTime}
+                onValueChange={setAssumeOnTime}
                 trackColor={{ false: c.border, true: c.primary }}
                 thumbColor={c.onPrimary}
               />

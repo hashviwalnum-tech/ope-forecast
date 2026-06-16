@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { OrderRecordRead, ProductRead } from '../../api/types'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
@@ -34,6 +35,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function OrdersModal({ onClose }: Props) {
   const c = useTheme()
+  const { t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [orderRecords, setOrderRecords] = useState<OrderRecordRead[]>([])
@@ -287,16 +289,17 @@ export default function OrdersModal({ onClose }: Props) {
                           <TouchableOpacity
                             style={styles.arrivedBtn}
                             onPress={() => void markArrived(order.id)}
-                            hitSlop={6}
+                            activeOpacity={0.75}
                           >
-                            <Ionicons name="checkmark-circle-outline" size={20} color={c.primary} />
+                            <Ionicons name="checkmark-circle" size={15} color={c.onPrimary} />
+                            <Text style={styles.arrivedBtnText}>{t('confirmArrived')}</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
                             style={styles.cancelBtn}
                             onPress={() => cancelOrder(order.id)}
-                            hitSlop={6}
+                            hitSlop={8}
                           >
-                            <Ionicons name="close-circle-outline" size={20} color={c.danger} />
+                            <Ionicons name="close-circle-outline" size={22} color={c.danger} />
                           </TouchableOpacity>
                         </View>
                       </View>
@@ -384,9 +387,14 @@ function makeStyles(c: Theme) {
     orderProduct: { fontSize: 15, fontWeight: '700', color: c.text },
     orderQty: { fontSize: 14, color: c.primaryDark, fontWeight: '600' },
     orderDates: { fontSize: 11, color: c.textSub },
-    orderBtns: { flexDirection: 'row', gap: 4 },
-    arrivedBtn: { padding: 6 },
-    cancelBtn: { padding: 6 },
+    orderBtns: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+    arrivedBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 5,
+      backgroundColor: c.primary, borderRadius: 10,
+      paddingVertical: 7, paddingHorizontal: 11,
+    },
+    arrivedBtnText: { fontSize: 13, fontWeight: '700', color: c.onPrimary },
+    cancelBtn: { padding: 4 },
 
     fieldLabel: {
       fontSize: 13, fontWeight: '600', color: c.text, marginTop: 14, marginBottom: 6,

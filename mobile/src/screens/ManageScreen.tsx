@@ -22,6 +22,7 @@ import PastDaysModal from './manage/PastDaysModal'
 import TelegramModal from './manage/TelegramModal'
 import PremiumModal from './manage/PremiumModal'
 import OrdersModal from './manage/OrdersModal'
+import PeriodsModal from './manage/PeriodsModal'
 
 type ModalKey =
   | 'products'
@@ -30,13 +31,14 @@ type ModalKey =
   | 'telegram'
   | 'premium'
   | 'orders'
+  | 'periods'
   | null
 
 interface MenuItem {
   key: ModalKey
   icon: React.ComponentProps<typeof Ionicons>['name']
-  labelKey: 'products' | 'regulars' | 'pastDays' | 'orders' | 'telegram' | 'premium'
-  subKey: 'productsDesc' | 'regularsDesc' | 'pastDaysDesc' | 'ordersDesc' | 'telegramDesc' | 'premiumDesc'
+  labelKey: 'products' | 'regulars' | 'pastDays' | 'orders' | 'telegram' | 'premium' | 'adsEvents'
+  subKey: 'productsDesc' | 'regularsDesc' | 'pastDaysDesc' | 'ordersDesc' | 'telegramDesc' | 'premiumDesc' | 'adsEventsDesc'
   requiresBusiness?: boolean
 }
 
@@ -44,6 +46,7 @@ const MENU_ITEMS: MenuItem[] = [
   { key: 'products', icon: 'cube-outline', labelKey: 'products', subKey: 'productsDesc' },
   { key: 'regulars', icon: 'heart-outline', labelKey: 'regulars', subKey: 'regularsDesc' },
   { key: 'pastdays', icon: 'calendar-outline', labelKey: 'pastDays', subKey: 'pastDaysDesc' },
+  { key: 'periods', icon: 'megaphone-outline', labelKey: 'adsEvents', subKey: 'adsEventsDesc' },
   { key: 'orders', icon: 'cart-outline', labelKey: 'orders', subKey: 'ordersDesc' },
   { key: 'telegram', icon: 'paper-plane-outline', labelKey: 'telegram', subKey: 'telegramDesc' },
   { key: 'premium', icon: 'star-outline', labelKey: 'premium', subKey: 'premiumDesc', requiresBusiness: true },
@@ -152,6 +155,9 @@ export default function ManageScreen() {
       )}
       {activeModal === 'orders' && (
         <OrdersModal onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === 'periods' && (
+        <PeriodsModal onClose={() => setActiveModal(null)} />
       )}
     </SafeAreaView>
   )
