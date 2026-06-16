@@ -23,6 +23,7 @@ import TelegramModal from './manage/TelegramModal'
 import PremiumModal from './manage/PremiumModal'
 import OrdersModal from './manage/OrdersModal'
 import PeriodsModal from './manage/PeriodsModal'
+import RecurringPatternsModal from './manage/RecurringPatternsModal'
 
 type ModalKey =
   | 'products'
@@ -32,13 +33,14 @@ type ModalKey =
   | 'premium'
   | 'orders'
   | 'periods'
+  | 'patterns'
   | null
 
 interface MenuItem {
   key: ModalKey
   icon: React.ComponentProps<typeof Ionicons>['name']
-  labelKey: 'products' | 'regulars' | 'pastDays' | 'orders' | 'telegram' | 'premium' | 'adsEvents'
-  subKey: 'productsDesc' | 'regularsDesc' | 'pastDaysDesc' | 'ordersDesc' | 'telegramDesc' | 'premiumDesc' | 'adsEventsDesc'
+  labelKey: 'products' | 'regulars' | 'pastDays' | 'orders' | 'telegram' | 'premium' | 'adsEvents' | 'patterns'
+  subKey: 'productsDesc' | 'regularsDesc' | 'pastDaysDesc' | 'ordersDesc' | 'telegramDesc' | 'premiumDesc' | 'adsEventsDesc' | 'patternsDesc'
   requiresBusiness?: boolean
 }
 
@@ -47,6 +49,7 @@ const MENU_ITEMS: MenuItem[] = [
   { key: 'regulars', icon: 'heart-outline', labelKey: 'regulars', subKey: 'regularsDesc' },
   { key: 'pastdays', icon: 'calendar-outline', labelKey: 'pastDays', subKey: 'pastDaysDesc' },
   { key: 'periods', icon: 'megaphone-outline', labelKey: 'adsEvents', subKey: 'adsEventsDesc' },
+  { key: 'patterns', icon: 'repeat-outline', labelKey: 'patterns', subKey: 'patternsDesc' },
   { key: 'orders', icon: 'cart-outline', labelKey: 'orders', subKey: 'ordersDesc' },
   { key: 'telegram', icon: 'paper-plane-outline', labelKey: 'telegram', subKey: 'telegramDesc' },
   { key: 'premium', icon: 'star-outline', labelKey: 'premium', subKey: 'premiumDesc', requiresBusiness: true },
@@ -158,6 +161,9 @@ export default function ManageScreen() {
       )}
       {activeModal === 'periods' && (
         <PeriodsModal onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === 'patterns' && (
+        <RecurringPatternsModal onClose={() => setActiveModal(null)} />
       )}
     </SafeAreaView>
   )

@@ -59,6 +59,20 @@ def create_order(
     if not product or product.business_id != biz.id:
         raise HTTPException(404, "Product not found")
 
+    # Enforce one reorder per product per day — edit today's open order instead
+    existing = (
+        db.query(OrderRecord)
+        .filter_by(business_id=biz.id, product_id=body.product_id, ordered_date=body.ordered_date)
+        .filter(OrderRecord.status != "cancelled")
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            409,
+            f"You already have an order for {product.name} on this date (order #{existing.id}). "
+            "Edit that order's quantity instead — orders lock after closing time.",
+        )
+
     arrival = body.ordered_date + timedelta(days=product.lead_time_days)
     row = OrderRecord(
         business_id=biz.id,

@@ -392,6 +392,26 @@ export interface ProductForecastResponse {
   products: ProductForecastItem[]
 }
 
+// ── RecurringPattern ──────────────────────────────────────────────────────────
+
+export interface RecurringPatternRead {
+  id: number
+  business_id: number
+  label: string
+  weekdays: number[]        // 0=Mon … 6=Sun
+  hour_start: number | null
+  hour_end: number | null
+  effect: string            // "higher" | "lower" | "expected"
+}
+
+export interface RecurringPatternCreate {
+  label: string
+  weekdays: number[]
+  hour_start?: number
+  hour_end?: number
+  effect?: string
+}
+
 export interface HourlyBackfillSlot {
   hour: number
   customers: number

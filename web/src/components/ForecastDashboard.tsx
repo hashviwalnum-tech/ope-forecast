@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -8,12 +8,13 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { analytics } from '../api/client'
+import { analytics, orders as ordersApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type {
   ForecastResponse,
   OrderingResponse,
+  OrderRecordRead,
 } from '../api/types'
 
 // ── shared primitives ─────────────────────────────────────────────────────────
@@ -129,9 +130,177 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
   )
 }
 
+// ── per-product order actions (shown inside each ordering row) ────────────────
+
+function ProductOrderActions({
+  productId,
+  unit,
+  suggestedQty,
+  productOrders,
+  today,
+  onChanged,
+}: {
+  productId: number
+  unit: string
+  suggestedQty: number
+  productOrders: OrderRecordRead[]
+  today: string
+  onChanged: () => void
+}) {
+  const { t } = useLanguage()
+
+  const todayOrder = productOrders.find(o => o.ordered_date === today && o.status === 'pending') ?? null
+  const pendingOld = productOrders
+    .filter(o => o.ordered_date < today && o.status === 'pending')
+    .sort((a, b) => b.ordered_date.localeCompare(a.ordered_date))[0] ?? null
+
+  const [showForm, setShowForm]         = useState(false)
+  const [qty, setQty]                   = useState(String(Math.ceil(suggestedQty || 1)))
+  const [saving, setSaving]             = useState(false)
+  const [editingToday, setEditingToday] = useState(false)
+  const [editQty, setEditQty]           = useState('')
+  const [cancelling, setCancelling]     = useState(false)
+  const [err, setErr]                   = useState<string | null>(null)
+
+  async function placeOrder() {
+    const q = parseFloat(qty)
+    if (isNaN(q) || q <= 0) { setErr('Enter a valid quantity'); return }
+    setSaving(true); setErr(null)
+    try {
+      await ordersApi.create({ product_id: productId, ordered_date: today, quantity: q })
+      setShowForm(false)
+      onChanged()
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : 'Could not save')
+    } finally { setSaving(false) }
+  }
+
+  async function saveEdit() {
+    if (!todayOrder) return
+    const q = parseFloat(editQty)
+    if (isNaN(q) || q <= 0) { setErr('Enter a valid quantity'); return }
+    setSaving(true); setErr(null)
+    try {
+      await ordersApi.update(todayOrder.id, { quantity: q })
+      setEditingToday(false)
+      onChanged()
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : 'Could not update')
+    } finally { setSaving(false) }
+  }
+
+  async function doCancel(orderId: number) {
+    setCancelling(true)
+    try { await ordersApi.cancel(orderId); onChanged() } catch { /* locked */ }
+    finally { setCancelling(false) }
+  }
+
+  return (
+    <div className="px-4 py-2.5 border-t border-slate-100 dark:border-slate-700 space-y-1.5">
+      {/* Older pending order in transit */}
+      {pendingOld && (
+        <p className="text-xs text-teal-600 dark:text-teal-300">
+          📦 {t('inTransitInfo', { qty: String(pendingOld.quantity), unit, date: pendingOld.expected_arrival_date })}
+        </p>
+      )}
+
+      {/* Today's order — info row with edit / cancel */}
+      {todayOrder && !editingToday && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs text-emerald-700 dark:text-emerald-400">
+            ✓ {t('orderedTodayInfo', { qty: String(todayOrder.quantity), unit, date: todayOrder.expected_arrival_date })}
+          </span>
+          <button
+            onClick={() => { setEditingToday(true); setEditQty(String(todayOrder.quantity)); setErr(null) }}
+            className="text-xs text-teal-600 dark:text-teal-400 hover:underline shrink-0"
+          >{t('editBtn')}</button>
+          <button
+            onClick={() => doCancel(todayOrder.id)}
+            disabled={cancelling}
+            className="text-xs text-rose-500 hover:underline shrink-0 disabled:opacity-50"
+          >{cancelling ? '…' : t('cancelOrder')}</button>
+        </div>
+      )}
+
+      {/* Edit today's order quantity */}
+      {todayOrder && editingToday && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
+            <input
+              type="number" min="0.1" step="0.1"
+              value={editQty}
+              onChange={e => setEditQty(e.target.value)}
+              className="w-20 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-sm
+                         bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+            />
+            <span className="text-xs text-slate-400 shrink-0">{unit}</span>
+            <button
+              onClick={saveEdit} disabled={saving}
+              className="text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 rounded-lg px-3 py-1.5"
+            >{saving ? '…' : t('saveChangesBtn')}</button>
+            <button
+              onClick={() => { setEditingToday(false); setErr(null) }}
+              className="text-sm text-slate-400 hover:underline"
+            >{t('cancelBtn')}</button>
+          </div>
+          {err && <p className="text-xs text-rose-500">{err}</p>}
+        </div>
+      )}
+
+      {/* "I ordered this" — only shown when no today's order */}
+      {!todayOrder && !showForm && (
+        <button
+          onClick={() => { setShowForm(true); setQty(String(Math.ceil(suggestedQty || 1))) }}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 dark:text-teal-400
+                     border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-1.5
+                     hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
+        >
+          📦 {t('iOrderedThis')}
+        </button>
+      )}
+
+      {!todayOrder && showForm && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
+            <input
+              type="number" min="0.1" step="0.1"
+              value={qty}
+              onChange={e => setQty(e.target.value)}
+              className="w-20 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm
+                         bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+            />
+            <span className="text-xs text-slate-400 shrink-0">{unit}</span>
+            <button
+              onClick={placeOrder} disabled={saving}
+              className="text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 rounded-lg px-3 py-1.5 transition-colors"
+            >{saving ? '…' : t('confirmOrder')}</button>
+            <button
+              onClick={() => { setShowForm(false); setErr(null) }}
+              className="text-sm text-slate-400 hover:underline"
+            >{t('cancelBtn')}</button>
+          </div>
+          {err && <p className="text-xs text-rose-500">{err}</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── ordering table ─────────────────────────────────────────────────────────────
 
-function OrderingTable({ data }: { data: OrderingResponse }) {
+function OrderingTable({
+  data,
+  ordersByProduct,
+  today,
+  onOrdersChanged,
+}: {
+  data: OrderingResponse
+  ordersByProduct: Map<number, OrderRecordRead[]>
+  today: string
+  onOrdersChanged: () => void
+}) {
   const { t } = useLanguage()
   if (data.status !== 'ok' || data.products.length === 0) {
     return <NotEnoughData message={data.message} />
@@ -202,6 +371,14 @@ function OrderingTable({ data }: { data: OrderingResponse }) {
                   </span>
                 )}
               </div>
+              <ProductOrderActions
+                productId={p.product_id}
+                unit={p.unit}
+                suggestedQty={p.suggested_order_qty ?? 1}
+                productOrders={ordersByProduct.get(p.product_id) ?? []}
+                today={today}
+                onChanged={onOrdersChanged}
+              />
             </div>
           )
         })}
@@ -254,13 +431,32 @@ export function WeekPredictionPanel({ refreshKey = 0 }: PanelProps) {
 export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
   const { t } = useLanguage()
   const [ordering, setOrdering] = useState<OrderingResponse | null>(null)
+  const [allOrders, setAllOrders] = useState<OrderRecordRead[]>([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState<string | null>(null)
 
+  const today = new Date().toISOString().slice(0, 10)
+
+  const ordersByProduct = useMemo(() => {
+    const map = new Map<number, OrderRecordRead[]>()
+    for (const o of allOrders) {
+      if (o.status !== 'cancelled') {
+        const existing = map.get(o.product_id) ?? []
+        existing.push(o)
+        map.set(o.product_id, existing)
+      }
+    }
+    return map
+  }, [allOrders])
+
+  async function refreshOrders() {
+    try { const list = await ordersApi.list(); setAllOrders(list) } catch { /* ignore */ }
+  }
+
   useEffect(() => {
     setLoading(true)
-    analytics.ordering()
-      .then(setOrdering)
+    Promise.all([analytics.ordering(), ordersApi.list()])
+      .then(([ord, list]) => { setOrdering(ord); setAllOrders(list) })
       .catch(e => setError(String(e)))
       .finally(() => setLoading(false))
   }, [refreshKey])
@@ -283,7 +479,16 @@ export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
 
   return (
     <Card title={t('whatToOrderTitle')}>
-      {ordering ? <OrderingTable data={ordering} /> : <NotEnoughData />}
+      {ordering ? (
+        <OrderingTable
+          data={ordering}
+          ordersByProduct={ordersByProduct}
+          today={today}
+          onOrdersChanged={refreshOrders}
+        />
+      ) : (
+        <NotEnoughData />
+      )}
     </Card>
   )
 }

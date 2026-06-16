@@ -1,7 +1,6 @@
 import { OrderingPanel, WeekPredictionPanel } from './ForecastDashboard'
 import HourlyDashboard from './HourlyDashboard'
 import MergedForecastPanel from './MergedForecastPanel'
-import ProductForecastPanel from './ProductForecastPanel'
 import { useLanguage } from '../contexts/LanguageContext'
 
 interface Props {
@@ -18,7 +17,6 @@ export default function PredictionsScreen({ refreshKey }: Props) {
   return (
     <div className="space-y-8">
       <OrderingPanel refreshKey={refreshKey} />
-      <ProductForecastPanel refreshKey={refreshKey} />
       <MergedForecastPanel refreshKey={refreshKey} />
       <WeekPredictionPanel refreshKey={refreshKey} />
       <section>

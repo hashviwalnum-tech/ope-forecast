@@ -139,7 +139,15 @@ export default function ForecastScreen() {
       setLogOrderQty('')
       Alert.alert('Order logged!', `${qty} ${logOrderProduct.unit} of ${logOrderProduct.name} recorded.`)
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to log order.')
+      const msg = e instanceof Error ? e.message : 'Failed to log order.'
+      if (msg.includes('already have an order')) {
+        Alert.alert(
+          'Already ordered today',
+          'You placed an order for this product today. Go to Orders to edit the quantity.',
+        )
+      } else {
+        Alert.alert('Error', msg)
+      }
     } finally {
       setLogOrderSaving(false)
     }
@@ -538,6 +546,21 @@ export default function ForecastScreen() {
                               {t('fifoAssumptionNote')}
                             </Text>
                           )}
+                          <TouchableOpacity
+                            style={[styles.reorderBtn, styles.reorderBtnOutline, { borderColor: c.primary }]}
+                            onPress={() => {
+                              setLogOrderProduct(p)
+                              setLogOrderQty(
+                                p.suggested_order_qty != null
+                                  ? String(Math.ceil(p.suggested_order_qty))
+                                  : ''
+                              )
+                            }}
+                            activeOpacity={0.8}
+                          >
+                            <Ionicons name="checkmark-circle-outline" size={16} color={c.primary} />
+                            <Text style={[styles.reorderBtnText, { color: c.primary }]}>{t('iReorderedThis')}</Text>
+                          </TouchableOpacity>
                         </View>
                         <View style={styles.orderQtyBox}>
                           <Ionicons name="checkmark-circle" size={22} color={c.primary} />
@@ -754,6 +777,9 @@ function makeStyles(c: Theme) {
       backgroundColor: '#e06b2e', borderRadius: 8,
       paddingVertical: 7, paddingHorizontal: 12, alignSelf: 'flex-start',
       marginTop: 8,
+    },
+    reorderBtnOutline: {
+      backgroundColor: 'transparent', borderWidth: 1,
     },
     reorderBtnText: { fontSize: 13, color: '#fff', fontWeight: '700' },
     orderQtyBox: { alignItems: 'center', marginLeft: 12 },

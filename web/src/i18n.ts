@@ -254,6 +254,8 @@ export const translations = {
     eoqLabelColon: 'EOQ:',
     loadingLabel: 'Loading…',
     keepLogging: 'Keep adding days — your patterns will appear here after a couple of weeks of logging.',
+    orderedTodayInfo: 'Ordered today: {qty} {unit} · arriving {date}',
+    inTransitInfo: 'In transit: {qty} {unit} · arriving {date}',
 
     // Recurring patterns panel
     teachOpeTitle: 'Teach Ope your world.',
@@ -954,6 +956,8 @@ export const translations = {
     eoqLabelColon: 'EOQ:',
     loadingLabel: 'טוען…',
     keepLogging: 'המשך להוסיף ימים — הדפוסים שלך יופיעו כאן לאחר כמה שבועות של תיעוד.',
+    orderedTodayInfo: 'הוזמן היום: {qty} {unit} · מגיע {date}',
+    inTransitInfo: 'בדרך: {qty} {unit} · מגיע {date}',
 
     // Recurring patterns panel
     teachOpeTitle: 'למד את Ope את העולם שלך.',

@@ -19,6 +19,8 @@ import type {
   ProductForecastResponse,
   ProductRead,
   ProductUpdate,
+  RecurringPatternCreate,
+  RecurringPatternRead,
   RegularCreate,
   RegularProfitabilityRead,
   RegularRead,
@@ -230,4 +232,10 @@ export const periods = {
   list: () => GET<PeriodRead[]>('/periods'),
   create: (body: PeriodCreate) => POST<PeriodRead>('/periods', body),
   delete: (id: number) => DEL(`/periods/${id}`),
+}
+
+export const recurringPatterns = {
+  list:   ()                                        => GET<RecurringPatternRead[]>('/recurring-patterns'),
+  create: (body: RecurringPatternCreate)            => POST<RecurringPatternRead>('/recurring-patterns', body),
+  delete: (id: number)                              => DEL(`/recurring-patterns/${id}`),
 }
