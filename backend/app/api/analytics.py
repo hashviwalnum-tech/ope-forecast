@@ -24,7 +24,7 @@ from app.engine.ensemble import blend, model_weights, prediction_interval
 from app.engine.forecasting import (
     exponential_smoothing,
     linear_trend,
-    same_date_last_year,
+    year_over_year_forecast,
     weighted_moving_average,
 )
 from app.engine.live_sales import compute_open_hours, hourly_averages, hourly_product_mix
@@ -406,16 +406,16 @@ def _holdout_errors(
     For each weekday, the last n_per_weekday occurrences are treated as a holdout.
     Each point is predicted using only data that came before it in time.
 
-    Models: seasonal_naive, wma, exp_smoothing, linear_trend, same_date_last_year.
-    same_date_last_year requires dates to be provided; it produces no errors when
-    the data doesn't span a full year.
+    Models: seasonal_naive, wma, exp_smoothing, linear_trend, year_over_year.
+    year_over_year requires dates to be provided; it produces no errors when
+    no year-ago data exists.
     """
     result: dict[str, dict[int, list[float]]] = {
         "seasonal_naive": {},
         "wma": {},
         "exp_smoothing": {},
         "linear_trend": {},
-        "same_date_last_year": {},
+        "year_over_year": {},
     }
 
     by_wd: dict[int, list[int]] = {}
@@ -427,7 +427,7 @@ def _holdout_errors(
         wma_e: list[float] = []
         exp_e: list[float] = []
         lt_e: list[float] = []
-        sdly_e: list[float] = []
+        yoy_e: list[float] = []
 
         for hi in all_idx[-n_per_weekday:]:
             t_obs = obs[:hi]
@@ -453,15 +453,15 @@ def _holdout_errors(
 
             if dates is not None:
                 t_dates = dates[:hi]
-                p = same_date_last_year(t_dates, t_obs, dates[hi])
+                p = year_over_year_forecast(t_dates, t_obs, dates[hi])
                 if p is not None:
-                    sdly_e.append(actual - p)
+                    yoy_e.append(actual - p)
 
         result["seasonal_naive"][wd] = sn
         result["wma"][wd] = wma_e
         result["exp_smoothing"][wd] = exp_e
         result["linear_trend"][wd] = lt_e
-        result["same_date_last_year"][wd] = sdly_e
+        result["year_over_year"][wd] = yoy_e
 
     return result
 
@@ -682,12 +682,12 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
                 preds["linear_trend"] = _cap_linear_trend(p, same_wd)
                 maes["linear_trend"] = mad([abs(e) for e in errs])
 
-        p = same_date_last_year(dates, obs, target_date)
+        p = year_over_year_forecast(dates, obs, target_date)
         if p is not None:
-            errs = holdout["same_date_last_year"].get(wd, [])
+            errs = holdout["year_over_year"].get(wd, [])
             if errs:
-                preds["same_date_last_year"] = p
-                maes["same_date_last_year"] = mad([abs(e) for e in errs])
+                preds["year_over_year"] = p
+                maes["year_over_year"] = mad([abs(e) for e in errs])
 
         if not preds:
             continue
@@ -1439,12 +1439,12 @@ def get_product_forecast(
                     preds["linear_trend"] = _cap_linear_trend(p, same_wd)
                     maes["linear_trend"] = mad([abs(e) for e in errs])
 
-            p = same_date_last_year(dates, demands, target)
+            p = year_over_year_forecast(dates, demands, target)
             if p is not None:
-                errs = holdout["same_date_last_year"].get(wd, [])
+                errs = holdout["year_over_year"].get(wd, [])
                 if errs:
-                    preds["same_date_last_year"] = p
-                    maes["same_date_last_year"] = mad([abs(e) for e in errs])
+                    preds["year_over_year"] = p
+                    maes["year_over_year"] = mad([abs(e) for e in errs])
 
             if not preds:
                 continue

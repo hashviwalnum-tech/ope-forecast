@@ -69,6 +69,57 @@ def seasonality_index(day_average: float, overall_average: float) -> float:
     return day_average / overall_average
 
 
+def year_over_year_forecast(
+    dates: list[date],
+    values: list[float],
+    target_date: date,
+    same_wd_window: int = 7,
+    level_window: int = 21,
+) -> float | None:
+    """Year-over-year prediction combining two long-range signals.
+
+    Signal 1 (same-weekday, narrow window): average of same-weekday observations
+    within ±same_wd_window days of the same calendar date one year ago.  Preserves
+    the day-of-week character — this Sunday vs Sundays around the same time last year.
+
+    Signal 2 (surrounding level, wider window): average of ALL observations
+    (any weekday) within ±level_window days of the same calendar date one year ago.
+    Captures the general demand level around that time last year, regardless of weekday.
+
+    Returns the mean of whichever signals have data, or None when no year-ago
+    observations fall within either window.  None is the no-data guard: the
+    holdout-accuracy weighting in the ensemble naturally gives this model zero weight
+    when it cannot make a prediction.
+    """
+    if len(dates) != len(values):
+        raise ValueError("dates and values must have the same length")
+    if not dates:
+        return None
+
+    try:
+        anchor = target_date.replace(year=target_date.year - 1)
+    except ValueError:
+        anchor = target_date.replace(year=target_date.year - 1, day=28)
+
+    target_wd = target_date.weekday()
+
+    s1_low = anchor - timedelta(days=same_wd_window)
+    s1_high = anchor + timedelta(days=same_wd_window)
+    s1_vals = [
+        v for d, v in zip(dates, values)
+        if s1_low <= d <= s1_high and d.weekday() == target_wd
+    ]
+    s1 = float(sum(s1_vals) / len(s1_vals)) if s1_vals else None
+
+    s2_low = anchor - timedelta(days=level_window)
+    s2_high = anchor + timedelta(days=level_window)
+    s2_vals = [v for d, v in zip(dates, values) if s2_low <= d <= s2_high]
+    s2 = float(sum(s2_vals) / len(s2_vals)) if s2_vals else None
+
+    signals = [s for s in (s1, s2) if s is not None]
+    return float(sum(signals) / len(signals)) if signals else None
+
+
 def same_date_last_year(
     dates: list[date],
     values: list[float],

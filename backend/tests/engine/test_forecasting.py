@@ -10,6 +10,7 @@ from app.engine.forecasting import (
     linear_trend,
     same_date_last_year,
     seasonality_index,
+    year_over_year_forecast,
 )
 
 
@@ -223,3 +224,96 @@ def test_sdly_empty_returns_none():
 def test_sdly_mismatched_lengths_raises():
     with pytest.raises(ValueError):
         same_date_last_year([date(2024, 6, 1)], [10.0, 20.0], date(2025, 6, 7))
+
+
+# ---------------------------------------------------------------------------
+# year_over_year_forecast
+# ---------------------------------------------------------------------------
+
+def test_yoy_returns_none_with_no_year_ago_data():
+    """No year-ago data → None (zero weight in ensemble — the no-data guard)."""
+    dates = [date(2025, 3, 1), date(2025, 3, 8), date(2025, 3, 15)]
+    values = [50.0, 55.0, 60.0]
+    target = date(2025, 6, 7)
+    assert year_over_year_forecast(dates, values, target) is None
+
+
+def test_yoy_empty_returns_none():
+    assert year_over_year_forecast([], [], date(2025, 6, 7)) is None
+
+
+def test_yoy_mismatched_lengths_raises():
+    with pytest.raises(ValueError):
+        year_over_year_forecast([date(2024, 6, 1)], [10.0, 20.0], date(2025, 6, 7))
+
+
+def test_yoy_uses_both_signals_when_available():
+    """When both signals have data, result is their average.
+
+    Target: 2025-06-07 (Saturday, wd=5).  Anchor: 2024-06-07.
+    Signal 1 (same-weekday ±7): 2024-06-08 (Sat) = 90 → s1 = 90.
+    Signal 2 (any-wd ±21): 2024-05-25 (Sat), 2024-06-08 (Sat), 2024-06-20 (Thu) = avg(70,90,80) = 80.
+    Combined = avg(90, 80) = 85.
+    """
+    target = date(2025, 6, 7)
+    dates = [date(2024, 5, 25), date(2024, 6, 8), date(2024, 6, 20)]
+    values = [70.0, 90.0, 80.0]
+    result = year_over_year_forecast(dates, values, target)
+    assert result is not None
+    assert result == pytest.approx(85.0)
+
+
+def test_yoy_falls_back_to_level_signal_when_no_same_weekday_in_narrow_window():
+    """When only the wider level window has data, use that alone.
+
+    Target: 2025-06-07 (Saturday).  Anchor: 2024-06-07.
+    No Saturdays within ±7 days → s1 = None.
+    A Thursday 2024-06-13 (6 days after anchor) falls in ±21 window → s2 = 75.
+    Result = 75.
+    """
+    target = date(2025, 6, 7)
+    dates = [date(2024, 6, 13)]  # Thursday — same-wd window has no Sat, but ±21 window covers it
+    values = [75.0]
+    result = year_over_year_forecast(dates, values, target)
+    assert result == pytest.approx(75.0)
+
+
+def test_yoy_falls_back_to_same_wd_signal_when_level_window_is_empty():
+    """Only data within the narrow same-weekday window — level window would be empty
+    only if same_wd_window > level_window, which can't happen with defaults. Instead
+    test with a custom narrow level_window that misses some points while same-wd hit.
+
+    Use level_window=3 so only points within ±3 days of anchor are in s2.
+    A Saturday at anchor+5 is within same_wd_window=7 but outside level_window=3.
+    Then s2 covers no points, s1 has the Saturday, result = s1 alone.
+    """
+    target = date(2025, 6, 7)
+    anchor_sat = date(2024, 6, 1)  # Saturday, 6 days before anchor 2024-06-07 — in ±7 same-wd, outside ±3 level
+    dates = [anchor_sat]
+    values = [88.0]
+    result = year_over_year_forecast(dates, values, target, same_wd_window=7, level_window=3)
+    assert result == pytest.approx(88.0)
+
+
+def test_yoy_data_outside_both_windows_returns_none():
+    """Data exists but only outside both windows → None."""
+    target = date(2025, 6, 7)
+    # 2024-01-01 is ~158 days before anchor 2024-06-07 — well outside any window
+    dates = [date(2024, 1, 1)]
+    values = [100.0]
+    assert year_over_year_forecast(dates, values, target) is None
+
+
+def test_yoy_contributes_zero_weight_without_holdout_errors(monkeypatch):
+    """Behavioural guard: with no year-ago data the model doesn't enter preds/maes.
+
+    Simulate the get_forecast blend logic inline: if year_over_year_forecast
+    returns None, no preds entry is added, so the model weight is effectively 0.
+    """
+    from datetime import timedelta
+    recent_dates = [date(2025, 1, 6) + timedelta(weeks=i) for i in range(8)]  # 8 Mondays in 2025
+    recent_values = [100.0] * 8
+    target = date(2025, 3, 10)  # a Monday; anchor would be 2024-03-10 — no data there
+
+    p = year_over_year_forecast(recent_dates, recent_values, target)
+    assert p is None  # → model would not be added to preds → zero weight
