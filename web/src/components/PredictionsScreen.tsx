@@ -1,4 +1,4 @@
-import { OrderingPanel, WeekPredictionPanel } from './ForecastDashboard'
+import { OrderingPanel } from './ForecastDashboard'
 import HourlyDashboard from './HourlyDashboard'
 import MergedForecastPanel from './MergedForecastPanel'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -7,18 +7,12 @@ interface Props {
   refreshKey: number
 }
 
-/**
- * Fixed copy of the default home layout — shows all analytics cards in their
- * original order regardless of the owner's home customization.
- * This tab preserves the full view so customizing home never loses anything.
- */
 export default function PredictionsScreen({ refreshKey }: Props) {
   const { t } = useLanguage()
   return (
     <div className="space-y-8">
       <OrderingPanel refreshKey={refreshKey} />
       <MergedForecastPanel refreshKey={refreshKey} />
-      <WeekPredictionPanel refreshKey={refreshKey} />
       <section>
         <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
           {t('busyHoursLabel')}

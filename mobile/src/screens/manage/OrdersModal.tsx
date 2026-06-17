@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
+import { emitOrderChange } from '../../lib/orderEvents'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
@@ -48,6 +49,11 @@ export default function OrdersModal({ onClose }: Props) {
   const [quantity, setQuantity] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editQty, setEditQty] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
 
   const loadData = async () => {
     setLoading(true)
@@ -106,8 +112,38 @@ export default function OrdersModal({ onClose }: Props) {
     try {
       const updated = await api.orders.update(id, { status: 'arrived' })
       setOrderRecords(rs => rs.map(r => r.id === id ? updated : r))
+      emitOrderChange()
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : 'Failed to update.')
+    }
+  }
+
+  const startEdit = (order: OrderRecordRead) => {
+    setEditingId(order.id)
+    setEditQty(String(order.quantity))
+    setEditError(null)
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditQty('')
+    setEditError(null)
+  }
+
+  const saveEdit = async () => {
+    const qty = parseFloat(editQty)
+    if (isNaN(qty) || qty <= 0) { setEditError('Quantity must be greater than 0.'); return }
+    setEditSaving(true)
+    setEditError(null)
+    try {
+      const updated = await api.orders.update(editingId!, { quantity: qty })
+      setOrderRecords(rs => rs.map(r => r.id === editingId ? updated : r))
+      setEditingId(null)
+      emitOrderChange()
+    } catch (e) {
+      setEditError(e instanceof Error ? e.message : 'Could not update.')
+    } finally {
+      setEditSaving(false)
     }
   }
 
@@ -141,7 +177,9 @@ export default function OrdersModal({ onClose }: Props) {
   const otherOrders = orderRecords.filter(r => r.status !== 'pending')
 
   const handleBack = () => {
-    if (showForm) { closeForm() } else { onClose() }
+    if (editingId !== null) { cancelEdit() }
+    else if (showForm) { closeForm() }
+    else { onClose() }
   }
 
   return (
@@ -273,35 +311,80 @@ export default function OrdersModal({ onClose }: Props) {
                     <Text style={styles.sectionLabel}>Pending</Text>
                     {pendingOrders.map(order => (
                       <View key={order.id} style={styles.orderCard}>
-                        <View style={styles.orderInfo}>
-                          <Text style={styles.orderProduct}>
-                            {productName(order.product_id)}
-                          </Text>
-                          <Text style={styles.orderQty}>
-                            {order.quantity} {productUnit(order.product_id)}
-                          </Text>
-                          <Text style={styles.orderDates}>
-                            Ordered {order.ordered_date} ֲ·{' '}
-                            Expected {order.expected_arrival_date}
-                          </Text>
-                        </View>
-                        <View style={styles.orderBtns}>
-                          <TouchableOpacity
-                            style={styles.arrivedBtn}
-                            onPress={() => void markArrived(order.id)}
-                            activeOpacity={0.75}
-                          >
-                            <Ionicons name="checkmark-circle" size={15} color={c.onPrimary} />
-                            <Text style={styles.arrivedBtnText}>{t('confirmArrived')}</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={styles.cancelBtn}
-                            onPress={() => cancelOrder(order.id)}
-                            hitSlop={8}
-                          >
-                            <Ionicons name="close-circle-outline" size={22} color={c.danger} />
-                          </TouchableOpacity>
-                        </View>
+                        {editingId === order.id ? (
+                          <View style={{ flex: 1, gap: 8 }}>
+                            <Text style={styles.orderProduct}>{productName(order.product_id)}</Text>
+                            {editError && (
+                              <Text style={[styles.errorBannerText, { color: c.danger }]}>{editError}</Text>
+                            )}
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                              <TextInput
+                                style={[styles.input, { flex: 1 }]}
+                                value={editQty}
+                                onChangeText={setEditQty}
+                                keyboardType="decimal-pad"
+                                placeholder="Quantity"
+                                placeholderTextColor={c.textMuted}
+                                autoFocus
+                              />
+                              <Text style={{ color: c.textSub, fontSize: 13 }}>
+                                {productUnit(order.product_id)}
+                              </Text>
+                              <TouchableOpacity
+                                style={styles.arrivedBtn}
+                                onPress={() => void saveEdit()}
+                                disabled={editSaving}
+                                activeOpacity={0.75}
+                              >
+                                {editSaving
+                                  ? <ActivityIndicator size="small" color={c.onPrimary} />
+                                  : <Text style={styles.arrivedBtnText}>Save</Text>}
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={cancelEdit} hitSlop={8}>
+                                <Ionicons name="close-circle-outline" size={22} color={c.textMuted} />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        ) : (
+                          <>
+                            <View style={styles.orderInfo}>
+                              <Text style={styles.orderProduct}>
+                                {productName(order.product_id)}
+                              </Text>
+                              <Text style={styles.orderQty}>
+                                {order.quantity} {productUnit(order.product_id)}
+                              </Text>
+                              <Text style={styles.orderDates}>
+                                Ordered {order.ordered_date} ·{' '}
+                                Expected {order.expected_arrival_date}
+                              </Text>
+                            </View>
+                            <View style={styles.orderBtns}>
+                              <TouchableOpacity
+                                style={styles.arrivedBtn}
+                                onPress={() => void markArrived(order.id)}
+                                activeOpacity={0.75}
+                              >
+                                <Ionicons name="checkmark-circle" size={15} color={c.onPrimary} />
+                                <Text style={styles.arrivedBtnText}>{t('confirmArrived')}</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={styles.editBtn}
+                                onPress={() => startEdit(order)}
+                                hitSlop={8}
+                              >
+                                <Ionicons name="pencil-outline" size={18} color={c.primary} />
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={styles.cancelBtn}
+                                onPress={() => cancelOrder(order.id)}
+                                hitSlop={8}
+                              >
+                                <Ionicons name="close-circle-outline" size={22} color={c.danger} />
+                              </TouchableOpacity>
+                            </View>
+                          </>
+                        )}
                       </View>
                     ))}
                   </>
@@ -394,6 +477,7 @@ function makeStyles(c: Theme) {
       paddingVertical: 7, paddingHorizontal: 11,
     },
     arrivedBtnText: { fontSize: 13, fontWeight: '700', color: c.onPrimary },
+    editBtn: { padding: 4 },
     cancelBtn: { padding: 4 },
 
     fieldLabel: {

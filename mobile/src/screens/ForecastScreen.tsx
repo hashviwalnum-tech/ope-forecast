@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { Theme } from '../lib/theme'
 import AppHeader from '../components/AppHeader'
+import { subscribeOrderChange, emitOrderChange } from '../lib/orderEvents'
 
 const WEEKDAY_SHORT: Record<string, string> = {
   Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu',
@@ -121,6 +122,11 @@ export default function ForecastScreen() {
     }, [loadData, business])
   )
 
+  // Refresh stock/ordering when any order changes (arrived, cancelled, logged)
+  useEffect(() => {
+    return subscribeOrderChange(() => { if (business) void loadData() })
+  }, [loadData, business])
+
   const handleLogOrder = async () => {
     if (!logOrderProduct) return
     const qty = parseFloat(logOrderQty)
@@ -137,6 +143,8 @@ export default function ForecastScreen() {
       })
       setLogOrderProduct(null)
       setLogOrderQty('')
+      emitOrderChange()
+      void loadData()
       Alert.alert('Order logged!', `${qty} ${logOrderProduct.unit} of ${logOrderProduct.name} recorded.`)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Failed to log order.'

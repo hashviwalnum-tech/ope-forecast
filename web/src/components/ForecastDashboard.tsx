@@ -149,18 +149,22 @@ function ProductOrderActions({
 }) {
   const { t } = useLanguage()
 
-  const todayOrder = productOrders.find(o => o.ordered_date === today && o.status === 'pending') ?? null
-  const pendingOld = productOrders
-    .filter(o => o.ordered_date < today && o.status === 'pending')
-    .sort((a, b) => b.ordered_date.localeCompare(a.ordered_date))[0] ?? null
+  // Most recent pending order (any date — backend enforces lock)
+  const allPending = productOrders
+    .filter(o => o.status === 'pending')
+    .sort((a, b) => b.ordered_date.localeCompare(a.ordered_date))
+  const activePending = allPending[0] ?? null
+  // Older pending orders beyond the most recent (shown as in-transit info)
+  const otherPending = allPending.slice(1)
 
-  const [showForm, setShowForm]         = useState(false)
-  const [qty, setQty]                   = useState(String(Math.ceil(suggestedQty || 1)))
-  const [saving, setSaving]             = useState(false)
-  const [editingToday, setEditingToday] = useState(false)
-  const [editQty, setEditQty]           = useState('')
-  const [cancelling, setCancelling]     = useState(false)
-  const [err, setErr]                   = useState<string | null>(null)
+  const [showForm, setShowForm]   = useState(false)
+  const [qty, setQty]             = useState(String(Math.ceil(suggestedQty || 1)))
+  const [saving, setSaving]       = useState(false)
+  const [editing, setEditing]     = useState(false)
+  const [editQty, setEditQty]     = useState('')
+  const [cancelling, setCancelling] = useState(false)
+  const [arriving, setArriving]   = useState(false)
+  const [err, setErr]             = useState<string | null>(null)
 
   async function placeOrder() {
     const q = parseFloat(qty)
@@ -176,17 +180,24 @@ function ProductOrderActions({
   }
 
   async function saveEdit() {
-    if (!todayOrder) return
+    if (!activePending) return
     const q = parseFloat(editQty)
     if (isNaN(q) || q <= 0) { setErr('Enter a valid quantity'); return }
     setSaving(true); setErr(null)
     try {
-      await ordersApi.update(todayOrder.id, { quantity: q })
-      setEditingToday(false)
+      await ordersApi.update(activePending.id, { quantity: q })
+      setEditing(false)
       onChanged()
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : 'Could not update')
     } finally { setSaving(false) }
+  }
+
+  async function doMarkArrived(orderId: number) {
+    setArriving(true)
+    try { await ordersApi.update(orderId, { status: 'arrived' }); onChanged() }
+    catch { /* already arrived or cancelled */ }
+    finally { setArriving(false) }
   }
 
   async function doCancel(orderId: number) {
@@ -197,33 +208,54 @@ function ProductOrderActions({
 
   return (
     <div className="px-4 py-2.5 border-t border-slate-100 dark:border-slate-700 space-y-1.5">
-      {/* Older pending order in transit */}
-      {pendingOld && (
-        <p className="text-xs text-teal-600 dark:text-teal-300">
-          📦 {t('inTransitInfo', { qty: String(pendingOld.quantity), unit, date: pendingOld.expected_arrival_date })}
-        </p>
-      )}
+      {/* Additional in-transit pending orders */}
+      {otherPending.map(o => (
+        <div key={o.id} className="flex items-center gap-3 flex-wrap">
+          <p className="text-xs text-teal-600 dark:text-teal-300 flex-1">
+            📦 {t('inTransitInfo', { qty: String(o.quantity), unit, date: o.expected_arrival_date })}
+          </p>
+          {o.expected_arrival_date <= today && (
+            <button
+              onClick={() => void doMarkArrived(o.id)}
+              disabled={arriving}
+              className="text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:underline shrink-0 disabled:opacity-50"
+            >
+              {t('confirmArrived')}
+            </button>
+          )}
+        </div>
+      ))}
 
-      {/* Today's order — info row with edit / cancel */}
-      {todayOrder && !editingToday && (
+      {/* Active (most recent) pending order — info row with edit / mark arrived / cancel */}
+      {activePending && !editing && (
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs text-emerald-700 dark:text-emerald-400">
-            ✓ {t('orderedTodayInfo', { qty: String(todayOrder.quantity), unit, date: todayOrder.expected_arrival_date })}
+          <span className="text-xs text-emerald-700 dark:text-emerald-400 flex-1">
+            ✓ {t('orderedTodayInfo', { qty: String(activePending.quantity), unit, date: activePending.expected_arrival_date })}
           </span>
+          {activePending.expected_arrival_date <= today && (
+            <button
+              onClick={() => void doMarkArrived(activePending.id)}
+              disabled={arriving}
+              className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700
+                         rounded-lg px-2 py-0.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shrink-0 disabled:opacity-50"
+            >
+              {arriving ? '…' : t('confirmArrived')}
+            </button>
+          )}
           <button
-            onClick={() => { setEditingToday(true); setEditQty(String(todayOrder.quantity)); setErr(null) }}
+            onClick={() => { setEditing(true); setEditQty(String(activePending.quantity)); setErr(null) }}
             className="text-xs text-teal-600 dark:text-teal-400 hover:underline shrink-0"
           >{t('editBtn')}</button>
           <button
-            onClick={() => doCancel(todayOrder.id)}
+            onClick={() => doCancel(activePending.id)}
             disabled={cancelling}
             className="text-xs text-rose-500 hover:underline shrink-0 disabled:opacity-50"
           >{cancelling ? '…' : t('cancelOrder')}</button>
         </div>
       )}
 
-      {/* Edit today's order quantity */}
-      {todayOrder && editingToday && (
+      {/* Edit active pending order quantity */}
+      {activePending && editing && (
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
@@ -240,7 +272,7 @@ function ProductOrderActions({
               className="text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 rounded-lg px-3 py-1.5"
             >{saving ? '…' : t('saveChangesBtn')}</button>
             <button
-              onClick={() => { setEditingToday(false); setErr(null) }}
+              onClick={() => { setEditing(false); setErr(null) }}
               className="text-sm text-slate-400 hover:underline"
             >{t('cancelBtn')}</button>
           </div>
@@ -248,8 +280,8 @@ function ProductOrderActions({
         </div>
       )}
 
-      {/* "I ordered this" — only shown when no today's order */}
-      {!todayOrder && !showForm && (
+      {/* "I ordered this" — only shown when no pending order exists */}
+      {!activePending && !showForm && (
         <button
           onClick={() => { setShowForm(true); setQty(String(Math.ceil(suggestedQty || 1))) }}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 dark:text-teal-400
@@ -260,7 +292,7 @@ function ProductOrderActions({
         </button>
       )}
 
-      {!todayOrder && showForm && (
+      {!activePending && showForm && (
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
@@ -450,7 +482,11 @@ export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
   }, [allOrders])
 
   async function refreshOrders() {
-    try { const list = await ordersApi.list(); setAllOrders(list) } catch { /* ignore */ }
+    try {
+      const [ord, list] = await Promise.all([analytics.ordering(), ordersApi.list()])
+      setOrdering(ord)
+      setAllOrders(list)
+    } catch { /* ignore */ }
   }
 
   useEffect(() => {

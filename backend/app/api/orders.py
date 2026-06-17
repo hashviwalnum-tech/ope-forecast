@@ -24,21 +24,22 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 def _is_locked(ordered_date: date, biz: Business) -> bool:
-    """Return True when the order can no longer be edited or cancelled.
+    """Return True when the order quantity can no longer be edited or cancelled.
 
-    Orders are editable until closing hours on the day they were placed.
-    If closing_hour is not configured, orders are always editable on their day.
-    Orders placed on previous days are always locked.
+    Lock rule: locked once closing_hour has passed on the day placed.
+    If closing_hour is not configured, orders are never auto-locked (stay
+    editable while pending so the owner can correct quantities freely).
+    Note: status transitions (e.g. marking arrived) bypass this check —
+    a delivery can be confirmed any time regardless of lock state.
     """
-    today = date.today()
-    if ordered_date < today:
-        return True
-    if ordered_date == today:
-        settings = biz.settings or {}
-        closing = settings.get("closing_hour")
-        if closing is not None and datetime.now().hour >= int(closing):
-            return True
-    return False
+    settings = biz.settings or {}
+    closing = settings.get("closing_hour")
+    if closing is None:
+        return False
+    closing_dt = datetime(
+        ordered_date.year, ordered_date.month, ordered_date.day, int(closing)
+    )
+    return datetime.now() >= closing_dt
 
 
 def _get_or_404(db: Session, order_id: int, biz_id: int) -> OrderRecord:
@@ -128,9 +129,15 @@ def update_order(
     biz: Business = Depends(get_business),
 ):
     row = _get_or_404(db, order_id, biz.id)
-    if _is_locked(row.ordered_date, biz):
-        raise HTTPException(422, "This order is locked — it can only be edited until closing time on the day it was placed.")
-    for field, value in body.model_dump(exclude_none=True).items():
+    changes = body.model_dump(exclude_none=True)
+    # Lock only applies to quantity edits; status transitions (e.g. marking arrived)
+    # are always allowed so a delivery can be confirmed any time.
+    if "quantity" in changes and _is_locked(row.ordered_date, biz):
+        raise HTTPException(
+            422,
+            "This order is locked — quantity can only be changed until closing time on the day it was placed.",
+        )
+    for field, value in changes.items():
         setattr(row, field, value)
     db.commit()
     db.refresh(row)

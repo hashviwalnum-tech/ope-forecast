@@ -49,7 +49,9 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
   const [orderQty, setOrderQty]           = useState(String(Math.ceil(qty || 1)))
   const [submitting, setSubmitting]       = useState(false)
   const [recentOrder, setRecentOrder]     = useState<OrderRecordRead | null>(null)
+  const [arriving, setArriving]           = useState(false)
 
+  const today = new Date().toISOString().slice(0, 10)
   // Use projected stock (dynamic) when available, fall back to raw current_stock
   const stockUntracked = item.stock_untracked ?? false
   const displayStock = item.projected_stock ?? item.current_stock
@@ -76,6 +78,14 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
   async function cancelRecentOrder() {
     if (!recentOrder) return
     try { await ordersApi.cancel(recentOrder.id); setRecentOrder(null) } catch { }
+  }
+
+  async function markRecentArrived() {
+    if (!recentOrder) return
+    setArriving(true)
+    try { await ordersApi.update(recentOrder.id, { status: 'arrived' }); setRecentOrder(null) }
+    catch { }
+    finally { setArriving(false) }
   }
 
   return (
@@ -172,6 +182,15 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
             <span className="flex-1 text-xs">
               ✓ {t('orderLoggedConfirm', { qty: String(recentOrder.quantity), unit, arrival: recentOrder.expected_arrival_date })}
             </span>
+            {recentOrder.expected_arrival_date <= today && (
+              <button
+                onClick={markRecentArrived}
+                disabled={arriving}
+                className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline shrink-0 disabled:opacity-50"
+              >
+                {arriving ? '…' : t('confirmArrived')}
+              </button>
+            )}
             <button onClick={cancelRecentOrder} className="text-xs text-slate-400 hover:text-red-500 shrink-0">
               {t('cancelOrder')}
             </button>

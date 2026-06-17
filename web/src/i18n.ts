@@ -587,6 +587,7 @@ export const translations = {
     quantityOrdered: 'How many did you order?',
     confirmOrder: 'Confirm order',
     cancelOrder: 'Cancel order',
+    confirmArrived: 'Mark arrived',
     orderLoggedConfirm: 'Ordered {qty} {unit} · Arrives {arrival}',
 
     // Low stock warning (fires only when projected stock about to run out)
@@ -1289,6 +1290,7 @@ export const translations = {
     quantityOrdered: 'כמה הזמנת?',
     confirmOrder: 'אשר הזמנה',
     cancelOrder: 'בטל הזמנה',
+    confirmArrived: 'סמן כהגיע',
     orderLoggedConfirm: 'הוזמנו {qty} {unit} · מגיע ב-{arrival}',
 
     // Low stock warning
