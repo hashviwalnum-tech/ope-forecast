@@ -16,3 +16,11 @@ web/.env
 
 # Claude Code local settings (contains machine-specific paths)
 .claude/settings.local.json
+
+# Generated seed SQL files (temp, never commit)
+backend/seed_chunk_*.sql
+backend/mega_events_*.sql
+backend/ev_batch_*.sql
+backend/seed_output.sql
+backend/exec_*.txt
+backend/gen_seed_*.py
