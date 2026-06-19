@@ -707,7 +707,7 @@ export const translations = {
     // Onboarding wizard
     onboardingStep: 'Step {n} of {total}',
     onboardingStepHoursTitle: 'When are you open?',
-    onboardingStepHoursDesc: 'Ope uses your hours to skip days you\'re closed — it never treats a day you didn\'t log as zero sales. You can always change this later in Settings.',
+    onboardingStepHoursDesc: 'Select only the days you\'re actually open — days you don\'t pick are completely skipped by the forecast and never counted as zero. This also helps Ope focus your busy-hours view and staffing advice on your real trading hours. You can change this any time in Settings.',
     onboardingStepProductsTitle: 'Add what you sell',
     onboardingStepProductsDesc: 'Once you add a product, Ope tracks demand, tells you when to reorder, and shows per-product forecasts. It only takes a name and a unit (e.g. "Sourdough loaf, each").',
     onboardingStepProductsBtn: 'Go to My Products →',
@@ -720,6 +720,16 @@ export const translations = {
     onboardingDone: 'Got it — start using Ope!',
     onboardingSkipAll: 'Skip setup for now',
     onboardingGoToProducts: 'Add your first product',
+
+    // Post-onboarding first-task CTA (shown while product list is empty)
+    firstTaskTitle: 'Your first task',
+    firstTaskMsg: 'Add the products you sell so Ope can track demand and tell you when to reorder. Then, after you close tonight, come back and log today\'s numbers to start building your forecast.',
+    firstTaskCta: 'Go to My Products →',
+
+    // Customer-count input validation
+    validationCustomersRequired: 'Enter the number of customers for this day.',
+    confirmZeroCustomers: 'You entered 0 customers. Is that right? Tap OK to save it.',
+    confirmLargeCount: 'You entered {n} customers — that\'s unusually high. Is that right?',
 
     // Feedback panel
     feedbackTitle: 'Send Feedback',
@@ -1442,7 +1452,7 @@ export const translations = {
     // Onboarding wizard
     onboardingStep: 'שלב {n} מתוך {total}',
     onboardingStepHoursTitle: 'מתי העסק שלך פתוח?',
-    onboardingStepHoursDesc: 'Ope משתמש בשעות כדי לדלג על ימים שאתה סגור — הוא לעולם לא יתייחס ליום שלא תיעדת כאפס מכירות. תוכל לשנות זאת בכל עת בהגדרות.',
+    onboardingStepHoursDesc: 'בחר רק את הימים שאתה פתוח — ימים שלא בחרת מדולגים לחלוטין בתחזית ולעולם לא נחשבים לאפס. זה גם עוזר ל-Ope להתמקד בשעות הפעילות האמיתיות שלך בשעות העמוסות ובהמלצות הסגל. תוכל לשנות זאת בכל עת בהגדרות.',
     onboardingStepProductsTitle: 'הוסף את מה שאתה מוכר',
     onboardingStepProductsDesc: 'ברגע שתוסיף מוצר, Ope יעקוב אחרי הביקוש, יגיד לך מתי להזמין ויציג תחזיות לכל מוצר. צריך רק שם ויחידה (למשל "לחם שאור, יחידה").',
     onboardingStepProductsBtn: 'עבור למוצרים שלי ←',
@@ -1455,6 +1465,16 @@ export const translations = {
     onboardingDone: 'הבנתי — התחל להשתמש ב-Ope!',
     onboardingSkipAll: 'דלג על ההגדרה בינתיים',
     onboardingGoToProducts: 'הוסף את המוצר הראשון שלך',
+
+    // Post-onboarding first-task CTA
+    firstTaskTitle: 'המשימה הראשונה שלך',
+    firstTaskMsg: 'הוסף את המוצרים שאתה מוכר כדי ש-Ope יוכל לעקוב אחרי הביקוש ולומר לך מתי להזמין. לאחר מכן, אחרי הסגירה הלילה, חזור ורשום את מספרי היום הראשון כדי להתחיל לבנות את התחזית שלך.',
+    firstTaskCta: 'עבור למוצרים שלי ←',
+
+    // Customer-count input validation
+    validationCustomersRequired: 'הכנס את מספר הלקוחות של היום.',
+    confirmZeroCustomers: 'הכנסת 0 לקוחות. האם זה נכון? לחץ אישור כדי לשמור.',
+    confirmLargeCount: 'הכנסת {n} לקוחות — זה חריג במיוחד. האם זה נכון?',
 
     // Feedback panel
     feedbackTitle: 'שלח משוב',

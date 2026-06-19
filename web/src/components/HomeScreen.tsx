@@ -6,7 +6,7 @@ import MergedForecastPanel from './MergedForecastPanel'
 import PredictionsPanel from './PredictionsPanel'
 import TapSellPanel from './TapSellPanel'
 import TrendsView from './TrendsView'
-import { businesses as businessesApi, dayRecords as dayRecordsApi, regulars as regularsApi, saleEvents } from '../api/client'
+import { businesses as businessesApi, dayRecords as dayRecordsApi, products as productsApi, regulars as regularsApi, saleEvents } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { RegularRead } from '../api/types'
 import type { TranslationKey } from '../i18n'
@@ -164,10 +164,15 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
   const [customizing, setCustomizing] = useState(false)
   const [layout, setLayout]           = useState<CardConfig[]>(loadLayout)
   const [tapRollover, setTapRollover] = useState(false)
+  const [productCount, setProductCount] = useState<number | null>(null)
 
   // Drag state for reorder
   const dragIdx = useRef<number | null>(null)
   const [dragOver, setDragOver] = useState<number | null>(null)
+
+  useEffect(() => {
+    productsApi.list().then(list => setProductCount(list.length)).catch(() => {})
+  }, [refreshKey])
 
   useEffect(() => {
     async function checkRollover() {
@@ -272,6 +277,32 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
 
   return (
     <div className="space-y-8">
+
+      {/* First-task CTA — shown until the owner has at least one product */}
+      {productCount === 0 && (
+        <div className="flex items-start justify-between gap-4 rounded-2xl border border-teal-200 dark:border-teal-700
+                        bg-teal-50 dark:bg-teal-900/20 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">{t('firstTaskTitle')}</p>
+              <p className="text-sm text-teal-700 dark:text-teal-400 mt-0.5 leading-relaxed">
+                {t('firstTaskMsg')}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onGoToProducts?.()}
+            className="shrink-0 px-4 py-2 bg-teal-600 text-white text-sm font-semibold
+                       rounded-xl hover:bg-teal-700 transition-colors"
+          >
+            {t('firstTaskCta')}
+          </button>
+        </div>
+      )}
 
       {/* Tap-only rollover banner */}
       {tapRollover && (

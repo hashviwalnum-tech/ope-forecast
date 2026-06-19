@@ -52,6 +52,7 @@ export default function BackfillForm({ onSaved }: Props) {
   const [unitsSold, setUnitsSold] = useState<Record<number, string>>({})
   const [saving, setSaving]       = useState(false)
   const [feedback, setFeedback]   = useState<{ ok: boolean; msg: string } | null>(null)
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [overwriteId, setOverwriteId] = useState<number | null>(null)
 
   // hourly breakdown (optional)
@@ -118,8 +119,17 @@ export default function BackfillForm({ onSaved }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (nonWorking) return
-    // Require either a manual total or hourly data to produce a non-zero total
-    if (effectiveCustomers <= 0) return
+    setValidationError(null)
+    // If nothing was entered at all, show a validation error
+    if (effectiveCustomers === 0 && customers.trim() === '' && !hasOpenHours) {
+      setValidationError(t('validationCustomersRequired'))
+      return
+    }
+    if (effectiveCustomers === 0) {
+      if (!window.confirm(t('confirmZeroCustomers'))) return
+    } else if (effectiveCustomers > 500) {
+      if (!window.confirm(t('confirmLargeCount', { n: String(effectiveCustomers) }))) return
+    }
     setSaving(true)
     setFeedback(null)
     setOverwriteId(null)
@@ -174,7 +184,16 @@ export default function BackfillForm({ onSaved }: Props) {
 
   async function handleOverwrite() {
     if (overwriteId === null) return
-    if (effectiveCustomers <= 0) return
+    setValidationError(null)
+    if (effectiveCustomers === 0 && customers.trim() === '' && !hasOpenHours) {
+      setValidationError(t('validationCustomersRequired'))
+      return
+    }
+    if (effectiveCustomers === 0) {
+      if (!window.confirm(t('confirmZeroCustomers'))) return
+    } else if (effectiveCustomers > 500) {
+      if (!window.confirm(t('confirmLargeCount', { n: String(effectiveCustomers) }))) return
+    }
     setSaving(true)
     setFeedback(null)
     try {
@@ -237,13 +256,19 @@ export default function BackfillForm({ onSaved }: Props) {
         </label>
         <input
           type="number" min="0" required placeholder="0"
-          value={customers} onChange={e => setCustomers(e.target.value)}
+          value={customers}
+          onChange={e => { setCustomers(e.target.value); setValidationError(null) }}
           disabled={nonWorking}
-          className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-3
+          className={`w-full border rounded-xl px-3 py-3
                      text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700
                      focus:outline-none focus:ring-2 focus:ring-teal-500
-                     disabled:opacity-50 disabled:cursor-not-allowed"
+                     disabled:opacity-50 disabled:cursor-not-allowed ${
+            validationError ? 'border-red-400 dark:border-red-500' : 'border-slate-300 dark:border-slate-600'
+          }`}
         />
+        {validationError && (
+          <p className="text-sm text-red-600 dark:text-red-400 mt-1">{validationError}</p>
+        )}
       </div>
 
       {productList.length > 0 && (

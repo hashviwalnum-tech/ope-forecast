@@ -27,6 +27,7 @@ export default function LogDayForm({ onSaved }: Props) {
   const [saving, setSaving]       = useState(false)
   const [feedback, setFeedback]   = useState<{ ok: boolean; msg: string } | null>(null)
   const [warning, setWarning]     = useState<string | null>(null)
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [overwriteId, setOverwriteId] = useState<number | null>(null)
 
   useEffect(() => {
@@ -49,8 +50,17 @@ export default function LogDayForm({ onSaved }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setValidationError(null)
     const cust = parseInt(customers)
-    if (isNaN(cust) || cust < 0) return
+    if (customers.trim() === '' || isNaN(cust) || cust < 0) {
+      setValidationError(t('validationCustomersRequired'))
+      return
+    }
+    if (cust === 0) {
+      if (!window.confirm(t('confirmZeroCustomers'))) return
+    } else if (cust > 500) {
+      if (!window.confirm(t('confirmLargeCount', { n: String(cust) }))) return
+    }
     setSaving(true)
     setFeedback(null)
     setWarning(null)
@@ -92,8 +102,17 @@ export default function LogDayForm({ onSaved }: Props) {
 
   async function handleOverwrite() {
     if (overwriteId === null) return
+    setValidationError(null)
     const cust = parseInt(customers)
-    if (isNaN(cust) || cust < 0) return
+    if (customers.trim() === '' || isNaN(cust) || cust < 0) {
+      setValidationError(t('validationCustomersRequired'))
+      return
+    }
+    if (cust === 0) {
+      if (!window.confirm(t('confirmZeroCustomers'))) return
+    } else if (cust > 500) {
+      if (!window.confirm(t('confirmLargeCount', { n: String(cust) }))) return
+    }
     setSaving(true)
     setFeedback(null)
     try {
@@ -150,10 +169,16 @@ export default function LogDayForm({ onSaved }: Props) {
         </label>
         <input
           type="number" min="0" required placeholder="0"
-          value={customers} onChange={e => setCustomers(e.target.value)}
-          className="w-full border border-slate-300 rounded-xl px-3 py-3 text-slate-900
-                     focus:outline-none focus:ring-2 focus:ring-teal-500"
+          value={customers}
+          onChange={e => { setCustomers(e.target.value); setValidationError(null) }}
+          className={`w-full border rounded-xl px-3 py-3 text-slate-900
+                     focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+            validationError ? 'border-red-400' : 'border-slate-300'
+          }`}
         />
+        {validationError && (
+          <p className="text-sm text-red-600 mt-1">{validationError}</p>
+        )}
       </div>
 
       {productList.length > 0 && (

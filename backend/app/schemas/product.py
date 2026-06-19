@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ProductCreate(BaseModel):
@@ -12,7 +12,21 @@ class ProductCreate(BaseModel):
     unit_mode: Literal["whole", "decimal"] = "whole"
     price: Optional[float] = Field(None, ge=0)
     current_stock: Optional[float] = Field(None, ge=0)
-    lead_time_days: int = Field(..., ge=1)
+    lead_time_days: int = Field(..., ge=1, le=365)
+
+    @field_validator('name')
+    @classmethod
+    def name_non_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError('Product name cannot be empty')
+        return v.strip()
+
+    @field_validator('unit')
+    @classmethod
+    def unit_non_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError('Unit cannot be empty')
+        return v.strip()
     service_time_minutes: Optional[float] = Field(None, gt=0)
     storage_capacity: Optional[float] = Field(None, gt=0)
     shelf_life_days: Optional[int] = Field(None, ge=1)

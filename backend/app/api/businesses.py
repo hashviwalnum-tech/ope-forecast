@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -30,14 +30,15 @@ class TierUpdate(BaseModel):
 
 class BusinessSettingsUpdate(BaseModel):
     opening_days: list[int] | None = None           # 0=Mon … 6=Sun
-    opening_hour: int | None = None                 # 0–23 in LOCAL time
-    closing_hour: int | None = None                 # 0–23 in LOCAL time
+    opening_hour: int | None = Field(None, ge=0, le=23)   # 0–23 in LOCAL time
+    closing_hour: int | None = Field(None, ge=0, le=23)   # 0–23 in LOCAL time
     timezone: str | None = None                     # IANA tz name e.g. "Asia/Jerusalem"
     avg_service_time_minutes: float | None = None   # minutes to serve one customer
     staffing_max_wait_minutes: float | None = None  # owner's max acceptable wait (None = use utilisation cap)
     staffing_max_queue_length: float | None = None  # owner's max queue length (None = use utilisation cap)
     stock_management_enabled: bool | None = None    # toggle to hide ordering/stock advice entirely
     assume_orders_arrive_on_time: bool | None = None  # auto-mark pending orders as arrived on expected date
+    onboarding_done: bool | None = None             # persisted server-side so it survives across devices
 
 
 @router.get("", response_model=list[BusinessRead])

@@ -36,7 +36,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
   const { t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<1 | 2 | 3>(1)
 
   // Step 1: business name
   const [name, setName] = useState('')
@@ -45,8 +45,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
   const [createError, setCreateError] = useState<string | null>(null)
   const [createdBiz, setCreatedBiz] = useState<BusinessRead | null>(null)
 
-  // Step 2: opening hours
-  const [openDays, setOpenDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6])
+  // Step 2: opening hours — no days pre-selected; owner must explicitly choose
+  const [openDays, setOpenDays] = useState<number[]>([])
   const [openHour, setOpenHour] = useState(9)
   const [closeHour, setCloseHour] = useState(22)
   const [savingHours, setSavingHours] = useState(false)
@@ -83,29 +83,28 @@ export default function OnboardingScreen({ onComplete }: Props) {
     }
   }
 
-  const saveHoursAndFinish = async () => {
-    if (!createdBiz) { onComplete(createdBiz!); return }
+  const saveHoursAndContinue = async () => {
+    if (!createdBiz) { setStep(3); return }
     if (openDays.length === 0) { setHoursError(t('openDayError')); return }
     if (closeHour <= openHour) { setHoursError(t('openHourError')); return }
     setSavingHours(true)
     setHoursError(null)
     try {
-      const updated = await api.businesses.updateSettings({
+      await api.businesses.updateSettings({
         opening_days: openDays,
         opening_hour: openHour,
         closing_hour: closeHour,
       })
-      onComplete(updated)
     } catch {
-      // Hours save failed — still complete onboarding with the created business
-      onComplete(createdBiz)
+      // Hours save failed — continue anyway, user can fix in Settings
     } finally {
       setSavingHours(false)
     }
+    setStep(3)
   }
 
   const skipHours = () => {
-    if (createdBiz) onComplete(createdBiz)
+    setStep(3)
   }
 
   return (
@@ -124,7 +123,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
 
         {/* Step indicator */}
         <View style={styles.stepRow}>
-          {([1, 2] as const).map(n => (
+          {([1, 2, 3] as const).map(n => (
             <View key={n} style={styles.stepItem}>
               <View style={[
                 styles.stepDot,
@@ -138,13 +137,13 @@ export default function OnboardingScreen({ onComplete }: Props) {
                   </Text>
                 )}
               </View>
-              {n < 2 && (
+              {n < 3 && (
                 <View style={[styles.stepLine, { backgroundColor: n < step ? c.primary : c.border }]} />
               )}
             </View>
           ))}
           <Text style={[styles.stepLabel, { color: c.textMuted }]}>
-            {t('stepOf', { n: String(step), total: '2' })}
+            {t('stepOf', { n: String(step), total: '3' })}
           </Text>
         </View>
 
@@ -278,14 +277,14 @@ export default function OnboardingScreen({ onComplete }: Props) {
 
             <TouchableOpacity
               style={[styles.primaryBtn, { backgroundColor: c.primary }, savingHours && { opacity: 0.6 }]}
-              onPress={() => void saveHoursAndFinish()}
+              onPress={() => void saveHoursAndContinue()}
               disabled={savingHours}
               activeOpacity={0.8}
             >
               {savingHours
                 ? <ActivityIndicator size="small" color={c.onPrimary} />
                 : <Text style={[styles.primaryBtnText, { color: c.onPrimary }]}>
-                    {t('mobileOnboardingDone')}
+                    {t('mobileOnboardingNext')}
                   </Text>}
             </TouchableOpacity>
 
@@ -296,6 +295,35 @@ export default function OnboardingScreen({ onComplete }: Props) {
             >
               <Text style={[styles.skipText, { color: c.textMuted }]}>
                 {t('mobileOnboardingSkip')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── Step 3: What's next ── */}
+        {step === 3 && (
+          <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+            <Text style={[styles.cardTitle, { color: c.text }]}>
+              {t('mobileOnboardingWhatNextTitle')}
+            </Text>
+            <Text style={[styles.cardDesc, { color: c.textSub }]}>
+              {t('mobileOnboardingWhatNextDesc')}
+            </Text>
+
+            <View style={[styles.noteBanner, { backgroundColor: c.primaryBg }]}>
+              <Ionicons name="bulb-outline" size={16} color={c.primaryDark} />
+              <Text style={[styles.noteText, { color: c.primaryDark }]}>
+                {t('mobileOnboardingForecastNote')}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.primaryBtn, { backgroundColor: c.primary }]}
+              onPress={() => createdBiz && onComplete(createdBiz)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.primaryBtnText, { color: c.onPrimary }]}>
+                {t('mobileOnboardingGetStarted')}
               </Text>
             </TouchableOpacity>
           </View>

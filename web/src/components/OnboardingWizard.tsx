@@ -30,9 +30,13 @@ interface Props {
 
 export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Props) {
   const { t } = useLanguage()
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  // If the user previously clicked "Add Products" and returned, jump straight to step 3
+  const [step, setStep] = useState<1 | 2 | 3>(() =>
+    localStorage.getItem(`ope_onboarding_products_visited_${bizId}`) === '1' ? 3 : 1
+  )
 
-  const [openDays, setOpenDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6])
+  // No days pre-selected — owners must explicitly choose their open days
+  const [openDays, setOpenDays] = useState<number[]>([])
   const [openHour, setOpenHour] = useState(9)
   const [closeHour, setCloseHour] = useState(22)
   const [saving, setSaving] = useState(false)
@@ -72,12 +76,14 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
   }
 
   function dismiss() {
+    localStorage.removeItem(`ope_onboarding_products_visited_${bizId}`)
     markOnboardingDone(bizId)
     onDone()
   }
 
   function goToProducts() {
-    markOnboardingDone(bizId)
+    // Remember that the user visited Products so we return to step 3 when they come back
+    localStorage.setItem(`ope_onboarding_products_visited_${bizId}`, '1')
     onGoToProducts()
   }
 

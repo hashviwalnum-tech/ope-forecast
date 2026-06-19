@@ -153,6 +153,7 @@ export const businesses = {
     staffing_max_wait_minutes?: number | null
     staffing_max_queue_length?: number | null
     stock_management_enabled?: boolean
+    onboarding_done?: boolean
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
   setTier: (tier: 'free' | 'premium') => PATCH<BusinessRead>('/businesses/me/tier', { tier }),
   delete: (id: number) => DELETE(`/businesses/${id}`),

@@ -85,7 +85,9 @@ function AppInner() {
           : list[0]
         setActiveBusiness(chosen)
         api.setActiveBusinessId(chosen.id)
-        setOnboardingDone(isOnboardingDone(chosen.id))
+        setOnboardingDone(
+          isOnboardingDone(chosen.id) || chosen.settings?.onboarding_done === true
+        )
       } else {
         setActiveBusiness(null)
         api.setActiveBusinessId(null)
@@ -145,7 +147,7 @@ function AppInner() {
     api.setActiveBusinessId(biz.id)
     setSwitcherOpen(false)
     setRefreshKey(k => k + 1)
-    setOnboardingDone(isOnboardingDone(biz.id))
+    setOnboardingDone(isOnboardingDone(biz.id) || biz.settings?.onboarding_done === true)
   }
 
   function handleBusinessCreated(biz: BusinessRead) {
@@ -154,7 +156,7 @@ function AppInner() {
     api.setActiveBusinessId(biz.id)
     setShowAddBusiness(false)
     setBizLoaded(true)
-    setOnboardingDone(isOnboardingDone(biz.id))
+    setOnboardingDone(isOnboardingDone(biz.id) || biz.settings?.onboarding_done === true)
   }
 
   function handleDeleteBusiness(bizId: number, bizName: string) {
@@ -508,8 +510,11 @@ function AppInner() {
           {tab === 'home'             && (!onboardingDone ? (
             <OnboardingWizard
               bizId={activeBusiness.id}
-              onGoToProducts={() => { setOnboardingDone(true); setTab('products') }}
-              onDone={() => setOnboardingDone(true)}
+              onGoToProducts={() => setTab('products')}
+              onDone={() => {
+                setOnboardingDone(true)
+                api.businesses.updateSettings({ onboarding_done: true }).catch(() => {})
+              }}
             />
           ) : (
             <HomeScreen refreshKey={refreshKey} onSaved={refresh} onGoToProducts={() => setTab('products')} />
