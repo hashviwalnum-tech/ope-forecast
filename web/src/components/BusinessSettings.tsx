@@ -3,6 +3,7 @@ import { businesses } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import TelegramConnectPanel from './TelegramConnectPanel'
+import FeedbackPanel from './FeedbackPanel'
 
 interface Props {
   onTierChanged?: () => void
@@ -364,6 +365,9 @@ export default function BusinessSettings({ onTierChanged }: Props) {
 
       {/* ── Telegram integration ─────────────────────────────────────── */}
       <TelegramConnectPanel />
+
+      {/* ── Feedback ─────────────────────────────────────────────────── */}
+      <FeedbackPanel />
     </form>
   )
 }

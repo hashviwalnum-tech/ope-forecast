@@ -257,6 +257,22 @@ export const translations = {
     mobileNoBizSubtitle: 'Create your business profile to start using Ope.',
     openDays: 'Open days',
     stepOf: 'Step {n} of {total}',
+
+    // Feedback modal
+    feedback: 'Send Feedback',
+    feedbackDesc: 'Got a question or idea? Tap to send us a message.',
+    feedbackTitle: 'Send Feedback',
+    feedbackNameLabel: 'Your name',
+    feedbackBusinessLabel: 'Business name',
+    feedbackMessageLabel: 'Message',
+    feedbackMessagePlaceholder: "What's on your mind? What could be better?",
+    feedbackSendBtn: 'Send',
+    feedbackSending: 'Sending…',
+    feedbackThankYou: 'Thank you!',
+    feedbackThankYouMsg: 'Your message was sent. We read every one.',
+    feedbackError: 'Could not send — please try again.',
+    feedbackNameRequired: 'Please enter your name.',
+    feedbackMessageRequired: 'Please enter a message.',
   },
   he: {
     // Tab / screen titles
@@ -512,6 +528,22 @@ export const translations = {
     mobileNoBizSubtitle: 'צור פרופיל עסק כדי להתחיל להשתמש ב-Ope.',
     openDays: 'ימי פתיחה',
     stepOf: 'שלב {n} מתוך {total}',
+
+    // Feedback modal
+    feedback: 'שלח משוב',
+    feedbackDesc: 'שאלה, רעיון, או בעיה? הקש כדי לשלוח לנו הודעה.',
+    feedbackTitle: 'שלח משוב',
+    feedbackNameLabel: 'השם שלך',
+    feedbackBusinessLabel: 'שם העסק',
+    feedbackMessageLabel: 'הודעה',
+    feedbackMessagePlaceholder: 'מה עובר לך בראש? מה אפשר לשפר?',
+    feedbackSendBtn: 'שלח',
+    feedbackSending: 'שולח…',
+    feedbackThankYou: 'תודה!',
+    feedbackThankYouMsg: 'ההודעה שלך נשלחה. אנחנו קוראים כל משוב.',
+    feedbackError: 'לא ניתן לשלוח — נסה שוב.',
+    feedbackNameRequired: 'אנא הכנס את שמך.',
+    feedbackMessageRequired: 'אנא הכנס הודעה.',
   },
 } as const
 

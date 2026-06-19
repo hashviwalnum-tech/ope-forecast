@@ -246,3 +246,8 @@ export const telegram = {
   getStatus:    ()               => GET<TelegramLinkStatus>('/telegram/link'),
   revoke:       ()               => DELETE('/telegram/link'),
 }
+
+export const feedback = {
+  submit: (body: { name: string; business_name: string; message: string }) =>
+    POST<{ ok: boolean }>('/feedback', body),
+}

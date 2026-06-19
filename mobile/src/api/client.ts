@@ -241,3 +241,8 @@ export const recurringPatterns = {
   create: (body: RecurringPatternCreate)            => POST<RecurringPatternRead>('/recurring-patterns', body),
   delete: (id: number)                              => DEL(`/recurring-patterns/${id}`),
 }
+
+export const feedback = {
+  submit: (body: { name: string; business_name: string; message: string }) =>
+    POST<{ ok: boolean }>('/feedback', body),
+}

@@ -720,6 +720,21 @@ export const translations = {
     onboardingDone: 'Got it — start using Ope!',
     onboardingSkipAll: 'Skip setup for now',
     onboardingGoToProducts: 'Add your first product',
+
+    // Feedback panel
+    feedbackTitle: 'Send Feedback',
+    feedbackDesc: "Got a question, idea, or something that's not working? We'd love to hear from you.",
+    feedbackNameLabel: 'Your name',
+    feedbackBusinessLabel: 'Business name',
+    feedbackMessageLabel: 'Message',
+    feedbackMessagePlaceholder: "What's on your mind? What could be better?",
+    feedbackSendBtn: 'Send',
+    feedbackSending: 'Sending…',
+    feedbackThankYou: 'Thank you!',
+    feedbackThankYouMsg: 'Your message was sent. We read every one.',
+    feedbackError: 'Could not send — please try again.',
+    feedbackNameRequired: 'Please enter your name.',
+    feedbackMessageRequired: 'Please enter a message.',
   },
   he: {
     // Nav
@@ -1440,6 +1455,21 @@ export const translations = {
     onboardingDone: 'הבנתי — התחל להשתמש ב-Ope!',
     onboardingSkipAll: 'דלג על ההגדרה בינתיים',
     onboardingGoToProducts: 'הוסף את המוצר הראשון שלך',
+
+    // Feedback panel
+    feedbackTitle: 'שלח משוב',
+    feedbackDesc: 'יש לך שאלה, רעיון, או משהו שלא עובד? נשמח לשמוע.',
+    feedbackNameLabel: 'השם שלך',
+    feedbackBusinessLabel: 'שם העסק',
+    feedbackMessageLabel: 'הודעה',
+    feedbackMessagePlaceholder: 'מה עובר לך בראש? מה אפשר לשפר?',
+    feedbackSendBtn: 'שלח',
+    feedbackSending: 'שולח…',
+    feedbackThankYou: 'תודה!',
+    feedbackThankYouMsg: 'ההודעה שלך נשלחה. אנחנו קוראים כל משוב.',
+    feedbackError: 'לא ניתן לשלוח — נסה שוב.',
+    feedbackNameRequired: 'אנא הכנס את שמך.',
+    feedbackMessageRequired: 'אנא הכנס הודעה.',
   },
 } as const satisfies Record<Lang, Record<string, string>>
 

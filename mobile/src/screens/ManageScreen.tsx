@@ -24,6 +24,7 @@ import PremiumModal from './manage/PremiumModal'
 import OrdersModal from './manage/OrdersModal'
 import PeriodsModal from './manage/PeriodsModal'
 import RecurringPatternsModal from './manage/RecurringPatternsModal'
+import FeedbackModal from './manage/FeedbackModal'
 
 type ModalKey =
   | 'products'
@@ -34,13 +35,14 @@ type ModalKey =
   | 'orders'
   | 'periods'
   | 'patterns'
+  | 'feedback'
   | null
 
 interface MenuItem {
   key: ModalKey
   icon: React.ComponentProps<typeof Ionicons>['name']
-  labelKey: 'products' | 'regulars' | 'pastDays' | 'orders' | 'telegram' | 'premium' | 'adsEvents' | 'patterns'
-  subKey: 'productsDesc' | 'regularsDesc' | 'pastDaysDesc' | 'ordersDesc' | 'telegramDesc' | 'premiumDesc' | 'adsEventsDesc' | 'patternsDesc'
+  labelKey: 'products' | 'regulars' | 'pastDays' | 'orders' | 'telegram' | 'premium' | 'adsEvents' | 'patterns' | 'feedback'
+  subKey: 'productsDesc' | 'regularsDesc' | 'pastDaysDesc' | 'ordersDesc' | 'telegramDesc' | 'premiumDesc' | 'adsEventsDesc' | 'patternsDesc' | 'feedbackDesc'
   requiresBusiness?: boolean
 }
 
@@ -53,6 +55,7 @@ const MENU_ITEMS: MenuItem[] = [
   { key: 'orders', icon: 'cart-outline', labelKey: 'orders', subKey: 'ordersDesc' },
   { key: 'telegram', icon: 'paper-plane-outline', labelKey: 'telegram', subKey: 'telegramDesc' },
   { key: 'premium', icon: 'star-outline', labelKey: 'premium', subKey: 'premiumDesc', requiresBusiness: true },
+  { key: 'feedback', icon: 'chatbubble-ellipses-outline', labelKey: 'feedback', subKey: 'feedbackDesc' },
 ]
 
 export default function ManageScreen() {
@@ -164,6 +167,9 @@ export default function ManageScreen() {
       )}
       {activeModal === 'patterns' && (
         <RecurringPatternsModal onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === 'feedback' && (
+        <FeedbackModal onClose={() => setActiveModal(null)} />
       )}
     </SafeAreaView>
   )

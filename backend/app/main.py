@@ -25,6 +25,7 @@ from app.models import Base, StockBatch  # noqa: F401 — ensure table is regist
 from app.api import businesses, day_records, orders, products, sale_events, sales, periods, analytics, recurring_patterns, regulars
 from app.api import telegram as telegram_api
 from app.api import bot as bot_api
+from app.api import feedback as feedback_api
 
 
 def _migrate_sqlite_products(eng) -> None:
@@ -166,6 +167,7 @@ app.include_router(regulars.router)
 app.include_router(analytics.router)
 app.include_router(telegram_api.router)
 app.include_router(bot_api.router)
+app.include_router(feedback_api.router)
 
 
 @app.get("/health", tags=["Health"])
