@@ -4,6 +4,7 @@ import logo from './assets/logo.png'
 import AdvancedToolbox from './components/AdvancedToolbox'
 import BackfillForm from './components/BackfillForm'
 import BusinessSetup from './components/BusinessSetup'
+import OnboardingWizard, { isOnboardingDone } from './components/OnboardingWizard'
 import BusinessSettings from './components/BusinessSettings'
 import CsvImport from './components/CsvImport'
 import DayList from './components/DayList'
@@ -49,6 +50,7 @@ function AppInner() {
   const [bizError, setBizError]               = useState(false)
   const [showAddBusiness, setShowAddBusiness] = useState(false)
   const [waking, setWaking]                   = useState(false)
+  const [onboardingDone, setOnboardingDone]   = useState(false)
 
   useEffect(() => {
     api.setWakingUpListener(setWaking)
@@ -83,6 +85,7 @@ function AppInner() {
           : list[0]
         setActiveBusiness(chosen)
         api.setActiveBusinessId(chosen.id)
+        setOnboardingDone(isOnboardingDone(chosen.id))
       } else {
         setActiveBusiness(null)
         api.setActiveBusinessId(null)
@@ -142,6 +145,7 @@ function AppInner() {
     api.setActiveBusinessId(biz.id)
     setSwitcherOpen(false)
     setRefreshKey(k => k + 1)
+    setOnboardingDone(isOnboardingDone(biz.id))
   }
 
   function handleBusinessCreated(biz: BusinessRead) {
@@ -150,6 +154,7 @@ function AppInner() {
     api.setActiveBusinessId(biz.id)
     setShowAddBusiness(false)
     setBizLoaded(true)
+    setOnboardingDone(isOnboardingDone(biz.id))
   }
 
   function handleDeleteBusiness(bizId: number, bizName: string) {
@@ -500,7 +505,15 @@ function AppInner() {
         <main className={`flex-1 max-w-4xl mx-auto px-6 py-8 ${SHOW_ADS ? 'pb-20 xl:pb-8' : ''}`}>
           <h1 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-6">{tabTitles[tab]}</h1>
           <OutlierBanner onResolved={refresh} />
-          {tab === 'home'             && <HomeScreen refreshKey={refreshKey} onSaved={refresh} />}
+          {tab === 'home'             && (!onboardingDone ? (
+            <OnboardingWizard
+              bizId={activeBusiness.id}
+              onGoToProducts={() => { setOnboardingDone(true); setTab('products') }}
+              onDone={() => setOnboardingDone(true)}
+            />
+          ) : (
+            <HomeScreen refreshKey={refreshKey} onSaved={refresh} onGoToProducts={() => setTab('products')} />
+          ))}
           {tab === 'predictions_home' && <PredictionsScreen refreshKey={refreshKey} />}
           {tab === 'trends'           && <TrendsView />}
           {tab === 'events'           && <PeriodsPanel />}

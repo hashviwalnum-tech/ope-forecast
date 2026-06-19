@@ -1,6 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Ionicons } from '@expo/vector-icons'
+import { View, ActivityIndicator } from 'react-native'
 import { useTheme } from '../contexts/ThemeContext'
 import { useSettingsSheet } from '../contexts/SettingsContext'
 import { useBusiness } from '../contexts/BusinessContext'
@@ -10,6 +11,7 @@ import ForecastScreen from '../screens/ForecastScreen'
 import AnalyticsScreen from '../screens/AnalyticsScreen'
 import ManageScreen from '../screens/ManageScreen'
 import SettingsModal from '../screens/manage/SettingsModal'
+import OnboardingScreen from '../screens/OnboardingScreen'
 
 const Tab = createBottomTabNavigator()
 
@@ -25,8 +27,28 @@ const TAB_ICONS: Record<string, { outline: IoniconsName; filled: IoniconsName }>
 export default function AppNavigator() {
   const c = useTheme()
   const { settingsOpen, closeSettings } = useSettingsSheet()
-  const { business, reload } = useBusiness()
+  const { business, loading, noBusiness, setBusiness, reload } = useBusiness()
   const { t } = useLanguage()
+
+  // Show spinner while loading business
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: c.bg }}>
+        <ActivityIndicator size="large" color={c.primary} />
+      </View>
+    )
+  }
+
+  // No business yet — guide them through onboarding
+  if (noBusiness) {
+    return (
+      <OnboardingScreen
+        onComplete={(biz) => {
+          setBusiness(biz)
+        }}
+      />
+    )
+  }
 
   return (
     <NavigationContainer>

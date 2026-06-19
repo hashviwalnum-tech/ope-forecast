@@ -222,7 +222,11 @@ function HourlyTable({ hours }: { hours: HourSlot[] }) {
 
 // ── main component ────────────────────────────────────────────────────────────
 
-export default function TapSellPanel() {
+interface TapSellPanelProps {
+  onGoToProducts?: () => void
+}
+
+export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {}) {
   const { t } = useLanguage()
   const [productList, setProductList]   = useState<ProductRead[]>([])
   const [summary, setSummary]           = useState<TodaySummaryResponse | null>(null)
@@ -328,9 +332,17 @@ export default function TapSellPanel() {
 
         {productList.length === 0 ? (
           <div className="rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 p-8 text-center">
-            <p className="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto">
+            <p className="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto mb-4">
               {t('noProductsAddFirst')}
             </p>
+            {onGoToProducts && (
+              <button
+                onClick={onGoToProducts}
+                className="px-5 py-2 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 transition-colors"
+              >
+                {t('onboardingGoToProducts')}
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

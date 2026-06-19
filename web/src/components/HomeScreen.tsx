@@ -148,6 +148,7 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
 interface Props {
   refreshKey: number
   onSaved: () => void
+  onGoToProducts?: () => void
 }
 
 function localToday(): string {
@@ -155,7 +156,7 @@ function localToday(): string {
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
 }
 
-export default function HomeScreen({ refreshKey, onSaved }: Props) {
+export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Props) {
   const { t } = useLanguage()
   const [showSell, setShowSell]       = useState(false)
   const [showLog, setShowLog]         = useState(false)
@@ -364,7 +365,7 @@ export default function HomeScreen({ refreshKey, onSaved }: Props) {
 
         {showSell && (
           <div className="mt-4 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm">
-            <TapSellPanel />
+            <TapSellPanel onGoToProducts={onGoToProducts} />
           </div>
         )}
         {showLog && (

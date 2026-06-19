@@ -12,7 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useFocusEffect } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../api/client'
 import type { OutlierFlag, ProductRead, RegularRead, TodaySummaryResponse } from '../api/types'
@@ -30,6 +30,7 @@ export default function LogScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
   const { t } = useLanguage()
+  const navigation = useNavigation()
   const { width: screenWidth } = useWindowDimensions()
   const productBtnWidth = Math.floor((screenWidth - 32 - 10) / 2)
   const styles = useMemo(() => makeStyles(c), [c])
@@ -321,7 +322,7 @@ export default function LogScreen() {
           </View>
           <View style={styles.customerBtnRight}>
             <Text style={[styles.customerBtnCount, { color: c.onPrimary }]}>{customerCount}</Text>
-            <Text style={[styles.customerBtnCountSub, { color: c.onPrimarySub }]}>today</Text>
+            <Text style={[styles.customerBtnCountSub, { color: c.onPrimarySub }]}>{t('todayLabel')}</Text>
           </View>
         </TouchableOpacity>
 
@@ -372,6 +373,15 @@ export default function LogScreen() {
             <Text style={[styles.noProductsText, { color: c.textSub }]}>
               {t('noProductsYet')}
             </Text>
+            <TouchableOpacity
+              style={[styles.goToProductsBtn, { backgroundColor: c.primary }]}
+              onPress={() => navigation.navigate('Manage' as never)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.goToProductsBtnText, { color: c.onPrimary }]}>
+                {t('goToProducts')}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -536,6 +546,10 @@ function makeStyles(c: Theme) {
       alignItems: 'center', gap: 12, borderWidth: 1,
     },
     noProductsText: { fontSize: 14, textAlign: 'center', lineHeight: 22 },
+    goToProductsBtn: {
+      borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24, marginTop: 4,
+    },
+    goToProductsBtnText: { fontSize: 14, fontWeight: '700' },
 
     // Outlier prompt
     outlierSection: {

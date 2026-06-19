@@ -149,13 +149,13 @@ export default function AnalyticsScreen() {
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
 
         {/* ── Forecast Accuracy ── */}
-        <Text style={styles.sectionTitle}>Forecast Accuracy</Text>
+        <Text style={styles.sectionTitle}>{t('forecastAccuracy')}</Text>
 
         {accuracy == null || accuracy.status !== 'ok' ? (
           <View style={styles.emptyBox}>
             <Ionicons name="stats-chart-outline" size={28} color={c.textMuted} />
             <Text style={styles.emptyText}>
-              {accuracy?.message ?? 'Log at least a few weeks of data to measure accuracy.'}
+              {accuracy?.message ?? t('noAccuracyYet')}
             </Text>
           </View>
         ) : (
@@ -168,29 +168,29 @@ export default function AnalyticsScreen() {
             )}
             <View style={styles.metricsGrid}>
               <MetricTile
-                label="MAPE"
+                label={t('metricMape')}
                 value={accuracy.mape != null ? `${accuracy.mape.toFixed(1)}%` : '—'}
-                sub="avg % off"
+                sub={t('avgPctOff')}
                 c={c}
               />
               <MetricTile
-                label="MAD"
+                label={t('metricMad')}
                 value={accuracy.mad != null ? accuracy.mad.toFixed(1) : '—'}
-                sub="avg customers off"
+                sub={t('avgCustomersOff')}
                 c={c}
               />
               <MetricTile
-                label="Tracking"
+                label={t('metricTracking')}
                 value={accuracy.tracking_signal != null
                   ? accuracy.tracking_signal.toFixed(2)
                   : '—'}
-                sub="bias signal (±4 = biased)"
+                sub={t('biasSignal')}
                 c={c}
               />
               <MetricTile
-                label="Days"
+                label={t('metricDays')}
                 value={String(accuracy.n_observations)}
-                sub="days of data"
+                sub={t('daysOfData')}
                 c={c}
               />
             </View>
@@ -198,21 +198,22 @@ export default function AnalyticsScreen() {
         )}
 
         {/* ── Staffing ── */}
-        <Text style={[styles.sectionTitle, styles.sectionGap]}>Staffing</Text>
+        <Text style={[styles.sectionTitle, styles.sectionGap]}>{t('staffingSection')}</Text>
 
         {activeHours.length === 0 ? (
           <View style={styles.emptyBox}>
             <Ionicons name="people-outline" size={28} color={c.textMuted} />
             <Text style={styles.emptyText}>
-              {staffing?.message ??
-                'Record live sales for a few weeks to see staffing recommendations.'}
+              {staffing?.message ?? t('noStaffingYet')}
             </Text>
           </View>
         ) : (
           <View style={styles.card}>
             <Text style={styles.cardNote}>
-              Based on {staffing?.n_days_data ?? 0} days of data ·{' '}
-              avg service {staffing?.avg_service_time_minutes ?? '?'} min/customer
+              {t('staffingDataNote', {
+                n: String(staffing?.n_days_data ?? 0),
+                t: String(staffing?.avg_service_time_minutes ?? '?'),
+              })}
             </Text>
             {activeHours.map(h => (
               <View key={h.hour} style={styles.staffRow}>
@@ -227,10 +228,10 @@ export default function AnalyticsScreen() {
                     />
                   </View>
                   <Text style={styles.staffMeta}>
-                    ~{Math.round(h.avg_taps)} cust · {h.recommended_staff} staff
+                    ~{Math.round(h.avg_taps)} {t('staffingCust')} · {h.recommended_staff} {t('staffingStaff')}
                     {h.expected_wait_minutes > 0 &&
                       h.expected_wait_minutes < 60 &&
-                      ` · ${Math.round(h.expected_wait_minutes)}m wait`}
+                      ` · ${Math.round(h.expected_wait_minutes)}${t('staffingWait')}`}
                   </Text>
                 </View>
                 {h.marginal_note ? (
@@ -242,14 +243,13 @@ export default function AnalyticsScreen() {
         )}
 
         {/* ── Ad & Event Lift ── */}
-        <Text style={[styles.sectionTitle, styles.sectionGap]}>Ad & Event Lift</Text>
+        <Text style={[styles.sectionTitle, styles.sectionGap]}>{t('adEventLift')}</Text>
 
         {liftPeriods.length === 0 ? (
           <View style={styles.emptyBox}>
             <Ionicons name="megaphone-outline" size={28} color={c.textMuted} />
             <Text style={styles.emptyText}>
-              {lift?.message ??
-                'No ads or events recorded yet. Add them in Manage → Ads & Events.'}
+              {lift?.message ?? t('noAdEventYet')}
             </Text>
           </View>
         ) : (
@@ -261,7 +261,7 @@ export default function AnalyticsScreen() {
                 <View style={styles.liftHeader}>
                   <View style={styles.liftBadge}>
                     <Text style={styles.liftBadgeText}>
-                      {period.type === 'ad' ? 'Ad' : 'Event'}
+                      {period.type === 'ad' ? t('ad') : t('event')}
                     </Text>
                   </View>
                   <Text style={styles.liftLabel}>{period.label}</Text>
@@ -277,20 +277,20 @@ export default function AnalyticsScreen() {
                     ]}>
                       {isPositive ? '+' : ''}{pct.toFixed(1)}%
                     </Text>
-                    <Text style={styles.liftStatLabel}>lift vs baseline</Text>
+                    <Text style={styles.liftStatLabel}>{t('liftVsBaseline')}</Text>
                   </View>
                   <View style={styles.liftStat}>
                     <Text style={styles.liftValue}>
                       {Math.round(period.total_lift_customers)}
                     </Text>
-                    <Text style={styles.liftStatLabel}>extra customers</Text>
+                    <Text style={styles.liftStatLabel}>{t('extraCustomers')}</Text>
                   </View>
                   {period.lift_per_cost != null && (
                     <View style={styles.liftStat}>
                       <Text style={styles.liftValue}>
                         {period.lift_per_cost.toFixed(1)}
                       </Text>
-                      <Text style={styles.liftStatLabel}>cust/$ cost</Text>
+                      <Text style={styles.liftStatLabel}>{t('custPerCostUnit')}</Text>
                     </View>
                   )}
                 </View>
@@ -300,14 +300,12 @@ export default function AnalyticsScreen() {
         )}
 
         {/* ── Regulars ── */}
-        <Text style={[styles.sectionTitle, styles.sectionGap]}>Regulars</Text>
+        <Text style={[styles.sectionTitle, styles.sectionGap]}>{t('regularsSection')}</Text>
 
         {regulars.length === 0 ? (
           <View style={styles.emptyBox}>
             <Ionicons name="heart-outline" size={28} color={c.textMuted} />
-            <Text style={styles.emptyText}>
-              No regulars yet. Add them in the Manage tab.
-            </Text>
+            <Text style={styles.emptyText}>{t('noRegularsAnalytics')}</Text>
           </View>
         ) : (
           regulars.map(reg => {
@@ -325,8 +323,8 @@ export default function AnalyticsScreen() {
                     <Text style={styles.regularMeta}>
                       CLV: {fmtCurrency(reg.clv)} ·{' '}
                       {reg.last_visit_date
-                        ? `Last: ${reg.last_visit_date}`
-                        : 'No visits yet'}
+                        ? `${reg.last_visit_date}`
+                        : t('noVisitsYet')}
                     </Text>
                   </View>
                   <Ionicons
@@ -344,24 +342,24 @@ export default function AnalyticsScreen() {
                       <>
                         <View style={styles.profitGrid}>
                           <ProfitTile
-                            label="This month"
+                            label={t('thisMonth')}
                             value={fmtCurrency(prof.this_month)}
                             c={c}
                           />
                           <ProfitTile
-                            label="This year"
+                            label={t('thisYear')}
                             value={fmtCurrency(prof.this_year)}
                             c={c}
                           />
                           <ProfitTile
-                            label="All time"
+                            label={t('allTime')}
                             value={fmtCurrency(prof.all_time)}
                             c={c}
                           />
                         </View>
                         {prof.monthly_visits.length > 0 && (
                           <View style={styles.monthlyVisits}>
-                            <Text style={styles.cardSubLabel}>Monthly visits</Text>
+                            <Text style={styles.cardSubLabel}>{t('monthlyVisitsLabel')}</Text>
                             {prof.monthly_visits.slice(-6).map(mv => (
                               <View key={`${mv.year}-${mv.month}`} style={styles.mvRow}>
                                 <Text style={styles.mvLabel}>
@@ -380,7 +378,7 @@ export default function AnalyticsScreen() {
                       </>
                     ) : (
                       <Text style={styles.profitEmpty}>
-                        No profitability data available yet.
+                        {t('noProfitabilityYet')}
                       </Text>
                     )}
                   </View>

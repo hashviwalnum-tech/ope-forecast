@@ -703,6 +703,23 @@ export const translations = {
     stockMgmtDesc: 'Turn off to hide ordering advice and stock tracking across all products.',
     stockMgmtOn: 'On — showing ordering advice',
     stockMgmtOff: 'Off — ordering advice hidden',
+
+    // Onboarding wizard
+    onboardingStep: 'Step {n} of {total}',
+    onboardingStepHoursTitle: 'When are you open?',
+    onboardingStepHoursDesc: 'Ope uses your hours to skip days you\'re closed — it never treats a day you didn\'t log as zero sales. You can always change this later in Settings.',
+    onboardingStepProductsTitle: 'Add what you sell',
+    onboardingStepProductsDesc: 'Once you add a product, Ope tracks demand, tells you when to reorder, and shows per-product forecasts. It only takes a name and a unit (e.g. "Sourdough loaf, each").',
+    onboardingStepProductsBtn: 'Go to My Products →',
+    onboardingProductsLater: 'I\'ll add products later',
+    onboardingStepLogTitle: 'You\'re ready!',
+    onboardingStepLogDesc: 'Tap "Record a Sale" each time you serve a customer. One tap per sale, no typing needed — the time is saved automatically.',
+    onboardingForecastNote: 'Forecasts need a couple of weeks of data to become reliable. On day one they\'re rough estimates — keep logging and they\'ll get much more accurate.',
+    onboardingContinue: 'Save & continue →',
+    onboardingSaving: 'Saving…',
+    onboardingDone: 'Got it — start using Ope!',
+    onboardingSkipAll: 'Skip setup for now',
+    onboardingGoToProducts: 'Add your first product',
   },
   he: {
     // Nav
@@ -1406,6 +1423,23 @@ export const translations = {
     stockMgmtDesc: 'כבה כדי להסתיר ייעוץ הזמנות ומעקב מלאי עבור כל המוצרים.',
     stockMgmtOn: 'פעיל — מציג ייעוץ הזמנות',
     stockMgmtOff: 'כבוי — ייעוץ הזמנות מוסתר',
+
+    // Onboarding wizard
+    onboardingStep: 'שלב {n} מתוך {total}',
+    onboardingStepHoursTitle: 'מתי העסק שלך פתוח?',
+    onboardingStepHoursDesc: 'Ope משתמש בשעות כדי לדלג על ימים שאתה סגור — הוא לעולם לא יתייחס ליום שלא תיעדת כאפס מכירות. תוכל לשנות זאת בכל עת בהגדרות.',
+    onboardingStepProductsTitle: 'הוסף את מה שאתה מוכר',
+    onboardingStepProductsDesc: 'ברגע שתוסיף מוצר, Ope יעקוב אחרי הביקוש, יגיד לך מתי להזמין ויציג תחזיות לכל מוצר. צריך רק שם ויחידה (למשל "לחם שאור, יחידה").',
+    onboardingStepProductsBtn: 'עבור למוצרים שלי ←',
+    onboardingProductsLater: 'אוסיף מוצרים אחר כך',
+    onboardingStepLogTitle: 'מוכן!',
+    onboardingStepLogDesc: 'הקש "רשום מכירה" בכל פעם שאתה משרת לקוח. הקשה אחת למכירה, ללא צורך בהקלדה — הזמן נשמר אוטומטית.',
+    onboardingForecastNote: 'תחזיות צריכות כמה שבועות של נתונים כדי להיות מהימנות. ביום הראשון הן הערכות גסות — המשך לרשום והן ישתפרו מאוד.',
+    onboardingContinue: 'שמור והמשך ←',
+    onboardingSaving: 'שומר…',
+    onboardingDone: 'הבנתי — התחל להשתמש ב-Ope!',
+    onboardingSkipAll: 'דלג על ההגדרה בינתיים',
+    onboardingGoToProducts: 'הוסף את המוצר הראשון שלך',
   },
 } as const satisfies Record<Lang, Record<string, string>>
 

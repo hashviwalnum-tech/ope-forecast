@@ -139,6 +139,7 @@ async function DEL(path: string): Promise<void> {
 
 export const businesses = {
   list: () => GET<BusinessRead[]>('/businesses'),
+  create: (name: string) => POST<BusinessRead>('/businesses', { name }),
   updateSettings: (settings: {
     opening_days?: number[]
     opening_hour?: number
