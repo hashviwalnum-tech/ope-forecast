@@ -1,5 +1,6 @@
 import logging
 import os
+import secrets
 import ssl
 
 import jwt
@@ -44,6 +45,20 @@ def get_current_user(request: Request) -> str:
     except Exception as e:
         log.warning("JWT verification failed: %s: %s", type(e).__name__, e)
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+def require_admin_key(request: Request) -> None:
+    """Blocks access unless the caller supplies the correct X-Admin-Key header.
+
+    Set ADMIN_KEY in the environment. If unset, the endpoint is always forbidden
+    (safe default for production before billing is wired up).
+    """
+    expected = os.environ.get("ADMIN_KEY", "")
+    if not expected:
+        raise HTTPException(status_code=403, detail="Admin key not configured")
+    provided = request.headers.get("X-Admin-Key", "")
+    if not secrets.compare_digest(expected, provided):
+        raise HTTPException(status_code=403, detail="Invalid admin key")
 
 
 def get_business(

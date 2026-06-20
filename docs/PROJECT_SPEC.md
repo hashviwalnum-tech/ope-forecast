@@ -146,6 +146,9 @@ Concrete decisions:
 - **Subscription billing** (Stripe on web) layered onto the premium-limit gating.
 - **Ad placement** — slots already reserved in Tier 4. **Placement rules (non-negotiable for trust):** never pop-ups, never overlapping/covering content, never interrupting. Wide screens: tinted side-margin slots; narrow screens: one slim tinted bottom banner outside content. Always visually separated from app content. **Removing ads is a premium perk.**
 - For mobile, App Store / Play in-app purchases are usually **required** for digital subscriptions (15–30% cut, own rules) — design the premium flow with that in mind.
+- **Security hardening to do WITH billing (deferred from pre-beta as lower-risk-later):**
+  - **Premium tier granting:** pre-beta, the self-serve free-upgrade hole is closed (no open `PATCH /tier`). When billing lands, a verified payment becomes the legitimate way premium is granted (replacing any manual/admin path).
+  - **Supabase Row-Level Security (RLS):** deferred from pre-beta because app-layer isolation is already solid (audit-confirmed) and RLS is fiddly + fail-closed risky (wrong policies/missing user-context can block legitimate queries). Add it here as defence-in-depth, carefully and tested separately, since the data/stakes are higher once monetized. Requires passing per-user identity to the DB connection (or Supabase auth-aware connection) so policies can scope rows; test that legitimate backend access still works before/after.
 
 ### Phase 4 — Mobile
 **Goal:** a React Native (Expo) app for **both iOS and Android** with **full feature parity** with the web app, reusing the **same Render backend API** (the forecasting/ordering/auth/database brain is unchanged — only a new front-end). Decided: Expo (handles build tooling, on-device testing via QR, and store submission), both platforms, full parity as the end state.
@@ -176,6 +179,14 @@ Test each screen on the actual device before moving on — mobile feel (target s
 - **Test on a real device throughout** (Expo Go / development builds) — don't wait until the end.
 
 **Timeline (honest):** the app reusing the backend is a few weeks of iterative work; the store-submission tail is unpredictable (days to weeks). ~1–2 months to live in both stores, coding being the predictable part.
+
+### Phase 4.5 — Beta readiness (hardening before real users)
+Before real businesses use Ope, harden the things solo testing on clean synthetic data never exercised:
+- **New-user onboarding** (DONE): guided setup — business name → opening hours → first products → how to log. Opening hours must be discoverable in setup (the engine depends on them). Honest expectation-setting that forecasts need ~weeks of data to be accurate.
+- **Multi-business isolation:** several real businesses (café, florist, spa) on the system at once, with different patterns. Confirm NO data bleeds between accounts/businesses — forecasts, products, regulars, settings all strictly scoped per business/user. Confirm the premium/multi-location logic behaves with real separate users (free = 1 location, premium raises the limit at runtime; "copy settings + products NOT data" on new location; delete-location works).
+- **Graceful handling of weird real input:** real people log 0, log huge numbers, skip days, put values in wrong fields, use the app at odd hours. The app must degrade gracefully — validate/clamp absurd inputs, never crash, show a helpful message rather than a 500. (Recall the disguised-CORS 500s — unhandled exceptions must not surface as cryptic failures.)
+- **Feedback mechanism:** an in-app "Send feedback" form (web + mobile) — fields: **name, business, message** only. Submits and emails to hashvi2906@gmail.com on the backend (the user does NOT get redirected to a mail client — it's an in-app form like other websites). Simple, low-friction, translatable.
+- **Error monitoring live:** confirm Sentry catches errors on web AND mobile so beta bugs surface to the developer rather than users silently giving up.
 
 ### Phase 5 — Integrations
 Smart register / POS connectors to auto-import sales.

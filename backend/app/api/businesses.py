@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
-from app.api.deps import get_business, get_current_user
+from app.api.deps import get_business, get_current_user, require_admin_key
 from app.db import get_db
 from app.models import Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord
 
@@ -188,11 +188,13 @@ def set_tier(
     body: TierUpdate,
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
+    _: None = Depends(require_admin_key),
 ):
-    """Set the account tier for all of this user's businesses.
+    """Admin-only: set the account tier for all of this user's businesses.
 
-    Accepts 'free' or 'premium'. Use this during testing to switch tiers
-    without going through billing. Billing in Phase 3.5 will own this field.
+    Requires the X-Admin-Key header matching the ADMIN_KEY environment variable.
+    Normal users cannot call this endpoint. Billing (Phase 3.5) will replace this
+    with a Stripe-verified grant path.
     """
     if body.tier not in ("free", "premium"):
         raise HTTPException(400, "tier must be 'free' or 'premium'")
