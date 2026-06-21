@@ -211,6 +211,21 @@ export const translations = {
     dayMon: 'Mon', dayTue: 'Tue', dayWed: 'Wed', dayThu: 'Thu',
     dayFri: 'Fri', daySat: 'Sat', daySun: 'Sun',
 
+    // Proactive nudges settings
+    nudgesLabel: 'Proactive nudges',
+    nudgesDesc: 'Ope surfaces the ONE thing worth acting on — unusually busy or slow days, or stock running low — via Telegram and in-app. Only fires when there is a genuine reason.',
+    nudgesOn: 'Nudges on',
+    nudgesOff: 'Nudges off (turn on to get alerts)',
+    nudgesSendNow: 'Send to Telegram now',
+    nudgesSent: 'Sent to Telegram!',
+    nudgesNothingToSend: 'Nothing urgent right now — no nudge needed.',
+    nudgesSendError: 'Could not send — check your Telegram is connected.',
+    nudgesFrequencyLabel: 'Minimum hours between Telegram nudges',
+
+    // Nudge banner (home screen)
+    nudgeBannerTitle: 'Heads up',
+    nudgeDismiss: 'Dismiss',
+
     // Add to home / remove from home
     addToHome: 'Add to home',
     removeFromHome: 'Remove from home',
@@ -989,6 +1004,21 @@ export const translations = {
     saveSettings: 'שמור הגדרות',
     dayMon: 'שני', dayTue: 'שלישי', dayWed: 'רביעי', dayThu: 'חמישי',
     dayFri: 'שישי', daySat: 'שבת', daySun: 'ראשון',
+
+    // Proactive nudges settings
+    nudgesLabel: 'התראות יזומות',
+    nudgesDesc: 'Ope מציג את הדבר האחד שכדאי לפעול עליו — ימים עמוסים/רגועים במיוחד, או מלאי שעומד להיגמר — דרך טלגרם ובאפליקציה. מתרחש רק כשיש סיבה אמיתית.',
+    nudgesOn: 'התראות פועלות',
+    nudgesOff: 'התראות כבויות (הפעל לקבלת התראות)',
+    nudgesSendNow: 'שלח לטלגרם עכשיו',
+    nudgesSent: 'נשלח לטלגרם!',
+    nudgesNothingToSend: 'אין דבר דחוף כרגע — אין צורך בהתראה.',
+    nudgesSendError: 'לא ניתן לשלוח — בדוק שהטלגרם מחובר.',
+    nudgesFrequencyLabel: 'שעות מינימום בין התראות טלגרם',
+
+    // Nudge banner (home screen)
+    nudgeBannerTitle: 'שים לב',
+    nudgeDismiss: 'סגור',
 
     // Add to home / remove from home
     addToHome: 'הוסף לדף הראשי',

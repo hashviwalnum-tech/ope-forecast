@@ -57,6 +57,9 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
   const [assumeOnTime, setAssumeOnTime] = useState(
     s.assume_orders_arrive_on_time === true
   )
+  const [nudgesEnabled, setNudgesEnabled] = useState(
+    s.nudges_enabled !== false
+  )
   const [timezone, setTimezone] = useState(
     typeof s.timezone === 'string' ? s.timezone : ''
   )
@@ -75,6 +78,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
       ? String(fresh.staffing_max_wait_minutes) : '')
     setStockEnabled(fresh.stock_management_enabled !== false)
     setAssumeOnTime(fresh.assume_orders_arrive_on_time === true)
+    setNudgesEnabled(fresh.nudges_enabled !== false)
     setTimezone(typeof fresh.timezone === 'string' ? fresh.timezone : '')
   }, [business])
 
@@ -120,6 +124,7 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
         staffing_max_wait_minutes: maxWait ? parseFloat(maxWait) : null,
         stock_management_enabled: stockEnabled,
         assume_orders_arrive_on_time: assumeOnTime,
+        nudges_enabled: nudgesEnabled,
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -311,6 +316,22 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
               placeholderTextColor={c.textMuted}
             />
             <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('maxWaitHint')}</Text>
+
+            {/* ── Proactive nudges ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('nudgesLabel')}</Text>
+            <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('nudgesDesc')}</Text>
+            <View style={[styles.toggleRow, { backgroundColor: c.card, borderColor: c.border, marginTop: 8 }]}>
+              <View style={styles.toggleText}>
+                <Text style={[styles.toggleLabel, { color: c.text }]}>{nudgesEnabled ? t('nudgesOn') : t('nudgesOff')}</Text>
+                <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('nudgesDesc')}</Text>
+              </View>
+              <Switch
+                value={nudgesEnabled}
+                onValueChange={setNudgesEnabled}
+                trackColor={{ false: c.border, true: c.primary }}
+                thumbColor={c.onPrimary}
+              />
+            </View>
 
             {/* ── Stock tracking ── */}
             <Text style={[styles.sectionLabel, { color: c.text }]}>{t('stockReorderTracking')}</Text>

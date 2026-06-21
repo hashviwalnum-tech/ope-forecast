@@ -39,6 +39,8 @@ class BusinessSettingsUpdate(BaseModel):
     stock_management_enabled: bool | None = None    # toggle to hide ordering/stock advice entirely
     assume_orders_arrive_on_time: bool | None = None  # auto-mark pending orders as arrived on expected date
     onboarding_done: bool | None = None             # persisted server-side so it survives across devices
+    nudges_enabled: bool | None = None             # enable/disable all proactive nudges (Telegram + in-app)
+    nudge_frequency_hours: int | None = Field(None, ge=1, le=168)  # min hours between Telegram nudges
 
 
 @router.get("", response_model=list[BusinessRead])

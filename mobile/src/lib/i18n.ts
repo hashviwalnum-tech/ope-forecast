@@ -85,6 +85,12 @@ export const translations = {
     free: 'Free',
     premiumTier: 'Premium',
 
+    // Proactive nudges
+    nudgesLabel: 'Proactive nudges',
+    nudgesDesc: 'Ope surfaces the one thing worth acting on — unusual busy/slow days, or stock running low — via Telegram and in-app.',
+    nudgesOn: 'Nudges on',
+    nudgesOff: 'Nudges off',
+
     // Settings modal
     openingDays: 'Opening Days',
     openingHours: 'Opening Hours',
@@ -389,6 +395,12 @@ export const translations = {
     premiumDesc: 'נהל את רמת המנוי שלך',
     free: 'חינמי',
     premiumTier: 'פרמיום',
+
+    // Proactive nudges
+    nudgesLabel: 'התראות יזומות',
+    nudgesDesc: 'Ope מציג את הדבר האחד שכדאי לפעול עליו — ימים עמוסים/רגועים במיוחד, או מלאי שעומד להיגמר — דרך טלגרם ובאפליקציה.',
+    nudgesOn: 'התראות פועלות',
+    nudgesOff: 'התראות כבויות',
 
     // Settings modal
     openingDays: 'ימי פתיחה',

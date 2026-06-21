@@ -18,7 +18,6 @@ from sqlalchemy.orm import Session
 from app.api.analytics import get_forecast as _analytics_forecast
 from app.api.analytics import get_ordering as _analytics_ordering
 from app.api.nudges import (
-    SendTelegramResponse,
     _compute_nudge,
     _is_frequency_capped,
     _record_nudge_sent,

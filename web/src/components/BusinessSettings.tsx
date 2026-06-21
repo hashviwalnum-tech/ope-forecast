@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { businesses } from '../api/client'
+import { businesses, nudges as nudgesApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import TelegramConnectPanel from './TelegramConnectPanel'
@@ -27,6 +27,10 @@ export default function BusinessSettings({ onTierChanged }: Props) {
   const [feedback,        setFeedback]        = useState<{ ok: boolean; msg: string } | null>(null)
 
   const [stockMgmtEnabled, setStockMgmtEnabled] = useState(true)
+  const [nudgesEnabled, setNudgesEnabled] = useState(true)
+  const [nudgeFreqHours, setNudgeFreqHours] = useState(24)
+  const [nudgeSending, setNudgeSending] = useState(false)
+  const [nudgeFeedback, setNudgeFeedback] = useState<{ ok: boolean; msg: string } | null>(null)
   const [currentTier,   setCurrentTier]   = useState<string>('free')
   const [tierSaving,    setTierSaving]    = useState(false)
   const [tierFeedback,  setTierFeedback]  = useState<{ ok: boolean; msg: string } | null>(null)
@@ -57,6 +61,12 @@ export default function BusinessSettings({ onTierChanged }: Props) {
       }
       if (typeof s.stock_management_enabled === 'boolean') {
         setStockMgmtEnabled(s.stock_management_enabled)
+      }
+      if (typeof s.nudges_enabled === 'boolean') {
+        setNudgesEnabled(s.nudges_enabled)
+      }
+      if (typeof s.nudge_frequency_hours === 'number') {
+        setNudgeFreqHours(s.nudge_frequency_hours)
       }
       setCurrentTier(biz.tier ?? 'free')
     }).catch(() => {})
@@ -104,6 +114,8 @@ export default function BusinessSettings({ onTierChanged }: Props) {
         staffing_max_wait_minutes:  thresholdType === 'wait'  ? maxWaitMinutes  : null,
         staffing_max_queue_length: thresholdType === 'queue' ? maxQueueLength  : null,
         stock_management_enabled: stockMgmtEnabled,
+        nudges_enabled: nudgesEnabled,
+        nudge_frequency_hours: nudgeFreqHours,
       })
       setFeedback({ ok: true, msg: t('settingsSavedOk') })
     } catch {
@@ -277,6 +289,78 @@ export default function BusinessSettings({ onTierChanged }: Props) {
           </span>
           <span className="text-sm font-medium">{stockMgmtEnabled ? t('stockMgmtOn') : t('stockMgmtOff')}</span>
         </button>
+      </div>
+
+      {/* Proactive nudges toggle */}
+      <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('nudgesLabel')}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('nudgesDesc')}</p>
+        <button
+          type="button"
+          onClick={() => setNudgesEnabled(v => !v)}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors w-full text-left
+            ${nudgesEnabled
+              ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-700 text-teal-800 dark:text-teal-300'
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'}`}
+        >
+          <span className={`w-9 h-5 rounded-full flex-shrink-0 relative transition-colors ${nudgesEnabled ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${nudgesEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+          </span>
+          <span className="text-sm font-medium">{nudgesEnabled ? t('nudgesOn') : t('nudgesOff')}</span>
+        </button>
+
+        {nudgesEnabled && (
+          <div className="mt-3 space-y-3">
+            <div className="flex items-center gap-3">
+              <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('nudgesFrequencyLabel')}:</label>
+              <input
+                type="number"
+                min={1}
+                max={168}
+                value={nudgeFreqHours}
+                onChange={e => setNudgeFreqHours(Math.max(1, Math.min(168, Number(e.target.value))))}
+                className="w-20 px-2 py-1.5 border border-slate-300 dark:border-slate-600 rounded-lg
+                           text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700
+                           text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
+              />
+              <span className="text-xs text-slate-400">h</span>
+            </div>
+
+            <button
+              type="button"
+              disabled={nudgeSending}
+              onClick={async () => {
+                setNudgeSending(true)
+                setNudgeFeedback(null)
+                try {
+                  const res = await nudgesApi.sendTelegram()
+                  if (res.sent) {
+                    setNudgeFeedback({ ok: true, msg: t('nudgesSent') })
+                  } else {
+                    setNudgeFeedback({ ok: false, msg: t('nudgesNothingToSend') })
+                  }
+                } catch {
+                  setNudgeFeedback({ ok: false, msg: t('nudgesSendError') })
+                } finally {
+                  setNudgeSending(false)
+                }
+              }}
+              className="px-4 py-2 text-sm font-medium rounded-xl border border-teal-300 dark:border-teal-700
+                         text-teal-700 dark:text-teal-300 bg-white dark:bg-slate-800
+                         hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors disabled:opacity-50"
+            >
+              {nudgeSending ? t('savingLabel') : t('nudgesSendNow')}
+            </button>
+
+            {nudgeFeedback && (
+              <p className={`text-xs rounded-lg px-3 py-2 ${nudgeFeedback.ok
+                ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20'
+                : 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800'}`}>
+                {nudgeFeedback.msg}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Dark mode toggle */}

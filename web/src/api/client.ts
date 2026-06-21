@@ -155,6 +155,8 @@ export const businesses = {
     staffing_max_queue_length?: number | null
     stock_management_enabled?: boolean
     onboarding_done?: boolean
+    nudges_enabled?: boolean
+    nudge_frequency_hours?: number
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
   setTier: (tier: 'free' | 'premium') => PATCH<BusinessRead>('/businesses/me/tier', { tier }),
   delete: (id: number) => DELETE(`/businesses/${id}`),
@@ -253,4 +255,19 @@ export const telegram = {
 export const feedback = {
   submit: (body: { name: string; business_name: string; message: string }) =>
     POST<{ ok: boolean }>('/feedback', body),
+}
+
+export interface NudgeItem {
+  type: string
+  message: string
+  priority: number
+}
+export interface NudgesResponse {
+  enabled: boolean
+  nudge: NudgeItem | null
+}
+
+export const nudges = {
+  get: () => GET<NudgesResponse>('/nudges'),
+  sendTelegram: () => POST<{ sent: boolean; message: string | null; reason: string | null }>('/nudges/send-telegram', {}),
 }

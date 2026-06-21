@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import type { NudgeItem } from '../api/client'
+import { nudges as nudgesApi } from '../api/client'
 import { OrderingPanel } from './ForecastDashboard'
 import HourlyDashboard from './HourlyDashboard'
 import LogDayForm from './LogDayForm'
@@ -165,6 +167,8 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
   const [layout, setLayout]           = useState<CardConfig[]>(loadLayout)
   const [tapRollover, setTapRollover] = useState(false)
   const [productCount, setProductCount] = useState<number | null>(null)
+  const [nudge, setNudge] = useState<NudgeItem | null>(null)
+  const [nudgeDismissed, setNudgeDismissed] = useState(false)
 
   // Drag state for reorder
   const dragIdx = useRef<number | null>(null)
@@ -172,6 +176,11 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
 
   useEffect(() => {
     productsApi.list().then(list => setProductCount(list.length)).catch(() => {})
+    setNudgeDismissed(false)
+    nudgesApi.get().then(resp => {
+      if (resp.enabled && resp.nudge) setNudge(resp.nudge)
+      else setNudge(null)
+    }).catch(() => setNudge(null))
   }, [refreshKey])
 
   useEffect(() => {
@@ -326,6 +335,33 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
                        rounded-xl hover:bg-amber-600 transition-colors"
           >
             {t('logToday')}
+          </button>
+        </div>
+      )}
+
+      {/* Proactive nudge banner */}
+      {nudge && !nudgeDismissed && (
+        <div className="flex items-start justify-between gap-4 rounded-2xl border border-teal-200 dark:border-teal-700
+                        bg-teal-50 dark:bg-teal-900/20 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">{t('nudgeBannerTitle')}</p>
+              <p className="text-sm text-teal-700 dark:text-teal-400 mt-0.5 leading-relaxed">
+                {nudge.message}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setNudgeDismissed(true)}
+            className="shrink-0 text-xs text-teal-600 dark:text-teal-400 hover:text-teal-800
+                       dark:hover:text-teal-200 transition-colors"
+            aria-label={t('nudgeDismiss')}
+          >
+            ✕
           </button>
         </div>
       )}
