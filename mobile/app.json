@@ -4,10 +4,10 @@
     "slug": "ope-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/applogo.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/applogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#EBF4F0"
     },
@@ -18,7 +18,7 @@
     "android": {
       "package": "com.opeforecast.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/applogo.png",
         "backgroundColor": "#EBF4F0"
       },
       "permissions": []

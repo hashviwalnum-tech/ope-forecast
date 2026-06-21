@@ -224,6 +224,51 @@ class ProductForecastResponse(BaseModel):
     products: list[ProductForecastItem]
 
 
+# ── business insights ─────────────────────────────────────────────────────────
+
+class InsightsDayPattern(BaseModel):
+    weekday: str
+    avg_customers: float
+    pct_vs_mean: float  # positive = above mean, negative = below mean
+
+
+class InsightsHourPattern(BaseModel):
+    hour: int
+    label: str        # formatted range e.g. "9–10 am"
+    avg_taps: float
+
+
+class InsightsResponse(BaseModel):
+    status: str
+    message: Optional[str] = None
+
+    # Data volume
+    n_days_logged: Optional[int] = None
+    n_months_logged: Optional[int] = None
+    first_date: Optional[date] = None
+    last_date: Optional[date] = None
+
+    # Day-of-week patterns (need ≥7 clean days, ≥2 weekdays with ≥2 points each)
+    busiest_day: Optional[InsightsDayPattern] = None
+    slowest_day: Optional[InsightsDayPattern] = None
+    pct_diff_busiest_slowest: Optional[float] = None  # % busiest is above slowest
+
+    # Hourly patterns (need ≥7 days of tap data)
+    peak_hour: Optional[InsightsHourPattern] = None
+    quietest_hour: Optional[InsightsHourPattern] = None
+
+    # Year-over-year (need data spanning ≥365 days + a matching prior-year month)
+    yoy_growth_pct: Optional[float] = None
+    yoy_prev_period_label: Optional[str] = None
+    yoy_curr_period_label: Optional[str] = None
+
+    # Forecast accuracy
+    forecast_accuracy_mape: Optional[float] = None  # overall MAPE from ForecastRun history
+    accuracy_early_mape: Optional[float] = None     # first half of ForecastRun history
+    accuracy_recent_mape: Optional[float] = None    # recent half of ForecastRun history
+    accuracy_improved: Optional[bool] = None
+
+
 # ── per-weekday hourly profiles ───────────────────────────────────────────────
 
 class WeekdayHourlySlot(BaseModel):

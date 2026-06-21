@@ -17,6 +17,13 @@ from sqlalchemy.orm import Session
 
 from app.api.analytics import get_forecast as _analytics_forecast
 from app.api.analytics import get_ordering as _analytics_ordering
+from app.api.nudges import (
+    SendTelegramResponse,
+    _compute_nudge,
+    _is_frequency_capped,
+    _record_nudge_sent,
+    _send_telegram_message,
+)
 from app.db import get_db
 from app.models import Business, Product, SaleEvent
 from app.models.telegram_link import TelegramLink
@@ -131,3 +138,58 @@ def bot_log_sale(
         quantity=body.quantity,
         timestamp=event.timestamp.isoformat(),
     )
+
+
+# ── /bot/nudge/send-all ───────────────────────────────────────────────────────
+
+@router.post("/nudge/send-all", response_model=list[dict])
+def bot_send_all_nudges(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Send proactive nudges to all linked Telegram chats that qualify.
+
+    Called by a cron job or the bot service (requires X-Bot-Service-Key).
+    For each linked business:
+      - skips if nudges_enabled=False
+      - skips if frequency cap not expired
+      - skips if no nudge is warranted (no genuine deviation or stock issue)
+      - sends if TELEGRAM_BOT_TOKEN is set and a chat_id is linked
+    Returns a summary list of outcomes.
+    """
+    _verify_service_key(request)
+
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    if not bot_token:
+        return [{"status": "skipped", "reason": "no_bot_token"}]
+
+    links = db.query(TelegramLink).filter(TelegramLink.chat_id.isnot(None)).all()
+    results = []
+
+    for link in links:
+        biz = db.get(Business, link.business_id)
+        if not biz:
+            continue
+
+        settings = biz.settings or {}
+        if not settings.get("nudges_enabled", True):
+            results.append({"business_id": biz.id, "status": "skipped", "reason": "nudges_disabled"})
+            continue
+
+        if _is_frequency_capped(biz):
+            results.append({"business_id": biz.id, "status": "skipped", "reason": "frequency_cap"})
+            continue
+
+        nudge = _compute_nudge(db, biz)
+        if nudge is None:
+            results.append({"business_id": biz.id, "status": "skipped", "reason": "nothing_to_nudge"})
+            continue
+
+        try:
+            _send_telegram_message(link.chat_id, f"Ope: {nudge.message}", bot_token)
+            _record_nudge_sent(db, biz)
+            results.append({"business_id": biz.id, "status": "sent", "type": nudge.type})
+        except Exception as e:
+            results.append({"business_id": biz.id, "status": "error", "detail": str(e)})
+
+    return results

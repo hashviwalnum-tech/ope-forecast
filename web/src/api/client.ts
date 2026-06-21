@@ -8,6 +8,7 @@ import type {
   HourlyAnalyticsResponse,
   HourlyBackfillSlot,
   HourlyBackfillResponse,
+  InsightsResponse,
   MonthlyResponse,
   DayRecordRead,
   DayRecordUpdate,
@@ -217,6 +218,7 @@ export const analytics = {
       productId != null ? `/product-forecast?product_id=${productId}` : '/product-forecast'
     ),
   hourlyByWeekday:  () => GET<WeekdayHourlyResponse>('/hourly-by-weekday'),
+  insights:         () => GET<InsightsResponse>('/insights'),
 }
 
 export const periods = {

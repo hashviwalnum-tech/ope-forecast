@@ -67,6 +67,9 @@ from app.schemas.analytics import (
     HistoryPoint,
     HourlyAnalyticsResponse,
     HourlySlotAvg,
+    InsightsDayPattern,
+    InsightsHourPattern,
+    InsightsResponse,
     LiftResponse,
     MonthlyResponse,
     MonthSummary,
@@ -102,6 +105,8 @@ _WMA_WEIGHTS: dict[int, list[float]] = {
 }
 
 _WD_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+_MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 _SERVICE_LEVEL = 0.95
 
 MIN_RECORDS = 14  # ~2 weeks before forecasts are attempted
@@ -1656,4 +1661,207 @@ def get_hourly_by_weekday(
         weekdays=weekday_entries,
         overall_fallback=overall_fallback,
         n_days_total=n_days_total,
+    )
+
+
+# ── /insights ─────────────────────────────────────────────────────────────────
+
+@router.get("/insights", response_model=InsightsResponse)
+def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+    """True, derived facts about the owner's business from their accumulated data.
+
+    Returns only insights the data actually supports — never fabricates numbers.
+    Each field is None when data is insufficient, so the frontend can show an
+    honest "keep logging" message for that section instead of a fabricated value.
+    """
+    today = date.today()
+
+    all_records = (
+        db.query(DayRecord)
+        .filter_by(business_id=biz.id)
+        .order_by(DayRecord.date)
+        .all()
+    )
+    if not all_records:
+        return InsightsResponse(
+            status="not_enough_data",
+            message="No data logged yet. Start logging and insights will appear here.",
+        )
+
+    # ── Data volume ───────────────────────────────────────────────────────────
+    months_seen = {(r.date.year, r.date.month) for r in all_records}
+    n_months = len(months_seen)
+    first_date = all_records[0].date
+    last_date = all_records[-1].date
+
+    clean_records = _clean_records(db, biz)
+    n_clean = len(clean_records)
+
+    # ── Day-of-week patterns ──────────────────────────────────────────────────
+    busiest_day_out: InsightsDayPattern | None = None
+    slowest_day_out: InsightsDayPattern | None = None
+    pct_diff: float | None = None
+
+    if n_clean >= 7:
+        obs = _effective_obs(clean_records)
+        by_wd: dict[int, list[float]] = {i: [] for i in range(7)}
+        for r, v in zip(clean_records, obs):
+            by_wd[r.date.weekday()].append(v)
+
+        valid_wds = {wd: vals for wd, vals in by_wd.items() if len(vals) >= 2}
+        if len(valid_wds) >= 2:
+            overall_mean = mean(obs)
+            wd_avgs = {wd: mean(vals) for wd, vals in valid_wds.items()}
+
+            max_wd = max(wd_avgs, key=lambda x: wd_avgs[x])
+            min_wd = min(wd_avgs, key=lambda x: wd_avgs[x])
+            max_avg = wd_avgs[max_wd]
+            min_avg = wd_avgs[min_wd]
+
+            busiest_pct = round((max_avg - overall_mean) / overall_mean * 100, 1) if overall_mean > 0 else 0.0
+            slowest_pct = round((min_avg - overall_mean) / overall_mean * 100, 1) if overall_mean > 0 else 0.0
+
+            busiest_day_out = InsightsDayPattern(
+                weekday=_WD_NAMES[max_wd],
+                avg_customers=round(max_avg, 1),
+                pct_vs_mean=busiest_pct,
+            )
+            slowest_day_out = InsightsDayPattern(
+                weekday=_WD_NAMES[min_wd],
+                avg_customers=round(min_avg, 1),
+                pct_vs_mean=slowest_pct,
+            )
+            if min_avg > 0:
+                pct_diff = round((max_avg - min_avg) / min_avg * 100, 1)
+
+    # ── Hourly patterns ───────────────────────────────────────────────────────
+    peak_hour_out: InsightsHourPattern | None = None
+    quietest_hour_out: InsightsHourPattern | None = None
+
+    settings = biz.settings or {}
+    open_hours = compute_open_hours(settings)
+    events = (
+        db.query(SaleEvent)
+        .filter_by(business_id=biz.id)
+        .order_by(SaleEvent.timestamp)
+        .all()
+    )
+    if events:
+        n_days_taps = len({e.timestamp.date() for e in events})
+        if n_days_taps >= MIN_HOURLY_DAYS:
+            raw = [(e.timestamp.date(), e.timestamp.hour, e.product_id, e.quantity)
+                   for e in events]
+            avgs = hourly_averages(raw, open_hours)
+            active_slots = [(h, avg, n) for h, avg, n in avgs if avg > 0]
+            if active_slots:
+                peak = max(active_slots, key=lambda x: x[1])
+                quiet = min(active_slots, key=lambda x: x[1])
+                peak_hour_out = InsightsHourPattern(
+                    hour=peak[0],
+                    label=_fmt_hour_range(peak[0]),
+                    avg_taps=round(peak[1], 1),
+                )
+                if quiet[0] != peak[0]:
+                    quietest_hour_out = InsightsHourPattern(
+                        hour=quiet[0],
+                        label=_fmt_hour_range(quiet[0]),
+                        avg_taps=round(quiet[1], 1),
+                    )
+
+    # ── Year-over-year ────────────────────────────────────────────────────────
+    yoy_growth_pct: float | None = None
+    yoy_prev_label: str | None = None
+    yoy_curr_label: str | None = None
+
+    data_span_days = (last_date - first_date).days
+    if data_span_days >= 365 and n_clean >= 28:
+        obs_c = _effective_obs(clean_records)
+        month_data: dict[tuple[int, int], list[float]] = {}
+        for r, v in zip(clean_records, obs_c):
+            month_data.setdefault((r.date.year, r.date.month), []).append(v)
+
+        yoy_pairs = []
+        for (yr, mo), vals in month_data.items():
+            prev_key = (yr - 1, mo)
+            if prev_key in month_data:
+                yoy_pairs.append(((yr - 1, mo), (yr, mo),
+                                  mean(month_data[prev_key]), mean(vals)))
+
+        if yoy_pairs:
+            latest = max(yoy_pairs, key=lambda x: (x[1][0], x[1][1]))
+            prev_avg, curr_avg = latest[2], latest[3]
+            if prev_avg > 0:
+                yoy_growth_pct = round((curr_avg - prev_avg) / prev_avg * 100, 1)
+                yoy_prev_label = f"{_MONTH_NAMES[latest[0][1]-1]} {latest[0][0]}"
+                yoy_curr_label = f"{_MONTH_NAMES[latest[1][1]-1]} {latest[1][0]}"
+
+    # ── Forecast accuracy ─────────────────────────────────────────────────────
+    forecast_accuracy_mape: float | None = None
+    accuracy_early_mape: float | None = None
+    accuracy_recent_mape: float | None = None
+    accuracy_improved: bool | None = None
+
+    # Build list of (predicted, actual) pairs from stored ForecastRun history
+    past_runs = (
+        db.query(ForecastRun)
+        .filter_by(business_id=biz.id)
+        .filter(ForecastRun.target_date < today)
+        .order_by(ForecastRun.target_date)
+        .all()
+    )
+    actual_map: dict[date, int] = {
+        r.date: r.customers
+        for r in db.query(DayRecord).filter_by(business_id=biz.id).all()
+    }
+
+    matched: list[tuple[float, float]] = []
+    seen_d: set[date] = set()
+    for fr in past_runs:
+        if fr.target_date in seen_d:
+            continue
+        seen_d.add(fr.target_date)
+        actual = actual_map.get(fr.target_date)
+        if actual is None:
+            continue
+        matched.append((float(fr.predicted_value), float(actual)))
+
+    if len(matched) >= 4:
+        try:
+            all_preds_m = [x[0] for x in matched]
+            all_acts_m  = [x[1] for x in matched]
+            forecast_accuracy_mape = round(mape(all_acts_m, all_preds_m), 1)
+        except ValueError:
+            pass
+
+    if len(matched) >= 14:
+        half = len(matched) // 2
+        early = matched[:half]
+        recent = matched[-half:]
+        try:
+            em = mape([x[1] for x in early], [x[0] for x in early])
+            rm = mape([x[1] for x in recent], [x[0] for x in recent])
+            accuracy_early_mape = round(em, 1)
+            accuracy_recent_mape = round(rm, 1)
+            accuracy_improved = rm < em
+        except ValueError:
+            pass
+
+    return InsightsResponse(
+        status="ok",
+        n_days_logged=len(all_records),
+        n_months_logged=n_months,
+        first_date=first_date,
+        last_date=last_date,
+        busiest_day=busiest_day_out,
+        slowest_day=slowest_day_out,
+        pct_diff_busiest_slowest=pct_diff,
+        peak_hour=peak_hour_out,
+        quietest_hour=quietest_hour_out,
+        yoy_growth_pct=yoy_growth_pct,
+        yoy_prev_period_label=yoy_prev_label,
+        yoy_curr_period_label=yoy_curr_label,
+        forecast_accuracy_mape=forecast_accuracy_mape,
+        accuracy_early_mape=accuracy_early_mape,
+        accuracy_recent_mape=accuracy_recent_mape,
+        accuracy_improved=accuracy_improved,
     )

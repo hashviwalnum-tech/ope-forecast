@@ -7,6 +7,7 @@ import type {
   DayRecordUpdate,
   ForecastResponse,
   HourlyAnalyticsResponse,
+  InsightsResponse,
   LiftResponse,
   OrderingResponse,
   OrderRecordCreate,
@@ -161,6 +162,7 @@ export const analytics = {
   ordering: () => GET<OrderingResponse>('/ordering'),
   hourlyAnalytics: () => GET<HourlyAnalyticsResponse>('/hourly-analytics'),
   hourlyByWeekday: () => GET<WeekdayHourlyResponse>('/hourly-by-weekday'),
+  insights: () => GET<InsightsResponse>('/insights'),
   lift: () => GET<LiftResponse>('/lift'),
   productForecast: (productId?: number) =>
     GET<ProductForecastResponse>(

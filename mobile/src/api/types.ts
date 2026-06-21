@@ -230,6 +230,41 @@ export interface LiftResponse {
   periods: PeriodLift[]
 }
 
+// ── business insights ─────────────────────────────────────────────────────────
+
+export interface InsightsDayPattern {
+  weekday: string
+  avg_customers: number
+  pct_vs_mean: number
+}
+
+export interface InsightsHourPattern {
+  hour: number
+  label: string
+  avg_taps: number
+}
+
+export interface InsightsResponse {
+  status: string
+  message?: string
+  n_days_logged?: number
+  n_months_logged?: number
+  first_date?: string
+  last_date?: string
+  busiest_day?: InsightsDayPattern
+  slowest_day?: InsightsDayPattern
+  pct_diff_busiest_slowest?: number
+  peak_hour?: InsightsHourPattern
+  quietest_hour?: InsightsHourPattern
+  yoy_growth_pct?: number
+  yoy_prev_period_label?: string
+  yoy_curr_period_label?: string
+  forecast_accuracy_mape?: number
+  accuracy_early_mape?: number
+  accuracy_recent_mape?: number
+  accuracy_improved?: boolean
+}
+
 export interface DayRecordRead {
   id: number
   business_id: number

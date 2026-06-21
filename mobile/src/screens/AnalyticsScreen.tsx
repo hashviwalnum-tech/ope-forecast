@@ -14,6 +14,7 @@ import * as api from '../api/client'
 import type {
   AccuracyResponse,
   HourlyAnalyticsResponse,
+  InsightsResponse,
   LiftResponse,
   RegularProfitabilityRead,
   RegularRead,
@@ -46,6 +47,7 @@ export default function AnalyticsScreen() {
   const { t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
+  const [insights, setInsights] = useState<InsightsResponse | null>(null)
   const [accuracy, setAccuracy] = useState<AccuracyResponse | null>(null)
   const [staffing, setStaffing] = useState<HourlyAnalyticsResponse | null>(null)
   const [lift, setLift] = useState<LiftResponse | null>(null)
@@ -62,12 +64,14 @@ export default function AnalyticsScreen() {
   const loadData = useCallback(async () => {
     if (!business) return
     try {
-      const [accRes, staffRes, liftRes, regsRes] = await Promise.allSettled([
+      const [insRes, accRes, staffRes, liftRes, regsRes] = await Promise.allSettled([
+        api.analytics.insights(),
         api.analytics.accuracy(),
         api.analytics.hourlyAnalytics(),
         api.analytics.lift(),
         api.regulars.list(),
       ])
+      if (insRes.status === 'fulfilled') setInsights(insRes.value)
       if (accRes.status === 'fulfilled') setAccuracy(accRes.value)
       if (staffRes.status === 'fulfilled') setStaffing(staffRes.value)
       if (liftRes.status === 'fulfilled') setLift(liftRes.value)
@@ -148,8 +152,12 @@ export default function AnalyticsScreen() {
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
 
+        {/* ── What Ope has learned about you ── */}
+        <Text style={styles.sectionTitle}>{t('insightsSectionTitle')}</Text>
+        <InsightsSection insights={insights} c={c} styles={styles} />
+
         {/* ── Forecast Accuracy ── */}
-        <Text style={styles.sectionTitle}>{t('forecastAccuracy')}</Text>
+        <Text style={[styles.sectionTitle, styles.sectionGap]}>{t('forecastAccuracy')}</Text>
 
         {accuracy == null || accuracy.status !== 'ok' ? (
           <View style={styles.emptyBox}>
@@ -393,6 +401,226 @@ export default function AnalyticsScreen() {
   )
 }
 
+// ── Insights section ────────────────────────────────────────────────────────
+
+function InsightsSection({
+  insights, c, styles,
+}: {
+  insights: InsightsResponse | null
+  c: Theme
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  styles: any
+}) {
+  const { t } = useLanguage()
+  if (insights === null) {
+    return (
+      <View style={styles.card}>
+        <ActivityIndicator size="small" color={c.primary} />
+      </View>
+    )
+  }
+
+  if (insights.status === 'not_enough_data') {
+    return (
+      <View style={styles.emptyBox}>
+        <Ionicons name="bulb-outline" size={28} color={c.textMuted} />
+        <Text style={styles.emptyText}>
+          {insights.message ?? t('insightsKeepLogging')}
+        </Text>
+      </View>
+    )
+  }
+
+  const hasDays = !!(insights.busiest_day && insights.slowest_day)
+  const hasHours = !!(insights.peak_hour)
+  const hasYoY = insights.yoy_growth_pct !== undefined && insights.yoy_growth_pct !== null
+  const hasAcc = insights.forecast_accuracy_mape !== undefined && insights.forecast_accuracy_mape !== null
+
+  return (
+    <View style={{ gap: 12 }}>
+      {/* Subtitle */}
+      <Text style={{ fontSize: 12, color: c.textMuted, marginBottom: 4 }}>
+        {t('insightsSubtitle')}
+      </Text>
+
+      {/* Data volume chips */}
+      {(insights.n_days_logged != null || insights.n_months_logged != null) && (
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          {insights.n_days_logged != null && (
+            <View style={styles.insightChip}>
+              <Text style={styles.insightChipValue}>{insights.n_days_logged}</Text>
+              <Text style={styles.insightChipLabel}>{t('insightsDaysLogged')}</Text>
+            </View>
+          )}
+          {insights.n_months_logged != null && (
+            <View style={styles.insightChip}>
+              <Text style={styles.insightChipValue}>{insights.n_months_logged}</Text>
+              <Text style={styles.insightChipLabel}>{t('insightsMonthsData')}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* Day-of-week patterns */}
+      <View style={styles.insightBlock}>
+        <Text style={styles.insightBlockTitle}>{t('insightsSectionDays')}</Text>
+        {hasDays ? (
+          <View style={{ gap: 10 }}>
+            <View style={styles.insightRow}>
+              <View style={[styles.insightDot, { backgroundColor: c.primary }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.insightRowLabel}>
+                  {t('insightsBusiestDay')}:{' '}
+                  <Text style={{ color: c.primaryDark, fontWeight: '700' }}>
+                    {insights.busiest_day!.weekday}
+                  </Text>
+                </Text>
+                <Text style={styles.insightRowSub}>
+                  {t('insightsAvgCustomersDay', { n: Math.round(insights.busiest_day!.avg_customers) })}
+                </Text>
+                {insights.busiest_day!.pct_vs_mean > 0 && (
+                  <Text style={[styles.insightRowSub, { color: '#16a34a' }]}>
+                    {t('insightsPctAbove', { pct: Math.abs(insights.busiest_day!.pct_vs_mean).toFixed(0) })}
+                  </Text>
+                )}
+              </View>
+            </View>
+            <View style={styles.insightRow}>
+              <View style={[styles.insightDot, { backgroundColor: c.border }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.insightRowLabel}>
+                  {t('insightsSlowestDay')}:{' '}
+                  <Text style={{ color: c.textSub, fontWeight: '700' }}>
+                    {insights.slowest_day!.weekday}
+                  </Text>
+                </Text>
+                <Text style={styles.insightRowSub}>
+                  {t('insightsAvgCustomersDay', { n: Math.round(insights.slowest_day!.avg_customers) })}
+                </Text>
+                {insights.slowest_day!.pct_vs_mean < 0 && (
+                  <Text style={[styles.insightRowSub, { color: c.textMuted }]}>
+                    {t('insightsPctBelow', { pct: Math.abs(insights.slowest_day!.pct_vs_mean).toFixed(0) })}
+                  </Text>
+                )}
+              </View>
+            </View>
+            {insights.pct_diff_busiest_slowest != null && (
+              <View style={styles.insightHighlight}>
+                <Text style={styles.insightHighlightText}>
+                  {t('insightsBusiestVsSlowest', {
+                    busiest: insights.busiest_day!.weekday,
+                    pct: Math.round(insights.pct_diff_busiest_slowest),
+                    slowest: insights.slowest_day!.weekday,
+                  })}
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : (
+          <Text style={styles.insightDimNote}>{t('insightsNoHourlyData')}</Text>
+        )}
+      </View>
+
+      {/* Hourly patterns */}
+      <View style={styles.insightBlock}>
+        <Text style={styles.insightBlockTitle}>{t('insightsSectionHours')}</Text>
+        {hasHours ? (
+          <View style={{ gap: 8 }}>
+            <View style={styles.insightRow}>
+              <View style={[styles.insightDot, { backgroundColor: '#f97316' }]} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.insightRowLabel}>
+                  {t('insightsPeakHour')}:{' '}
+                  <Text style={{ color: '#ea580c', fontWeight: '700' }}>
+                    {insights.peak_hour!.label}
+                  </Text>
+                </Text>
+                <Text style={styles.insightRowSub}>
+                  {t('insightsAvgCustomersHour', { n: Math.round(insights.peak_hour!.avg_taps) })}
+                </Text>
+              </View>
+            </View>
+            {insights.quietest_hour && (
+              <View style={styles.insightRow}>
+                <View style={[styles.insightDot, { backgroundColor: c.border }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.insightRowLabel}>
+                    {t('insightsQuietestHour')}:{' '}
+                    <Text style={{ color: c.textSub, fontWeight: '700' }}>
+                      {insights.quietest_hour.label}
+                    </Text>
+                  </Text>
+                  <Text style={styles.insightRowSub}>
+                    {t('insightsAvgCustomersHour', { n: Math.round(insights.quietest_hour.avg_taps) })}
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        ) : (
+          <Text style={styles.insightDimNote}>{t('insightsNoHourlyData')}</Text>
+        )}
+      </View>
+
+      {/* Year-over-year */}
+      <View style={styles.insightBlock}>
+        <Text style={styles.insightBlockTitle}>{t('insightsSectionYoY')}</Text>
+        {hasYoY ? (
+          <View style={{ gap: 4 }}>
+            <Text style={[styles.insightBigStat, {
+              color: insights.yoy_growth_pct! >= 0 ? '#16a34a' : c.danger,
+            }]}>
+              {insights.yoy_growth_pct! >= 0
+                ? t('insightsYoYGrowth', { pct: Math.abs(insights.yoy_growth_pct!).toFixed(1) })
+                : t('insightsYoYDecline', { pct: Math.abs(insights.yoy_growth_pct!).toFixed(1) })}
+            </Text>
+            {insights.yoy_curr_period_label && insights.yoy_prev_period_label && (
+              <Text style={styles.insightRowSub}>
+                {t('insightsYoYCompare', {
+                  curr: insights.yoy_curr_period_label,
+                  prev: insights.yoy_prev_period_label,
+                })}
+              </Text>
+            )}
+          </View>
+        ) : (
+          <Text style={styles.insightDimNote}>{t('insightsNoYoY')}</Text>
+        )}
+      </View>
+
+      {/* Forecast accuracy */}
+      <View style={styles.insightBlock}>
+        <Text style={styles.insightBlockTitle}>{t('insightsSectionAccuracy')}</Text>
+        {hasAcc ? (
+          <View style={{ gap: 8 }}>
+            <Text style={styles.insightAccStat}>
+              {t('insightsAccuracyWithin', { pct: insights.forecast_accuracy_mape!.toFixed(1) })}
+            </Text>
+            {insights.accuracy_early_mape != null && insights.accuracy_recent_mape != null && (
+              <View style={styles.insightHighlight}>
+                <Text style={[styles.insightHighlightText, {
+                  color: insights.accuracy_improved ? '#16a34a' : c.textSub,
+                }]}>
+                  {insights.accuracy_improved
+                    ? t('insightsAccuracyImproving', {
+                        early: insights.accuracy_early_mape.toFixed(1),
+                        recent: insights.accuracy_recent_mape.toFixed(1),
+                      })
+                    : t('insightsAccuracyStable', {
+                        recent: insights.accuracy_recent_mape.toFixed(1),
+                      })}
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : (
+          <Text style={styles.insightDimNote}>{t('insightsNoAccuracy')}</Text>
+        )}
+      </View>
+    </View>
+  )
+}
+
 // ── Small reusable tiles ────────────────────────────────────────────────────
 
 function MetricTile({
@@ -532,5 +760,42 @@ function makeStyles(c: Theme) {
     mvVisits: { fontSize: 12, color: c.textSub, marginRight: 12 },
     mvSpend: { fontSize: 13, fontWeight: '600', color: c.primaryDark },
     profitEmpty: { fontSize: 13, color: c.textMuted, textAlign: 'center' },
+
+    // Insights
+    insightChip: {
+      alignItems: 'center',
+      backgroundColor: `${c.primary}18`,
+      borderRadius: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      minWidth: 90,
+    },
+    insightChipValue: {
+      fontSize: 24, fontWeight: '700', color: c.primaryDark,
+    },
+    insightChipLabel: {
+      fontSize: 10, color: c.textMuted, textAlign: 'center', marginTop: 2,
+    },
+    insightBlock: {
+      backgroundColor: c.card, borderRadius: 14, padding: 14,
+      borderWidth: 1, borderColor: c.border, gap: 10,
+    },
+    insightBlockTitle: {
+      fontSize: 11, fontWeight: '700', color: c.textMuted,
+      textTransform: 'uppercase', letterSpacing: 0.6,
+    },
+    insightRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+    insightDot: {
+      width: 10, height: 10, borderRadius: 5, marginTop: 4, flexShrink: 0,
+    },
+    insightRowLabel: { fontSize: 14, color: c.text, fontWeight: '500' },
+    insightRowSub: { fontSize: 12, color: c.textSub, marginTop: 2 },
+    insightHighlight: {
+      backgroundColor: `${c.primary}12`, borderRadius: 10, padding: 10,
+    },
+    insightHighlightText: { fontSize: 13, color: c.primaryDark, fontWeight: '500' },
+    insightDimNote: { fontSize: 13, color: c.textMuted, lineHeight: 20 },
+    insightBigStat: { fontSize: 16, fontWeight: '700', lineHeight: 22 },
+    insightAccStat: { fontSize: 14, fontWeight: '600', color: c.text },
   })
 }

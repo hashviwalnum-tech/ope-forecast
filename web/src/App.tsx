@@ -9,6 +9,7 @@ import BusinessSettings from './components/BusinessSettings'
 import CsvImport from './components/CsvImport'
 import DayList from './components/DayList'
 import HomeScreen from './components/HomeScreen'
+import InsightsView from './components/InsightsView'
 import TrendsView from './components/TrendsView'
 import OutlierBanner from './components/OutlierBanner'
 import PeriodsPanel from './components/PeriodsPanel'
@@ -28,7 +29,7 @@ const FREE_BUSINESS_LIMIT = 1  // §10: free = one location; premium = more
 const SHOW_ADS = true
 
 type Tab =
-  | 'home' | 'predictions_home'
+  | 'home' | 'predictions_home' | 'insights'
   | 'backfill' | 'history' | 'import' | 'trends'
   | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings' | 'toolbox'
 type NavGroup = 'history' | 'manage'
@@ -177,8 +178,9 @@ function AppInner() {
   // ── Language-aware nav labels ─────────────────────────────────────────────
 
   const primaryTabs = [
-    { id: 'home' as Tab,             label: t('home')        },
-    { id: 'predictions_home' as Tab, label: t('predictions') },
+    { id: 'home' as Tab,             label: t('home')              },
+    { id: 'predictions_home' as Tab, label: t('predictions')       },
+    { id: 'insights' as Tab,         label: t('insightsNavLabel')  },
   ]
 
   const dropdownGroups = [
@@ -210,6 +212,7 @@ function AppInner() {
   const tabTitles: Record<Tab, string> = {
     home:             t('tabHome'),
     predictions_home: t('tabPredictions'),
+    insights:         t('tabInsights'),
     trends:           t('tabTrends'),
     events:           t('tabEvents'),
     products:         t('tabProducts'),
@@ -520,6 +523,7 @@ function AppInner() {
             <HomeScreen refreshKey={refreshKey} onSaved={refresh} onGoToProducts={() => setTab('products')} />
           ))}
           {tab === 'predictions_home' && <PredictionsScreen refreshKey={refreshKey} />}
+          {tab === 'insights'         && <InsightsView />}
           {tab === 'trends'           && <TrendsView />}
           {tab === 'events'           && <PeriodsPanel />}
           {tab === 'products'         && <ProductsPanel />}
