@@ -27,7 +27,7 @@ from app.engine.forecasting import (
     year_over_year_forecast,
     weighted_moving_average,
 )
-from app.engine.live_sales import compute_open_hours, hourly_averages, hourly_product_mix
+from app.engine.live_sales import compute_open_hours, hourly_averages, hourly_product_mix, utc_to_local_dt
 from app.engine.ordering import (
     BatchInfo,
     apply_order_constraints,
@@ -1178,6 +1178,7 @@ def get_hourly_analytics(
     settings = biz.settings or {}
     avg_svc = float(settings.get("avg_service_time_minutes", 5.0))
     open_hours = compute_open_hours(settings)
+    tz_name: str = settings.get("timezone", "UTC")
 
     events = (
         db.query(SaleEvent)
@@ -1198,8 +1199,12 @@ def get_hourly_analytics(
             avg_service_time_minutes=avg_svc,
         )
 
-    raw = [(e.timestamp.date(), e.timestamp.hour, e.product_id, e.quantity) for e in events]
-    n_days = len({e.timestamp.date() for e in events})
+    raw = [
+        (lt.date(), lt.hour, e.product_id, e.quantity)
+        for e in events
+        for lt in [utc_to_local_dt(e.timestamp, tz_name)]
+    ]
+    n_days = len({ev[0] for ev in raw})
 
     if n_days < MIN_HOURLY_DAYS:
         remaining = MIN_HOURLY_DAYS - n_days
@@ -1580,6 +1585,7 @@ def get_hourly_by_weekday(
     settings = biz.settings or {}
     avg_svc = float(settings.get("avg_service_time_minutes", 5.0))
     open_hours = compute_open_hours(settings)
+    tz_name: str = settings.get("timezone", "UTC")
 
     events = (
         db.query(SaleEvent)
@@ -1595,7 +1601,11 @@ def get_hourly_by_weekday(
                     f'hourly patterns appear after {MIN_HOURLY_DAYS} days of data.',
         )
 
-    raw = [(e.timestamp.date(), e.timestamp.hour, e.product_id, e.quantity) for e in events]
+    raw = [
+        (lt.date(), lt.hour, e.product_id, e.quantity)
+        for e in events
+        for lt in [utc_to_local_dt(e.timestamp, tz_name)]
+    ]
     n_days_total = len({ev[0] for ev in raw})
 
     if n_days_total < MIN_HOURLY_DAYS:

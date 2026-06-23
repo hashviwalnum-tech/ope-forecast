@@ -116,6 +116,7 @@ _WD_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
 def _timing_check(record_date: date, biz: Business) -> None:
     """Raise HTTPException 422 if entry-timing rules block this date."""
     settings = biz.settings or {}
+    tz_name: str = settings.get("timezone", "UTC")
     raw_open = settings.get("opening_hour")
     raw_close = settings.get("closing_hour")
     opening = int(raw_open) if raw_open is not None else None
@@ -123,7 +124,7 @@ def _timing_check(record_date: date, biz: Business) -> None:
     opening_days = settings.get("opening_days")
     try:
         check_non_working_day(record_date, date.today(), opening_days)
-        check_entry_timing(record_date, date.today(), datetime.now().hour, opening, closing)
+        check_entry_timing(record_date, date.today(), utc_to_local_hour(datetime.now(), tz_name), opening, closing)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
