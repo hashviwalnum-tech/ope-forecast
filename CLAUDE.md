@@ -1,14 +1,16 @@
 # CLAUDE.md — Operations Forecasting App
 
-Short, always-loaded project context. Full design lives in the `docs/` folder:
-- `@docs/PROJECT_SPEC.md` — index spine: vision, moat, architecture, phased roadmap
-- `@docs/FORECASTING.md` — engine, ensemble, formulas, test cases
-- `@docs/DATA_MODEL.md` — entities, ordering lifecycle, batch/FIFO, data rules
-- `@docs/FEATURES.md` — design language, UI features, staffing, premium gating
-- `@docs/MOBILE.md` — Phase 4 mobile detail, Phase 4.5 beta readiness
-- `@docs/OPERATIONS.md` — deploy, auth, Telegram, engineering conventions
+Short, always-loaded context. Full design lives in `docs/`.
 
-Read PROJECT_SPEC.md first; read topic files before working in their area.
+Always-loaded spine (auto-included below):
+@docs/PROJECT_SPEC.md
+
+**Before working in any area, read the relevant topic file** (NOT auto-loaded — read on demand):
+- `docs/FORECASTING.md` — engine, ensemble weights, self-tuning, formulas, known-answer test cases
+- `docs/DATA_MODEL.md` — entities, ordering lifecycle, batch/FIFO shelf-life, data-integrity rules
+- `docs/FEATURES.md` — design language, UI features, staffing/queueing, premium gating
+- `docs/MOBILE.md` — Phase 4 mobile detail, Phase 4.5 beta readiness
+- `docs/OPERATIONS.md` — deploy, auth, Telegram, billing, engineering conventions
 
 ## How to work with me (important)
 I am not a programmer and cannot debug or fill in gaps — do the whole job and verify it yourself.
