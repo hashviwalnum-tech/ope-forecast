@@ -854,7 +854,7 @@ export const translations = {
     wakingUpMsg: 'מכין את הנתונים שלך — זה עלול לקחת עד דקה. אנחנו כאן.',
 
     // Slogan
-    slogan: 'דע מחר, היום.',
+    slogan: 'דע את העסק שלך',
 
     // Tap-only banner
     tapRolloverTitle: 'יש לך נתוני הקשה שלא נשמרו להיום',

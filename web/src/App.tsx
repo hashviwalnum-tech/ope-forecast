@@ -290,13 +290,17 @@ function AppInner() {
                          sticky top-0 z-10 shadow-sm">
 
         {/* Brand */}
-        <div className="flex items-center gap-3 shrink-0">
+        <button
+          className="flex items-center gap-3 shrink-0 cursor-pointer"
+          onClick={() => setTab('home')}
+          aria-label="Go to home"
+        >
           <img src={logo} alt="Ope logo" className="logo-img h-11 w-auto" />
           <div className="leading-tight">
             <span className="block text-xl font-bold text-teal-700 dark:text-teal-300 tracking-tight">Ope</span>
             <span className="block text-xs text-teal-500 dark:text-teal-400 font-medium">{t('slogan')}</span>
           </div>
-        </div>
+        </button>
 
         {/* Business switcher */}
         <div className="relative shrink-0" ref={switcherRef}>
