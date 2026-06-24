@@ -3,12 +3,17 @@ Applies all seed_chunk_*.sql files to Supabase in order.
 Run from backend/: python run_seed_chunks.py
 
 Reads DATABASE_URL from backend/.env — the same URL the app already uses.
+Tip: use the Supabase connection POOLER URL (port 6543, transaction mode)
+     instead of the direct URL (port 5432) for more stable bulk loads.
+     Find it at: Supabase Dashboard → Settings → Database → Connection Pooling
+     → "Transaction" mode → copy the connection string.
 """
 import sys
+import time
 from pathlib import Path
+import os
 
 # ── Load DATABASE_URL — env var takes priority over .env ─────────────────────
-import os
 database_url = os.environ.get("DATABASE_URL")
 
 if not database_url:
@@ -31,7 +36,7 @@ if not database_url:
 if database_url.startswith("sqlite"):
     sys.exit(
         "ERROR: DATABASE_URL points to SQLite (local dev), not Supabase.\n"
-        "Get your Postgres URL from: Supabase Dashboard → Project Settings → Database → URI\n"
+        "Get your Postgres URL from: Supabase Dashboard → Settings → Database → URI\n"
         "Then run:\n"
         '  $env:DATABASE_URL="postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres"\n'
         "  python run_seed_chunks.py"
@@ -44,25 +49,36 @@ if not chunk_files:
     sys.exit("No seed_chunk_*.sql files found — run: python gen_seed_chunks.py first")
 
 print(f"Found {len(chunk_files)} chunk files.")
+print("  Chunk 001 will DELETE all existing data for business_id=1 — safe to re-run.\n")
 
-# ── Connect ───────────────────────────────────────────────────────────────────
+# ── psycopg2 import ───────────────────────────────────────────────────────────
 try:
-    from sqlalchemy import create_engine, text
+    import psycopg2
 except ImportError:
-    sys.exit("sqlalchemy not installed — activate venv first: venv\\Scripts\\activate")
+    sys.exit("psycopg2 not installed — activate venv first: venv\\Scripts\\activate")
 
-engine = create_engine(database_url)
+MAX_RETRIES = 3
+RETRY_DELAY = 5       # seconds between retry attempts
+STOP_EARLY_THRESHOLD = 5   # abort if any of the first N chunks fail
+
+
+def open_conn():
+    """Fresh psycopg2 connection each call — no pool, no stale sockets."""
+    return psycopg2.connect(database_url)
+
+
+# ── Probe connection ──────────────────────────────────────────────────────────
 print("Connecting...", end=" ", flush=True)
 try:
-    with engine.connect() as probe:
-        probe.execute(text("SELECT 1"))
-    print("OK")
+    _c = open_conn()
+    _c.cursor().execute("SELECT 1")
+    _c.close()
+    print("OK\n")
 except Exception as e:
     sys.exit(f"FAILED\n{e}")
 
-# ── Execute chunks (raw connection so multi-statement SQL works) ───────────────
-# Note: chunks 001-002 must succeed or the rest will break (FKs / missing tables)
-STOP_EARLY_THRESHOLD = 5   # abort if any of the first N chunks fail
+# ── Execute chunks ────────────────────────────────────────────────────────────
+failed_chunks = []
 
 for i, fpath in enumerate(chunk_files, 1):
     sql = fpath.read_text(encoding="utf-8").strip()
@@ -70,23 +86,47 @@ for i, fpath in enumerate(chunk_files, 1):
         print(f"  [{i:03d}/{len(chunk_files)}] {fpath.name}  (empty, skipped)")
         continue
 
-    raw = engine.raw_connection()
-    try:
-        cur = raw.cursor()
-        cur.execute(sql)
-        raw.commit()
-        cur.close()
+    success = False
+    last_error = None
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            conn = open_conn()
+            try:
+                cur = conn.cursor()
+                cur.execute(sql)
+                conn.commit()
+                cur.close()
+                success = True
+            finally:
+                conn.close()
+        except Exception as e:
+            last_error = e
+            if attempt < MAX_RETRIES:
+                print(
+                    f"  [{i:03d}/{len(chunk_files)}] {fpath.name}"
+                    f"  attempt {attempt} FAILED: {e}"
+                    f"  (retrying in {RETRY_DELAY}s...)"
+                )
+                time.sleep(RETRY_DELAY)
+            else:
+                print(
+                    f"  [{i:03d}/{len(chunk_files)}] {fpath.name}"
+                    f"  FAILED after {MAX_RETRIES} attempts: {e}"
+                )
+
+        if success:
+            break
+
+    if success:
         print(f"  [{i:03d}/{len(chunk_files)}] {fpath.name}  OK")
-    except Exception as e:
-        raw.rollback()
-        print(f"  [{i:03d}/{len(chunk_files)}] {fpath.name}  FAILED: {e}")
-        raw.close()
+    else:
+        failed_chunks.append(fpath.name)
         if i <= STOP_EARLY_THRESHOLD:
-            sys.exit(f"\nAborted — critical chunk {i} failed (see error above).")
-        # For later chunks (events/records), print and continue so you can see all failures
-        continue
-    finally:
-        raw.close()
+            sys.exit(f"\nAborted — critical chunk {i} failed (see above).")
+
+if failed_chunks:
+    print(f"\nChunks that failed after {MAX_RETRIES} retries: {', '.join(failed_chunks)}")
 
 # ── Verify ────────────────────────────────────────────────────────────────────
 print("\n─── Verifying row counts ───")
@@ -97,20 +137,24 @@ EXPECT = {
     "sale_events":  (27723,"expect 27723 (avg 1.61 services/customer)"),
 }
 
-with engine.connect() as conn:
-    prod_count, max_svc = conn.execute(text(
-        "SELECT COUNT(*), MAX(service_time_minutes) FROM products WHERE business_id = 1"
-    )).fetchone()
-    dr_count = conn.execute(text(
-        "SELECT COUNT(*) FROM day_records WHERE business_id = 1"
-    )).scalar()
-    sr_count = conn.execute(text(
+try:
+    conn = open_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*), MAX(service_time_minutes) FROM products WHERE business_id = 1")
+    prod_count, max_svc = cur.fetchone()
+    cur.execute("SELECT COUNT(*) FROM day_records WHERE business_id = 1")
+    dr_count = cur.fetchone()[0]
+    cur.execute(
         "SELECT COUNT(*) FROM sale_records "
         "WHERE day_record_id IN (SELECT id FROM day_records WHERE business_id = 1)"
-    )).scalar()
-    ev_count = conn.execute(text(
-        "SELECT COUNT(*) FROM sale_events WHERE business_id = 1"
-    )).scalar()
+    )
+    sr_count = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM sale_events WHERE business_id = 1")
+    ev_count = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+except Exception as e:
+    sys.exit(f"\nVerification query failed: {e}")
 
 rows = [
     ("products",     prod_count, f"(max service_time {max_svc} min — expect 120)"),
