@@ -16,6 +16,8 @@ class Product(Base):
     business_id: Mapped[int] = mapped_column(ForeignKey("businesses.id"), index=True)
     name: Mapped[str] = mapped_column(String(200))
     unit: Mapped[str] = mapped_column(String(50))
+    # 'stocked' = physical goods with stock/reorder; 'service' = performed, never reordered
+    product_type: Mapped[str] = mapped_column(String(20), default="stocked")
     # 'whole' = integer quantities (e.g. bottles); 'decimal' = fractional (e.g. kg)
     unit_mode: Mapped[str] = mapped_column(String(10), default="whole")
     price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)

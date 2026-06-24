@@ -24,7 +24,16 @@ id, name, settings (opening days/hours, default lead time, target service level,
 **Opening days/hours must be editable in a settings screen** — and the forecasting engine must use them: closed days are excluded from forecasting entirely (not treated as zero-customer days), and hourly features only consider open hours.
 
 ### Product
-id, business_id, name, **price (optional, in optional details)**, lead_time_days, **optional service_time_minutes** (overrides the business default for staffing math — exposed in the product add/edit UI under optional details, defaulting to business setting when blank), **optional capacity** (max units that physically fit — NOT "storage cost"; that field must NOT exist), **optional shelf_life_days** (spoilage), **unit_mode ('whole' | 'decimal', default 'whole')**.
+id, business_id, name, **product_type ('stocked' | 'service', default 'stocked')**, **price (optional, in optional details)**, lead_time_days, **optional service_time_minutes** (overrides the business default for staffing math — exposed in the product add/edit UI under optional details, defaulting to business setting when blank), **optional capacity** (max units that physically fit — NOT "storage cost"; that field must NOT exist), **optional shelf_life_days** (spoilage), **unit_mode ('whole' | 'decimal', default 'whole')**.
+
+**product_type** is chosen at creation and controls the stock/reorder side only (demand is always forecast):
+- **stocked** — physical goods (coffee beans, wax strips). Full stock / reorder / batch / FIFO system as normal.
+- **service** — performed, never held (massage, haircut, facial). Demand forecast runs normally, but the app **never** suggests reordering a service, shows no stock figure for it, and omits it from the ordering view entirely.
+
+**Service consumables (optional, reuses the stocked-good system).** When creating a SERVICE product, the owner can link consumables — stocked products it uses per performance (e.g. 20 ml of massage oil per massage). Each link is stored in **ServiceConsumable** (below). When the service is logged, those consumables' projected stock is drawn down by qty_per_performance × units performed. The consumable's own reorder/batch logic then applies. **Silent fallback:** if no consumables are linked for a service, the app says nothing about supplies — it never invents a consumable or nags the owner. Consumables surface only if the owner provided them. This is stock/reorder-side only — it does NOT change the service's demand forecast.
+
+### ServiceConsumable
+id, business_id, **service_product_id** (FK products.id — must be a service), **consumable_product_id** (FK products.id — must be a stocked product), **qty_per_performance** (units of the consumable used per service performance). Managed via `GET/POST/DELETE /products/{id}/consumables`.
 
 - Capacity and shelf-life are **optional, off by default** — app must work cleanly when neither applies. When present they constrain ordering advice (see [FORECASTING.md](FORECASTING.md) ordering bridge).
 - **unit_mode controls counting AND forecast output:** whole = always whole numbers ("order 45", never "45.3"); decimal = fractional input/output. **This has regressed repeatedly** — decimals reappearing for whole-unit products AND customers shown with decimals in the HOURLY CHART. Whole-unit display must apply EVERYWHERE: the forecast, order quantities, the demand chart, AND the busy-hours/hourly chart — customers are whole people, never "12.4". Add a guarding test covering the hourly chart too, so it stays fixed.

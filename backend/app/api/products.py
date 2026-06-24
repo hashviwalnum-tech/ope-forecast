@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_business
 from app.db import get_db
 from app.models import Business, Product, SaleRecord, SaleEvent
+from app.models.service_consumable import ServiceConsumable
 from app.models.stock_batch import StockBatch
 from app.schemas.product import ProductCreate, ProductRead, ProductUpdate
+from app.schemas.service_consumable import ServiceConsumableCreate, ServiceConsumableRead
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -105,5 +107,99 @@ def delete_product(product_id: int, db: Session = Depends(get_db), biz: Business
     db.query(SaleEvent).filter(SaleEvent.product_id == product_id).update(
         {"product_id": None}, synchronize_session=False
     )
+    # Remove service consumable links involving this product (either side)
+    db.query(ServiceConsumable).filter(
+        (ServiceConsumable.service_product_id == product_id) |
+        (ServiceConsumable.consumable_product_id == product_id)
+    ).delete(synchronize_session=False)
     db.delete(row)
+    db.commit()
+
+
+# ── service consumable management ─────────────────────────────────────────────
+
+@router.get("/{product_id}/consumables", response_model=list[ServiceConsumableRead])
+def list_consumables(
+    product_id: int,
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    svc = _get_or_404(db, product_id, biz.id)
+    if getattr(svc, "product_type", "stocked") != "service":
+        raise HTTPException(400, "This product is not a service")
+    links = (
+        db.query(ServiceConsumable)
+        .filter_by(business_id=biz.id, service_product_id=product_id)
+        .all()
+    )
+    result = []
+    for lnk in links:
+        consumable = db.get(Product, lnk.consumable_product_id)
+        result.append(ServiceConsumableRead(
+            id=lnk.id,
+            service_product_id=lnk.service_product_id,
+            consumable_product_id=lnk.consumable_product_id,
+            qty_per_performance=lnk.qty_per_performance,
+            consumable_name=consumable.name if consumable else "",
+            consumable_unit=consumable.unit if consumable else "",
+        ))
+    return result
+
+
+@router.post("/{product_id}/consumables", response_model=ServiceConsumableRead, status_code=201)
+def add_consumable(
+    product_id: int,
+    body: ServiceConsumableCreate,
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    svc = _get_or_404(db, product_id, biz.id)
+    if getattr(svc, "product_type", "stocked") != "service":
+        raise HTTPException(400, "This product is not a service")
+    consumable = _get_or_404(db, body.consumable_product_id, biz.id)
+    if getattr(consumable, "product_type", "stocked") != "stocked":
+        raise HTTPException(400, "Consumable must be a stocked product")
+    # Prevent duplicate link
+    existing = (
+        db.query(ServiceConsumable)
+        .filter_by(
+            business_id=biz.id,
+            service_product_id=product_id,
+            consumable_product_id=body.consumable_product_id,
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(409, "This consumable is already linked to the service")
+    lnk = ServiceConsumable(
+        business_id=biz.id,
+        service_product_id=product_id,
+        consumable_product_id=body.consumable_product_id,
+        qty_per_performance=body.qty_per_performance,
+    )
+    db.add(lnk)
+    db.commit()
+    db.refresh(lnk)
+    return ServiceConsumableRead(
+        id=lnk.id,
+        service_product_id=lnk.service_product_id,
+        consumable_product_id=lnk.consumable_product_id,
+        qty_per_performance=lnk.qty_per_performance,
+        consumable_name=consumable.name,
+        consumable_unit=consumable.unit,
+    )
+
+
+@router.delete("/{product_id}/consumables/{consumable_link_id}", status_code=204)
+def remove_consumable(
+    product_id: int,
+    consumable_link_id: int,
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    _get_or_404(db, product_id, biz.id)
+    lnk = db.get(ServiceConsumable, consumable_link_id)
+    if not lnk or lnk.business_id != biz.id or lnk.service_product_id != product_id:
+        raise HTTPException(404, "Consumable link not found")
+    db.delete(lnk)
     db.commit()

@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 class ProductCreate(BaseModel):
     name: str
     unit: str
+    product_type: Literal["stocked", "service"] = "stocked"
     unit_mode: Literal["whole", "decimal"] = "whole"
     price: Optional[float] = Field(None, ge=0)
     current_stock: Optional[float] = Field(None, ge=0)
@@ -35,6 +36,7 @@ class ProductCreate(BaseModel):
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     unit: Optional[str] = None
+    product_type: Optional[Literal["stocked", "service"]] = None
     unit_mode: Optional[Literal["whole", "decimal"]] = None
     price: Optional[float] = Field(None, ge=0)
     current_stock: Optional[float] = Field(None, ge=0)
@@ -49,6 +51,7 @@ class ProductRead(BaseModel):
     business_id: int
     name: str
     unit: str
+    product_type: str = "stocked"
     unit_mode: str
     price: Optional[float]
     current_stock: Optional[float]

@@ -22,6 +22,7 @@ ALLOWED_ORIGINS = [o.strip() for o in _origins.split(",")]
 
 from app.db import engine
 from app.models import Base, StockBatch  # noqa: F401 — ensure table is registered
+from app.models.service_consumable import ServiceConsumable  # noqa: F401 — ensure table is registered
 from app.api import businesses, day_records, orders, products, sale_events, sales, periods, analytics, recurring_patterns, regulars
 from app.api import telegram as telegram_api
 from app.api import bot as bot_api
@@ -122,12 +123,28 @@ def _migrate_sqlite_stock_batches(eng) -> None:
         conn.commit()
 
 
+def _migrate_sqlite_products_v4(eng) -> None:
+    """Add product_type column to products if it doesn't exist yet."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(eng)
+    if "products" not in inspector.get_table_names():
+        return
+    existing = {col["name"] for col in inspector.get_columns("products")}
+    with eng.connect() as conn:
+        if "product_type" not in existing:
+            conn.execute(text(
+                "ALTER TABLE products ADD COLUMN product_type TEXT DEFAULT 'stocked'"
+            ))
+        conn.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(engine)
     _migrate_sqlite_products(engine)
     _migrate_sqlite_products_v2(engine)
     _migrate_sqlite_products_v3(engine)
+    _migrate_sqlite_products_v4(engine)
     _migrate_sqlite_day_records(engine)
     _migrate_sqlite_telegram_links(engine)
     _migrate_sqlite_stock_batches(engine)

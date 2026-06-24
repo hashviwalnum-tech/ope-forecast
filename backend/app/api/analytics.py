@@ -56,6 +56,7 @@ from app.engine.queueing import (
 )
 from app.engine.seasonality import seasonal_naive_forecast
 from app.models import Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, SaleEvent, SaleRecord
+from app.models.service_consumable import ServiceConsumable
 from app.models.order_record import OrderRecord
 from app.models.stock_batch import StockBatch
 from app.schemas.analytics import (
@@ -163,6 +164,27 @@ def _compute_projected_stock(
         for (pid, d), qty in tap_by_prod_date.items():
             if pid == prod.id and d > baseline_date and d not in sale_record_dates:
                 sales_since += qty
+
+    # Add consumable depletion from services that use this product as a supply.
+    # Each service performance (logged as a SaleRecord for the service) draws down
+    # qty_per_performance units of this consumable.
+    consumable_links = (
+        db.query(ServiceConsumable)
+        .filter_by(business_id=biz_id, consumable_product_id=prod.id)
+        .all()
+    )
+    for link in consumable_links:
+        svc_rows = (
+            db.query(SaleRecord.units_sold)
+            .join(DayRecord, SaleRecord.day_record_id == DayRecord.id)
+            .filter(
+                DayRecord.business_id == biz_id,
+                SaleRecord.product_id == link.service_product_id,
+                DayRecord.date > baseline_date,
+            )
+            .all()
+        )
+        sales_since += sum(float(r[0]) for r in svc_rows) * link.qty_per_performance
 
     # Sum arrivals from OrderRecords with expected_arrival_date in (baseline_date, today].
     # When assume_on_time is True: count pending orders whose expected date has passed.
@@ -974,6 +996,10 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     result: list[OrderingRow] = []
 
     for prod in products_list:
+        # Services are performed, not held — skip them entirely in the reorder view.
+        if getattr(prod, "product_type", "stocked") == "service":
+            continue
+
         sales = (
             db.query(SaleRecord)
             .join(DayRecord, SaleRecord.day_record_id == DayRecord.id)
@@ -1355,6 +1381,8 @@ def get_product_forecast(
     result: list[ProductForecastItem] = []
 
     for prod in products_list:
+        prod_type = getattr(prod, "product_type", "stocked") or "stocked"
+
         # ── build demand series ───────────────────────────────────────────────
         sale_records = (
             db.query(SaleRecord)
@@ -1390,18 +1418,29 @@ def get_product_forecast(
                     f"of {prod.name} sales for a reliable forecast "
                     f"({n_data} recorded so far)."
                 )
-            ne_proj, ne_untracked = _compute_projected_stock(
-                db, biz.id, prod, today, tap_by_prod_date, assume_on_time=assume_on_time
-            )
-            result.append(ProductForecastItem(
-                product_id=prod.id, name=prod.name, unit=prod.unit,
-                status="not_enough_data", message=msg,
-                lead_time_days=prod.lead_time_days,
-                current_stock=prod.current_stock,
-                projected_stock=ne_proj,
-                stock_untracked=ne_untracked,
-                n_days_data=n_data,
-            ))
+            # Services have no stock concept; skip stock fields for them.
+            if prod_type == "service":
+                result.append(ProductForecastItem(
+                    product_id=prod.id, name=prod.name, unit=prod.unit,
+                    product_type=prod_type,
+                    status="not_enough_data", message=msg,
+                    lead_time_days=prod.lead_time_days,
+                    n_days_data=n_data,
+                ))
+            else:
+                ne_proj, ne_untracked = _compute_projected_stock(
+                    db, biz.id, prod, today, tap_by_prod_date, assume_on_time=assume_on_time
+                )
+                result.append(ProductForecastItem(
+                    product_id=prod.id, name=prod.name, unit=prod.unit,
+                    product_type=prod_type,
+                    status="not_enough_data", message=msg,
+                    lead_time_days=prod.lead_time_days,
+                    current_stock=prod.current_stock,
+                    projected_stock=ne_proj,
+                    stock_untracked=ne_untracked,
+                    n_days_data=n_data,
+                ))
             continue
 
         # ── ensemble forecast ─────────────────────────────────────────────────
@@ -1477,8 +1516,34 @@ def get_product_forecast(
                 interval_high=_round_qty(max(0.0, hi), unit_mode_f),
             ))
 
-        # ── ordering advice (forecast-based) ─────────────────────────────────
+        # ── ordering advice (forecast-based, stocked only) ───────────────────
         avg_daily = mean(demands)
+        unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
+
+        if prod_type == "service":
+            # Services are performed, not held — demand is still forecast but there
+            # is no stock, no reorder point, and no ordering advice.
+            result.append(ProductForecastItem(
+                product_id=prod.id,
+                name=prod.name,
+                unit=prod.unit,
+                product_type=prod_type,
+                unit_mode=unit_mode,
+                status="ok",
+                days=forecast_days,
+                avg_daily_demand=_round_qty(avg_daily, unit_mode),
+                lead_time_days=prod.lead_time_days,
+                n_days_data=n_data,
+                # Explicitly no stock or reorder fields for services
+                current_stock=None,
+                projected_stock=None,
+                stock_untracked=False,
+                order_now=False,
+                approaching_reorder=False,
+                suggested_order_qty=0.0,
+            ))
+            continue
+
         sigma_daily = stdev(demands) if n_data > 1 else 0.0
         sigma_lt = sigma_daily * math.sqrt(prod.lead_time_days)
         ss = safety_stock(z, sigma_lt)
@@ -1489,7 +1554,6 @@ def get_product_forecast(
         rop = forecast_demand_lt + ss
 
         eoq_val: float | None = None
-        unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
         base_qty = forecast_demand_lt + ss
 
         # ── projected stock (dynamic: baseline − sales + arrivals) ────────────
@@ -1541,6 +1605,7 @@ def get_product_forecast(
             product_id=prod.id,
             name=prod.name,
             unit=prod.unit,
+            product_type=prod_type,
             unit_mode=unit_mode,
             status="ok",
             days=forecast_days,

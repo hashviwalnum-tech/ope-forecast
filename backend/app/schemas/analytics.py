@@ -195,6 +195,7 @@ class ProductForecastItem(BaseModel):
     product_id: int
     name: str
     unit: str
+    product_type: str = "stocked"
     unit_mode: str = "whole"
     status: str                           # "ok" | "not_enough_data"
     message: Optional[str] = None
