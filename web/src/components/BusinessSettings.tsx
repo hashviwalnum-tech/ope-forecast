@@ -452,6 +452,18 @@ export default function BusinessSettings({ onTierChanged }: Props) {
 
       {/* ── Feedback ─────────────────────────────────────────────────── */}
       <FeedbackPanel />
+
+      {/* ── Legal ────────────────────────────────────────────────────── */}
+      <div className="border-t border-slate-100 dark:border-slate-700 pt-4 text-center">
+        <a
+          href="/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+        >
+          {t('privacyPolicy')}
+        </a>
+      </div>
     </form>
   )
 }

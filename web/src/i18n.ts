@@ -794,6 +794,8 @@ export const translations = {
     insightsNotEnoughDays: 'Need at least 7 days of data to show patterns.',
     insightsLoading: 'Loading insights…',
     insightsLoadError: "Couldn't load insights — is the backend running?",
+
+    privacyPolicy: 'Privacy Policy',
   },
   he: {
     // Nav
@@ -1588,6 +1590,8 @@ export const translations = {
     insightsNotEnoughDays: 'צריך לפחות 7 ימים של נתונים להצגת דפוסים.',
     insightsLoading: 'טוען תובנות…',
     insightsLoadError: 'לא ניתן לטעון תובנות — האם השרת פועל?',
+
+    privacyPolicy: 'מדיניות פרטיות',
   },
 } as const satisfies Record<Lang, Record<string, string>>
 
