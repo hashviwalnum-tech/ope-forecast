@@ -8,6 +8,9 @@ import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { MonthlyVisits, RegularCreate, RegularProfitabilityRead, RegularRead, RegularUpdate } from '../api/types'
 
+const fmtMoney = (v: number) =>
+  new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
+
 function fmtCLV(clv: number) {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(clv)
 }
@@ -194,6 +197,8 @@ export default function RegularsPanel() {
   const [showOptional, setShowOptional] = useState(false)
   const [expandedProfit, setExpandedProfit] = useState<Set<number>>(new Set())
 
+  const [profMap, setProfMap] = useState<Record<number, RegularProfitabilityRead>>({})
+
   const [visitAmounts, setVisitAmounts] = useState<Record<number, string>>({})
   const [visitRecording, setVisitRecording] = useState<number | null>(null)
 
@@ -217,6 +222,14 @@ export default function RegularsPanel() {
         defaults[r.id] = String(r.today_amount ?? r.avg_spend)
       }
       setVisitAmounts(defaults)
+
+      // Load profitability for all regulars so it's visible inline without a click
+      const profResults = await Promise.allSettled(data.map(r => api.profitability(r.id)))
+      const newProfMap: Record<number, RegularProfitabilityRead> = {}
+      profResults.forEach((res, i) => {
+        if (res.status === 'fulfilled') newProfMap[data[i].id] = res.value
+      })
+      setProfMap(newProfMap)
     } catch { /* ignore */ }
     finally { setLoading(false) }
   }
@@ -501,6 +514,31 @@ export default function RegularsPanel() {
                   </button>
                 </div>
               </div>
+
+              {/* Inline profitability summary */}
+              {profMap[r.id] && (profMap[r.id].all_time > 0) && (
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700
+                                flex flex-wrap gap-x-5 gap-y-1">
+                  <div>
+                    <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityThisMonth')}</span>
+                    <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
+                      {fmtMoney(profMap[r.id].this_month)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityThisYear')}</span>
+                    <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
+                      {fmtMoney(profMap[r.id].this_year)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityAllTime')}</span>
+                    <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
+                      {fmtMoney(profMap[r.id].all_time)}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Record visit row */}
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">

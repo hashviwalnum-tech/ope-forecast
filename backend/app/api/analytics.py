@@ -1921,6 +1921,28 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         except ValueError:
             pass
 
+    # Fallback: no stored ForecastRun data yet — compute holdout accuracy from
+    # DayRecords so the insights view shows real numbers instead of "log more weeks".
+    if forecast_accuracy_mape is None and n_clean >= MIN_RECORDS:
+        holdout_obs = _effective_obs(clean_records)
+        holdout_wds = [r.date.weekday() for r in clean_records]
+        n_eval = min(90, len(holdout_obs) - 7)
+        if n_eval > 0:
+            h_acts: list[float] = []
+            h_preds: list[float] = []
+            for i in range(len(holdout_obs) - n_eval, len(holdout_obs)):
+                try:
+                    p = seasonal_naive_forecast(holdout_obs[:i], holdout_wds[:i], holdout_wds[i])
+                    h_acts.append(holdout_obs[i])
+                    h_preds.append(p)
+                except ValueError:
+                    pass
+            if len(h_acts) >= 4:
+                try:
+                    forecast_accuracy_mape = round(mape(h_acts, h_preds), 1)
+                except ValueError:
+                    pass
+
     return InsightsResponse(
         status="ok",
         n_days_logged=len(all_records),

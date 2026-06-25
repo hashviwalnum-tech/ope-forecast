@@ -190,6 +190,11 @@ export default function PredictionsPanel() {
 
       {accuracy?.status === 'ok' && (
         <Card title={t('howAppDoing')}>
+          {!histData && (
+            <p className="text-xs text-slate-400 dark:text-slate-500 italic mb-4 -mt-2">
+              {t('accuracyFromHoldout')}
+            </p>
+          )}
           {accuracy.bias_warning && (
             <div className="mb-4 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-700 dark:text-amber-300">
               {accuracy.bias_warning}

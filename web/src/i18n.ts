@@ -437,6 +437,7 @@ export const translations = {
     basedOnLabel: 'Based on',
     daysCompared: 'days compared',
     oncePassedPrediction: "Once a predicted day has passed, you'll see here how close we were.",
+    accuracyFromHoldout: 'These stats are from pattern testing on your recorded history — not from stored past predictions yet. The chart above will fill in as predictions mature.',
 
     // Outlier banner
     unusualDaySingular: '1 unusual day needs your attention',
@@ -1233,6 +1234,7 @@ export const translations = {
     basedOnLabel: 'מבוסס על',
     daysCompared: 'ימים שהושוו',
     oncePassedPrediction: 'כשיום חזוי יעבור, תראה כאן עד כמה היינו מדויקים.',
+    accuracyFromHoldout: 'הנתונים האלה מגיעים מבדיקת דפוסים על ההיסטוריה שרשמת — לא מתחזיות שמורות עדיין. הגרף מעל יתמלא כשהתחזיות יבשילו.',
 
     // Outlier banner
     unusualDaySingular: 'יום חריג אחד דורש תשומת לבך',
