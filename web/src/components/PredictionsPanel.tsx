@@ -184,16 +184,20 @@ export default function PredictionsPanel() {
             </ComposedChart>
           </ResponsiveContainer>
         ) : (
-          <Empty message={history?.message} />
+          <p className="text-sm text-slate-400 dark:text-slate-500 text-center leading-relaxed py-4">
+            {t('forecastHistoryBuilding')}
+          </p>
         )}
       </Card>
 
       {accuracy?.status === 'ok' && (
         <Card title={t('howAppDoing')}>
           {!histData && (
-            <p className="text-xs text-slate-400 dark:text-slate-500 italic mb-4 -mt-2">
-              {t('accuracyFromHoldout')}
-            </p>
+            <div className="mb-4 px-3 py-2.5 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-xl">
+              <p className="text-xs text-teal-700 dark:text-teal-300 leading-relaxed">
+                {t('accuracyFromHoldout')}
+              </p>
+            </div>
           )}
           {accuracy.bias_warning && (
             <div className="mb-4 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-700 dark:text-amber-300">

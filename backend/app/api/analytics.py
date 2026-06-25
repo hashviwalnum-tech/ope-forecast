@@ -493,6 +493,32 @@ def _holdout_errors(
     return result
 
 
+def _compute_holdout_mape(obs: list[float], wds: list[int]) -> float | None:
+    """Holdout MAPE: leave-one-out on the last ≤90 observations.
+
+    Identical algorithm to the /accuracy endpoint so both surfaces show the
+    same number.  Returns None when data is insufficient or all actuals are zero.
+    """
+    n_eval = min(90, len(obs) - 7)
+    if n_eval <= 0:
+        return None
+    acts: list[float] = []
+    preds: list[float] = []
+    for i in range(len(obs) - n_eval, len(obs)):
+        try:
+            p = seasonal_naive_forecast(obs[:i], wds[:i], wds[i])
+            acts.append(obs[i])
+            preds.append(p)
+        except ValueError:
+            pass
+    if len(acts) < 4:
+        return None
+    try:
+        return round(mape(acts, preds), 1)
+    except ValueError:
+        return None
+
+
 # ── /outliers ─────────────────────────────────────────────────────────────────
 
 @router.get("/outliers", response_model=OutlierListResponse)
@@ -1921,27 +1947,12 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         except ValueError:
             pass
 
-    # Fallback: no stored ForecastRun data yet — compute holdout accuracy from
-    # DayRecords so the insights view shows real numbers instead of "log more weeks".
+    # Fallback: no stored ForecastRun data yet (or primary mape raised) — use the
+    # same holdout algorithm as /accuracy so both surfaces show the same number.
     if forecast_accuracy_mape is None and n_clean >= MIN_RECORDS:
         holdout_obs = _effective_obs(clean_records)
         holdout_wds = [r.date.weekday() for r in clean_records]
-        n_eval = min(90, len(holdout_obs) - 7)
-        if n_eval > 0:
-            h_acts: list[float] = []
-            h_preds: list[float] = []
-            for i in range(len(holdout_obs) - n_eval, len(holdout_obs)):
-                try:
-                    p = seasonal_naive_forecast(holdout_obs[:i], holdout_wds[:i], holdout_wds[i])
-                    h_acts.append(holdout_obs[i])
-                    h_preds.append(p)
-                except ValueError:
-                    pass
-            if len(h_acts) >= 4:
-                try:
-                    forecast_accuracy_mape = round(mape(h_acts, h_preds), 1)
-                except ValueError:
-                    pass
+        forecast_accuracy_mape = _compute_holdout_mape(holdout_obs, holdout_wds)
 
     return InsightsResponse(
         status="ok",
