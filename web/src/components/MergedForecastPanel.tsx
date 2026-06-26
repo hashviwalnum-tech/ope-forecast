@@ -46,7 +46,9 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
   const notes = item.constraint_notes ?? []
 
   const [showOrderForm, setShowOrderForm] = useState(false)
-  const [orderQty, setOrderQty]           = useState(String(Math.ceil(qty || 1)))
+  const [orderQty, setOrderQty]           = useState(
+    uMode === 'whole' ? String(Math.round(qty || 1)) : String(qty || 1)
+  )
   const [submitting, setSubmitting]       = useState(false)
   const [recentOrder, setRecentOrder]     = useState<OrderRecordRead | null>(null)
   const [arriving, setArriving]           = useState(false)
@@ -63,8 +65,9 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
       : t('trackStockAlerts')
 
   async function submitOrder() {
-    const q = parseFloat(orderQty)
+    let q = parseFloat(orderQty)
     if (isNaN(q) || q <= 0) return
+    if (uMode === 'whole') q = Math.round(q)
     setSubmitting(true)
     try {
       const today = new Date().toISOString().slice(0, 10)
@@ -200,7 +203,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
         {/* "I ordered this" prominent button */}
         {!recentOrder && !showOrderForm && (
           <button
-            onClick={() => { setShowOrderForm(true); setOrderQty(String(Math.ceil(qty || 1))) }}
+            onClick={() => { setShowOrderForm(true); setOrderQty(uMode === 'whole' ? String(Math.round(qty || 1)) : String(qty || 1)) }}
             className="inline-flex items-center gap-2 text-sm font-semibold text-white
                        bg-teal-600 hover:bg-teal-700 rounded-xl px-4 py-2 transition-colors shadow-sm"
           >
@@ -213,7 +216,9 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
             <input
-              type="number" min="0.1" step="0.1"
+              type="number"
+              min={uMode === 'whole' ? '1' : '0.01'}
+              step={uMode === 'whole' ? '1' : '0.01'}
               value={orderQty}
               onChange={e => setOrderQty(e.target.value)}
               className="w-20 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm

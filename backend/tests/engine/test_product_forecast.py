@@ -200,3 +200,25 @@ def test_whole_unit_large_value():
     """Large values round correctly without overflow."""
     assert round_qty(9999.6, "whole") == 10000.0
     assert round_qty(9999.4, "whole") == 9999.0
+
+
+# ── reorder flow regression guard ────────────────────────────────────────────
+# This has regressed repeatedly: a whole-unit product's reorder advice (suggested
+# order qty, reorder point, safety stock, avg daily demand) must NEVER carry a
+# fractional part.  round_qty is the single choke-point in analytics.py for all
+# of those values.  If any path skips it, a whole-unit product displays "45.3".
+
+@pytest.mark.parametrize("raw", [0.3, 0.7, 1.2, 5.8, 12.6, 45.3, 99.9, 233.4])
+def test_reorder_flow_whole_unit_never_fractional(raw: float):
+    """Any raw ordering-math value must produce a whole number for unit_mode='whole'."""
+    result = round_qty(raw, "whole")
+    assert result == float(int(result)), (
+        f"round_qty({raw}, 'whole') = {result}: whole-unit reorder qty has fractional part"
+    )
+
+
+def test_reorder_flow_decimal_unit_preserves_fractions():
+    """Decimal-unit products keep their fractional reorder quantities (2 d.p.)."""
+    assert round_qty(45.3, "decimal") == 45.3
+    assert round_qty(45.376, "decimal") == 45.38
+    assert round_qty(0.755, "decimal") == 0.76

@@ -129,11 +129,12 @@ export default function ForecastScreen() {
 
   const handleLogOrder = async () => {
     if (!logOrderProduct) return
-    const qty = parseFloat(logOrderQty)
+    let qty = parseFloat(logOrderQty)
     if (isNaN(qty) || qty <= 0) {
       Alert.alert('Invalid quantity', 'Enter a number greater than 0.')
       return
     }
+    if ((logOrderProduct.unit_mode ?? 'whole') === 'whole') qty = Math.round(qty)
     setLogOrderSaving(true)
     try {
       await api.orders.create({
@@ -501,7 +502,9 @@ export default function ForecastScreen() {
                               setLogOrderProduct(p)
                               setLogOrderQty(
                                 p.suggested_order_qty != null
-                                  ? String(Math.ceil(p.suggested_order_qty))
+                                  ? (p.unit_mode ?? 'whole') === 'whole'
+                                    ? String(Math.round(p.suggested_order_qty))
+                                    : String(p.suggested_order_qty)
                                   : ''
                               )
                             }}
@@ -514,7 +517,9 @@ export default function ForecastScreen() {
                         <View style={styles.orderQtyBox}>
                           <Text style={[styles.orderQty, { color: c.primaryDark }]}>
                             {p.suggested_order_qty != null
-                              ? Math.ceil(p.suggested_order_qty)
+                              ? (p.unit_mode ?? 'whole') === 'whole'
+                                ? Math.round(p.suggested_order_qty)
+                                : p.suggested_order_qty.toFixed(2)
                               : '—'}
                           </Text>
                           <Text style={[styles.orderQtyUnit, { color: c.textMuted }]}>{p.unit}</Text>
@@ -560,7 +565,9 @@ export default function ForecastScreen() {
                               setLogOrderProduct(p)
                               setLogOrderQty(
                                 p.suggested_order_qty != null
-                                  ? String(Math.ceil(p.suggested_order_qty))
+                                  ? (p.unit_mode ?? 'whole') === 'whole'
+                                    ? String(Math.round(p.suggested_order_qty))
+                                    : String(p.suggested_order_qty)
                                   : ''
                               )
                             }}
@@ -611,9 +618,11 @@ export default function ForecastScreen() {
                 style={[styles.logOrderInput, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
                 value={logOrderQty}
                 onChangeText={setLogOrderQty}
-                keyboardType="decimal-pad"
+                keyboardType={(logOrderProduct?.unit_mode ?? 'whole') === 'whole' ? 'number-pad' : 'decimal-pad'}
                 placeholder={logOrderProduct?.suggested_order_qty != null
-                  ? String(Math.ceil(logOrderProduct.suggested_order_qty))
+                  ? (logOrderProduct.unit_mode ?? 'whole') === 'whole'
+                    ? String(Math.round(logOrderProduct.suggested_order_qty))
+                    : String(logOrderProduct.suggested_order_qty)
                   : 'e.g. 50'}
                 placeholderTextColor={c.textMuted}
                 autoFocus

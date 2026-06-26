@@ -51,6 +51,7 @@ export interface OrderingRow {
   product_id: number
   name: string
   unit: string
+  unit_mode?: string
   avg_daily_demand: number
   lead_time_days: number
   safety_stock_units: number
