@@ -242,6 +242,29 @@ class InsightsHourPattern(BaseModel):
     avg_taps: float
 
 
+class InsightsWeekdayTrend(BaseModel):
+    weekday: str           # e.g. "Thursday"
+    pct_change: float      # positive = growing, negative = declining
+    direction: str         # "growing" | "declining"
+    recent_avg: float      # avg customers last 12 weeks
+    prior_avg: float       # avg customers prior 12 weeks
+
+
+class InsightsSeasonalAlert(BaseModel):
+    month_name: str        # e.g. "July 2026"
+    last_year_avg: float   # avg customers/day that month last year
+    current_pace: float    # recent 4-week avg customers/day
+    pct_difference: float  # magnitude only — always positive
+    direction: str         # "busier" | "quieter"
+    weeks_away: int        # weeks until that month starts
+
+
+class InsightsDecliningRegular(BaseModel):
+    name: str
+    days_since_visit: int
+    usual_gap_days: float  # average days between visits historically
+
+
 class InsightsResponse(BaseModel):
     status: str
     message: Optional[str] = None
@@ -252,12 +275,12 @@ class InsightsResponse(BaseModel):
     first_date: Optional[date] = None
     last_date: Optional[date] = None
 
-    # Day-of-week patterns (need ≥7 clean days, ≥2 weekdays with ≥2 points each)
+    # Day-of-week patterns — demoted to context (not a headline card)
     busiest_day: Optional[InsightsDayPattern] = None
     slowest_day: Optional[InsightsDayPattern] = None
-    pct_diff_busiest_slowest: Optional[float] = None  # % busiest is above slowest
+    pct_diff_busiest_slowest: Optional[float] = None
 
-    # Hourly patterns (need ≥7 days of tap data)
+    # Hourly patterns — demoted to context
     peak_hour: Optional[InsightsHourPattern] = None
     quietest_hour: Optional[InsightsHourPattern] = None
 
@@ -266,11 +289,16 @@ class InsightsResponse(BaseModel):
     yoy_prev_period_label: Optional[str] = None
     yoy_curr_period_label: Optional[str] = None
 
-    # Forecast accuracy
-    forecast_accuracy_mape: Optional[float] = None  # overall MAPE from ForecastRun history
-    accuracy_early_mape: Optional[float] = None     # first half of ForecastRun history
-    accuracy_recent_mape: Optional[float] = None    # recent half of ForecastRun history
+    # Forecast accuracy — kept as a headlining card
+    forecast_accuracy_mape: Optional[float] = None
+    accuracy_early_mape: Optional[float] = None
+    accuracy_recent_mape: Optional[float] = None
     accuracy_improved: Optional[bool] = None
+
+    # Non-obvious change-detection and predictions (the new headline content)
+    weekday_trends: list[InsightsWeekdayTrend] = []
+    seasonal_alerts: list[InsightsSeasonalAlert] = []
+    declining_regulars: list[InsightsDecliningRegular] = []
 
 
 # ── per-weekday hourly profiles ───────────────────────────────────────────────

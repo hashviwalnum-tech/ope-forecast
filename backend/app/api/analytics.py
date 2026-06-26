@@ -55,7 +55,7 @@ from app.engine.queueing import (
     queue_length,
 )
 from app.engine.seasonality import seasonal_naive_forecast
-from app.models import Business, DayRecord, ForecastRun, Period, Product, SaleEvent, SaleRecord
+from app.models import Business, DayRecord, ForecastRun, Period, Product, Regular, RegularDailySpend, SaleEvent, SaleRecord
 from app.models.service_consumable import ServiceConsumable
 from app.models.order_record import OrderRecord
 from app.models.stock_batch import StockBatch
@@ -69,8 +69,11 @@ from app.schemas.analytics import (
     HourlyAnalyticsResponse,
     HourlySlotAvg,
     InsightsDayPattern,
+    InsightsDecliningRegular,
     InsightsHourPattern,
     InsightsResponse,
+    InsightsSeasonalAlert,
+    InsightsWeekdayTrend,
     LiftResponse,
     MonthlyResponse,
     MonthSummary,
@@ -1791,7 +1794,7 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     clean_records = _clean_records(db, biz)
     n_clean = len(clean_records)
 
-    # ── Day-of-week patterns ──────────────────────────────────────────────────
+    # ── Day-of-week context (demoted — no longer a headline card) ────────────
     busiest_day_out: InsightsDayPattern | None = None
     slowest_day_out: InsightsDayPattern | None = None
     pct_diff: float | None = None
@@ -1801,34 +1804,27 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         by_wd: dict[int, list[float]] = {i: [] for i in range(7)}
         for r, v in zip(clean_records, obs):
             by_wd[r.date.weekday()].append(v)
-
         valid_wds = {wd: vals for wd, vals in by_wd.items() if len(vals) >= 2}
         if len(valid_wds) >= 2:
             overall_mean = mean(obs)
             wd_avgs = {wd: mean(vals) for wd, vals in valid_wds.items()}
-
             max_wd = max(wd_avgs, key=lambda x: wd_avgs[x])
             min_wd = min(wd_avgs, key=lambda x: wd_avgs[x])
-            max_avg = wd_avgs[max_wd]
-            min_avg = wd_avgs[min_wd]
-
-            busiest_pct = round((max_avg - overall_mean) / overall_mean * 100, 1) if overall_mean > 0 else 0.0
-            slowest_pct = round((min_avg - overall_mean) / overall_mean * 100, 1) if overall_mean > 0 else 0.0
-
+            max_avg, min_avg = wd_avgs[max_wd], wd_avgs[min_wd]
             busiest_day_out = InsightsDayPattern(
                 weekday=_WD_NAMES[max_wd],
                 avg_customers=round(max_avg, 1),
-                pct_vs_mean=busiest_pct,
+                pct_vs_mean=round((max_avg - overall_mean) / overall_mean * 100, 1) if overall_mean > 0 else 0.0,
             )
             slowest_day_out = InsightsDayPattern(
                 weekday=_WD_NAMES[min_wd],
                 avg_customers=round(min_avg, 1),
-                pct_vs_mean=slowest_pct,
+                pct_vs_mean=round((min_avg - overall_mean) / overall_mean * 100, 1) if overall_mean > 0 else 0.0,
             )
             if min_avg > 0:
                 pct_diff = round((max_avg - min_avg) / min_avg * 100, 1)
 
-    # ── Hourly patterns ───────────────────────────────────────────────────────
+    # ── Hourly context (demoted — no longer a headline card) ─────────────────
     peak_hour_out: InsightsHourPattern | None = None
     quietest_hour_out: InsightsHourPattern | None = None
 
@@ -1851,36 +1847,31 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
                 peak = max(active_slots, key=lambda x: x[1])
                 quiet = min(active_slots, key=lambda x: x[1])
                 peak_hour_out = InsightsHourPattern(
-                    hour=peak[0],
-                    label=_fmt_hour_range(peak[0]),
-                    avg_taps=round(peak[1], 1),
+                    hour=peak[0], label=_fmt_hour_range(peak[0]), avg_taps=round(peak[1], 1),
                 )
                 if quiet[0] != peak[0]:
                     quietest_hour_out = InsightsHourPattern(
-                        hour=quiet[0],
-                        label=_fmt_hour_range(quiet[0]),
-                        avg_taps=round(quiet[1], 1),
+                        hour=quiet[0], label=_fmt_hour_range(quiet[0]), avg_taps=round(quiet[1], 1),
                     )
 
-    # ── Year-over-year ────────────────────────────────────────────────────────
+    # ── Year-over-year (kept for context, not a headline) ────────────────────
     yoy_growth_pct: float | None = None
     yoy_prev_label: str | None = None
     yoy_curr_label: str | None = None
 
     data_span_days = (last_date - first_date).days
-    if data_span_days >= 365 and n_clean >= 28:
-        obs_c = _effective_obs(clean_records)
-        month_data: dict[tuple[int, int], list[float]] = {}
-        for r, v in zip(clean_records, obs_c):
-            month_data.setdefault((r.date.year, r.date.month), []).append(v)
+    obs_c = _effective_obs(clean_records)
+    month_data: dict[tuple[int, int], list[float]] = {}
+    for r, v in zip(clean_records, obs_c):
+        month_data.setdefault((r.date.year, r.date.month), []).append(v)
 
+    if data_span_days >= 365 and n_clean >= 28:
         yoy_pairs = []
         for (yr, mo), vals in month_data.items():
             prev_key = (yr - 1, mo)
             if prev_key in month_data:
                 yoy_pairs.append(((yr - 1, mo), (yr, mo),
                                   mean(month_data[prev_key]), mean(vals)))
-
         if yoy_pairs:
             latest = max(yoy_pairs, key=lambda x: (x[1][0], x[1][1]))
             prev_avg, curr_avg = latest[2], latest[3]
@@ -1895,7 +1886,6 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     accuracy_recent_mape: float | None = None
     accuracy_improved: bool | None = None
 
-    # Build list of (predicted, actual) pairs from stored ForecastRun history
     past_runs = (
         db.query(ForecastRun)
         .filter_by(business_id=biz.id)
@@ -1907,7 +1897,6 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         r.date: r.customers
         for r in db.query(DayRecord).filter_by(business_id=biz.id).all()
     }
-
     matched: list[tuple[float, float]] = []
     seen_d: set[date] = set()
     for fr in past_runs:
@@ -1921,31 +1910,142 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
     if len(matched) >= 4:
         try:
-            all_preds_m = [x[0] for x in matched]
-            all_acts_m  = [x[1] for x in matched]
-            forecast_accuracy_mape = round(mape(all_acts_m, all_preds_m), 1)
+            forecast_accuracy_mape = round(mape([x[1] for x in matched], [x[0] for x in matched]), 1)
         except ValueError:
             pass
 
     if len(matched) >= 14:
         half = len(matched) // 2
-        early = matched[:half]
-        recent = matched[-half:]
+        early, recent_m = matched[:half], matched[-half:]
         try:
             em = mape([x[1] for x in early], [x[0] for x in early])
-            rm = mape([x[1] for x in recent], [x[0] for x in recent])
+            rm = mape([x[1] for x in recent_m], [x[0] for x in recent_m])
             accuracy_early_mape = round(em, 1)
             accuracy_recent_mape = round(rm, 1)
             accuracy_improved = rm < em
         except ValueError:
             pass
 
-    # Fallback: no stored ForecastRun data yet (or primary mape raised) — use the
-    # same holdout algorithm as /accuracy so both surfaces show the same number.
     if forecast_accuracy_mape is None and n_clean >= MIN_RECORDS:
         holdout_obs = _effective_obs(clean_records)
         holdout_wds = [r.date.weekday() for r in clean_records]
         forecast_accuracy_mape = _compute_holdout_mape(holdout_obs, holdout_wds)
+
+    # ── Weekday trends: last 12 weeks vs prior 12 weeks ───────────────────────
+    weekday_trends_out: list[InsightsWeekdayTrend] = []
+    recent_start = today - timedelta(weeks=12)
+    prior_start  = today - timedelta(weeks=24)
+
+    by_wd_recent: dict[int, list[float]] = {i: [] for i in range(7)}
+    by_wd_prior:  dict[int, list[float]] = {i: [] for i in range(7)}
+    for r in clean_records:
+        if r.date >= recent_start:
+            by_wd_recent[r.date.weekday()].append(float(r.customers))
+        elif r.date >= prior_start:
+            by_wd_prior[r.date.weekday()].append(float(r.customers))
+
+    _MIN_WD_TREND_PTS = 4
+    _MIN_PCT_CHANGE   = 10.0
+    trend_candidates: list[InsightsWeekdayTrend] = []
+    for wd in range(7):
+        rec = by_wd_recent[wd]
+        pri = by_wd_prior[wd]
+        if len(rec) < _MIN_WD_TREND_PTS or len(pri) < _MIN_WD_TREND_PTS:
+            continue
+        rec_avg = mean(rec)
+        pri_avg = mean(pri)
+        if pri_avg == 0:
+            continue
+        pct = (rec_avg - pri_avg) / pri_avg * 100
+        if abs(pct) < _MIN_PCT_CHANGE:
+            continue
+        trend_candidates.append(InsightsWeekdayTrend(
+            weekday=_WD_NAMES[wd],
+            pct_change=round(pct, 1),
+            direction="growing" if pct > 0 else "declining",
+            recent_avg=round(rec_avg, 1),
+            prior_avg=round(pri_avg, 1),
+        ))
+
+    trend_candidates.sort(key=lambda x: abs(x.pct_change), reverse=True)
+    weekday_trends_out = trend_candidates[:2]
+
+    # ── Seasonal alerts: upcoming months vs same month last year ─────────────
+    seasonal_alerts_out: list[InsightsSeasonalAlert] = []
+
+    recent_4wk = [r for r in clean_records if r.date >= today - timedelta(weeks=4)]
+    current_pace = mean([float(r.customers) for r in recent_4wk]) if recent_4wk else (
+        mean([float(r.customers) for r in clean_records]) if clean_records else 0.0
+    )
+
+    _MIN_SEASONAL_PCT  = 12.0
+    _MIN_MONTH_DAYS    = 10
+
+    for months_ahead in range(1, 7):
+        raw_mo  = today.month - 1 + months_ahead
+        fut_mo  = raw_mo % 12 + 1
+        fut_yr  = today.year + raw_mo // 12
+        # Use most recent prior-year data for that month
+        for yr_back in (1, 2):
+            ly_key = (fut_yr - yr_back, fut_mo)
+            ly_vals = month_data.get(ly_key, [])
+            if len(ly_vals) >= _MIN_MONTH_DAYS:
+                break
+        else:
+            continue
+
+        if current_pace == 0:
+            continue
+        ly_avg   = mean(ly_vals)
+        pct_diff_s = (ly_avg - current_pace) / current_pace * 100
+        if abs(pct_diff_s) < _MIN_SEASONAL_PCT:
+            continue
+
+        first_of_month = date(fut_yr, fut_mo, 1)
+        weeks_away = max(0, (first_of_month - today).days // 7)
+        seasonal_alerts_out.append(InsightsSeasonalAlert(
+            month_name=f"{_MONTH_NAMES[fut_mo - 1]} {fut_yr}",
+            last_year_avg=round(ly_avg, 1),
+            current_pace=round(current_pace, 1),
+            pct_difference=round(abs(pct_diff_s), 1),
+            direction="busier" if pct_diff_s > 0 else "quieter",
+            weeks_away=weeks_away,
+        ))
+
+    seasonal_alerts_out.sort(key=lambda x: x.weeks_away)
+    seasonal_alerts_out = seasonal_alerts_out[:3]
+
+    # ── Declining regulars ────────────────────────────────────────────────────
+    declining_regulars_out: list[InsightsDecliningRegular] = []
+    _MIN_REGULAR_SPENDS = 3
+
+    regulars_list = db.query(Regular).filter_by(business_id=biz.id).all()
+    for reg in regulars_list:
+        spends = (
+            db.query(RegularDailySpend)
+            .filter_by(regular_id=reg.id)
+            .order_by(RegularDailySpend.date)
+            .all()
+        )
+        if len(spends) < _MIN_REGULAR_SPENDS:
+            continue
+        visit_dates = [s.date for s in spends]
+        last_visit  = visit_dates[-1]
+        days_since  = (today - last_visit).days
+        if len(visit_dates) >= 2:
+            gaps    = [(visit_dates[i + 1] - visit_dates[i]).days for i in range(len(visit_dates) - 1)]
+            avg_gap = mean(gaps)
+        else:
+            avg_gap = 7.0
+        if avg_gap > 0 and days_since > max(7, 2.5 * avg_gap):
+            declining_regulars_out.append(InsightsDecliningRegular(
+                name=reg.name,
+                days_since_visit=days_since,
+                usual_gap_days=round(avg_gap, 1),
+            ))
+
+    declining_regulars_out.sort(key=lambda x: x.days_since_visit, reverse=True)
+    declining_regulars_out = declining_regulars_out[:5]
 
     return InsightsResponse(
         status="ok",
@@ -1965,4 +2065,7 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         accuracy_early_mape=accuracy_early_mape,
         accuracy_recent_mape=accuracy_recent_mape,
         accuracy_improved=accuracy_improved,
+        weekday_trends=weekday_trends_out,
+        seasonal_alerts=seasonal_alerts_out,
+        declining_regulars=declining_regulars_out,
     )

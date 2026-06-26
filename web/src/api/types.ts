@@ -555,6 +555,29 @@ export interface InsightsHourPattern {
   avg_taps: number
 }
 
+export interface InsightsWeekdayTrend {
+  weekday: string
+  pct_change: number
+  direction: 'growing' | 'declining'
+  recent_avg: number
+  prior_avg: number
+}
+
+export interface InsightsSeasonalAlert {
+  month_name: string
+  last_year_avg: number
+  current_pace: number
+  pct_difference: number
+  direction: 'busier' | 'quieter'
+  weeks_away: number
+}
+
+export interface InsightsDecliningRegular {
+  name: string
+  days_since_visit: number
+  usual_gap_days: number
+}
+
 export interface InsightsResponse {
   status: string
   message?: string
@@ -574,4 +597,7 @@ export interface InsightsResponse {
   accuracy_early_mape?: number
   accuracy_recent_mape?: number
   accuracy_improved?: boolean
+  weekday_trends: InsightsWeekdayTrend[]
+  seasonal_alerts: InsightsSeasonalAlert[]
+  declining_regulars: InsightsDecliningRegular[]
 }
