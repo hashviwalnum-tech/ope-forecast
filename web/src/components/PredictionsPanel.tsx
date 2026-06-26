@@ -24,24 +24,6 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   )
 }
 
-function Empty({ message }: { message?: string }) {
-  const { t } = useLanguage()
-  return (
-    <div className="flex flex-col items-center justify-center py-12">
-      <div className="w-14 h-14 mb-4 rounded-full bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center">
-        <svg className="w-7 h-7 text-teal-300 dark:text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0
-               0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0
-               002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      </div>
-      <p className="text-sm text-center max-w-xs leading-relaxed text-slate-500 dark:text-slate-400">
-        {message ?? t('oncePassedPrediction')}
-      </p>
-    </div>
-  )
-}
 
 function StatCard({ label, value, sub, valueClass = 'text-slate-800 dark:text-slate-100' }: {
   label: string; value: string; sub: string; valueClass?: string
