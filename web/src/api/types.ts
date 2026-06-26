@@ -148,6 +148,7 @@ export interface OrderingRow {
   product_id: number
   name: string
   unit: string
+  unit_mode?: string
   avg_daily_demand: number
   lead_time_days: number
   safety_stock_units: number
@@ -159,6 +160,7 @@ export interface OrderingRow {
   order_now: boolean
   eoq?: number
   suggested_order_qty?: number
+  n_days_data?: number
 }
 
 export interface OrderingResponse {
@@ -268,6 +270,7 @@ export interface ProductRead {
   business_id: number
   name: string
   unit: string
+  product_type: 'stocked' | 'service'
   unit_mode: 'whole' | 'decimal'
   price: number | null
   current_stock: number | null
@@ -281,6 +284,7 @@ export interface ProductRead {
 export interface ProductCreate {
   name: string
   unit: string
+  product_type?: 'stocked' | 'service'
   unit_mode?: 'whole' | 'decimal'
   price?: number
   lead_time_days: number
@@ -293,6 +297,7 @@ export interface ProductCreate {
 export interface ProductUpdate {
   name?: string
   unit?: string
+  product_type?: 'stocked' | 'service' | null
   unit_mode?: 'whole' | 'decimal'
   price?: number | null
   lead_time_days?: number
@@ -300,6 +305,20 @@ export interface ProductUpdate {
   service_time_minutes?: number | null
   storage_capacity?: number | null
   shelf_life_days?: number | null
+}
+
+export interface ServiceConsumableRead {
+  id: number
+  service_product_id: number
+  consumable_product_id: number
+  qty_per_performance: number
+  consumable_name: string
+  consumable_unit: string
+}
+
+export interface ServiceConsumableCreate {
+  consumable_product_id: number
+  qty_per_performance: number
 }
 
 // ── Sale Events (live tap-to-record) ─────────────────────────────────────────

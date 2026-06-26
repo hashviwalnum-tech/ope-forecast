@@ -397,6 +397,22 @@ export const translations = {
     periodCostPositive: 'Cost must be a positive number.',
     periodNamePlaceholder: 'e.g. Summer sale, Facebook campaign',
 
+    // Product type — stocked vs service
+    productTypeLabel: 'Type',
+    stockedGoodLabel: 'Physical good — stock & reorder',
+    serviceProductLabel: 'Service — performed, not stocked',
+    serviceTypeBadge: 'Service',
+    consumablesTitle: 'Supplies used per service',
+    consumablesDesc: 'Optional. Link stocked products this service uses up per performance (e.g. massage oil).',
+    addSupplyBtn: 'Add supply',
+    consumableProductLabel: 'Which product',
+    qtyPerServiceLabel: 'Amount used each time',
+    removeSupplyBtn: 'Remove',
+    noConsumables: 'No supplies linked yet.',
+    consumableSavedNote: 'You can link supplies after saving.',
+    noSalesDataYet: 'No sales history yet — once you log some sales, reorder advice will appear here.',
+    serviceNoReorder: 'Services are performed, not restocked — no reorder advice needed.',
+
     // ProductsPanel — validation errors
     productNameRequired: 'Give this product a name.',
     productUnitRequired: 'What unit do you sell it in? (e.g. kg, box, bottle)',
@@ -1194,6 +1210,22 @@ export const translations = {
     periodEndAfterStart: 'תאריך הסיום חייב להיות על/אחרי תאריך ההתחלה.',
     periodCostPositive: 'העלות חייבת להיות מספר חיובי.',
     periodNamePlaceholder: 'למשל מבצע קיץ, קמפיין פייסבוק',
+
+    // Product type — stocked vs service
+    productTypeLabel: 'סוג',
+    stockedGoodLabel: 'מוצר פיזי — מלאי והזמנה',
+    serviceProductLabel: 'שירות — מבוצע, לא מאוחסן',
+    serviceTypeBadge: 'שירות',
+    consumablesTitle: 'חומרים בשימוש לכל שירות',
+    consumablesDesc: 'אופציונלי. קשר מוצרים מאוחסנים שהשירות הזה משתמש בהם (למשל שמן עיסוי).',
+    addSupplyBtn: 'הוסף חומר',
+    consumableProductLabel: 'איזה מוצר',
+    qtyPerServiceLabel: 'כמות לכל פעם',
+    removeSupplyBtn: 'הסר',
+    noConsumables: 'אין חומרים מקושרים עדיין.',
+    consumableSavedNote: 'תוכל לקשר חומרים לאחר השמירה.',
+    noSalesDataYet: 'עדיין אין היסטוריית מכירות — ברגע שתתעד מכירות, עצות ההזמנה יופיעו כאן.',
+    serviceNoReorder: 'שירותים מבוצעים ולא מוזמנים — אין צורך בעצות הזמנה.',
 
     // ProductsPanel — validation errors
     productNameRequired: 'תן שם למוצר זה.',

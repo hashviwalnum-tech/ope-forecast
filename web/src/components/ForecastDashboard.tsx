@@ -345,9 +345,36 @@ function OrderingTable({
       </p>
       <div className="space-y-3">
         {data.products.map(p => {
+          const noHistory = (p.n_days_data ?? 0) === 0
           const hasQty = p.suggested_order_qty != null && p.suggested_order_qty > 0
           const stockUntracked = p.stock_untracked ?? false
           const displayStock = p.projected_stock ?? p.current_stock
+
+          // No sales history yet — show honest empty state, suppress all reorder numbers
+          if (noHistory) {
+            return (
+              <div
+                key={p.product_id}
+                className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden"
+              >
+                <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/60 dark:bg-slate-700/40">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {displayStock != null && !stockUntracked
+                        ? t('inStockSuffix', { qty: `${displayStock} ${p.unit}` })
+                        : stockUntracked ? t('setStartingStockHint') : ''}
+                    </p>
+                  </div>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{t('noStockTracked')}</span>
+                </div>
+                <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700">
+                  <p className="text-xs text-slate-400 dark:text-slate-500 italic">{t('noSalesDataYet')}</p>
+                </div>
+              </div>
+            )
+          }
+
           return (
             <div
               key={p.product_id}

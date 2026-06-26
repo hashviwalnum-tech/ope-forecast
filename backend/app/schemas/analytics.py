@@ -105,6 +105,7 @@ class OrderingRow(BaseModel):
     order_now: bool
     eoq: Optional[float] = None
     suggested_order_qty: float = 0.0
+    n_days_data: int = 0                       # 0 = no sales history yet; UI hides reorder section
     constraint_notes: list[str] = []
     # Batch-FIFO fields
     fifo_note: Optional[str] = None           # always shown when batches exist: "assumes oldest first (FIFO)"

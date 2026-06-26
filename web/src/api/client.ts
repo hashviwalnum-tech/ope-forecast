@@ -26,6 +26,8 @@ import type {
   ProductForecastResponse,
   ProductRead,
   ProductUpdate,
+  ServiceConsumableCreate,
+  ServiceConsumableRead,
   RecurringPatternCreate,
   RecurringPatternRead,
   RecurringPatternUpdate,
@@ -196,6 +198,9 @@ export const products = {
   create: (body: ProductCreate)                 => POST<ProductRead>('/products', body),
   update: (id: number, body: ProductUpdate)     => PUT<ProductRead>(`/products/${id}`, body),
   delete: (id: number)                          => DELETE(`/products/${id}`),
+  listConsumables: (id: number)                 => GET<ServiceConsumableRead[]>(`/products/${id}/consumables`),
+  addConsumable:   (id: number, body: ServiceConsumableCreate) => POST<ServiceConsumableRead>(`/products/${id}/consumables`, body),
+  deleteConsumable:(id: number, linkId: number) => DELETE(`/products/${id}/consumables/${linkId}`),
 }
 
 export const sales = {
