@@ -94,6 +94,7 @@ class OrderingRow(BaseModel):
     name: str
     unit: str
     unit_mode: str = "whole"
+    is_favorite: bool = False
     avg_daily_demand: float
     lead_time_days: int
     safety_stock_units: float
@@ -198,6 +199,7 @@ class ProductForecastItem(BaseModel):
     unit: str
     product_type: str = "stocked"
     unit_mode: str = "whole"
+    is_favorite: bool = False
     status: str                           # "ok" | "not_enough_data"
     message: Optional[str] = None
     days: list[ProductForecastDay] = []

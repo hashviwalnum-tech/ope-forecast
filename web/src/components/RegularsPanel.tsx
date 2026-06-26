@@ -212,6 +212,13 @@ export default function RegularsPanel() {
     setShowOptional(false)
   }
 
+  async function toggleFavorite(r: RegularRead) {
+    try {
+      await api.update(r.id, { is_favorite: !r.is_favorite })
+      load()
+    } catch { /* ignore */ }
+  }
+
   async function load() {
     setLoading(true)
     try {
@@ -244,10 +251,12 @@ export default function RegularsPanel() {
       avg_spend: r.avg_spend,
       expected_lifespan_years: r.expected_lifespan_years,
       notes: r.notes ?? undefined,
+      is_favorite: r.is_favorite,
+      first_visit_date: r.first_visit_date ?? undefined,
     })
     setEditing(r)
     setAdding(false)
-    setShowOptional(r.visit_frequency_per_week !== 1 || r.expected_lifespan_years !== 3)
+    setShowOptional(r.visit_frequency_per_week !== 1 || r.expected_lifespan_years !== 3 || r.first_visit_date != null)
   }
   function cancel() { setAdding(false); setEditing(null); resetForm() }
 
@@ -425,6 +434,19 @@ export default function RegularsPanel() {
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('firstVisitDateLabel')}</label>
+                <input
+                  type="date"
+                  value={form.first_visit_date ?? ''}
+                  onChange={e => setForm(f => ({ ...f, first_visit_date: e.target.value || undefined }))}
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
+                             bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
+                             focus:outline-none focus:ring-2 focus:ring-teal-300"
+                />
+                <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{t('firstVisitDateDesc')}</p>
+              </div>
+
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('notesOptional')}</label>
                 <input
@@ -472,7 +494,10 @@ export default function RegularsPanel() {
         </div>
       ) : (
         <div className="space-y-3">
-          {rows.map(r => (
+          {[...rows].sort((a, b) => {
+            if (a.is_favorite === b.is_favorite) return a.name.localeCompare(b.name)
+            return a.is_favorite ? -1 : 1
+          }).map(r => (
             <div
               key={r.id}
               className="rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm"
@@ -480,6 +505,11 @@ export default function RegularsPanel() {
               <div className="flex flex-wrap gap-4 items-start">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => toggleFavorite(r)}
+                      title={r.is_favorite ? t('unfavoriteLabel') : t('favoriteLabel')}
+                      className={`text-lg leading-none transition-colors ${r.is_favorite ? 'text-amber-400 hover:text-amber-500' : 'text-slate-300 dark:text-slate-600 hover:text-amber-300'}`}
+                    >★</button>
                     <span className="font-semibold text-slate-800 dark:text-slate-100">{r.name}</span>
                     <span className="text-xs bg-teal-50 dark:bg-teal-900/40 text-teal-600 dark:text-teal-300 border border-teal-100 dark:border-teal-800
                                      rounded-full px-2 py-0.5 font-medium">

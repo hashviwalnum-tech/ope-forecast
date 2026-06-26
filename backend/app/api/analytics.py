@@ -1047,6 +1047,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
                 product_id=prod.id,
                 name=prod.name,
                 unit=prod.unit,
+                is_favorite=getattr(prod, "is_favorite", False) or False,
                 avg_daily_demand=0.0,
                 lead_time_days=prod.lead_time_days,
                 safety_stock_units=0.0,
@@ -1102,6 +1103,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             name=prod.name,
             unit=prod.unit,
             unit_mode=unit_mode,
+            is_favorite=getattr(prod, "is_favorite", False) or False,
             avg_daily_demand=_round_qty(avg_daily, unit_mode),
             lead_time_days=prod.lead_time_days,
             safety_stock_units=_round_qty(ss, unit_mode),
@@ -1447,10 +1449,11 @@ def get_product_forecast(
                     f"({n_data} recorded so far)."
                 )
             # Services have no stock concept; skip stock fields for them.
+            _is_fav = getattr(prod, "is_favorite", False) or False
             if prod_type == "service":
                 result.append(ProductForecastItem(
                     product_id=prod.id, name=prod.name, unit=prod.unit,
-                    product_type=prod_type,
+                    product_type=prod_type, is_favorite=_is_fav,
                     status="not_enough_data", message=msg,
                     lead_time_days=prod.lead_time_days,
                     n_days_data=n_data,
@@ -1461,7 +1464,7 @@ def get_product_forecast(
                 )
                 result.append(ProductForecastItem(
                     product_id=prod.id, name=prod.name, unit=prod.unit,
-                    product_type=prod_type,
+                    product_type=prod_type, is_favorite=_is_fav,
                     status="not_enough_data", message=msg,
                     lead_time_days=prod.lead_time_days,
                     current_stock=prod.current_stock,
@@ -1557,6 +1560,7 @@ def get_product_forecast(
                 unit=prod.unit,
                 product_type=prod_type,
                 unit_mode=unit_mode,
+                is_favorite=getattr(prod, "is_favorite", False) or False,
                 status="ok",
                 days=forecast_days,
                 avg_daily_demand=_round_qty(avg_daily, unit_mode),
@@ -1635,6 +1639,7 @@ def get_product_forecast(
             unit=prod.unit,
             product_type=prod_type,
             unit_mode=unit_mode,
+            is_favorite=getattr(prod, "is_favorite", False) or False,
             status="ok",
             days=forecast_days,
             avg_daily_demand=_round_qty(avg_daily, unit_mode),

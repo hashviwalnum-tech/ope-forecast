@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date as _date, datetime
 from typing import Optional
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -29,3 +29,4 @@ class Product(Base):
     created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=func.now())
     # Date the current_stock baseline was set (auto-set whenever current_stock is written)
     stock_as_of_date: Mapped[Optional[_date]] = mapped_column(Date, nullable=True)
+    is_favorite: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -300,6 +300,12 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
   }
 
   const productItems = products?.products ?? []
+  // Sort: favorites first (requires is_favorite on ProductForecastItem — falls back gracefully)
+  const sortedProductItems = [...productItems].sort((a, b) => {
+    const af = (a as typeof a & { is_favorite?: boolean }).is_favorite ? 1 : 0
+    const bf = (b as typeof b & { is_favorite?: boolean }).is_favorite ? 1 : 0
+    return bf - af
+  })
   const activeProduct = typeof selected === 'number'
     ? productItems.find(p => p.product_id === selected) ?? null
     : null
@@ -354,7 +360,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
           active={selected === 'customers'}
           onClick={() => setSelected('customers')}
         />
-        {productItems.map(p => {
+        {sortedProductItems.map(p => {
           const isActive = selected === p.product_id
           const orderNow = p.status === 'ok' && p.order_now
           const hasData = p.status === 'ok'
@@ -363,10 +369,11 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
             : hasData
               ? (isActive ? 'bg-emerald-300' : 'bg-emerald-400')
               : (isActive ? 'bg-teal-300' : 'bg-slate-300')
+          const isFav = (p as typeof p & { is_favorite?: boolean }).is_favorite
           return (
             <Chip
               key={p.product_id}
-              label={p.name}
+              label={isFav ? `★ ${p.name}` : p.name}
               active={isActive}
               dotColor={dotColor}
               onClick={() => setSelected(p.product_id)}

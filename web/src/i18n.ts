@@ -814,6 +814,26 @@ export const translations = {
     insightsLoadError: "Couldn't load insights — is the backend running?",
 
     privacyPolicy: 'Privacy Policy',
+
+    // Favorites / pin
+    favoriteLabel: 'Favourite',
+    unfavoriteLabel: 'Unfavourite',
+    favoritedBadge: '★ Favourited — sorted to top',
+
+    // Product status panel (new Manage tab)
+    stockStatusTab: 'Product Status',
+    tabStockStatus: 'Product stock & status',
+    stockStatusDesc: 'All products with current stock levels. Reorder any product here, even if it doesn\'t need it yet.',
+    stockStatusEmpty: 'Add products in My Products first.',
+    allProductsTitle: 'All Products',
+
+    // Reorder window — focused view
+    fullyStockedNote: '{n} other product{s} are fully stocked — see Product Status in Manage to view all.',
+    nothingToOrder: 'All products are fully stocked — nothing to order right now.',
+
+    // Regulars — first visit date
+    firstVisitDateLabel: 'First visit date',
+    firstVisitDateDesc: 'When did they first visit? Auto-set on their first recorded visit if left blank.',
   },
   he: {
     // Nav
@@ -1628,6 +1648,26 @@ export const translations = {
     insightsLoadError: 'לא ניתן לטעון תובנות — האם השרת פועל?',
 
     privacyPolicy: 'מדיניות פרטיות',
+
+    // Favorites / pin
+    favoriteLabel: 'מועדף',
+    unfavoriteLabel: 'הסר ממועדפים',
+    favoritedBadge: '★ מועדף — ממוין לראש',
+
+    // Product status panel
+    stockStatusTab: 'סטטוס מוצרים',
+    tabStockStatus: 'מלאי וסטטוס מוצרים',
+    stockStatusDesc: 'כל המוצרים עם רמות המלאי הנוכחיות. הזמן כל מוצר כאן, גם אם הוא לא זקוק לכך עדיין.',
+    stockStatusEmpty: 'הוסף מוצרים ב"המוצרים שלי" תחילה.',
+    allProductsTitle: 'כל המוצרים',
+
+    // Reorder window — focused view
+    fullyStockedNote: '{n} מוצר{s} אחר{s} מלאי בסדר — ראה סטטוס מוצרים בניהול לתצוגה מלאה.',
+    nothingToOrder: 'כל המוצרים מלאים — אין מה להזמין כרגע.',
+
+    // Regulars — first visit date
+    firstVisitDateLabel: 'תאריך ביקור ראשון',
+    firstVisitDateDesc: 'מתי ביקרו בפעם הראשונה? מוגדר אוטומטית בביקור הראשון שנרשם אם נשאר ריק.',
   },
 } as const satisfies Record<Lang, Record<string, string>>
 

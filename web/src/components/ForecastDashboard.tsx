@@ -15,6 +15,7 @@ import type {
   ForecastResponse,
   OrderingResponse,
   OrderRecordRead,
+  OrderingRow,
 } from '../api/types'
 
 // ── shared primitives ─────────────────────────────────────────────────────────
@@ -135,6 +136,7 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
 function ProductOrderActions({
   productId,
   unit,
+  unitMode,
   suggestedQty,
   productOrders,
   today,
@@ -142,12 +144,15 @@ function ProductOrderActions({
 }: {
   productId: number
   unit: string
+  unitMode: string
   suggestedQty: number
   productOrders: OrderRecordRead[]
   today: string
   onChanged: () => void
 }) {
   const { t } = useLanguage()
+
+  const isWhole = unitMode === 'whole'
 
   // Most recent pending order (any date — backend enforces lock)
   const allPending = productOrders
@@ -158,7 +163,9 @@ function ProductOrderActions({
   const otherPending = allPending.slice(1)
 
   const [showForm, setShowForm]   = useState(false)
-  const [qty, setQty]             = useState(String(Math.ceil(suggestedQty || 1)))
+  const [qty, setQty]             = useState(
+    isWhole ? String(Math.round(suggestedQty || 1)) : String(suggestedQty || 1)
+  )
   const [saving, setSaving]       = useState(false)
   const [editing, setEditing]     = useState(false)
   const [editQty, setEditQty]     = useState('')
@@ -167,8 +174,9 @@ function ProductOrderActions({
   const [err, setErr]             = useState<string | null>(null)
 
   async function placeOrder() {
-    const q = parseFloat(qty)
+    let q = parseFloat(qty)
     if (isNaN(q) || q <= 0) { setErr('Enter a valid quantity'); return }
+    if (isWhole) q = Math.round(q)
     setSaving(true); setErr(null)
     try {
       await ordersApi.create({ product_id: productId, ordered_date: today, quantity: q })
@@ -181,8 +189,9 @@ function ProductOrderActions({
 
   async function saveEdit() {
     if (!activePending) return
-    const q = parseFloat(editQty)
+    let q = parseFloat(editQty)
     if (isNaN(q) || q <= 0) { setErr('Enter a valid quantity'); return }
+    if (isWhole) q = Math.round(q)
     setSaving(true); setErr(null)
     try {
       await ordersApi.update(activePending.id, { quantity: q })
@@ -260,7 +269,9 @@ function ProductOrderActions({
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
             <input
-              type="number" min="0.1" step="0.1"
+              type="number"
+              min={isWhole ? '1' : '0.01'}
+              step={isWhole ? '1' : '0.01'}
               value={editQty}
               onChange={e => setEditQty(e.target.value)}
               className="w-20 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-sm
@@ -283,7 +294,7 @@ function ProductOrderActions({
       {/* "I ordered this" — only shown when no pending order exists */}
       {!activePending && !showForm && (
         <button
-          onClick={() => { setShowForm(true); setQty(String(Math.ceil(suggestedQty || 1))) }}
+          onClick={() => { setShowForm(true); setQty(isWhole ? String(Math.round(suggestedQty || 1)) : String(suggestedQty || 1)) }}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 dark:text-teal-400
                      border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-1.5
                      hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
@@ -297,7 +308,9 @@ function ProductOrderActions({
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
             <input
-              type="number" min="0.1" step="0.1"
+              type="number"
+              min={isWhole ? '1' : '0.01'}
+              step={isWhole ? '1' : '0.01'}
               value={qty}
               onChange={e => setQty(e.target.value)}
               className="w-20 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm
@@ -322,6 +335,124 @@ function ProductOrderActions({
 
 // ── ordering table ─────────────────────────────────────────────────────────────
 
+function sortByFavorite(products: OrderingRow[]): OrderingRow[] {
+  return [...products].sort((a, b) => {
+    const af = (a as OrderingRow & { is_favorite?: boolean }).is_favorite ? 1 : 0
+    const bf = (b as OrderingRow & { is_favorite?: boolean }).is_favorite ? 1 : 0
+    return bf - af
+  })
+}
+
+function OrderingProductCard({
+  p, ordersByProduct, today, onOrdersChanged,
+}: {
+  p: OrderingRow
+  ordersByProduct: Map<number, OrderRecordRead[]>
+  today: string
+  onOrdersChanged: () => void
+}) {
+  const { t } = useLanguage()
+  const noHistory = (p.n_days_data ?? 0) === 0
+  const hasQty = p.suggested_order_qty != null && p.suggested_order_qty > 0
+  const stockUntracked = p.stock_untracked ?? false
+  const displayStock = p.projected_stock ?? p.current_stock
+  const isFav = (p as OrderingRow & { is_favorite?: boolean }).is_favorite
+  const uMode = p.unit_mode ?? 'whole'
+
+  const fmtQty = (q: number) =>
+    uMode === 'whole' ? String(Math.round(q)) : q.toFixed(2)
+
+  if (noHistory) {
+    return (
+      <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/60 dark:bg-slate-700/40">
+          <div className="min-w-0">
+            {isFav && <span className="text-xs text-amber-500 mr-1">★</span>}
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.name}</span>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {displayStock != null && !stockUntracked
+                ? t('inStockSuffix', { qty: `${displayStock} ${p.unit}` })
+                : stockUntracked ? t('setStartingStockHint') : ''}
+            </p>
+          </div>
+          <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{t('noStockTracked')}</span>
+        </div>
+        <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700">
+          <p className="text-xs text-slate-400 dark:text-slate-500 italic">{t('noSalesDataYet')}</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`rounded-xl border overflow-hidden
+      ${p.order_now ? 'border-red-200 dark:border-red-800' : p.approaching_reorder ? 'border-amber-200 dark:border-amber-700' : 'border-slate-100 dark:border-slate-700'}`}
+    >
+      <div className={`flex items-center justify-between gap-3 px-4 py-3
+        ${p.order_now ? 'bg-red-50/60 dark:bg-red-900/20' : p.approaching_reorder ? 'bg-amber-50/60 dark:bg-amber-900/20' : 'bg-slate-50/60 dark:bg-slate-700/40'}`}
+      >
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+            {isFav && <span className="text-amber-500 mr-1">★</span>}
+            {p.name}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            ~{p.avg_daily_demand} {p.unit}{t('perDaySuffix')} · {t('restockInNDays', { n: String(p.lead_time_days) })}
+            {displayStock != null && !stockUntracked
+              ? ` · ${t('inStockSuffix', { qty: `${displayStock} ${p.unit}` })}`
+              : stockUntracked ? ` · ${t('setStartingStockHint')}` : ''}
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          {p.order_now ? (
+            hasQty ? (
+              <span className="inline-block px-3 py-1 bg-red-500 text-white rounded-full text-xs font-bold">
+                {t('orderNowBadge', { qty: `${fmtQty(p.suggested_order_qty!)} ${p.unit}` })}
+              </span>
+            ) : (
+              <span className="inline-block px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-semibold">
+                {t('orderNowLabel')}
+              </span>
+            )
+          ) : p.approaching_reorder ? (
+            <span className="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold">
+              ⚠ {t('reorderWhenBelow')}
+            </span>
+          ) : displayStock != null && !stockUntracked ? (
+            <span className="inline-block px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">
+              {t('youreGood')}
+            </span>
+          ) : (
+            <span className="text-xs text-slate-400 dark:text-slate-500">{t('noStockTracked')}</span>
+          )}
+        </div>
+      </div>
+      <div className="px-4 py-2 bg-teal-25 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex flex-wrap gap-x-4 gap-y-0.5">
+        <span className="text-xs text-slate-400 dark:text-slate-500">
+          {t('reorderBelowColon')} <strong className="text-slate-600 dark:text-slate-300">{fmtQty(p.reorder_point)} {p.unit}</strong>
+        </span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">
+          {t('safetyBufferColon')} <strong className="text-slate-600 dark:text-slate-300">{fmtQty(p.safety_stock_units)} {p.unit}</strong>
+        </span>
+        {p.eoq != null && (
+          <span className="text-xs text-slate-400 dark:text-slate-500">
+            {t('eoqLabelColon')} <strong className="text-slate-600 dark:text-slate-300">{fmtQty(p.eoq)} {p.unit}</strong>
+          </span>
+        )}
+      </div>
+      <ProductOrderActions
+        productId={p.product_id}
+        unit={p.unit}
+        unitMode={uMode}
+        suggestedQty={p.suggested_order_qty ?? 1}
+        productOrders={ordersByProduct.get(p.product_id) ?? []}
+        today={today}
+        onChanged={onOrdersChanged}
+      />
+    </div>
+  )
+}
+
 function OrderingTable({
   data,
   ordersByProduct,
@@ -338,110 +469,47 @@ function OrderingTable({
     return <NotEnoughData message={data.message} />
   }
 
+  // Show only products that need attention (at or below reorder point, or approaching it)
+  const needsAttention = sortByFavorite(
+    data.products.filter(p => p.order_now || (p.approaching_reorder ?? false) || (p.n_days_data ?? 0) === 0 && p.stock_untracked)
+  )
+  const stockOkCount = data.products.filter(
+    p => !p.order_now && !(p.approaching_reorder ?? false) && (p.n_days_data ?? 0) > 0
+  ).length
+
+  if (needsAttention.length === 0 && data.products.length > 0) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-2xl mb-2">✓</p>
+        <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">{t('nothingToOrder')}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+          {t('fullyStockedNote', { n: String(data.products.length), s: data.products.length === 1 ? '' : 's' })}
+        </p>
+      </div>
+    )
+  }
+
   return (
     <>
       <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">
         {t('orderingNoteText')}
       </p>
       <div className="space-y-3">
-        {data.products.map(p => {
-          const noHistory = (p.n_days_data ?? 0) === 0
-          const hasQty = p.suggested_order_qty != null && p.suggested_order_qty > 0
-          const stockUntracked = p.stock_untracked ?? false
-          const displayStock = p.projected_stock ?? p.current_stock
-
-          // No sales history yet — show honest empty state, suppress all reorder numbers
-          if (noHistory) {
-            return (
-              <div
-                key={p.product_id}
-                className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden"
-              >
-                <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/60 dark:bg-slate-700/40">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      {displayStock != null && !stockUntracked
-                        ? t('inStockSuffix', { qty: `${displayStock} ${p.unit}` })
-                        : stockUntracked ? t('setStartingStockHint') : ''}
-                    </p>
-                  </div>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{t('noStockTracked')}</span>
-                </div>
-                <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700">
-                  <p className="text-xs text-slate-400 dark:text-slate-500 italic">{t('noSalesDataYet')}</p>
-                </div>
-              </div>
-            )
-          }
-
-          return (
-            <div
-              key={p.product_id}
-              className={`rounded-xl border overflow-hidden
-                ${p.order_now ? 'border-red-200 dark:border-red-800' : p.approaching_reorder ? 'border-amber-200 dark:border-amber-700' : 'border-slate-100 dark:border-slate-700'}`}
-            >
-              <div className={`flex items-center justify-between gap-3 px-4 py-3
-                ${p.order_now ? 'bg-red-50/60 dark:bg-red-900/20' : p.approaching_reorder ? 'bg-amber-50/60 dark:bg-amber-900/20' : 'bg-slate-50/60 dark:bg-slate-700/40'}`}
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    ~{p.avg_daily_demand} {p.unit}{t('perDaySuffix')} · {t('restockInNDays', { n: String(p.lead_time_days) })}
-                    {displayStock != null && !stockUntracked
-                      ? ` · ${t('inStockSuffix', { qty: `${displayStock} ${p.unit}` })}`
-                      : stockUntracked ? ` · ${t('setStartingStockHint')}` : ''}
-                  </p>
-                </div>
-                <div className="shrink-0 text-right">
-                  {p.order_now ? (
-                    hasQty ? (
-                      <span className="inline-block px-3 py-1 bg-red-500 text-white rounded-full text-xs font-bold">
-                        {t('orderNowBadge', { qty: `${Math.round(p.suggested_order_qty!)} ${p.unit}` })}
-                      </span>
-                    ) : (
-                      <span className="inline-block px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-semibold">
-                        {t('orderNowLabel')}
-                      </span>
-                    )
-                  ) : p.approaching_reorder ? (
-                    <span className="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold">
-                      ⚠ {t('reorderWhenBelow')}
-                    </span>
-                  ) : displayStock != null && !stockUntracked ? (
-                    <span className="inline-block px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">
-                      {t('youreGood')}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-slate-400 dark:text-slate-500">{t('noStockTracked')}</span>
-                  )}
-                </div>
-              </div>
-              <div className="px-4 py-2 bg-teal-25 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex flex-wrap gap-x-4 gap-y-0.5">
-                <span className="text-xs text-slate-400 dark:text-slate-500">
-                  {t('reorderBelowColon')} <strong className="text-slate-600 dark:text-slate-300">{p.reorder_point} {p.unit}</strong>
-                </span>
-                <span className="text-xs text-slate-400 dark:text-slate-500">
-                  {t('safetyBufferColon')} <strong className="text-slate-600 dark:text-slate-300">{p.safety_stock_units} {p.unit}</strong>
-                </span>
-                {p.eoq != null && (
-                  <span className="text-xs text-slate-400 dark:text-slate-500">
-                    {t('eoqLabelColon')} <strong className="text-slate-600 dark:text-slate-300">{p.eoq} {p.unit}</strong>
-                  </span>
-                )}
-              </div>
-              <ProductOrderActions
-                productId={p.product_id}
-                unit={p.unit}
-                suggestedQty={p.suggested_order_qty ?? 1}
-                productOrders={ordersByProduct.get(p.product_id) ?? []}
-                today={today}
-                onChanged={onOrdersChanged}
-              />
-            </div>
-          )
-        })}
+        {needsAttention.map(p => (
+          <OrderingProductCard
+            key={p.product_id}
+            p={p}
+            ordersByProduct={ordersByProduct}
+            today={today}
+            onOrdersChanged={onOrdersChanged}
+          />
+        ))}
       </div>
+      {stockOkCount > 0 && (
+        <p className="mt-4 text-xs text-slate-400 dark:text-slate-500 text-center">
+          {t('fullyStockedNote', { n: String(stockOkCount), s: stockOkCount === 1 ? '' : 's' })}
+        </p>
+      )}
     </>
   )
 }

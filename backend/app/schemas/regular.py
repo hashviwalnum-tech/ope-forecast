@@ -12,6 +12,8 @@ class RegularCreate(BaseModel):
     avg_spend: float = Field(..., ge=0)
     expected_lifespan_years: float = Field(3.0, gt=0)
     notes: Optional[str] = Field(None, max_length=1000)
+    is_favorite: bool = False
+    first_visit_date: Optional[date] = None
 
 
 class RegularUpdate(BaseModel):
@@ -20,6 +22,8 @@ class RegularUpdate(BaseModel):
     avg_spend: Optional[float] = Field(None, ge=0)
     expected_lifespan_years: Optional[float] = Field(None, gt=0)
     notes: Optional[str] = Field(None, max_length=1000)
+    is_favorite: Optional[bool] = None
+    first_visit_date: Optional[date] = None
 
 
 class RegularVisitBody(BaseModel):
@@ -34,6 +38,7 @@ class RegularRead(BaseModel):
     avg_spend: float
     expected_lifespan_years: float
     notes: Optional[str]
+    is_favorite: bool = False
     visit_count: int
     first_visit_date: Optional[date]
     last_visit_date: Optional[date]

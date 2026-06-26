@@ -51,6 +51,7 @@ export interface RegularRead {
   avg_spend: number
   expected_lifespan_years: number
   notes: string | null
+  is_favorite: boolean
   visit_count: number
   first_visit_date: string | null   // "YYYY-MM-DD"
   last_visit_date: string | null    // "YYYY-MM-DD"
@@ -64,6 +65,8 @@ export interface RegularCreate {
   avg_spend: number
   expected_lifespan_years?: number
   notes?: string
+  is_favorite?: boolean
+  first_visit_date?: string | null
 }
 
 export interface RegularVisitBody {
@@ -93,6 +96,8 @@ export interface RegularUpdate {
   avg_spend?: number
   expected_lifespan_years?: number
   notes?: string
+  is_favorite?: boolean
+  first_visit_date?: string | null
 }
 
 export interface BusinessRead {
@@ -149,6 +154,7 @@ export interface OrderingRow {
   name: string
   unit: string
   unit_mode?: string
+  is_favorite?: boolean
   avg_daily_demand: number
   lead_time_days: number
   safety_stock_units: number
@@ -272,6 +278,7 @@ export interface ProductRead {
   unit: string
   product_type: 'stocked' | 'service'
   unit_mode: 'whole' | 'decimal'
+  is_favorite: boolean
   price: number | null
   current_stock: number | null
   stock_as_of_date: string | null   // "YYYY-MM-DD"
@@ -286,6 +293,7 @@ export interface ProductCreate {
   unit: string
   product_type?: 'stocked' | 'service'
   unit_mode?: 'whole' | 'decimal'
+  is_favorite?: boolean
   price?: number
   lead_time_days: number
   current_stock?: number
@@ -299,6 +307,7 @@ export interface ProductUpdate {
   unit?: string
   product_type?: 'stocked' | 'service' | null
   unit_mode?: 'whole' | 'decimal'
+  is_favorite?: boolean
   price?: number | null
   lead_time_days?: number
   current_stock?: number | null
@@ -482,6 +491,7 @@ export interface ProductForecastItem {
   name: string
   unit: string
   unit_mode: 'whole' | 'decimal'
+  is_favorite?: boolean
   status: string        // "ok" | "not_enough_data"
   message?: string
   days: ProductForecastDay[]

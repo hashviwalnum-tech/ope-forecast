@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date as _date
 from typing import Optional
 
-from sqlalchemy import Date, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Date, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -28,3 +28,4 @@ class Regular(Base):
     visit_count: Mapped[int] = mapped_column(Integer, default=0)
     first_visit_date: Mapped[Optional[_date]] = mapped_column(Date, nullable=True)
     last_visit_date: Mapped[Optional[_date]] = mapped_column(Date, nullable=True)
+    is_favorite: Mapped[bool] = mapped_column(Boolean, default=False)

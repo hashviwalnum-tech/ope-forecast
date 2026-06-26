@@ -443,8 +443,11 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
         </div>
       )}
 
-      {isService && (
-        <p className="text-xs text-slate-400 dark:text-slate-500 italic">{t('consumableSavedNote')}</p>
+      {isService && showMore && (
+        <div className="rounded-xl bg-teal-50/60 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 px-4 py-3">
+          <p className="text-xs font-semibold text-teal-700 dark:text-teal-300 mb-0.5">{t('consumablesTitle')}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{t('consumableSavedNote')} {t('consumablesDesc')}</p>
+        </div>
       )}
 
       {error && (
@@ -759,10 +762,12 @@ function ProductRow({
   product,
   allProducts,
   onChanged,
+  onToggleFavorite,
 }: {
   product: ProductRead
   allProducts: ProductRead[]
   onChanged: () => void
+  onToggleFavorite: () => void
 }) {
   const { t } = useLanguage()
   const [editing, setEditing]       = useState(false)
@@ -803,7 +808,10 @@ function ProductRow({
     <div className="flex items-start justify-between gap-4 py-4 border-b border-slate-100 dark:border-slate-700 last:border-0">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="text-base font-semibold text-slate-800 dark:text-slate-100">{product.name}</p>
+          <p className="text-base font-semibold text-slate-800 dark:text-slate-100">
+            {product.is_favorite && <span className="text-amber-400 mr-1">★</span>}
+            {product.name}
+          </p>
           {isService && (
             <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full
                              bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300">
@@ -837,7 +845,8 @@ function ProductRow({
           <p className="text-xs text-red-600 mt-1">{deleteErr}</p>
         )}
       </div>
-      <div className="flex gap-2 shrink-0 pt-0.5">
+      <div className="flex gap-2 shrink-0 pt-0.5 items-center">
+        <StarButton isFavorite={product.is_favorite} onToggle={onToggleFavorite} />
         <button
           onClick={() => { setEditing(true); setConfirming(false); setDeleteErr(null) }}
           className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium
@@ -863,6 +872,19 @@ function ProductRow({
 
 // ── main component ────────────────────────────────────────────────────────────
 
+function StarButton({ isFavorite, onToggle }: { isFavorite: boolean; onToggle: () => void }) {
+  const { t } = useLanguage()
+  return (
+    <button
+      onClick={onToggle}
+      title={isFavorite ? t('unfavoriteLabel') : t('favoriteLabel')}
+      className={`text-lg leading-none transition-colors ${isFavorite ? 'text-amber-400 hover:text-amber-500' : 'text-slate-300 dark:text-slate-600 hover:text-amber-300'}`}
+    >
+      ★
+    </button>
+  )
+}
+
 export default function ProductsPanel() {
   const { t } = useLanguage()
   const [productList, setProductList] = useState<ProductRead[]>([])
@@ -875,7 +897,20 @@ export default function ProductsPanel() {
     }
   }
 
+  async function toggleFavorite(p: ProductRead) {
+    try {
+      await productsApi.update(p.id, { is_favorite: !p.is_favorite })
+      load()
+    } catch { /* ignore */ }
+  }
+
   useEffect(() => { load() }, [])
+
+  // Sort: favorites first, then alphabetically
+  const sorted = [...productList].sort((a, b) => {
+    if (a.is_favorite === b.is_favorite) return a.name.localeCompare(b.name)
+    return a.is_favorite ? -1 : 1
+  })
 
   return (
     <div className="space-y-8">
@@ -890,18 +925,24 @@ export default function ProductsPanel() {
       </section>
 
       {/* ── product list ── */}
-      {productList.length > 0 ? (
+      {sorted.length > 0 ? (
         <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 px-6 py-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
             {t('yourProducts')}
-            <span className="ml-2 text-sm font-normal text-slate-400">({productList.length})</span>
+            <span className="ml-2 text-sm font-normal text-slate-400">({sorted.length})</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
             {t('tapEditRemove')}
           </p>
           <div>
-            {productList.map(p => (
-              <ProductRow key={p.id} product={p} allProducts={productList} onChanged={load} />
+            {sorted.map(p => (
+              <ProductRow
+                key={p.id}
+                product={p}
+                allProducts={productList}
+                onChanged={load}
+                onToggleFavorite={() => toggleFavorite(p)}
+              />
             ))}
           </div>
         </section>

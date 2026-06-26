@@ -18,6 +18,7 @@ import PredictionsPanel from './components/PredictionsPanel'
 import PredictionsScreen from './components/PredictionsScreen'
 import RecurringPatternsPanel from './components/RecurringPatternsPanel'
 import RegularsPanel from './components/RegularsPanel'
+import ProductStatusPanel from './components/ProductStatusPanel'
 import { useAuth } from './contexts/AuthContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
@@ -31,12 +32,12 @@ const SHOW_ADS = true
 type Tab =
   | 'home' | 'predictions_home' | 'insights'
   | 'backfill' | 'history' | 'import' | 'trends'
-  | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings' | 'toolbox'
+  | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings' | 'toolbox' | 'stock'
 type NavGroup = 'history' | 'manage'
 
 const GROUP_TAB_IDS: Record<NavGroup, Tab[]> = {
   history: ['history', 'backfill', 'trends', 'import'],
-  manage:  ['products', 'regulars', 'recurring', 'events', 'predictions', 'toolbox', 'settings'],
+  manage:  ['products', 'stock', 'regulars', 'recurring', 'events', 'predictions', 'toolbox', 'settings'],
 }
 
 
@@ -199,6 +200,7 @@ function AppInner() {
       label: t('manage'),
       tabs: [
         { id: 'products'    as Tab, label: t('myProducts')         },
+        { id: 'stock'       as Tab, label: t('stockStatusTab')     },
         { id: 'regulars'    as Tab, label: t('myRegulars')         },
         { id: 'recurring'   as Tab, label: t('recurringPatterns')  },
         { id: 'events'      as Tab, label: t('promosEvents')       },
@@ -224,6 +226,7 @@ function AppInner() {
     settings:         t('tabSettings'),
     predictions:      t('tabPredHistory'),
     toolbox:          t('tabToolbox'),
+    stock:            t('tabStockStatus'),
   }
 
   if (authLoading || (session && !bizLoaded)) {
@@ -531,6 +534,7 @@ function AppInner() {
           {tab === 'trends'           && <TrendsView />}
           {tab === 'events'           && <PeriodsPanel />}
           {tab === 'products'         && <ProductsPanel />}
+          {tab === 'stock'            && <ProductStatusPanel />}
           {tab === 'regulars'         && <RegularsPanel />}
           {tab === 'recurring'        && <RecurringPatternsPanel />}
           {tab === 'backfill'         && <BackfillForm onSaved={refresh} />}

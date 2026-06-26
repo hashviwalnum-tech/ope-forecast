@@ -11,6 +11,7 @@ class ProductCreate(BaseModel):
     unit: str
     product_type: Literal["stocked", "service"] = "stocked"
     unit_mode: Literal["whole", "decimal"] = "whole"
+    is_favorite: bool = False
     price: Optional[float] = Field(None, ge=0)
     current_stock: Optional[float] = Field(None, ge=0)
     lead_time_days: int = Field(..., ge=1, le=365)
@@ -38,6 +39,7 @@ class ProductUpdate(BaseModel):
     unit: Optional[str] = None
     product_type: Optional[Literal["stocked", "service"]] = None
     unit_mode: Optional[Literal["whole", "decimal"]] = None
+    is_favorite: Optional[bool] = None
     price: Optional[float] = Field(None, ge=0)
     current_stock: Optional[float] = Field(None, ge=0)
     lead_time_days: Optional[int] = Field(None, ge=1)
@@ -53,6 +55,7 @@ class ProductRead(BaseModel):
     unit: str
     product_type: str = "stocked"
     unit_mode: str
+    is_favorite: bool = False
     price: Optional[float]
     current_stock: Optional[float]
     lead_time_days: int

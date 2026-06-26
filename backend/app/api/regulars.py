@@ -42,6 +42,7 @@ def _to_read(r: Regular, db: Session) -> RegularRead:
         avg_spend=r.avg_spend,
         expected_lifespan_years=r.expected_lifespan_years,
         notes=r.notes,
+        is_favorite=getattr(r, "is_favorite", False) or False,
         visit_count=actual_count,
         first_visit_date=r.first_visit_date,
         last_visit_date=r.last_visit_date,
