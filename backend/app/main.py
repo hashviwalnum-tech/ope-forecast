@@ -28,6 +28,7 @@ from app.api import telegram as telegram_api
 from app.api import bot as bot_api
 from app.api import feedback as feedback_api
 from app.api import nudges as nudges_api
+from app.api import dev_catchup as dev_catchup_api
 
 
 def _migrate_sqlite_products(eng) -> None:
@@ -148,6 +149,7 @@ async def lifespan(app: FastAPI):
     _migrate_sqlite_day_records(engine)
     _migrate_sqlite_telegram_links(engine)
     _migrate_sqlite_stock_batches(engine)
+    dev_catchup_api.maybe_catchup_on_startup()  # DEV-ONLY: no-op unless DEV_CATCHUP_ENABLED=true
     yield
 
 
@@ -187,6 +189,7 @@ app.include_router(telegram_api.router)
 app.include_router(bot_api.router)
 app.include_router(feedback_api.router)
 app.include_router(nudges_api.router)
+app.include_router(dev_catchup_api.router)
 
 
 @app.get("/health", tags=["Health"])
