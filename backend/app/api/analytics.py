@@ -55,7 +55,7 @@ from app.engine.queueing import (
     queue_length,
 )
 from app.engine.seasonality import seasonal_naive_forecast
-from app.models import Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, SaleEvent, SaleRecord
+from app.models import Business, DayRecord, ForecastRun, Period, Product, SaleEvent, SaleRecord
 from app.models.service_consumable import ServiceConsumable
 from app.models.order_record import OrderRecord
 from app.models.stock_batch import StockBatch
@@ -555,13 +555,6 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
     open_days = _open_days(biz)
 
-    # Recurring-pattern weekdays are never flagged as anomalies
-    recurring_patterns = db.query(RecurringPattern).filter_by(business_id=biz.id).all()
-    recurring_weekdays: set[int] = set()
-    for rp in recurring_patterns:
-        for wd in (rp.weekdays or []):
-            recurring_weekdays.add(int(wd))
-
     # Candidate set: all open days that can be flagged — including days inside
     # event/ad periods.  The owner must still see the fluke prompt even during
     # a tagged period; an unusually weak event day may mean the event underperformed.
@@ -598,12 +591,6 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
     changed = False
 
-    # Auto-resolve records on recurring-pattern weekdays
-    for r in all_records:
-        if r.outlier_status == "flagged" and r.date.weekday() in recurring_weekdays:
-            r.outlier_status = "kept"
-            changed = True
-
     # Auto-resolve stale flags: candidate days previously flagged that the wider
     # reference set no longer considers extreme.  Only runs when detection executed;
     # if the reference was too small, existing flags are left untouched.
@@ -613,12 +600,11 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
                 r.outlier_status = None
                 changed = True
 
-    # Flag newly detected records (only in detection set, only unreviewed, skip recurring)
+    # Flag newly detected records (only in detection set, only unreviewed)
     for r in det_records:
         if r.outlier_status is None and r.id in detected_by_id:
-            if r.date.weekday() not in recurring_weekdays:
-                r.outlier_status = "flagged"
-                changed = True
+            r.outlier_status = "flagged"
+            changed = True
 
     if changed:
         db.commit()

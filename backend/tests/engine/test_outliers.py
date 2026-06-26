@@ -139,6 +139,59 @@ def test_spec_genuine_extreme_flagged():
     assert flagged.direction == "high"
 
 
+def test_recurring_pattern_expected_bump_not_flagged():
+    """
+    A weekday with a consistent recurring bump: the fence is already centred on
+    the bumped distribution.  A day at the typical bumped level must NOT flag.
+
+    Wednesdays run 40-45 (school trip pattern).  A Wednesday of 43 is squarely
+    in the middle of that range.
+
+    Reference [40,41,42,43,44,45] → Q1≈41.25, Q3≈43.75, IQR=2.5,
+    lower fence≈37.5, upper fence≈47.5.  43 is within → not flagged.
+    """
+    obs = [40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 43.0]
+    wds = [2] * 7
+    results = detect_outliers(obs, wds)
+    assert 6 not in {r.day_index for r in results}, (
+        "A day at the typical pattern level (43, within 40-45) must not be flagged"
+    )
+
+
+def test_recurring_pattern_unexpectedly_low_is_flagged():
+    """
+    A pattern weekday that comes in far below the expected bump must still flag.
+
+    Wednesdays normally run 40-45.  A Wednesday at 25 (trip cancelled?) is
+    genuinely anomalous — below the lower fence of 37.5.
+    """
+    obs = [40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 25.0]
+    wds = [2] * 7
+    results = detect_outliers(obs, wds)
+    flagged = {r.day_index for r in results}
+    assert 6 in flagged, (
+        "A day far below the pattern expectation (25 vs 40-45) must be flagged"
+    )
+    assert next(r for r in results if r.day_index == 6).direction == "low"
+
+
+def test_recurring_pattern_far_above_bump_is_flagged():
+    """
+    A pattern weekday that far exceeds even the expected bump must still flag.
+
+    Wednesdays normally run 40-45.  A Wednesday at 80 exceeds the upper fence
+    of 47.5 — it is anomalous even relative to the bumped expectation.
+    """
+    obs = [40.0, 41.0, 42.0, 43.0, 44.0, 45.0, 80.0]
+    wds = [2] * 7
+    results = detect_outliers(obs, wds)
+    flagged = {r.day_index for r in results}
+    assert 6 in flagged, (
+        "A day far above even the expected bump (80 vs 40-45) must be flagged"
+    )
+    assert next(r for r in results if r.day_index == 6).direction == "high"
+
+
 def test_empty_inputs():
     assert detect_outliers([], []) == []
 
