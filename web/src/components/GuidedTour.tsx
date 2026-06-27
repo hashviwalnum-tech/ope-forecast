@@ -1,24 +1,90 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { TranslationKey } from '../i18n'
+import type { Lang, TranslationKey } from '../i18n'
 
-const STEPS: Array<{ title: TranslationKey; body: TranslationKey; target?: string }> = [
-  { title: 'tourWelcomeTitle',      body: 'tourWelcomeBody' },
-  { title: 'tourQuickActionsTitle', body: 'tourQuickActionsBody', target: '[data-tour="quick-actions"]' },
-  { title: 'tourForecastTitle',     body: 'tourForecastBody',     target: '[data-tour="forecast-chart"]' },
-  { title: 'tourBusyHoursTitle',    body: 'tourBusyHoursBody',    target: '[data-tour="busy-hours"]' },
-  { title: 'tourPredictionsTitle',  body: 'tourPredictionsBody',  target: '[data-tour="nav-predictions"]' },
-  { title: 'tourInsightsTitle',     body: 'tourInsightsBody',     target: '[data-tour="nav-insights"]' },
-  { title: 'tourHistoryTitle',      body: 'tourHistoryBody',      target: '[data-tour="nav-history"]' },
-  { title: 'tourManageTitle',       body: 'tourManageBody',       target: '[data-tour="nav-manage"]' },
-  { title: 'tourDoneTitle',         body: 'tourDoneBody' },
+// ── Section / step structure ────────────────────────────────────────────────
+
+interface TourStep {
+  titleKey: TranslationKey
+  bodyKey:  TranslationKey
+  target?:  string
+}
+
+interface TourSection {
+  // null = Welcome / Done — no "Skip [section]" button shown
+  nameKey: TranslationKey | null
+  steps:   TourStep[]
+}
+
+const SECTIONS: TourSection[] = [
+  {
+    nameKey: null,
+    steps: [
+      { titleKey: 'tourWelcomeTitle', bodyKey: 'tourWelcomeBody' },
+    ],
+  },
+  {
+    nameKey: 'home',
+    steps: [
+      { titleKey: 'tourQuickActionsTitle', bodyKey: 'tourQuickActionsBody', target: '[data-tour="quick-actions"]' },
+      { titleKey: 'tourForecastTitle',     bodyKey: 'tourForecastBody',     target: '[data-tour="forecast-chart"]' },
+      { titleKey: 'tourBusyHoursTitle',    bodyKey: 'tourBusyHoursBody',    target: '[data-tour="busy-hours"]' },
+    ],
+  },
+  {
+    nameKey: 'predictions',
+    steps: [
+      { titleKey: 'tourPredictionsTitle',  bodyKey: 'tourPredictionsBody',  target: '[data-tour="nav-predictions"]' },
+      { titleKey: 'tourPredWeekTitle',     bodyKey: 'tourPredWeekBody' },
+      { titleKey: 'tourPredOrderingTitle', bodyKey: 'tourPredOrderingBody' },
+    ],
+  },
+  {
+    nameKey: 'insightsNavLabel',
+    steps: [
+      { titleKey: 'tourInsightsTitle',           bodyKey: 'tourInsightsBody',           target: '[data-tour="nav-insights"]' },
+      { titleKey: 'tourInsightsDayPatternsTitle', bodyKey: 'tourInsightsDayPatternsBody' },
+      { titleKey: 'tourInsightsHoursTitle',       bodyKey: 'tourInsightsHoursBody' },
+      { titleKey: 'tourInsightsYoYTitle',         bodyKey: 'tourInsightsYoYBody' },
+      { titleKey: 'tourInsightsAccuracyTitle',    bodyKey: 'tourInsightsAccuracyBody' },
+      { titleKey: 'tourInsightsTrendsTitle',      bodyKey: 'tourInsightsTrendsBody' },
+    ],
+  },
+  {
+    nameKey: 'history',
+    steps: [
+      { titleKey: 'tourHistoryTitle',    bodyKey: 'tourHistoryBody',    target: '[data-tour="nav-history"]' },
+      { titleKey: 'tourHistAddDayTitle', bodyKey: 'tourHistAddDayBody' },
+      { titleKey: 'tourHistTrendsTitle', bodyKey: 'tourHistTrendsBody' },
+      { titleKey: 'tourHistImportTitle', bodyKey: 'tourHistImportBody' },
+    ],
+  },
+  {
+    nameKey: 'manage',
+    steps: [
+      { titleKey: 'tourManageTitle',           bodyKey: 'tourManageBody',           target: '[data-tour="nav-manage"]' },
+      { titleKey: 'tourManageProductsTitle',   bodyKey: 'tourManageProductsBody' },
+      { titleKey: 'tourManageRegularsTitle',   bodyKey: 'tourManageRegularsBody' },
+      { titleKey: 'tourManageRecurringTitle',  bodyKey: 'tourManageRecurringBody' },
+      { titleKey: 'tourManageEventsTitle',     bodyKey: 'tourManageEventsBody' },
+      { titleKey: 'tourManageSimpleLangTitle', bodyKey: 'tourManageSimpleLangBody' },
+    ],
+  },
+  {
+    nameKey: null,
+    steps: [
+      { titleKey: 'tourDoneTitle', bodyKey: 'tourDoneBody' },
+    ],
+  },
 ]
 
+// ── Persistence ─────────────────────────────────────────────────────────────
+
 const PADDING = 10
-const POP_W = 320
+const POP_W   = 340
 
 interface Props {
-  bizId: number
+  bizId:  number
   onDone: () => void
 }
 
@@ -30,34 +96,51 @@ export function clearTourDone(bizId: number): void {
   localStorage.removeItem(`ope_tour_done_${bizId}`)
 }
 
-export default function GuidedTour({ bizId, onDone }: Props) {
-  const { t } = useLanguage()
-  const [step, setStep] = useState(0)
-  const [rect, setRect] = useState<DOMRect | null>(null)
-  const [tick, setTick] = useState(0)
+// ── Component ───────────────────────────────────────────────────────────────
 
-  const current = STEPS[step]
-  const isLast  = step === STEPS.length - 1
+export default function GuidedTour({ bizId, onDone }: Props) {
+  const { t, lang, setLang, dir } = useLanguage()
+
+  const [sectionIdx, setSectionIdx] = useState(0)
+  const [stepIdx, setStepIdx]       = useState(0)
+  const [rect, setRect]             = useState<DOMRect | null>(null)
+  const [tick, setTick]             = useState(0)
+
+  const section     = SECTIONS[sectionIdx]
+  const step        = section.steps[stepIdx]
+  const isLastSec   = sectionIdx === SECTIONS.length - 1
+  const isLastStep  = isLastSec && stepIdx === section.steps.length - 1
+  const showSkipSec = section.nameKey !== null && !isLastSec
+
+  // Section-based progress (one dot per section, simpler than one per step)
+  const totalSections = SECTIONS.length
+
+  const totalSteps = useMemo(() =>
+    SECTIONS.reduce((sum, s) => sum + s.steps.length, 0), [])
+  const flatIdx = useMemo(() =>
+    SECTIONS.slice(0, sectionIdx).reduce((sum, s) => sum + s.steps.length, 0) + stepIdx,
+    [sectionIdx, stepIdx])
+
+  // ── Target tracking ───────────────────────────────────────────────────────
 
   const calcRect = useCallback(() => {
-    if (current.target) {
-      const el = document.querySelector(current.target)
+    if (step.target) {
+      const el = document.querySelector(step.target)
       setRect(el ? el.getBoundingClientRect() : null)
     } else {
       setRect(null)
     }
-  }, [current.target])
+  }, [step.target])
 
   useEffect(() => {
     const id = setTimeout(() => {
       calcRect()
-      if (current.target) {
-        const el = document.querySelector(current.target)
-        el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      if (step.target) {
+        document.querySelector(step.target)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       }
     }, 80)
     return () => clearTimeout(id)
-  }, [step, calcRect, current.target])
+  }, [sectionIdx, stepIdx, calcRect, step.target])
 
   useEffect(() => {
     const handle = () => { calcRect(); setTick(n => n + 1) }
@@ -69,20 +152,39 @@ export default function GuidedTour({ bizId, onDone }: Props) {
     }
   }, [calcRect])
 
-  // Suppress unused-tick warning (tick is only used to force re-render on scroll)
   void tick
+
+  // ── Actions ───────────────────────────────────────────────────────────────
 
   function finish() {
     localStorage.setItem(`ope_tour_done_${bizId}`, '1')
     onDone()
   }
 
-  function next() { isLast ? finish() : setStep(s => s + 1) }
+  function next() {
+    if (isLastStep) { finish(); return }
+    if (stepIdx < section.steps.length - 1) {
+      setStepIdx(s => s + 1)
+    } else {
+      setSectionIdx(s => s + 1)
+      setStepIdx(0)
+    }
+  }
+
+  function skipSection() {
+    if (sectionIdx < SECTIONS.length - 1) {
+      setSectionIdx(s => s + 1)
+      setStepIdx(0)
+    } else {
+      finish()
+    }
+  }
+
+  // ── Popover positioning ───────────────────────────────────────────────────
 
   const vpW = window.innerWidth
   const vpH = window.innerHeight
 
-  // Spotlight bounds
   const sTop    = rect ? Math.max(0, rect.top    - PADDING) : 0
   const sLeft   = rect ? Math.max(0, rect.left   - PADDING) : 0
   const sBottom = rect ? rect.bottom + PADDING : 0
@@ -90,40 +192,42 @@ export default function GuidedTour({ bizId, onDone }: Props) {
   const sW      = rect ? rect.width  + PADDING * 2 : 0
   const sH      = rect ? rect.height + PADDING * 2 : 0
 
-  // Popover position — prefer below the target, fall back above
   let popTop: number
   let popLeft: number
   if (!rect) {
-    popTop  = Math.max(10, vpH / 2 - 160)
+    popTop  = Math.max(10, vpH / 2 - 180)
     popLeft = Math.max(10, vpW / 2 - POP_W / 2)
   } else {
     popTop = sBottom + 14
-    if (popTop + 240 > vpH - 10) popTop = sTop - 240 - 14
-    popTop  = Math.max(10, Math.min(popTop, vpH - 250))
+    if (popTop + 280 > vpH - 10) popTop = sTop - 280 - 14
+    popTop  = Math.max(10, Math.min(popTop, vpH - 290))
     popLeft = sLeft + sW / 2 - POP_W / 2
     popLeft = Math.max(10, Math.min(popLeft, vpW - POP_W - 10))
   }
 
   const stopProp = (e: React.MouseEvent) => e.stopPropagation()
-  const OVERLAY = 'rgba(0,0,0,0.55)'
+  const OVERLAY  = 'rgba(0,0,0,0.55)'
+  const isRtl    = dir === 'rtl'
+
+  // Progress: show individual step dots up to 10 total; beyond that show section dots
+  const useStepDots = totalSteps <= 12
+  const dotCount  = useStepDots ? totalSteps : totalSections
+  const activeDot = useStepDots ? flatIdx : sectionIdx
 
   return (
     <div className="fixed inset-0" style={{ zIndex: 9000 }} onClick={finish}>
 
-      {/* ── Backdrop ──────────────────────────────────────────────────── */}
+      {/* ── Backdrop with spotlight ──────────────────────────────────────── */}
       {rect ? (
         <>
-          {/* 4 dark panels surrounding the spotlight hole */}
           <div style={{ position:'fixed', inset:'0 0 auto 0', height: sTop,             background: OVERLAY }} />
           <div style={{ position:'fixed', top: sBottom, left:0, right:0, bottom:0,      background: OVERLAY }} />
           <div style={{ position:'fixed', top: sTop, left:0, width: sLeft, height: sH,  background: OVERLAY }} />
           <div style={{ position:'fixed', top: sTop, left: sRight, right:0, height: sH, background: OVERLAY }} />
-          {/* Invisible click-blocker over the exposed element */}
-          <div style={{ position:'fixed', top: sTop, left: sLeft, width: sW, height: sH }} />
-          {/* Teal highlight ring */}
+          {/* click-blocker over the spotlit element so clicks don't dismiss */}
+          <div style={{ position:'fixed', top: sTop, left: sLeft, width: sW, height: sH }} onClick={stopProp} />
           <div style={{
-            position: 'fixed',
-            top: sTop, left: sLeft, width: sW, height: sH,
+            position: 'fixed', top: sTop, left: sLeft, width: sW, height: sH,
             border: '2.5px solid rgb(13 148 136)',
             borderRadius: 10,
             boxShadow: '0 0 0 3px rgba(13,148,136,0.2)',
@@ -134,36 +238,69 @@ export default function GuidedTour({ bizId, onDone }: Props) {
         <div style={{ position:'fixed', inset:0, background: OVERLAY }} />
       )}
 
-      {/* ── Popover ───────────────────────────────────────────────────── */}
+      {/* ── Popover ───────────────────────────────────────────────────────── */}
       <div
         className="fixed bg-white dark:bg-slate-800 rounded-2xl shadow-2xl
                    border border-teal-100 dark:border-teal-800 p-5"
         style={{ top: popTop, left: popLeft, width: POP_W, zIndex: 9001 }}
+        dir={dir}
         onClick={stopProp}
       >
-        {/* Progress strip */}
-        <div className="flex items-center gap-1 mb-3">
-          {STEPS.map((_, i) => (
-            <div
-              key={i}
-              className="rounded-full transition-all duration-200"
-              style={{
-                height: 5,
-                width:  i === step ? 20 : 6,
-                background: i === step ? 'rgb(13 148 136)' : i < step ? 'rgb(94 234 212)' : 'rgb(226 232 240)',
-              }}
-            />
-          ))}
+        {/* Top row: progress dots + language toggle */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1 flex-1 min-w-0">
+            {Array.from({ length: dotCount }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-full transition-all duration-200 shrink-0"
+                style={{
+                  height: 5,
+                  width:  i === activeDot ? 18 : 5,
+                  background: i === activeDot
+                    ? 'rgb(13 148 136)'
+                    : i < activeDot
+                      ? 'rgb(94 234 212)'
+                      : 'rgb(226 232 240)',
+                }}
+              />
+            ))}
+          </div>
+
+          {/* In-tour language toggle */}
+          <div className={`flex items-center gap-1 shrink-0 ${isRtl ? 'mr-3' : 'ml-3'}`}>
+            {(['en', 'he'] as Lang[]).map(l => (
+              <button
+                key={l}
+                onClick={(e) => { stopProp(e); setLang(l) }}
+                className={`px-1.5 py-0.5 text-[10px] font-semibold rounded transition-colors ${
+                  lang === l
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-500 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-700'
+                }`}
+              >
+                {l === 'en' ? 'EN' : 'עב'}
+              </button>
+            ))}
+          </div>
         </div>
 
+        {/* Section label */}
+        {section.nameKey && (
+          <div className="text-[10px] font-semibold text-teal-500 dark:text-teal-400 uppercase tracking-widest mb-1.5">
+            {t(section.nameKey as TranslationKey)}
+          </div>
+        )}
+
+        {/* Content */}
         <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-2">
-          {t(current.title)}
+          {t(step.titleKey)}
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-5">
-          {t(current.body)}
+          {t(step.bodyKey)}
         </p>
 
-        <div className="flex items-center justify-between gap-3">
+        {/* Buttons: Skip all | [spacer] | Skip [Section] · Next */}
+        <div className={`flex items-center justify-between gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
           <button
             onClick={(e) => { stopProp(e); finish() }}
             className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors shrink-0"
@@ -171,13 +308,13 @@ export default function GuidedTour({ bizId, onDone }: Props) {
             {t('tourSkipAll')}
           </button>
 
-          <div className="flex items-center gap-3">
-            {!isLast && (
+          <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+            {showSkipSec && (
               <button
-                onClick={(e) => { stopProp(e); next() }}
-                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                onClick={(e) => { stopProp(e); skipSection() }}
+                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors whitespace-nowrap"
               >
-                {t('tourSkipStep')}
+                {t('tourSkipSection', { section: t(section.nameKey as TranslationKey) })}
               </button>
             )}
             <button
@@ -185,7 +322,7 @@ export default function GuidedTour({ bizId, onDone }: Props) {
               className="px-5 py-2 bg-teal-600 text-white text-sm font-semibold rounded-xl
                          hover:bg-teal-700 transition-colors"
             >
-              {isLast ? t('tourFinish') : t('tourNext')}
+              {isLastStep ? t('tourFinish') : t('tourNext')}
             </button>
           </div>
         </div>

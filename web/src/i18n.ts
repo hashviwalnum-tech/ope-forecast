@@ -880,6 +880,47 @@ export const translations = {
     simpleModeOn: 'Simple language — on',
     simpleModeOff: 'Standard wording',
     simpleModeHint: 'Tip: turn on "Simple language" in Settings if any terms feel confusing.',
+
+    // Guided tour — deep steps (added for section-based tour)
+    tourSkipSection: 'Skip {section}',
+
+    // Predictions section sub-steps
+    tourPredWeekTitle: 'Your weekly forecast, in detail',
+    tourPredWeekBody: "Here you see each coming day as a bar — taller means busier. Hover over any bar to see the expected range (the spread from a quieter to a busier version of that day). Ope blends several forecasting methods and automatically leans on whichever has been most accurate for your business recently.",
+    tourPredOrderingTitle: 'What to order — per product',
+    tourPredOrderingBody: "Scroll down to see ordering advice for each of your products. Once you've logged some sales, Ope works out how much you'll need before your next delivery arrives and tells you exactly when to reorder. Green means stock is fine; red means order now. Tap 'I ordered this' when you place an order and Ope will track the arrival.",
+
+    // Insights section sub-steps
+    tourInsightsDayPatternsTitle: 'Your day-of-week pattern',
+    tourInsightsDayPatternsBody: "See which day of the week is typically your busiest and which is your quietest, based on your own data — not a guess. As you log more days, these patterns get more reliable. This is one of the first things Ope learns about your business.",
+    tourInsightsHoursTitle: 'Your peak hours',
+    tourInsightsHoursBody: "Once you've used 'Record a Sale' for a few weeks, Ope shows your busiest and quietest hours of the day. Use this to plan prep time, staff breaks, or to know when you'll need all hands on deck.",
+    tourInsightsYoYTitle: 'Year-over-year comparison',
+    tourInsightsYoYBody: "Once you have a year of history, Ope compares this month to the same month last year — so you know whether your business is growing, holding steady, or slipping, without doing the maths yourself. It also warns you in advance if a historically busy season is coming up.",
+    tourInsightsAccuracyTitle: 'Forecast accuracy over time',
+    tourInsightsAccuracyBody: "This shows how accurate your forecasts have been getting. Ope typically starts rough and improves as it learns your patterns — you'll see the improvement here as a real percentage. The lower the error, the more you can rely on the forecast for ordering and staffing decisions.",
+    tourInsightsTrendsTitle: 'Changes worth noticing',
+    tourInsightsTrendsBody: "These are things that ARE actually changing — a weekday that has been trending up or down over the past three months, a regular customer who has gone quiet, or a busy season coming up. This is the part most owners would miss without the app watching for them.",
+
+    // History section sub-steps
+    tourHistAddDayTitle: 'Add a past day',
+    tourHistAddDayBody: "Forgot to log yesterday? Use 'Add Past Day' to fill in any day you missed. Pick the date from the calendar, enter the customer count and what you sold, and it joins your history. A complete history means sharper forecasts — even one week of backfill can make a noticeable difference.",
+    tourHistTrendsTitle: 'Monthly trends',
+    tourHistTrendsBody: "See your data broken down by month — average customers per day, totals, and how each month compares to the one before. Useful for spotting your busiest season or a slow patch you hadn't consciously noticed.",
+    tourHistImportTitle: 'Import past data',
+    tourHistImportBody: "Have records in a spreadsheet? Upload a CSV file here to bring in months or years of history at once — so you don't have to start from scratch. Ope previews the file first so you can check the dates look right before saving anything.",
+
+    // Manage section sub-steps
+    tourManageProductsTitle: 'My Products',
+    tourManageProductsBody: "Add every item you sell here — just a name and a unit to get started (e.g. 'Sourdough loaf, each'). Optionally add supplier lead time, current stock, and shelf life. Once a product is in, Ope tracks demand per product and tells you when to reorder.",
+    tourManageRegularsTitle: 'My Regulars',
+    tourManageRegularsBody: "Add your loyal customers as 'regulars' to track their visit frequency and how much they are worth to your business over time. Ope will warn you if a regular hasn't visited in a while — a quiet signal they might be drifting away. Their visits never mix with your demand history.",
+    tourManageRecurringTitle: 'Recurring Patterns',
+    tourManageRecurringBody: "Is there a school trip every Sunday? A market day that always brings extra customers? Declare it here and Ope will expect it — it stops flagging that day as unusual and folds the bump into your normal forecast. The more patterns you teach Ope, the smarter it gets about your world.",
+    tourManageEventsTitle: 'Promos & Events',
+    tourManageEventsBody: "Tag one-off events and ad campaigns here — a local festival, a social media boost, a flyer run. Ope measures how much extra business each one actually brought you, compared to what you would normally expect. Great for knowing which promotions are worth repeating.",
+    tourManageSimpleLangTitle: 'Simple language mode',
+    tourManageSimpleLangBody: "Under Manage → Settings, you'll find a 'Simple language' toggle. Switch it on and Ope replaces technical terms — like 'MAPE', 'safety buffer', or 'FIFO' — with plain everyday words. Great if any label feels unfamiliar. Both English and Hebrew get the simple version. The tour itself also uses the simpler wording when this mode is on.",
   },
   he: {
     // Nav
@@ -1760,6 +1801,47 @@ export const translations = {
     simpleModeOn: 'שפה פשוטה — פועלת',
     simpleModeOff: 'ניסוח רגיל',
     simpleModeHint: 'טיפ: הפעל "שפה פשוטה" בהגדרות אם מונח כלשהו נשמע מבלבל.',
+
+    // Guided tour — deep steps
+    tourSkipSection: 'דלג על {section}',
+
+    // Predictions section sub-steps
+    tourPredWeekTitle: 'התחזית השבועית שלך, בפירוט',
+    tourPredWeekBody: 'כאן רואים כל יום קרוב כעמודה — גבוהה יותר אומרת עמוס יותר. רחף על כל עמודה לראות את הטווח הצפוי (מיום שקט יחסית לעמוס יחסית). Ope משלב מספר שיטות תחזית ומסתמך אוטומטית על זו שהייתה מדויקת ביותר לעסק שלך לאחרונה.',
+    tourPredOrderingTitle: 'מה להזמין — לכל מוצר',
+    tourPredOrderingBody: "גלול למטה לצפייה בייעוץ הזמנה לכל מוצר. לאחר שתרשום כמה מכירות, Ope מחשב כמה תצטרך לפני המשלוח הבא ומגיד לך בדיוק מתי להזמין. ירוק = מלאי בסדר; אדום = הזמן עכשיו. הקש 'הזמנתי את זה' כשאתה מבצע הזמנה ו-Ope יעקוב אחר הגעתה.",
+
+    // Insights section sub-steps
+    tourInsightsDayPatternsTitle: 'הדפוס היומי שלך',
+    tourInsightsDayPatternsBody: 'ראה איזה יום בשבוע הוא לרוב העמוס ביותר ואיזה השקט ביותר, על פי הנתונים שלך — לא ניחוש. ככל שתרשום יותר ימים, הדפוסים הופכים אמינים יותר. זה אחד הדברים הראשונים ש-Ope לומד על העסק שלך.',
+    tourInsightsHoursTitle: 'שעות השיא שלך',
+    tourInsightsHoursBody: "לאחר שתשתמש ב'רשום מכירה' מספר שבועות, Ope מציג את השעות העמוסות והשקטות של היום שלך. השתמש בזה לתכנון זמן הכנה, הפסקות עובדים, או לדעת מתי תצטרך כל הכוחות.",
+    tourInsightsYoYTitle: 'השוואה שנה-על-שנה',
+    tourInsightsYoYBody: 'ברגע שיש לך שנה של היסטוריה, Ope משווה את החודש הנוכחי לאותו חודש אשתקד — כך תדע אם העסק שלך צומח, יציב, או מדשדש, מבלי לחשב בעצמך. הוא גם מזהיר מראש אם עונה עמוסה היסטורית מתקרבת.',
+    tourInsightsAccuracyTitle: 'דיוק התחזית לאורך זמן',
+    tourInsightsAccuracyBody: 'כאן רואים כמה מדויקות התחזיות שלך. Ope בדרך כלל מתחיל גס ומשתפר ככל שהוא לומד את הדפוסים שלך — השיפור מוצג כאחוז אמיתי. ככל שהשגיאה נמוכה יותר, כך ניתן להסתמך יותר על התחזית להחלטות הזמנה וסגל.',
+    tourInsightsTrendsTitle: 'שינויים שכדאי לשים לב אליהם',
+    tourInsightsTrendsBody: 'אלה דברים שבאמת משתנים — יום שמתחזק או נחלש ב-3 החודשים האחרונים, לקוח קבוע שלא ביקר, או עונה עמוסה היסטורית שמתקרבת. זה החלק שרוב בעלי העסקים היו מחמיצים בלי האפליקציה שעוקבת עבורם.',
+
+    // History section sub-steps
+    tourHistAddDayTitle: 'הוסף יום קודם',
+    tourHistAddDayBody: "שכחת לרשום אתמול? השתמש ב'הוסף יום קודם' למילוי כל יום שהחמצת. בחר תאריך מהלוח, הכנס את מספר הלקוחות ומה מכרת, והוא מצטרף להיסטוריה שלך. היסטוריה שלמה אומרת תחזיות חדות יותר — אפילו שבוע אחד של מילוי עורפי יכול לעשות הבדל ניכר.",
+    tourHistTrendsTitle: 'מגמות חודשיות',
+    tourHistTrendsBody: 'ראה את הנתונים שלך לפי חודש — ממוצע לקוחות ליום, סך הכל, וכיצד כל חודש משתווה לקודמו. שימושי לאיתור העונה העמוסה שלך או תקופה איטית שלא שמת לב אליה.',
+    tourHistImportTitle: 'ייבוא נתוני עבר',
+    tourHistImportBody: 'יש רשומות בגיליון אלקטרוני? העלה כאן קובץ CSV כדי להביא חודשים או שנים של היסטוריה בבת אחת — בלי להתחיל מאפס. Ope מציג תצוגה מקדימה קודם כדי שתוכל לוודא שהתאריכים נכונים לפני השמירה.',
+
+    // Manage section sub-steps
+    tourManageProductsTitle: 'המוצרים שלי',
+    tourManageProductsBody: "הוסף כל מה שאתה מוכר — מספיק שם ויחידה להתחלה (למשל 'כיכר לחם, יחידה'). אפשר גם להוסיף זמן הגעה מהספק, מלאי נוכחי ותאריך פגות. ברגע שמוצר נמצא כאן, Ope עוקב אחרי הביקוש לכל מוצר ואומר לך מתי להזמין.",
+    tourManageRegularsTitle: 'הקבועים שלי',
+    tourManageRegularsBody: "הוסף את הלקוחות הנאמנים שלך כ'קבועים' כדי לעקוב אחרי תדירות הביקורים שלהם וכמה הם שווים לעסק שלך לאורך זמן. Ope יתריע אם קבוע לא ביקר זמן מה — אות שקט שהוא אולי מתרחק. הביקורים שלהם לעולם לא מתערבבים עם היסטוריית הביקוש שלך.",
+    tourManageRecurringTitle: 'דפוסים חוזרים',
+    tourManageRecurringBody: 'יש טיול בית ספר כל ראשון? יום שוק שמביא לקוחות נוספים בכל שבת? הצהר על זה כאן ו-Ope יצפה לזה — הוא יפסיק לסמן את אותו יום כחריג ויכלול את הגידול בתחזית הרגילה שלך. ככל שתלמד את Ope יותר דפוסים, כך הוא ייחכם יותר לגבי העולם שלך.',
+    tourManageEventsTitle: 'מבצעים ואירועים',
+    tourManageEventsBody: 'תייג אירועים חד-פעמיים וקמפיינים פרסומיים כאן — פסטיבל מקומי, הגברת מדיה חברתית, חלוקת עלונים. Ope מודד כמה עסקים נוספים כל אחד מהם באמת הביא לך, בהשוואה למה שהיית מצפה בדרך כלל. מומלץ לדעת אילו מבצעים שווה לחזור עליהם.',
+    tourManageSimpleLangTitle: 'מצב שפה פשוטה',
+    tourManageSimpleLangBody: "תחת ניהול ← הגדרות, תמצא מתג 'שפה פשוטה'. הפעל אותו ו-Ope מחליף כל מונח טכני — כמו 'MAPE', 'מאגר בטיחות', או 'FIFO' — במילים יומיומיות פשוטות. מעולה אם תווית כלשהי נשמעת לא מוכרת. גם אנגלית וגם עברית מקבלות את הגרסה הפשוטה. הסיור עצמו גם משתמש בניסוח הפשוט יותר כשהמצב הזה פועל.",
   },
 } as const satisfies Record<Lang, Record<string, string>>
 

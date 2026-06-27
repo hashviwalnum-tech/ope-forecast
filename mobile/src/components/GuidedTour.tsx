@@ -13,10 +13,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { TranslationKey } from '../lib/i18n'
+import type { Lang, TranslationKey } from '../lib/i18n'
 import type { Theme } from '../lib/theme'
 
-// ── Persistence ────────────────────────────────────────────────────────────────
+// ── Persistence ─────────────────────────────────────────────────────────────
 
 const KEY = (bizId: number) => `ope_tour_done_${bizId}`
 
@@ -30,78 +30,149 @@ async function markDone(bizId: number) {
   try { await AsyncStorage.setItem(KEY(bizId), '1') } catch { /* ignore */ }
 }
 
-// ── Step definitions ───────────────────────────────────────────────────────────
+// ── Step / section definitions ───────────────────────────────────────────────
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
-interface Step {
+interface MobileTourStep {
   titleKey: TranslationKey
   bodyKey:  TranslationKey
   icon:     IoniconName
-  // If set, this step highlights that bottom-tab index (0=Log 1=Forecast 2=Analytics 3=Manage)
+  // Highlight the bottom-tab bar at this index (0=Log 1=Forecast 2=Analytics 3=Manage)
   tabIndex?: 0 | 1 | 2 | 3
 }
 
-const STEPS: Step[] = [
-  { titleKey: 'tourWelcomeTitle',  bodyKey: 'tourWelcomeBody',  icon: 'hand-right-outline' },
-  { titleKey: 'tourLogTitle',      bodyKey: 'tourLogBody',      icon: 'add-circle-outline',  tabIndex: 0 },
-  { titleKey: 'tourSaleTitle',     bodyKey: 'tourSaleBody',     icon: 'cart-outline' },
-  { titleKey: 'tourForecastTitle', bodyKey: 'tourForecastBody', icon: 'calendar-outline',    tabIndex: 1 },
-  { titleKey: 'tourOrderTitle',    bodyKey: 'tourOrderBody',    icon: 'cube-outline' },
-  { titleKey: 'tourAnalyticsTitle',bodyKey: 'tourAnalyticsBody',icon: 'bar-chart-outline',   tabIndex: 2 },
-  { titleKey: 'tourManageTitle',   bodyKey: 'tourManageBody',   icon: 'grid-outline',        tabIndex: 3 },
-  { titleKey: 'tourDoneTitle',     bodyKey: 'tourDoneBody',     icon: 'checkmark-circle-outline' },
+interface MobileTourSection {
+  // null = Welcome / Done — no "Skip [section]" button
+  nameKey: TranslationKey | null
+  steps:   MobileTourStep[]
+}
+
+const SECTIONS: MobileTourSection[] = [
+  {
+    nameKey: null,
+    steps: [
+      { titleKey: 'tourWelcomeTitle', bodyKey: 'tourWelcomeBody', icon: 'hand-right-outline' },
+    ],
+  },
+  {
+    nameKey: 'log',
+    steps: [
+      { titleKey: 'tourLogTitle',      bodyKey: 'tourLogBody',      icon: 'add-circle-outline',   tabIndex: 0 },
+      { titleKey: 'tourSaleTitle',     bodyKey: 'tourSaleBody',     icon: 'cart-outline' },
+      { titleKey: 'tourLogRegularTitle', bodyKey: 'tourLogRegularBody', icon: 'people-outline' },
+    ],
+  },
+  {
+    nameKey: 'forecast',
+    steps: [
+      { titleKey: 'tourForecastTitle',   bodyKey: 'tourForecastBody',   icon: 'calendar-outline',  tabIndex: 1 },
+      { titleKey: 'tourForecastBusyTitle', bodyKey: 'tourForecastBusyBody', icon: 'time-outline' },
+      { titleKey: 'tourOrderTitle',      bodyKey: 'tourOrderBody',      icon: 'cube-outline' },
+    ],
+  },
+  {
+    nameKey: 'analytics',
+    steps: [
+      { titleKey: 'tourAnalyticsTitle',     bodyKey: 'tourAnalyticsBody',     icon: 'bar-chart-outline', tabIndex: 2 },
+      { titleKey: 'tourAnalyticsAccTitle',  bodyKey: 'tourAnalyticsAccBody',  icon: 'checkmark-circle-outline' },
+      { titleKey: 'tourAnalyticsStaffTitle', bodyKey: 'tourAnalyticsStaffBody', icon: 'people-circle-outline' },
+      { titleKey: 'tourAnalyticsAdsTitle',  bodyKey: 'tourAnalyticsAdsBody',  icon: 'megaphone-outline' },
+      { titleKey: 'tourAnalyticsRegTitle',  bodyKey: 'tourAnalyticsRegBody',  icon: 'heart-outline' },
+    ],
+  },
+  {
+    nameKey: 'manage',
+    steps: [
+      { titleKey: 'tourManageTitle',          bodyKey: 'tourManageBody',          icon: 'grid-outline',         tabIndex: 3 },
+      { titleKey: 'tourManageProdTitle',       bodyKey: 'tourManageProdBody',       icon: 'storefront-outline' },
+      { titleKey: 'tourManagePastTitle',       bodyKey: 'tourManagePastBody',       icon: 'calendar-number-outline' },
+      { titleKey: 'tourManagePatTitle',        bodyKey: 'tourManagePatBody',        icon: 'repeat-outline' },
+      { titleKey: 'tourManageSimpleLangTitle', bodyKey: 'tourManageSimpleLangBody', icon: 'text-outline' },
+    ],
+  },
+  {
+    nameKey: null,
+    steps: [
+      { titleKey: 'tourDoneTitle', bodyKey: 'tourDoneBody', icon: 'checkmark-circle-outline' },
+    ],
+  },
 ]
 
 const TAB_LABELS: IoniconName[] = [
   'add-circle-outline', 'calendar-outline', 'bar-chart-outline', 'grid-outline',
 ]
 
-// ── Props ──────────────────────────────────────────────────────────────────────
+// ── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
   bizId:  number
   onDone: () => void
 }
 
-// ── Component ──────────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function GuidedTour({ bizId, onDone }: Props) {
   const c      = useTheme()
-  const { t }  = useLanguage()
+  const { t, lang, setLang, dir } = useLanguage()
   const insets = useSafeAreaInsets()
   const { width: SW, height: SH } = Dimensions.get('window')
 
-  const [step, setStep] = useState(0)
-  const current = STEPS[step]
-  const isLast  = step === STEPS.length - 1
+  const [sectionIdx, setSectionIdx] = useState(0)
+  const [stepIdx, setStepIdx]       = useState(0)
 
-  // Tab bar geometry
-  const TAB_INNER  = Platform.OS === 'ios' ? 49 : 56
-  const TAB_H      = TAB_INNER + insets.bottom
+  const section    = SECTIONS[sectionIdx]
+  const step       = section.steps[stepIdx]
+  const isLastSec  = sectionIdx === SECTIONS.length - 1
+  const isLastStep = isLastSec && stepIdx === section.steps.length - 1
+  const showSkipSec = section.nameKey !== null && !isLastSec
 
-  // Evenly spaced tab centers across screen width (4 tabs)
-  const tabX = (i: number) => SW * (2 * i + 1) / 8
+  // Section-based progress dots
+  const totalSections = SECTIONS.length
 
-  const hasTab  = current.tabIndex !== undefined
-  const tabIdx  = current.tabIndex ?? 0
+  const hasTab  = step.tabIndex !== undefined
+  const tabIdx  = step.tabIndex ?? 0
 
   const styles = useMemo(() => makeStyles(c), [c])
+  const isRtl  = dir === 'rtl'
 
   function finish() {
     void markDone(bizId)
     onDone()
   }
-  function next() { isLast ? finish() : setStep(s => s + 1) }
 
-  // Card sits in the upper ~60% of the content area so tab bar is visible on tab steps
-  const contentH  = SH - (hasTab ? TAB_H : insets.bottom)
-  const CARD_TOP  = hasTab ? contentH * 0.12 : SH * 0.22
+  function next() {
+    if (isLastStep) { finish(); return }
+    if (stepIdx < section.steps.length - 1) {
+      setStepIdx(s => s + 1)
+    } else {
+      setSectionIdx(s => s + 1)
+      setStepIdx(0)
+    }
+  }
+
+  function skipSection() {
+    if (sectionIdx < SECTIONS.length - 1) {
+      setSectionIdx(s => s + 1)
+      setStepIdx(0)
+    } else {
+      finish()
+    }
+  }
+
+  // Tab bar geometry
+  const TAB_INNER = Platform.OS === 'ios' ? 49 : 56
+  const TAB_H     = TAB_INNER + insets.bottom
+  const tabX      = (i: number) => SW * (2 * i + 1) / 8
+
+  // Card position — upper portion so tab bar is visible on tab steps
+  const contentH = SH - (hasTab ? TAB_H : insets.bottom)
+  const CARD_TOP = hasTab ? contentH * 0.10 : SH * 0.20
 
   return (
     <Modal transparent visible animationType="fade" statusBarTranslucent>
 
-      {/* ── Dark backdrop (leaves tab bar exposed for tab steps) ─────────── */}
+      {/* ── Dark backdrop ─────────────────────────────────────────────────── */}
       <View
         style={{
           position: 'absolute', top: 0, left: 0, right: 0,
@@ -110,7 +181,6 @@ export default function GuidedTour({ bizId, onDone }: Props) {
         }}
         pointerEvents="box-only"
       />
-      {/* Bottom strip (covers status bar / safe area below tab on non-tab steps) */}
       {!hasTab && (
         <View
           style={{
@@ -121,7 +191,7 @@ export default function GuidedTour({ bizId, onDone }: Props) {
         />
       )}
 
-      {/* ── Tab bar highlight ring (tab steps only) ─────────────────────── */}
+      {/* ── Tab bar highlight ring (tab-intro steps only) ─────────────────── */}
       {hasTab && (
         <View style={{
           position: 'absolute',
@@ -135,7 +205,7 @@ export default function GuidedTour({ bizId, onDone }: Props) {
         }} pointerEvents="none" />
       )}
 
-      {/* ── Arrow connector: card → tab highlight ───────────────────────── */}
+      {/* ── Arrow connecting card to tab highlight ────────────────────────── */}
       {hasTab && (() => {
         const arrowX = tabX(tabIdx) - 10
         return (
@@ -154,31 +224,69 @@ export default function GuidedTour({ bizId, onDone }: Props) {
         )
       })()}
 
-      {/* ── Tour card ────────────────────────────────────────────────────── */}
+      {/* ── Tour card ─────────────────────────────────────────────────────── */}
       <View style={[styles.card, { top: CARD_TOP }]}>
 
-        {/* Progress dots */}
-        <View style={styles.dotsRow}>
-          {STEPS.map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor: i === step ? c.primary : i < step ? c.primaryBg : c.border,
-                  width: i === step ? 20 : 7,
-                },
-              ]}
-            />
-          ))}
+        {/* Top row: section progress + language toggle */}
+        <View style={[styles.topRow, isRtl && { flexDirection: 'row-reverse' }]}>
+          {/* Section progress dots */}
+          <View style={[styles.dotsRow, isRtl && { flexDirection: 'row-reverse' }]}>
+            {Array.from({ length: totalSections }).map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  {
+                    backgroundColor:
+                      i === sectionIdx ? c.primary
+                      : i < sectionIdx ? c.primaryBg
+                      : c.border,
+                    width: i === sectionIdx ? 20 : 7,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+
+          {/* In-tour language toggle */}
+          <View style={styles.langToggle}>
+            {(['en', 'he'] as Lang[]).map(l => (
+              <TouchableOpacity
+                key={l}
+                onPress={() => setLang(l)}
+                style={[
+                  styles.langBtn,
+                  { borderColor: c.border, backgroundColor: c.card },
+                  lang === l && { backgroundColor: c.primary, borderColor: c.primary },
+                ]}
+                activeOpacity={0.8}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <Text style={[
+                  styles.langBtnText,
+                  { color: c.textSub },
+                  lang === l && { color: c.onPrimary },
+                ]}>
+                  {l === 'en' ? 'EN' : 'עב'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
+
+        {/* Section label */}
+        {section.nameKey && (
+          <Text style={[styles.sectionLabel, { color: c.primary }]}>
+            {t(section.nameKey as TranslationKey).toUpperCase()}
+          </Text>
+        )}
 
         {/* Icon */}
         <View style={[styles.iconWrap, { backgroundColor: c.primaryBg }]}>
-          <Ionicons name={current.icon} size={36} color={c.primary} />
+          <Ionicons name={step.icon} size={36} color={c.primary} />
         </View>
 
-        {/* Mini tab indicator (tab steps) */}
+        {/* Mini tab indicator (tab-intro steps only) */}
         {hasTab && (
           <View style={[styles.tabStrip, { backgroundColor: c.card, borderColor: c.border }]}>
             {TAB_LABELS.map((icon, i) => (
@@ -189,31 +297,35 @@ export default function GuidedTour({ bizId, onDone }: Props) {
                   i === tabIdx && { backgroundColor: c.primaryBg, borderRadius: 10 },
                 ]}
               >
-                <Ionicons
-                  name={icon}
-                  size={20}
-                  color={i === tabIdx ? c.primary : c.textMuted}
-                />
+                <Ionicons name={icon} size={20} color={i === tabIdx ? c.primary : c.textMuted} />
               </View>
             ))}
           </View>
         )}
 
         {/* Title */}
-        <Text style={[styles.title, { color: c.text }]}>{t(current.titleKey)}</Text>
+        <Text style={[styles.title, { color: c.text }]}>{t(step.titleKey)}</Text>
 
         {/* Body */}
-        <Text style={[styles.body, { color: c.textSub }]}>{t(current.bodyKey)}</Text>
+        <Text style={[styles.body, { color: c.textSub }]}>{t(step.bodyKey)}</Text>
 
         {/* Buttons */}
-        <View style={styles.btnRow}>
+        <View style={[styles.btnRow, isRtl && { flexDirection: 'row-reverse' }]}>
+          {/* Skip all */}
           <TouchableOpacity onPress={finish} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Text style={[styles.skipAll, { color: c.textMuted }]}>{t('tourSkipAll')}</Text>
           </TouchableOpacity>
-          <View style={styles.rightBtns}>
-            {!isLast && (
-              <TouchableOpacity onPress={next} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Text style={[styles.skipStep, { color: c.textMuted }]}>{t('tourSkipStep')}</Text>
+
+          {/* Right group: Skip section + Next */}
+          <View style={[styles.rightBtns, isRtl && { flexDirection: 'row-reverse' }]}>
+            {showSkipSec && (
+              <TouchableOpacity
+                onPress={skipSection}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={[styles.skipSec, { color: c.textMuted }]}>
+                  {t('tourSkipSection', { section: t(section.nameKey as TranslationKey) })}
+                </Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -222,7 +334,7 @@ export default function GuidedTour({ bizId, onDone }: Props) {
               activeOpacity={0.8}
             >
               <Text style={[styles.nextBtnText, { color: c.onPrimary }]}>
-                {isLast ? t('tourFinish') : t('tourNext')}
+                {isLastStep ? t('tourFinish') : t('tourNext')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -232,36 +344,62 @@ export default function GuidedTour({ bizId, onDone }: Props) {
   )
 }
 
-// ── Styles ─────────────────────────────────────────────────────────────────────
+// ── Styles ────────────────────────────────────────────────────────────────────
 
 function makeStyles(c: Theme) {
   const { width: SW } = Dimensions.get('window')
   return StyleSheet.create({
     card: {
       position: 'absolute',
-      left: 20, right: 20,
+      left: 16, right: 16,
       backgroundColor: c.card,
       borderRadius: 22,
-      padding: 22,
+      padding: 20,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.25,
       shadowRadius: 20,
       elevation: 16,
-      gap: 14,
+      gap: 12,
+    },
+    topRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     dotsRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 5,
+      flex: 1,
     },
     dot: {
       height: 5,
       borderRadius: 3,
       opacity: 0.85,
     },
+    langToggle: {
+      flexDirection: 'row',
+      gap: 4,
+      marginLeft: 8,
+    },
+    langBtn: {
+      paddingHorizontal: 6,
+      paddingVertical: 3,
+      borderRadius: 6,
+      borderWidth: 1,
+    },
+    langBtnText: {
+      fontSize: 10,
+      fontWeight: '700',
+    },
+    sectionLabel: {
+      fontSize: 9,
+      fontWeight: '700',
+      letterSpacing: 1.2,
+    },
     iconWrap: {
-      width: 68, height: 68,
+      width: 64, height: 64,
       borderRadius: 18,
       alignSelf: 'center',
       alignItems: 'center',
@@ -273,13 +411,13 @@ function makeStyles(c: Theme) {
       borderWidth: 1,
       overflow: 'hidden',
       alignSelf: 'center',
-      width: SW - 84,
+      width: SW - 72,
     },
     tabItem: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 8,
+      paddingVertical: 7,
     },
     title: {
       fontSize: 17,
@@ -287,24 +425,24 @@ function makeStyles(c: Theme) {
       textAlign: 'center',
     },
     body: {
-      fontSize: 14,
-      lineHeight: 21,
+      fontSize: 13,
+      lineHeight: 20,
       textAlign: 'center',
     },
     btnRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginTop: 4,
+      marginTop: 2,
     },
-    skipAll: { fontSize: 13 },
-    rightBtns: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-    skipStep: { fontSize: 13 },
+    skipAll: { fontSize: 12 },
+    rightBtns: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    skipSec: { fontSize: 12 },
     nextBtn: {
-      paddingHorizontal: 22,
-      paddingVertical: 12,
-      borderRadius: 14,
+      paddingHorizontal: 20,
+      paddingVertical: 11,
+      borderRadius: 13,
     },
-    nextBtnText: { fontSize: 15, fontWeight: '700' },
+    nextBtnText: { fontSize: 14, fontWeight: '700' },
   })
 }

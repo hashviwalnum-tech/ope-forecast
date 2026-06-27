@@ -321,6 +321,37 @@ export const translations = {
     tourReplayDesc: 'See the guided walkthrough of Ope again from the beginning.',
     tourReplayBtn: 'Replay tour',
 
+    // Guided tour — deep steps (section-based tour)
+    tourSkipSection: 'Skip {section}',
+
+    // Log section sub-steps
+    tourLogRegularTitle: 'Record a regular',
+    tourLogRegularBody: "Tap 'Record a Regular' below the sale buttons to log a loyal customer's visit. You can add how much they spent — Ope tracks each regular's value to your business over time and will let you know if one hasn't visited in a while.",
+
+    // Forecast section sub-steps
+    tourForecastBusyTitle: 'Busy hours & staffing',
+    tourForecastBusyBody: "Scroll down on the Forecast screen to see which hours tomorrow are expected to be busiest and how many staff you might need at each hour. Ope also shows what changing your team by one person would do to customer wait times — so you can schedule confidently.",
+
+    // Analytics section sub-steps
+    tourAnalyticsAccTitle: 'Forecast accuracy',
+    tourAnalyticsAccBody: "This shows how close Ope's predictions have been to what actually happened. Ope typically starts rough and gets more accurate as it learns your patterns. You'll see the improvement here as a real percentage — the lower the number, the more you can rely on the forecast.",
+    tourAnalyticsStaffTitle: 'Staffing recommendations',
+    tourAnalyticsStaffBody: "Based on your busy-hour patterns, Ope tells you how many staff you need for each hour of the day. It also shows what happens to your queue if you add or remove one person — so you can see exactly when an extra set of hands makes a real difference.",
+    tourAnalyticsAdsTitle: 'Ad & event lift',
+    tourAnalyticsAdsBody: "If you've tagged any ad campaigns or special events in Manage, Ope shows the lift — how many extra customers each one brought compared to your normal expected level. A positive lift means the promotion worked; a flat result means it probably wasn't worth it.",
+    tourAnalyticsRegTitle: 'Your loyal regulars',
+    tourAnalyticsRegBody: "Here you can see how often each of your regulars visits and how much they contribute to your business over time. If a regular's visits are dropping off, Ope flags it so you can reach out before you lose them.",
+
+    // Manage section sub-steps
+    tourManageProdTitle: 'Products',
+    tourManageProdBody: "Add or edit the products you sell here. A name and unit are all you need to start. Once a product is added, Ope tracks demand and reorder needs automatically. You can optionally add supplier lead time, stock count, and shelf life for full ordering advice.",
+    tourManagePastTitle: 'Past Days',
+    tourManagePastBody: "Missed logging a day? Tap here to fill it in or correct a day you already logged. A complete history makes forecasts sharper. Even filling in one week of missed days can noticeably improve Ope's accuracy.",
+    tourManagePatTitle: 'Recurring Patterns',
+    tourManagePatBody: "Tell Ope about regular events — like a school trip every Sunday — and it will treat them as expected, not unusual days. The more patterns you teach Ope, the smarter its forecasts become and the fewer false alerts you'll get.",
+    tourManageSimpleLangTitle: 'Simple language mode',
+    tourManageSimpleLangBody: "In Settings, you can turn on 'Simple language'. This swaps technical terms — like MAPE, FIFO, or CLV — for plain everyday words. Perfect if any label feels confusing. Both English and Hebrew get the simpler version. The tour itself also uses simple wording when this mode is on.",
+
     // Simple language mode
     simpleModeLabel: 'Simple language',
     simpleModeDesc: 'Replaces technical terms (MAPE, MAD, FIFO, CLV…) with plain everyday words.',
@@ -660,6 +691,37 @@ export const translations = {
     tourReplayLabel: 'סיור מודרך',
     tourReplayDesc: 'ראה שוב את הסיור המודרך של Ope מההתחלה.',
     tourReplayBtn: 'שחזר סיור',
+
+    // Guided tour — deep steps
+    tourSkipSection: 'דלג על {section}',
+
+    // Log section sub-steps
+    tourLogRegularTitle: 'רשום לקוח קבוע',
+    tourLogRegularBody: "הקש 'רשום לקוח קבוע' מתחת לכפתורי המכירה כדי לרשום ביקור של לקוח נאמן. אפשר להוסיף כמה הוא הוציא — Ope עוקב אחרי ערכו של כל קבוע לעסק שלך לאורך זמן ויודיע לך אם אחד לא ביקר זמן מה.",
+
+    // Forecast section sub-steps
+    tourForecastBusyTitle: 'שעות עמוסות וסגל',
+    tourForecastBusyBody: 'גלול למטה במסך התחזית לצפייה באילו שעות מחר צפויות להיות עמוסות ביותר וכמה עובדים תצטרך בכל שעה. Ope גם מראה מה ישנה בהוספה או הסרה של עובד אחד להמתנת הלקוחות — כדי שתוכל לתכנן לוח עובדים בביטחון.',
+
+    // Analytics section sub-steps
+    tourAnalyticsAccTitle: 'דיוק התחזית',
+    tourAnalyticsAccBody: 'כאן רואים עד כמה תחזיות Ope היו קרובות למה שקרה בפועל. Ope בדרך כלל מתחיל גס ונעשה מדויק יותר ככל שלומד את הדפוסים שלך. תראה את השיפור כאחוז אמיתי — ככל שהמספר נמוך יותר, כך ניתן להסתמך יותר על התחזיות.',
+    tourAnalyticsStaffTitle: 'המלצות סגל',
+    tourAnalyticsStaffBody: 'על פי דפוסי השעות העמוסות שלך, Ope אומר לך כמה עובדים אתה צריך בכל שעה ביום. הוא גם מראה מה קורה לתור שלך אם תוסיף או תסיר עובד אחד — כדי שתוכל לראות בדיוק מתי ידיים נוספות עושות הבדל אמיתי.',
+    tourAnalyticsAdsTitle: 'השפעת מבצעים ואירועים',
+    tourAnalyticsAdsBody: 'אם תייגת קמפיינים פרסומיים או אירועים מיוחדים בניהול, Ope מציג את ההשפעה — כמה לקוחות נוספים כל אחד הביא לעומת הרמה הצפויה הרגילה שלך. השפעה חיובית אומרת שהמבצע עבד; תוצאה שטוחה מעידה שאולי לא היה שווה את זה.',
+    tourAnalyticsRegTitle: 'הלקוחות הקבועים שלך',
+    tourAnalyticsRegBody: 'כאן אפשר לראות כמה פעמים כל אחד מהקבועים שלך מבקר וכמה הוא תורם לעסק שלך לאורך זמן. אם הביקורים של קבוע מתמעטים, Ope מסמן את זה כדי שתוכל לפנות אליו לפני שאבד.',
+
+    // Manage section sub-steps
+    tourManageProdTitle: 'מוצרים',
+    tourManageProdBody: 'הוסף או ערוך את המוצרים שאתה מוכר כאן. שם ויחידה מספיקים להתחלה. ברגע שמוצר נוסף, Ope עוקב אחרי הביקוש לו ואחרי צורכי ההזמנה אוטומטית. אפשר להוסיף גם זמן הגעה מהספק, מלאי ותאריך פגות לייעוץ הזמנה מלא.',
+    tourManagePastTitle: 'ימים קודמים',
+    tourManagePastBody: 'פספסת לרשום יום? הקש כאן למילויו או לתיקון יום שכבר רשמת. היסטוריה שלמה הופכת תחזיות לחדות יותר. אפילו מילוי שבוע אחד של ימים שהוחמצו יכול לשפר את דיוק Ope.',
+    tourManagePatTitle: 'דפוסים חוזרים',
+    tourManagePatBody: 'ספר ל-Ope על אירועים קבועים — כמו טיול בית ספר כל ראשון — והוא יתייחס אליהם כצפויים, לא כימים חריגים. ככל שתלמד את Ope יותר דפוסים, כך התחזיות שלו ייחכמו ותקבל פחות התראות שגויות.',
+    tourManageSimpleLangTitle: 'מצב שפה פשוטה',
+    tourManageSimpleLangBody: "בהגדרות, אפשר להפעיל 'שפה פשוטה'. זה מחליף מונחים טכניים — כמו MAPE, FIFO, או CLV — במילים יומיומיות פשוטות. מומלץ אם תווית כלשהי נשמעת לא מוכרת. גם אנגלית וגם עברית מקבלות את הגרסה הפשוטה. הסיור עצמו גם משתמש בניסוח הפשוט יותר כשהמצב הזה פועל.",
 
     // Simple language mode
     simpleModeLabel: 'שפה פשוטה',
