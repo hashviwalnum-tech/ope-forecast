@@ -802,6 +802,8 @@ def get_accuracy(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     predictions: list[float] = []
 
     for i in range(len(obs) - n_eval, len(obs)):
+        if records[i].outlier_status == "flagged":
+            continue  # don't score the forecast against unreviewed outlier days
         try:
             pred = seasonal_naive_forecast(obs[:i], wds[:i], wds[i])
             actuals.append(obs[i])
@@ -1903,6 +1905,7 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     actual_map: dict[date, int] = {
         r.date: r.customers
         for r in db.query(DayRecord).filter_by(business_id=biz.id).all()
+        if r.outlier_status not in ("excluded", "event", "flagged")
     }
     matched: list[tuple[float, float]] = []
     seen_d: set[date] = set()
@@ -1934,9 +1937,11 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             pass
 
     if forecast_accuracy_mape is None and n_clean >= MIN_RECORDS:
-        holdout_obs = _effective_obs(clean_records)
-        holdout_wds = [r.date.weekday() for r in clean_records]
-        forecast_accuracy_mape = _compute_holdout_mape(holdout_obs, holdout_wds)
+        acc_records = [r for r in clean_records if r.outlier_status != "flagged"]
+        if len(acc_records) >= MIN_RECORDS:
+            holdout_obs = _effective_obs(acc_records)
+            holdout_wds = [r.date.weekday() for r in acc_records]
+            forecast_accuracy_mape = _compute_holdout_mape(holdout_obs, holdout_wds)
 
     # ── Weekday trends: last 12 weeks vs prior 12 weeks ───────────────────────
     weekday_trends_out: list[InsightsWeekdayTrend] = []

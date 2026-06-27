@@ -106,6 +106,15 @@ function AppInner() {
 
   useEffect(() => { loadBusinesses() }, [loadBusinesses])
 
+  // Dev catch-up: fill missing days when the app loads so accuracy evolves without manual tapping.
+  // Silently no-ops in production where DEV_CATCHUP_ENABLED is absent on the server.
+  useEffect(() => {
+    if (!session || !activeBusiness) return
+    api.dev.catchupAuto().then(result => {
+      if (result && result.days_generated > 0) setRefreshKey(k => k + 1)
+    })
+  }, [session, activeBusiness?.id])
+
   // Auto-launch guided tour for new users after onboarding is done
   useEffect(() => {
     if (onboardingDone && activeBusiness && !isTourDone(activeBusiness.id)) {

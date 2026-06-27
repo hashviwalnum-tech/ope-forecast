@@ -224,3 +224,98 @@ def test_flagged_forecast_near_normal_range():
     wds = [r.date.weekday() for r in records]
     forecast = seasonal_naive_forecast(obs, wds, 0)
     assert abs(forecast - 100.0) < 1.0
+
+
+# ── Accuracy holdout exclusion tests ──────────────────────────────────────────
+#
+# These mirror the holdout logic in api/analytics.get_accuracy().
+# The fix: positions with outlier_status='flagged' are skipped in the holdout
+# evaluation loop so unreviewed outlier days don't distort the MAPE score.
+# _clean_records() already removes 'excluded'/'event' before the loop runs.
+
+# 14 Mondays for holdout tests (need ≥8 for n_eval ≥ 1; 14 gives n_eval=7)
+_MON14 = [
+    "2026-01-05", "2026-01-12", "2026-01-19", "2026-01-26",
+    "2026-02-02", "2026-02-09", "2026-02-16", "2026-02-23",
+    "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23",
+    "2026-03-30", "2026-04-06",
+]
+
+
+def _holdout_mape_excluding_flagged(records) -> float | None:
+    """Mirror of the fixed get_accuracy() holdout: skips 'flagged' at eval positions.
+
+    'excluded'/'event' records are assumed already absent (filtered by _filter_clean).
+    """
+    from app.engine.accuracy import mape as _mape
+    obs = _effective_obs(records)
+    wds = [r.date.weekday() for r in records]
+    n_eval = min(90, len(obs) - 7)
+    if n_eval <= 0:
+        return None
+    acts: list[float] = []
+    preds: list[float] = []
+    for i in range(len(obs) - n_eval, len(obs)):
+        if records[i].outlier_status == "flagged":
+            continue
+        try:
+            p = seasonal_naive_forecast(obs[:i], wds[:i], wds[i])
+            acts.append(obs[i])
+            preds.append(p)
+        except ValueError:
+            pass
+    if len(acts) < 4:
+        return None
+    return round(_mape(acts, preds), 2)
+
+
+def test_flagged_fluke_does_not_affect_accuracy():
+    """Adding a flagged record with an extreme value must not change the MAPE.
+
+    The skewed dataset (one position with 200) makes the weekday mean > median,
+    so if a flagged position were included with its median-substituted value it
+    would pull the MAPE in a different direction than excluding it entirely.
+    Without the 'if flagged: continue' fix, this test fails.
+    """
+    # 13 Mondays — mix of 100 and one 200 so mean ≠ median (mean ≈ 107.7)
+    base_records = [
+        _record(_MON14[0],  100),
+        _record(_MON14[1],  100),
+        _record(_MON14[2],  200),   # skews the weekday mean above the median
+        _record(_MON14[3],  100),
+        _record(_MON14[4],  100),
+        _record(_MON14[5],  100),
+        _record(_MON14[6],  100),
+        _record(_MON14[7],  100),
+        _record(_MON14[8],  100),
+        _record(_MON14[9],  100),
+        _record(_MON14[10], 100),
+        _record(_MON14[11], 100),
+        _record(_MON14[12], 100),
+    ]
+    flagged_record = _record(_MON14[13], 9999, outlier_status="flagged")
+
+    mape_clean   = _holdout_mape_excluding_flagged(base_records)
+    mape_flagged = _holdout_mape_excluding_flagged(base_records + [flagged_record])
+
+    # The flagged position is skipped; accuracy must be unaffected.
+    assert mape_clean == mape_flagged
+
+
+def test_excluded_fluke_does_not_affect_accuracy():
+    """An 'excluded' record never enters the holdout (filtered before the loop).
+
+    This is the owner-confirmed-fluke path: _filter_clean removes it, so the
+    holdout never sees the extreme value.
+    """
+    base_records = [_record(d, 100) for d in _MON14[:13]]
+    excluded_record = _record(_MON14[13], 9999, outlier_status="excluded")
+
+    # Excluded records are removed by _filter_clean (same as _clean_records logic)
+    filtered_base     = _filter_clean(base_records)
+    filtered_excluded = _filter_clean(base_records + [excluded_record])
+
+    mape_clean    = _holdout_mape_excluding_flagged(filtered_base)
+    mape_excluded = _holdout_mape_excluding_flagged(filtered_excluded)
+
+    assert mape_clean == mape_excluded

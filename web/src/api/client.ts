@@ -276,3 +276,19 @@ export const nudges = {
   get: () => GET<NudgesResponse>('/nudges'),
   sendTelegram: () => POST<{ sent: boolean; message: string | null; reason: string | null }>('/nudges/send-telegram', {}),
 }
+
+export const dev = {
+  /**
+   * Fire-and-forget catch-up trigger. Silently no-ops in production (returns
+   * 403 when DEV_CATCHUP_ENABLED is absent). Caller should ignore all errors.
+   */
+  catchupAuto: async (): Promise<{ days_generated: number } | null> => {
+    try {
+      const res = await fetch(`${BASE}/dev/catchup/auto`, { method: 'POST' })
+      if (!res.ok) return null
+      return await res.json()
+    } catch {
+      return null
+    }
+  },
+}

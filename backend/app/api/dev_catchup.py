@@ -40,7 +40,8 @@ router = APIRouter(prefix="/dev", tags=["Dev (testing only)"])
 
 _ENV_FLAG = "DEV_CATCHUP_ENABLED"
 _ENV_BIZ_ID = "DEV_TESTING_BUSINESS_ID"
-_NOISE = 0.12
+_NOISE = 0.14           # base Gaussian σ for normal-variation days
+_SURPRISE_PROB = 0.06   # ~6% of days are surprising (unusually quiet or busy)
 
 # Used only when history is too thin to infer a pattern
 _FALLBACK_BASE: dict[int, int] = {
@@ -137,7 +138,17 @@ def _hour_weights(hours: list[int]) -> list[float]:
 
 
 def _noisy(base: float, rng: random.Random) -> int:
-    return max(1, round(base * (1 + rng.uniform(-_NOISE, _NOISE))))
+    """Realistic noise: bell-curve most days, occasional genuine surprises."""
+    if rng.random() < _SURPRISE_PROB:
+        # Surprise day: genuinely unusual (quiet or very busy)
+        if rng.random() < 0.5:
+            factor = rng.uniform(0.35, 0.60)   # surprisingly quiet
+        else:
+            factor = rng.uniform(1.50, 2.00)   # unusually busy
+    else:
+        # Normal day: Gaussian noise, softly capped to avoid runaway drift
+        factor = max(0.60, min(1.50, rng.gauss(1.0, _NOISE)))
+    return max(1, round(base * factor))
 
 
 def _rand_ts(d: date, hour: int, rng: random.Random) -> datetime:
@@ -331,6 +342,32 @@ def dev_catchup_status(db: Session = Depends(get_db)):
     }
 
 
+# ── Frontend auto-trigger (no admin key — env-var gates only) ────────────────
+
+@router.post("/catchup/auto")
+def dev_catchup_auto(db: Session = Depends(get_db)):
+    """
+    Lightweight catch-up called by the frontend on every app load.
+
+    No admin key required — Gates 1 and 2 (env vars) are sufficient.
+    Returns 403 silently in production where DEV_CATCHUP_ENABLED is absent,
+    so the frontend can fire-and-forget without error handling.
+    """
+    if os.environ.get(_ENV_FLAG, "").strip().lower() != "true":
+        raise HTTPException(403, "Dev catch-up not enabled.")
+    raw = os.environ.get(_ENV_BIZ_ID, "").strip()
+    if not raw:
+        raise HTTPException(403, f"{_ENV_BIZ_ID} not set.")
+    try:
+        biz_id = int(raw)
+    except ValueError:
+        raise HTTPException(403, f"{_ENV_BIZ_ID} must be an integer.")
+    try:
+        return _run_catchup(db, biz_id)
+    except ValueError as exc:
+        raise HTTPException(404, str(exc))
+
+
 # ── Startup auto-trigger ──────────────────────────────────────────────────────
 
 def maybe_catchup_on_startup() -> None:
@@ -340,6 +377,10 @@ def maybe_catchup_on_startup() -> None:
     app has current data the moment it wakes from Render's free-tier sleep.
     """
     if os.environ.get(_ENV_FLAG, "").strip().lower() != "true":
+        return
+    # Don't run against in-memory test databases (conftest.py patches DATABASE_URL
+    # to sqlite:///:memory: before app imports; we must not pollute test data).
+    if ":memory:" in os.environ.get("DATABASE_URL", ""):
         return
     raw = os.environ.get(_ENV_BIZ_ID, "").strip()
     if not raw:
