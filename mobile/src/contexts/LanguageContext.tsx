@@ -10,6 +10,7 @@ interface LanguageContextValue {
   dir: 'ltr' | 'rtl'
   simpleMode: boolean
   setSimpleMode: (v: boolean) => void
+  simpleModeNeverSet: boolean
 }
 
 const STORAGE_KEY = '@ope_language'
@@ -22,18 +23,25 @@ const LanguageContext = createContext<LanguageContextValue>({
   dir: 'ltr',
   simpleMode: false,
   setSimpleMode: () => {},
+  simpleModeNeverSet: false,
 })
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>('en')
   const [simpleMode, setSimpleModeState] = useState(false)
+  const [simpleModeNeverSet, setSimpleModeNeverSet] = useState(false)
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then(saved => {
       if (saved === 'en' || saved === 'he') setLangState(saved)
     }).catch(() => {})
     AsyncStorage.getItem(SIMPLE_MODE_KEY).then(saved => {
-      if (saved === '1') setSimpleModeState(true)
+      if (saved === '1') {
+        setSimpleModeState(true)
+        setSimpleModeNeverSet(false)
+      } else if (saved === null) {
+        setSimpleModeNeverSet(true)  // key not present → user never interacted
+      }
     }).catch(() => {})
   }, [])
 
@@ -42,20 +50,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   function setLang(l: Lang) {
     setLangState(l)
     AsyncStorage.setItem(STORAGE_KEY, l).catch(() => {})
-    // RTL layout support: React Native requires a restart to fully apply, so we
-    // just toggle the flag and let the user know if needed.
     I18nManager.forceRTL(l === 'he')
   }
 
   function setSimpleMode(v: boolean) {
     setSimpleModeState(v)
+    setSimpleModeNeverSet(false)
     AsyncStorage.setItem(SIMPLE_MODE_KEY, v ? '1' : '0').catch(() => {})
   }
 
   const t = makeT(lang, simpleMode)
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t, dir, simpleMode, setSimpleMode }}>
+    <LanguageContext.Provider value={{ lang, setLang, t, dir, simpleMode, setSimpleMode, simpleModeNeverSet }}>
       {children}
     </LanguageContext.Provider>
   )

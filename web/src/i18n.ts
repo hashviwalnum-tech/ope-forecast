@@ -881,6 +881,23 @@ export const translations = {
     simpleModeOff: 'Standard wording',
     simpleModeHint: 'Tip: turn on "Simple language" in Settings if any terms feel confusing.',
 
+    // Staffing marginal-note i18n (structured, replaces backend English prose)
+    marginalNoData: 'Not enough data to compare staffing levels.',
+    marginalShortQueue: 'The queue is already very short — a {nth} person would have little effect.',
+    marginalAddCutsWait: 'Adding a {nth} person cuts the wait from {from} to {to}.',
+    marginalRemoveOverload: '1 fewer person would overload the queue — keep at least {servers}.',
+    marginalRemovePushes: '1 fewer person pushes the wait to {to}.',
+    marginalRemoveOk: 'You could manage with {fewer} — wait only rises to {to}.',
+    marginalWaitLt1: '<1 min',
+    marginalWaitMin: '{n} min',
+    marginalWaitLong: 'a very long time',
+
+    // Simple-language mode suggestion banner (shown once to users who have never set it)
+    simpleModePromptTitle: 'New to forecasting terms?',
+    simpleModePromptDesc: 'Turn on Simple language to swap technical labels for plain everyday words.',
+    simpleModePromptOn: 'Turn on',
+    simpleModePromptDismiss: 'Not now',
+
     // Guided tour — deep steps (added for section-based tour)
     tourSkipSection: 'Skip {section}',
 
@@ -1801,6 +1818,23 @@ export const translations = {
     simpleModeOn: 'שפה פשוטה — פועלת',
     simpleModeOff: 'ניסוח רגיל',
     simpleModeHint: 'טיפ: הפעל "שפה פשוטה" בהגדרות אם מונח כלשהו נשמע מבלבל.',
+
+    // Staffing marginal-note i18n
+    marginalNoData: 'אין מספיק נתונים להשוואת רמות כוח אדם.',
+    marginalShortQueue: 'התור כבר קצר מאוד — עובד {nth} נוסף יהיה בעל השפעה מועטה.',
+    marginalAddCutsWait: 'הוספת עובד {nth} מקצרת את ההמתנה מ-{from} ל-{to}.',
+    marginalRemoveOverload: 'עובד אחד פחות יעמיס את התור — שמור לפחות {servers} עובדים.',
+    marginalRemovePushes: 'עובד אחד פחות דוחף את ההמתנה ל-{to}.',
+    marginalRemoveOk: 'אפשר לנהל עם {fewer} — ההמתנה עולה רק ל-{to}.',
+    marginalWaitLt1: 'פחות מדקה',
+    marginalWaitMin: '{n} דק׳',
+    marginalWaitLong: 'הרבה זמן',
+
+    // Simple-language mode suggestion banner
+    simpleModePromptTitle: 'מונח שלא מוכר לך?',
+    simpleModePromptDesc: 'הפעל שפה פשוטה כדי להחליף מונחים טכניים במילים פשוטות.',
+    simpleModePromptOn: 'הפעל',
+    simpleModePromptDismiss: 'לא עכשיו',
 
     // Guided tour — deep steps
     tourSkipSection: 'דלג על {section}',

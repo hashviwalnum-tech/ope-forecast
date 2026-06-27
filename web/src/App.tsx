@@ -587,6 +587,7 @@ function AppInner() {
         <GuidedTour
           bizId={activeBusiness.id}
           onDone={() => setShowTour(false)}
+          onNavigate={(tab) => setTab(tab as Tab)}
         />
       )}
 

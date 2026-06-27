@@ -196,6 +196,33 @@ def marginal_note(
     return " ".join(parts)
 
 
+def marginal_waits(
+    arrivals_per_hour: float,
+    avg_service_time_minutes: float,
+    servers: int,
+) -> tuple[float | None, float | None]:
+    """Return (wait_if_add, wait_if_remove) for the frontend to format in any language.
+
+    wait_if_add:    expected wait at c+1, or None if no arrival data
+    wait_if_remove: expected wait at c-1, or None if removing would overload or c==1
+    """
+    if arrivals_per_hour <= 0 or avg_service_time_minutes <= 0:
+        return (None, None)
+
+    wait_plus1 = expected_wait_minutes(arrivals_per_hour, avg_service_time_minutes, servers + 1)
+
+    if servers <= 1:
+        return (wait_plus1, None)
+
+    mu = 60.0 / avg_service_time_minutes
+    rho_minus1 = arrivals_per_hour / ((servers - 1) * mu)
+    if rho_minus1 >= 1.0:
+        return (wait_plus1, None)  # removing one person would overload
+
+    wait_minus1 = expected_wait_minutes(arrivals_per_hour, avg_service_time_minutes, servers - 1)
+    return (wait_plus1, wait_minus1)
+
+
 def min_servers_for_wait_threshold(
     arrivals_per_hour: float,
     avg_service_time_minutes: float,

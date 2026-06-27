@@ -321,6 +321,23 @@ export const translations = {
     tourReplayDesc: 'See the guided walkthrough of Ope again from the beginning.',
     tourReplayBtn: 'Replay tour',
 
+    // Staffing marginal-note i18n
+    marginalNoData: 'Not enough data to compare staffing levels.',
+    marginalShortQueue: 'The queue is already very short — a {nth} person would have little effect.',
+    marginalAddCutsWait: 'Adding a {nth} person cuts the wait from {from} to {to}.',
+    marginalRemoveOverload: '1 fewer person would overload the queue — keep at least {servers}.',
+    marginalRemovePushes: '1 fewer person pushes the wait to {to}.',
+    marginalRemoveOk: 'You could manage with {fewer} — wait only rises to {to}.',
+    marginalWaitLt1: '<1 min',
+    marginalWaitMin: '{n} min',
+    marginalWaitLong: 'a very long time',
+
+    // Simple-language mode suggestion banner
+    simpleModePromptTitle: 'New to forecasting terms?',
+    simpleModePromptDesc: 'Turn on Simple language to swap technical labels for plain words.',
+    simpleModePromptOn: 'Turn on',
+    simpleModePromptDismiss: 'Not now',
+
     // Guided tour — deep steps (section-based tour)
     tourSkipSection: 'Skip {section}',
 
@@ -691,6 +708,23 @@ export const translations = {
     tourReplayLabel: 'סיור מודרך',
     tourReplayDesc: 'ראה שוב את הסיור המודרך של Ope מההתחלה.',
     tourReplayBtn: 'שחזר סיור',
+
+    // Staffing marginal-note i18n
+    marginalNoData: 'אין מספיק נתונים להשוואת רמות כוח אדם.',
+    marginalShortQueue: 'התור כבר קצר מאוד — עובד {nth} נוסף יהיה בעל השפעה מועטה.',
+    marginalAddCutsWait: 'הוספת עובד {nth} מקצרת את ההמתנה מ-{from} ל-{to}.',
+    marginalRemoveOverload: 'עובד אחד פחות יעמיס את התור — שמור לפחות {servers} עובדים.',
+    marginalRemovePushes: 'עובד אחד פחות דוחף את ההמתנה ל-{to}.',
+    marginalRemoveOk: 'אפשר לנהל עם {fewer} — ההמתנה עולה רק ל-{to}.',
+    marginalWaitLt1: 'פחות מדקה',
+    marginalWaitMin: '{n} דק׳',
+    marginalWaitLong: 'הרבה זמן',
+
+    // Simple-language mode suggestion banner
+    simpleModePromptTitle: 'מונח שלא מוכר לך?',
+    simpleModePromptDesc: 'הפעל שפה פשוטה כדי להחליף מונחים טכניים במילים פשוטות.',
+    simpleModePromptOn: 'הפעל',
+    simpleModePromptDismiss: 'לא עכשיו',
 
     // Guided tour — deep steps
     tourSkipSection: 'דלג על {section}',

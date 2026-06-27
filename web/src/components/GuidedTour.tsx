@@ -5,9 +5,10 @@ import type { Lang, TranslationKey } from '../i18n'
 // ── Section / step structure ────────────────────────────────────────────────
 
 interface TourStep {
-  titleKey: TranslationKey
-  bodyKey:  TranslationKey
-  target?:  string
+  titleKey:   TranslationKey
+  bodyKey:    TranslationKey
+  target?:    string
+  navigateTo?: string  // tab id to navigate to when this step is shown
 }
 
 interface TourSection {
@@ -20,60 +21,60 @@ const SECTIONS: TourSection[] = [
   {
     nameKey: null,
     steps: [
-      { titleKey: 'tourWelcomeTitle', bodyKey: 'tourWelcomeBody' },
+      { titleKey: 'tourWelcomeTitle', bodyKey: 'tourWelcomeBody', navigateTo: 'home' },
     ],
   },
   {
     nameKey: 'home',
     steps: [
-      { titleKey: 'tourQuickActionsTitle', bodyKey: 'tourQuickActionsBody', target: '[data-tour="quick-actions"]' },
-      { titleKey: 'tourForecastTitle',     bodyKey: 'tourForecastBody',     target: '[data-tour="forecast-chart"]' },
-      { titleKey: 'tourBusyHoursTitle',    bodyKey: 'tourBusyHoursBody',    target: '[data-tour="busy-hours"]' },
+      { titleKey: 'tourQuickActionsTitle', bodyKey: 'tourQuickActionsBody', navigateTo: 'home', target: '[data-tour="quick-actions"]' },
+      { titleKey: 'tourForecastTitle',     bodyKey: 'tourForecastBody',     navigateTo: 'home', target: '[data-tour="forecast-chart"]' },
+      { titleKey: 'tourBusyHoursTitle',    bodyKey: 'tourBusyHoursBody',    navigateTo: 'home', target: '[data-tour="busy-hours"]' },
     ],
   },
   {
     nameKey: 'predictions',
     steps: [
-      { titleKey: 'tourPredictionsTitle',  bodyKey: 'tourPredictionsBody',  target: '[data-tour="nav-predictions"]' },
-      { titleKey: 'tourPredWeekTitle',     bodyKey: 'tourPredWeekBody' },
-      { titleKey: 'tourPredOrderingTitle', bodyKey: 'tourPredOrderingBody' },
+      { titleKey: 'tourPredictionsTitle',  bodyKey: 'tourPredictionsBody',  navigateTo: 'predictions_home', target: '[data-tour="nav-predictions"]' },
+      { titleKey: 'tourPredWeekTitle',     bodyKey: 'tourPredWeekBody',     navigateTo: 'predictions_home' },
+      { titleKey: 'tourPredOrderingTitle', bodyKey: 'tourPredOrderingBody', navigateTo: 'predictions_home' },
     ],
   },
   {
     nameKey: 'insightsNavLabel',
     steps: [
-      { titleKey: 'tourInsightsTitle',           bodyKey: 'tourInsightsBody',           target: '[data-tour="nav-insights"]' },
-      { titleKey: 'tourInsightsDayPatternsTitle', bodyKey: 'tourInsightsDayPatternsBody' },
-      { titleKey: 'tourInsightsHoursTitle',       bodyKey: 'tourInsightsHoursBody' },
-      { titleKey: 'tourInsightsYoYTitle',         bodyKey: 'tourInsightsYoYBody' },
-      { titleKey: 'tourInsightsAccuracyTitle',    bodyKey: 'tourInsightsAccuracyBody' },
-      { titleKey: 'tourInsightsTrendsTitle',      bodyKey: 'tourInsightsTrendsBody' },
+      { titleKey: 'tourInsightsTitle',           bodyKey: 'tourInsightsBody',           navigateTo: 'insights', target: '[data-tour="nav-insights"]' },
+      { titleKey: 'tourInsightsDayPatternsTitle', bodyKey: 'tourInsightsDayPatternsBody', navigateTo: 'insights' },
+      { titleKey: 'tourInsightsHoursTitle',       bodyKey: 'tourInsightsHoursBody',       navigateTo: 'insights' },
+      { titleKey: 'tourInsightsYoYTitle',         bodyKey: 'tourInsightsYoYBody',         navigateTo: 'insights' },
+      { titleKey: 'tourInsightsAccuracyTitle',    bodyKey: 'tourInsightsAccuracyBody',    navigateTo: 'insights' },
+      { titleKey: 'tourInsightsTrendsTitle',      bodyKey: 'tourInsightsTrendsBody',      navigateTo: 'insights' },
     ],
   },
   {
     nameKey: 'history',
     steps: [
-      { titleKey: 'tourHistoryTitle',    bodyKey: 'tourHistoryBody',    target: '[data-tour="nav-history"]' },
-      { titleKey: 'tourHistAddDayTitle', bodyKey: 'tourHistAddDayBody' },
-      { titleKey: 'tourHistTrendsTitle', bodyKey: 'tourHistTrendsBody' },
-      { titleKey: 'tourHistImportTitle', bodyKey: 'tourHistImportBody' },
+      { titleKey: 'tourHistoryTitle',    bodyKey: 'tourHistoryBody',    navigateTo: 'history',  target: '[data-tour="nav-history"]' },
+      { titleKey: 'tourHistAddDayTitle', bodyKey: 'tourHistAddDayBody', navigateTo: 'backfill' },
+      { titleKey: 'tourHistTrendsTitle', bodyKey: 'tourHistTrendsBody', navigateTo: 'trends' },
+      { titleKey: 'tourHistImportTitle', bodyKey: 'tourHistImportBody', navigateTo: 'import' },
     ],
   },
   {
     nameKey: 'manage',
     steps: [
-      { titleKey: 'tourManageTitle',           bodyKey: 'tourManageBody',           target: '[data-tour="nav-manage"]' },
-      { titleKey: 'tourManageProductsTitle',   bodyKey: 'tourManageProductsBody' },
-      { titleKey: 'tourManageRegularsTitle',   bodyKey: 'tourManageRegularsBody' },
-      { titleKey: 'tourManageRecurringTitle',  bodyKey: 'tourManageRecurringBody' },
-      { titleKey: 'tourManageEventsTitle',     bodyKey: 'tourManageEventsBody' },
-      { titleKey: 'tourManageSimpleLangTitle', bodyKey: 'tourManageSimpleLangBody' },
+      { titleKey: 'tourManageTitle',           bodyKey: 'tourManageBody',           navigateTo: 'products',   target: '[data-tour="nav-manage"]' },
+      { titleKey: 'tourManageProductsTitle',   bodyKey: 'tourManageProductsBody',   navigateTo: 'products' },
+      { titleKey: 'tourManageRegularsTitle',   bodyKey: 'tourManageRegularsBody',   navigateTo: 'regulars' },
+      { titleKey: 'tourManageRecurringTitle',  bodyKey: 'tourManageRecurringBody',  navigateTo: 'recurring' },
+      { titleKey: 'tourManageEventsTitle',     bodyKey: 'tourManageEventsBody',     navigateTo: 'events' },
+      { titleKey: 'tourManageSimpleLangTitle', bodyKey: 'tourManageSimpleLangBody', navigateTo: 'settings' },
     ],
   },
   {
     nameKey: null,
     steps: [
-      { titleKey: 'tourDoneTitle', bodyKey: 'tourDoneBody' },
+      { titleKey: 'tourDoneTitle', bodyKey: 'tourDoneBody', navigateTo: 'home' },
     ],
   },
 ]
@@ -84,8 +85,9 @@ const PADDING = 10
 const POP_W   = 340
 
 interface Props {
-  bizId:  number
-  onDone: () => void
+  bizId:      number
+  onDone:     () => void
+  onNavigate?: (tab: string) => void
 }
 
 export function isTourDone(bizId: number): boolean {
@@ -98,7 +100,7 @@ export function clearTourDone(bizId: number): void {
 
 // ── Component ───────────────────────────────────────────────────────────────
 
-export default function GuidedTour({ bizId, onDone }: Props) {
+export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
   const { t, lang, setLang, dir } = useLanguage()
 
   const [sectionIdx, setSectionIdx] = useState(0)
@@ -133,14 +135,16 @@ export default function GuidedTour({ bizId, onDone }: Props) {
   }, [step.target])
 
   useEffect(() => {
+    // Navigate to the relevant app screen first, then find the target element
+    if (step.navigateTo) onNavigate?.(step.navigateTo)
     const id = setTimeout(() => {
       calcRect()
       if (step.target) {
         document.querySelector(step.target)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       }
-    }, 80)
+    }, 120)  // slightly longer to let React re-render after tab change
     return () => clearTimeout(id)
-  }, [sectionIdx, stepIdx, calcRect, step.target])
+  }, [sectionIdx, stepIdx, calcRect, step.target, step.navigateTo, onNavigate])
 
   useEffect(() => {
     const handle = () => { calcRect(); setTick(n => n + 1) }

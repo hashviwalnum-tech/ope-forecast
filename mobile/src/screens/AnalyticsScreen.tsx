@@ -22,8 +22,52 @@ import type {
 import { useBusiness } from '../contexts/BusinessContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import type { TranslationKey } from '../lib/i18n'
 import type { Theme } from '../lib/theme'
 import AppHeader from '../components/AppHeader'
+
+// ── staffing marginal-note i18n helper ───────────────────────────────────────
+
+type TFn = (key: TranslationKey, vars?: Record<string, string | number>) => string
+
+function fmtMarginalWait(w: number, t: TFn): string {
+  if (w >= 999) return t('marginalWaitLong')
+  if (w < 0.5)  return t('marginalWaitLt1')
+  return t('marginalWaitMin', { n: Math.round(w) })
+}
+
+function fmtOrdinal(n: number, lang: string): string {
+  if (lang === 'he') return String(n)
+  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`
+  const rem = n % 10
+  return `${n}${rem === 1 ? 'st' : rem === 2 ? 'nd' : rem === 3 ? 'rd' : 'th'}`
+}
+
+function formatMarginalNote(
+  slot: { recommended_staff: number; expected_wait_minutes: number; wait_if_add?: number | null; wait_if_remove?: number | null },
+  t: TFn,
+  lang: string,
+): string | null {
+  const { recommended_staff: c, expected_wait_minutes: waitC, wait_if_add: wAdd, wait_if_remove: wRemove } = slot
+  if (wAdd === undefined || wAdd === null) return null
+  const nth = fmtOrdinal(c + 1, lang)
+  const parts: string[] = []
+  if (waitC < 0.5) {
+    parts.push(t('marginalShortQueue', { nth }))
+  } else {
+    parts.push(t('marginalAddCutsWait', { nth, from: fmtMarginalWait(waitC, t), to: fmtMarginalWait(wAdd, t) }))
+  }
+  if (c > 1) {
+    if (wRemove === null || wRemove === undefined) {
+      parts.push(t('marginalRemoveOverload', { servers: c }))
+    } else if (wRemove >= waitC * 2 || wRemove > 5) {
+      parts.push(t('marginalRemovePushes', { to: fmtMarginalWait(wRemove, t) }))
+    } else {
+      parts.push(t('marginalRemoveOk', { fewer: c - 1, to: fmtMarginalWait(wRemove, t) }))
+    }
+  }
+  return parts.join(' ') || null
+}
 
 function fmt12(hour: number): string {
   if (hour === 0) return '12am'
@@ -44,7 +88,7 @@ const MONTH_NAMES = [
 export default function AnalyticsScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [insights, setInsights] = useState<InsightsResponse | null>(null)
@@ -242,8 +286,8 @@ export default function AnalyticsScreen() {
                       ` · ${Math.round(h.expected_wait_minutes)}${t('staffingWait')}`}
                   </Text>
                 </View>
-                {h.marginal_note ? (
-                  <Text style={styles.marginalNote}>{h.marginal_note}</Text>
+                {(formatMarginalNote(h, t, lang) ?? h.marginal_note) ? (
+                  <Text style={styles.marginalNote}>{formatMarginalNote(h, t, lang) ?? h.marginal_note}</Text>
                 ) : null}
               </View>
             ))}

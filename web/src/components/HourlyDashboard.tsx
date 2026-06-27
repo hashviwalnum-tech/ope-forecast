@@ -15,6 +15,47 @@ import type { WeekdayHourlyEntry, WeekdayHourlyResponse, WeekdayHourlySlot } fro
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
+type TFn = ReturnType<typeof useLanguage>['t']
+
+function fmtMarginalWait(w: number, t: TFn): string {
+  if (w >= 999) return t('marginalWaitLong')
+  if (w < 0.5)  return t('marginalWaitLt1')
+  return t('marginalWaitMin', { n: String(Math.round(w)) })
+}
+
+function fmtOrdinal(n: number, lang: string): string {
+  if (lang === 'he') return String(n)
+  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`
+  const rem = n % 10
+  return `${n}${rem === 1 ? 'st' : rem === 2 ? 'nd' : rem === 3 ? 'rd' : 'th'}`
+}
+
+function formatMarginalNote(
+  slot: { recommended_staff: number; expected_wait_minutes: number; wait_if_add?: number | null; wait_if_remove?: number | null },
+  t: TFn,
+  lang: string,
+): string | null {
+  const { recommended_staff: c, expected_wait_minutes: waitC, wait_if_add: wAdd, wait_if_remove: wRemove } = slot
+  if (wAdd === undefined || wAdd === null) return null  // old backend — fall back to nothing
+  const nth = fmtOrdinal(c + 1, lang)
+  const parts: string[] = []
+  if (waitC < 0.5) {
+    parts.push(t('marginalShortQueue', { nth }))
+  } else {
+    parts.push(t('marginalAddCutsWait', { nth, from: fmtMarginalWait(waitC, t), to: fmtMarginalWait(wAdd, t) }))
+  }
+  if (c > 1) {
+    if (wRemove === null || wRemove === undefined) {
+      parts.push(t('marginalRemoveOverload', { servers: String(c) }))
+    } else if (wRemove >= waitC * 2 || wRemove > 5) {
+      parts.push(t('marginalRemovePushes', { to: fmtMarginalWait(wRemove, t) }))
+    } else {
+      parts.push(t('marginalRemoveOk', { fewer: String(c - 1), to: fmtMarginalWait(wRemove, t) }))
+    }
+  }
+  return parts.join(' ') || null
+}
+
 function fmtHour(h: number, lang?: string): string {
   const h24 = ((h % 24) + 24) % 24
   // Hebrew uses 24h format; English uses 12h with am/pm
@@ -108,6 +149,7 @@ function TomorrowPanel({
   isFallback: boolean
 }) {
   const { t, lang } = useLanguage()
+  const fmtNote = (slot: WeekdayHourlySlot) => formatMarginalNote(slot, t, lang)
   const { isDark } = useTheme()
   const busiest = [...slots].sort((a, b) => b.avg_taps - a.avg_taps)[0]
   const chartData = slots.map(h => ({
@@ -214,10 +256,10 @@ function TomorrowPanel({
                     </span>
                   </div>
                 </div>
-                {h.marginal_note && (
+                {(fmtNote(h) ?? h.marginal_note) && (
                   <p className="text-xs text-slate-500 dark:text-slate-400 italic pt-0.5 border-t border-slate-100 dark:border-slate-600 mt-0.5">
                     <span className="font-medium not-italic">{t('marginalNoteLabel')}</span>{' '}
-                    {h.marginal_note}
+                    {fmtNote(h) ?? h.marginal_note}
                   </p>
                 )}
               </div>
@@ -233,6 +275,7 @@ function TomorrowPanel({
 
 function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
   const { t, lang } = useLanguage()
+  const fmtNote = (slot: WeekdayHourlySlot) => formatMarginalNote(slot, t, lang)
   const [open, setOpen] = useState<number | null>(null)
   const tomorrowIdx = tomorrowPyWeekday()
 
@@ -301,9 +344,9 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                             ~{Math.round(h.avg_taps)}/hr · {h.recommended_staff} {hStaffWord}
                           </span>
                         </div>
-                        {h.marginal_note && (
+                        {(fmtNote(h) ?? h.marginal_note) && (
                           <p className="text-xs text-slate-400 dark:text-slate-500 italic">
-                            {h.marginal_note}
+                            {fmtNote(h) ?? h.marginal_note}
                           </p>
                         )}
                       </div>

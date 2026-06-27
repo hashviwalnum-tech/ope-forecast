@@ -8,6 +8,7 @@ interface LanguageContextValue {
   dir: 'ltr' | 'rtl'
   simpleMode: boolean
   setSimpleMode: (v: boolean) => void
+  simpleModeNeverSet: boolean  // true when user has never interacted with the toggle
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null)
@@ -33,6 +34,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   })
 
+  // True when the user has never explicitly touched the simple-mode toggle
+  const [simpleModeNeverSet, setSimpleModeNeverSet] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(SIMPLE_MODE_KEY) === null
+    } catch {
+      return false
+    }
+  })
+
   const dir = lang === 'he' ? 'rtl' : 'ltr'
 
   useEffect(() => {
@@ -47,6 +57,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   function setSimpleMode(v: boolean) {
     setSimpleModeState(v)
+    setSimpleModeNeverSet(false)
     try { localStorage.setItem(SIMPLE_MODE_KEY, v ? '1' : '0') } catch { /* ignore */ }
   }
 
@@ -76,7 +87,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t, dir, simpleMode, setSimpleMode }}>
+    <LanguageContext.Provider value={{ lang, setLang, t, dir, simpleMode, setSimpleMode, simpleModeNeverSet }}>
       {children}
     </LanguageContext.Provider>
   )

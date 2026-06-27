@@ -29,7 +29,7 @@ const tapKey = (productId: number | null) =>
 export default function LogScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
-  const { t } = useLanguage()
+  const { t, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
   const navigation = useNavigation()
   const { width: screenWidth } = useWindowDimensions()
   const productBtnWidth = Math.floor((screenWidth - 32 - 10) / 2)
@@ -235,6 +235,31 @@ export default function LogScreen() {
         contentContainerStyle={styles.bodyContent}
         keyboardShouldPersistTaps="handled"
       >
+        {/* ── Simple language suggestion (shown once, non-blocking) ── */}
+        {simpleModeNeverSet && !simpleMode && (
+          <View style={[simpleBannerStyles.wrap, { backgroundColor: c.card, borderColor: c.border }]}>
+            <View style={simpleBannerStyles.text}>
+              <Text style={[simpleBannerStyles.title, { color: c.text }]}>{t('simpleModePromptTitle')}</Text>
+              <Text style={[simpleBannerStyles.desc, { color: c.textMuted }]}>{t('simpleModePromptDesc')}</Text>
+            </View>
+            <View style={simpleBannerStyles.btns}>
+              <TouchableOpacity
+                onPress={() => setSimpleMode(true)}
+                style={[simpleBannerStyles.onBtn, { backgroundColor: c.primary }]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={[simpleBannerStyles.onBtnText, { color: c.onPrimary }]}>{t('simpleModePromptOn')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setSimpleMode(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={[simpleBannerStyles.dismiss, { color: c.textMuted }]}>{t('simpleModePromptDismiss')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* ── Tap error banner ── */}
         {tapError !== null && (
           <TouchableOpacity
@@ -485,6 +510,17 @@ export default function LogScreen() {
     </SafeAreaView>
   )
 }
+
+const simpleBannerStyles = StyleSheet.create({
+  wrap: { borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 12, gap: 10 },
+  text: { gap: 3 },
+  title: { fontSize: 13, fontWeight: '700' },
+  desc: { fontSize: 12, lineHeight: 17 },
+  btns: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  onBtn: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
+  onBtnText: { fontSize: 12, fontWeight: '700' },
+  dismiss: { fontSize: 12 },
+})
 
 function makeStyles(c: Theme) {
   return StyleSheet.create({

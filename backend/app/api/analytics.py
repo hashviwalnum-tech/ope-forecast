@@ -49,6 +49,7 @@ from app.engine.queueing import (
     effective_service_time,
     expected_wait_minutes,
     marginal_note,
+    marginal_waits,
     min_servers,
     min_servers_for_queue_threshold,
     min_servers_for_wait_threshold,
@@ -1281,6 +1282,7 @@ def get_hourly_analytics(
         staff = _recommended_staff(avg_taps_raw, eff_svc, settings)
         time_range = _fmt_hour_range(hour)
         word = "person" if staff == 1 else "people"
+        _wa, _wr = marginal_waits(avg_taps_raw, eff_svc, staff)
         hours.append(HourlySlotAvg(
             hour=hour,
             avg_taps=avg_taps_int,
@@ -1290,6 +1292,8 @@ def get_hourly_analytics(
             expected_wait_minutes=round(expected_wait_minutes(avg_taps_raw, eff_svc, staff), 1),
             queue_length=round(queue_length(avg_taps_raw, eff_svc, staff), 2),
             marginal_note=marginal_note(avg_taps_raw, eff_svc, staff),
+            wait_if_add=round(_wa, 1) if _wa is not None else None,
+            wait_if_remove=round(_wr, 1) if _wr is not None else None,
         ))
 
     return HourlyAnalyticsResponse(
@@ -1718,6 +1722,7 @@ def get_hourly_by_weekday(
             pairs = [(qty, svc_by_pid.get(pid)) for pid, qty in hour_mix.items()]
             eff_svc = effective_service_time(pairs, avg_svc) if pairs else avg_svc
             staff = _recommended_staff(avg_taps_raw, eff_svc, settings)
+            _wa, _wr = marginal_waits(avg_taps_raw, eff_svc, staff)
             slots.append(WeekdayHourlySlot(
                 hour=hour,
                 avg_taps=avg_taps_int,
@@ -1725,6 +1730,8 @@ def get_hourly_by_weekday(
                 label=_fmt_hour_range(hour),
                 expected_wait_minutes=round(expected_wait_minutes(avg_taps_raw, eff_svc, staff), 1),
                 marginal_note=marginal_note(avg_taps_raw, eff_svc, staff),
+                wait_if_add=round(_wa, 1) if _wa is not None else None,
+                wait_if_remove=round(_wr, 1) if _wr is not None else None,
             ))
         return slots
 

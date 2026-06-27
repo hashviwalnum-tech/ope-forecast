@@ -175,6 +175,8 @@ export interface HourlySlotAvg {
   expected_wait_minutes: number
   queue_length: number
   marginal_note: string
+  wait_if_add: number | null
+  wait_if_remove: number | null
 }
 
 export interface HourlyAnalyticsResponse {
@@ -192,6 +194,8 @@ export interface WeekdayHourlySlot {
   label: string
   expected_wait_minutes: number
   marginal_note?: string
+  wait_if_add?: number | null
+  wait_if_remove?: number | null
 }
 
 export interface WeekdayHourlyEntry {

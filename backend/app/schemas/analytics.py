@@ -147,7 +147,9 @@ class HourlySlotAvg(BaseModel):
     label: str              # plain-language: "For 9–10 am, schedule 2 people"
     expected_wait_minutes: float   # average queue wait at recommended staffing
     queue_length: float            # average customers waiting at recommended staffing
-    marginal_note: str             # what adding/removing 1 worker does
+    marginal_note: str             # what adding/removing 1 worker does (English prose)
+    wait_if_add: Optional[float] = None    # wait at c+1 (for frontend i18n formatting)
+    wait_if_remove: Optional[float] = None # wait at c-1; None = overload or c==1
 
 
 class HourlyAnalyticsResponse(BaseModel):
@@ -309,7 +311,9 @@ class WeekdayHourlySlot(BaseModel):
     recommended_staff: int
     label: str                 # formatted range: "5–6 pm"
     expected_wait_minutes: float
-    marginal_note: str = ""    # what adding/removing 1 worker does
+    marginal_note: str = ""    # what adding/removing 1 worker does (English prose)
+    wait_if_add: Optional[float] = None    # wait at c+1 (for frontend i18n formatting)
+    wait_if_remove: Optional[float] = None # wait at c-1; None = overload or c==1
 
 
 class WeekdayHourlyEntry(BaseModel):
