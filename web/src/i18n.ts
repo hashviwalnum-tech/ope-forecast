@@ -873,6 +873,13 @@ export const translations = {
     // Regulars — first visit date
     firstVisitDateLabel: 'First visit date',
     firstVisitDateDesc: 'When did they first visit? Auto-set on their first recorded visit if left blank.',
+
+    // Simple language mode toggle
+    simpleModeLabel: 'Simple language',
+    simpleModeDesc: 'Replaces technical terms (forecasting model names, stock jargon) with plain everyday words. Great if any label feels unfamiliar.',
+    simpleModeOn: 'Simple language — on',
+    simpleModeOff: 'Standard wording',
+    simpleModeHint: 'Tip: turn on "Simple language" in Settings if any terms feel confusing.',
   },
   he: {
     // Nav
@@ -1746,7 +1753,55 @@ export const translations = {
     // Regulars — first visit date
     firstVisitDateLabel: 'תאריך ביקור ראשון',
     firstVisitDateDesc: 'מתי ביקרו בפעם הראשונה? מוגדר אוטומטית בביקור הראשון שנרשם אם נשאר ריק.',
+
+    // Simple language mode toggle
+    simpleModeLabel: 'שפה פשוטה',
+    simpleModeDesc: 'מחליף מונחים טכניים (שמות מודלי תחזית, ז׳רגון מלאי) במילים יומיומיות. מומלץ אם מילה כלשהי נשמעת לא מוכרת.',
+    simpleModeOn: 'שפה פשוטה — פועלת',
+    simpleModeOff: 'ניסוח רגיל',
+    simpleModeHint: 'טיפ: הפעל "שפה פשוטה" בהגדרות אם מונח כלשהו נשמע מבלבל.',
   },
 } as const satisfies Record<Lang, Record<string, string>>
+
+// Partial overrides applied when simpleMode is on. Only genuinely technical/jargon strings
+// get a simpler variant here — clear text like Save, Next, etc. is left alone.
+export const simpleTranslations: Record<Lang, Partial<Record<TranslationKey, string>>> = {
+  en: {
+    // Forecast model names (abbreviations / statistics jargon)
+    modelNameWma:          'recent weeks',
+    modelNameExpSmooth:    'gradual blend',
+    modelNameSeasonal:     'day-of-week',
+    modelNameLinearTrend:  'going up/down',
+    // Accuracy stats
+    averageError:    'Typical miss',
+    driftCheck:      'On track?',
+    driftNote:       '±4 or more means the forecast may be drifting off',
+    predMixNote:     'We use several forecasting methods and lean on whichever has been most accurate recently. Hover over a bar to see the expected range.',
+    // Ordering jargon
+    orderingNoteText:         'Tells you when to order, based on how long delivery takes and how much your sales vary.',
+    minimisesOrderingHolding: 'saves money over time',
+    reorderPointForecastNote: 'The "order more" trigger uses your demand forecast, not just the average.',
+    projectedStockLabel:      'Estimated stock right now',
+    likelyRange:              'Usually between',
+  },
+  he: {
+    // Forecast model names
+    modelNameWma:         'שבועות אחרונים',
+    modelNameExpSmooth:   'תמהיל הדרגתי',
+    modelNameSeasonal:    'יומי',
+    modelNameLinearTrend: 'כיוון',
+    // Accuracy stats
+    averageError:  'סטייה אופיינית',
+    driftCheck:    'על המסלול?',
+    driftNote:     '±4 ומעלה — התחזית אולי יוצאת ממסלול',
+    predMixNote:   'אנו משתמשים במספר שיטות תחזית ומסתמכים על זו שהייתה מדויקת ביותר לאחרונה. רחף על עמודה לראיית הטווח הצפוי.',
+    // Ordering jargon
+    orderingNoteText:         'מגלה לך מתי להזמין, לפי זמן האספקה שלך ועד כמה המכירות שלך משתנות.',
+    minimisesOrderingHolding: 'חוסך כסף לאורך זמן',
+    reorderPointForecastNote: 'הטריגר ל"הזמן עוד" משתמש בתחזית הביקוש שלך, לא רק בממוצע.',
+    projectedStockLabel:      'מלאי מוערך כרגע',
+    likelyRange:              'בדרך כלל בין',
+  },
+}
 
 export type TranslationKey = keyof (typeof translations)['en']

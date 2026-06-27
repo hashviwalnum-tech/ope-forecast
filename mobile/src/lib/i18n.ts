@@ -321,6 +321,12 @@ export const translations = {
     tourReplayDesc: 'See the guided walkthrough of Ope again from the beginning.',
     tourReplayBtn: 'Replay tour',
 
+    // Simple language mode
+    simpleModeLabel: 'Simple language',
+    simpleModeDesc: 'Replaces technical terms (MAPE, MAD, FIFO, CLV…) with plain everyday words.',
+    simpleModeOn: 'Simple language — on',
+    simpleModeOff: 'Standard wording',
+
     // Feedback modal
     feedback: 'Send Feedback',
     feedbackDesc: 'Got a question or idea? Tap to send us a message.',
@@ -655,6 +661,12 @@ export const translations = {
     tourReplayDesc: 'ראה שוב את הסיור המודרך של Ope מההתחלה.',
     tourReplayBtn: 'שחזר סיור',
 
+    // Simple language mode
+    simpleModeLabel: 'שפה פשוטה',
+    simpleModeDesc: 'מחליף מונחים טכניים (MAPE, MAD, FIFO, CLV…) במילים יומיומיות.',
+    simpleModeOn: 'שפה פשוטה — פועלת',
+    simpleModeOff: 'ניסוח רגיל',
+
     // Feedback modal
     feedback: 'שלח משוב',
     feedbackDesc: 'שאלה, רעיון, או בעיה? הקש כדי לשלוח לנו הודעה.',
@@ -675,11 +687,36 @@ export const translations = {
 
 export type TranslationKey = keyof typeof translations.en
 
-export function makeT(lang: Lang) {
+// Partial overrides applied when simpleMode is on.
+export const simpleTranslations: Record<Lang, Partial<Record<TranslationKey, string>>> = {
+  en: {
+    // Analytics metric abbreviations
+    metricMape:    'miss %',
+    metricMad:     'avg miss',
+    metricTracking: 'On track?',
+    biasSignal:    'drift (±4 = off-track)',
+    // Stock jargon
+    fifoAssumptionNote: 'We sell the oldest stock first',
+    clvLabel:           'Customer value: {currency}{clv}',
+  },
+  he: {
+    metricMape:    'אחוז שגיאה',
+    metricMad:     'סטייה ממוצעת',
+    metricTracking: 'על המסלול?',
+    biasSignal:    'סטייה (±4 = מחוץ למסלול)',
+    fifoAssumptionNote: 'מניחים שהמלאי הישן נמכר ראשון',
+    clvLabel:           'ערך לקוח: ₪{clv}',
+  },
+}
+
+export function makeT(lang: Lang, simpleMode = false) {
   return function t(key: TranslationKey, vars?: Record<string, string | number>): string {
+    const simpleMap = simpleMode ? (simpleTranslations[lang] as Record<string, string>) : {}
+    const simpleEnMap = simpleMode ? (simpleTranslations['en'] as Record<string, string>) : {}
     const map = translations[lang] as Record<string, string>
     const enMap = translations['en'] as Record<string, string>
-    let str = map[key] ?? enMap[key] ?? key
+    const override = simpleMap[key] ?? simpleEnMap[key]
+    let str = override !== undefined ? override : (map[key] ?? enMap[key] ?? key)
     if (vars) {
       for (const [k, v] of Object.entries(vars)) {
         str = str.replace(`{${k}}`, String(v))

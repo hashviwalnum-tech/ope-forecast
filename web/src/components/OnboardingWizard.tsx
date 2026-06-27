@@ -236,11 +236,15 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
             {t('onboardingStepLogDesc')}
           </p>
 
-          <div className="bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800 rounded-xl p-4 mb-6">
+          <div className="bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800 rounded-xl p-4 mb-3">
             <p className="text-sm text-teal-700 dark:text-teal-300 leading-relaxed">
               💡 {t('onboardingForecastNote')}
             </p>
           </div>
+
+          <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed mb-6">
+            {t('simpleModeHint')}
+          </p>
 
           <div className="flex items-center justify-between">
             <button

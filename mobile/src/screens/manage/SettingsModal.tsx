@@ -36,7 +36,7 @@ function parseSetting<T>(v: unknown, fallback: T): T {
 export default function SettingsModal({ business, onClose, onSaved, onReplayTour }: Props) {
   const c = useTheme()
   const { preference, setPreference } = useAppTheme()
-  const { lang, setLang, t } = useLanguage()
+  const { lang, setLang, t, simpleMode, setSimpleMode } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const s = business.settings
@@ -203,6 +203,20 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
                   </Text>
                 </TouchableOpacity>
               ))}
+            </View>
+
+            {/* ── Simple language ── */}
+            <View style={[styles.toggleRow, { backgroundColor: c.card, borderColor: c.border, marginTop: 8 }]}>
+              <View style={styles.toggleText}>
+                <Text style={[styles.toggleLabel, { color: c.text }]}>{t('simpleModeLabel')}</Text>
+                <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('simpleModeDesc')}</Text>
+              </View>
+              <Switch
+                value={simpleMode}
+                onValueChange={setSimpleMode}
+                trackColor={{ false: c.border, true: c.primary }}
+                thumbColor={c.onPrimary}
+              />
             </View>
 
             {/* ── Appearance / Dark mode ── */}
