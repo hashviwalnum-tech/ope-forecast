@@ -253,10 +253,14 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
       case 'ordering':
         return <OrderingPanel key="ordering" refreshKey={refreshKey} />
       case 'forecast':
-        return <MergedForecastPanel key="forecast" refreshKey={refreshKey} />
+        return (
+          <div key="forecast" data-tour="forecast-chart">
+            <MergedForecastPanel refreshKey={refreshKey} />
+          </div>
+        )
       case 'hours':
         return (
-          <section key="hours">
+          <section key="hours" data-tour="busy-hours">
             <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
               {t('cardHours')}
             </h2>
@@ -367,7 +371,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
       )}
 
       {/* ① Quick actions */}
-      <section>
+      <section data-tour="quick-actions">
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => { setShowSell(s => !s); setShowLog(false); setShowRegular(false) }}

@@ -7,13 +7,14 @@ import FeedbackPanel from './FeedbackPanel'
 
 interface Props {
   onTierChanged?: () => void
+  onReplayTour?: () => void
 }
 
 function dayKey(i: number): string {
   return ['dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat', 'daySun'][i]
 }
 
-export default function BusinessSettings({ onTierChanged }: Props) {
+export default function BusinessSettings({ onTierChanged, onReplayTour }: Props) {
   const { t } = useLanguage()
   const [openDays,        setOpenDays]        = useState<number[]>([0,1,2,3,4,5,6])
   const [openingHour,     setOpeningHour]     = useState<number>(9)
@@ -452,6 +453,23 @@ export default function BusinessSettings({ onTierChanged }: Props) {
 
       {/* ── Feedback ─────────────────────────────────────────────────── */}
       <FeedbackPanel />
+
+      {/* ── Guided tour ─────────────────────────────────────────────── */}
+      {onReplayTour && (
+        <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('tourReplayLabel')}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{t('tourReplayDesc')}</p>
+          <button
+            type="button"
+            onClick={onReplayTour}
+            className="px-5 py-2.5 rounded-xl border border-teal-300 dark:border-teal-700
+                       text-teal-700 dark:text-teal-300 text-sm font-medium
+                       hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
+          >
+            {t('tourReplayBtn')}
+          </button>
+        </div>
+      )}
 
       {/* ── Legal ────────────────────────────────────────────────────── */}
       <div className="border-t border-slate-100 dark:border-slate-700 pt-4 text-center">

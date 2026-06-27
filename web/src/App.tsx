@@ -6,6 +6,7 @@ import BackfillForm from './components/BackfillForm'
 import BusinessSetup from './components/BusinessSetup'
 import OnboardingWizard, { isOnboardingDone } from './components/OnboardingWizard'
 import BusinessSettings from './components/BusinessSettings'
+import GuidedTour, { isTourDone, clearTourDone } from './components/GuidedTour'
 import CsvImport from './components/CsvImport'
 import DayList from './components/DayList'
 import HomeScreen from './components/HomeScreen'
@@ -53,6 +54,7 @@ function AppInner() {
   const [showAddBusiness, setShowAddBusiness] = useState(false)
   const [waking, setWaking]                   = useState(false)
   const [onboardingDone, setOnboardingDone]   = useState(false)
+  const [showTour, setShowTour]               = useState(false)
 
   useEffect(() => {
     api.setWakingUpListener(setWaking)
@@ -103,6 +105,13 @@ function AppInner() {
   }, [session])
 
   useEffect(() => { loadBusinesses() }, [loadBusinesses])
+
+  // Auto-launch guided tour for new users after onboarding is done
+  useEffect(() => {
+    if (onboardingDone && activeBusiness && !isTourDone(activeBusiness.id)) {
+      setShowTour(true)
+    }
+  }, [onboardingDone, activeBusiness])
 
   // ── Close switcher on outside click ──────────────────────────────────────
 
@@ -390,6 +399,7 @@ function AppInner() {
           {primaryTabs.map(navTab => (
             <button
               key={navTab.id}
+              data-tour={navTab.id === 'predictions_home' ? 'nav-predictions' : navTab.id === 'insights' ? 'nav-insights' : undefined}
               onClick={() => { setTab(navTab.id); setOpenGroup(null) }}
               className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 tab === navTab.id
@@ -406,7 +416,7 @@ function AppInner() {
             const isGroupActive = activeGroup === group.id
             const isOpen = openGroup === group.id
             return (
-              <div key={group.id} className="relative">
+              <div key={group.id} className="relative" data-tour={`nav-${group.id}`}>
                 <button
                   onClick={() => setOpenGroup(isOpen ? null : group.id)}
                   className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
@@ -540,7 +550,14 @@ function AppInner() {
           {tab === 'backfill'         && <BackfillForm onSaved={refresh} />}
           {tab === 'history'          && <DayList refreshKey={refreshKey} />}
           {tab === 'import'           && <CsvImport onImported={afterImport} />}
-          {tab === 'settings'         && <BusinessSettings onTierChanged={() => loadBusinesses(activeBusiness?.id)} />}
+          {tab === 'settings'         && <BusinessSettings
+            onTierChanged={() => loadBusinesses(activeBusiness?.id)}
+            onReplayTour={() => {
+              clearTourDone(activeBusiness.id)
+              setShowTour(true)
+              setTab('home')
+            }}
+          />}
           {tab === 'predictions'      && <PredictionsPanel />}
           {tab === 'toolbox'          && <AdvancedToolbox />}
         </main>
@@ -563,6 +580,14 @@ function AppInner() {
                         border-t border-teal-100 dark:border-slate-700 flex items-center justify-center z-10">
           <span className="text-[10px] text-teal-300 dark:text-teal-600 tracking-widest uppercase select-none">Ad</span>
         </div>
+      )}
+
+      {/* Guided product tour */}
+      {showTour && activeBusiness && (
+        <GuidedTour
+          bizId={activeBusiness.id}
+          onDone={() => setShowTour(false)}
+        />
       )}
 
     </div>

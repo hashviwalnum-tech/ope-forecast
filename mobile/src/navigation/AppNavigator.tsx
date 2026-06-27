@@ -1,6 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Ionicons } from '@expo/vector-icons'
+import { useEffect, useState } from 'react'
 import { View, ActivityIndicator } from 'react-native'
 import { useTheme } from '../contexts/ThemeContext'
 import { useSettingsSheet } from '../contexts/SettingsContext'
@@ -12,6 +13,7 @@ import AnalyticsScreen from '../screens/AnalyticsScreen'
 import ManageScreen from '../screens/ManageScreen'
 import SettingsModal from '../screens/manage/SettingsModal'
 import OnboardingScreen from '../screens/OnboardingScreen'
+import GuidedTour, { isTourDone, clearTourDone } from '../components/GuidedTour'
 
 const Tab = createBottomTabNavigator()
 
@@ -29,6 +31,14 @@ export default function AppNavigator() {
   const { settingsOpen, closeSettings } = useSettingsSheet()
   const { business, loading, noBusiness, setBusiness, reload } = useBusiness()
   const { t } = useLanguage()
+  const [showTour, setShowTour] = useState(false)
+
+  // Check tour status whenever we first have a business
+  useEffect(() => {
+    if (business) {
+      isTourDone(business.id).then(done => { if (!done) setShowTour(true) }).catch(() => {})
+    }
+  }, [business?.id])
 
   // Show spinner while loading business
   if (loading) {
@@ -83,7 +93,18 @@ export default function AppNavigator() {
           business={business}
           onClose={closeSettings}
           onSaved={async () => { await reload() }}
+          onReplayTour={() => {
+            closeSettings()
+            if (business) {
+              clearTourDone(business.id).then(() => setShowTour(true)).catch(() => setShowTour(true))
+            }
+          }}
         />
+      )}
+
+      {/* Guided product tour */}
+      {showTour && business !== null && (
+        <GuidedTour bizId={business.id} onDone={() => setShowTour(false)} />
       )}
     </NavigationContainer>
   )

@@ -24,6 +24,7 @@ interface Props {
   business: BusinessRead
   onClose: () => void
   onSaved: (updated: BusinessRead) => Promise<void> | void
+  onReplayTour?: () => void
 }
 
 const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
@@ -32,7 +33,7 @@ function parseSetting<T>(v: unknown, fallback: T): T {
   return v !== undefined && v !== null ? (v as T) : fallback
 }
 
-export default function SettingsModal({ business, onClose, onSaved }: Props) {
+export default function SettingsModal({ business, onClose, onSaved, onReplayTour }: Props) {
   const c = useTheme()
   const { preference, setPreference } = useAppTheme()
   const { lang, setLang, t } = useLanguage()
@@ -359,6 +360,24 @@ export default function SettingsModal({ business, onClose, onSaved }: Props) {
                 thumbColor={c.onPrimary}
               />
             </View>
+
+            {/* ── Guided tour ── */}
+            {onReplayTour && (
+              <View style={{ marginTop: 8 }}>
+                <Text style={[styles.sectionLabel, { color: c.text }]}>{t('tourReplayLabel')}</Text>
+                <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('tourReplayDesc')}</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.tourBtn,
+                    { borderColor: c.primary, backgroundColor: c.primaryBg },
+                  ]}
+                  onPress={onReplayTour}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.tourBtnText, { color: c.primary }]}>{t('tourReplayBtn')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -471,5 +490,11 @@ function makeStyles(c: Theme) {
     },
     toggleText: { flex: 1 },
     toggleLabel: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
+
+    tourBtn: {
+      marginTop: 10, borderRadius: 14, borderWidth: 1.5,
+      paddingVertical: 13, alignItems: 'center',
+    },
+    tourBtnText: { fontSize: 15, fontWeight: '700' },
   })
 }
