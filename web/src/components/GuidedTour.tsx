@@ -195,6 +195,16 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
     }
   }
 
+  function back() {
+    if (stepIdx > 0) {
+      setStepIdx(s => s - 1)
+    } else if (sectionIdx > 0) {
+      const prev = SECTIONS[sectionIdx - 1]
+      setSectionIdx(s => s - 1)
+      setStepIdx(prev.steps.length - 1)
+    }
+  }
+
   function skipSection() {
     if (sectionIdx < SECTIONS.length - 1) {
       setSectionIdx(s => s + 1)
@@ -203,6 +213,8 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
       finish()
     }
   }
+
+  const isFirstStep = sectionIdx === 0 && stepIdx === 0
 
   // ── Popover positioning ───────────────────────────────────────────────────
 
@@ -331,7 +343,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
           {t(step.bodyKey)}
         </p>
 
-        {/* Buttons: Skip all | [spacer] | Skip [Section] · Next */}
+        {/* Buttons: Skip all | [spacer] | ← Back · Skip [Section] · Next */}
         <div className={`flex items-center justify-between gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
           <button
             onClick={(e) => { stopProp(e); finish() }}
@@ -341,6 +353,14 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
           </button>
 
           <div className={`flex items-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+            {!isFirstStep && (
+              <button
+                onClick={(e) => { stopProp(e); back() }}
+                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors whitespace-nowrap"
+              >
+                {t('tourBack')}
+              </button>
+            )}
             {showSkipSec && (
               <button
                 onClick={(e) => { stopProp(e); skipSection() }}

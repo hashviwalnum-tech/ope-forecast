@@ -161,6 +161,16 @@ export default function GuidedTour({ bizId, onDone }: Props) {
     }
   }
 
+  function back() {
+    if (stepIdx > 0) {
+      setStepIdx(s => s - 1)
+    } else if (sectionIdx > 0) {
+      const prev = SECTIONS[sectionIdx - 1]
+      setSectionIdx(s => s - 1)
+      setStepIdx(prev.steps.length - 1)
+    }
+  }
+
   function skipSection() {
     if (sectionIdx < SECTIONS.length - 1) {
       setSectionIdx(s => s + 1)
@@ -169,6 +179,8 @@ export default function GuidedTour({ bizId, onDone }: Props) {
       finish()
     }
   }
+
+  const isFirstStep = sectionIdx === 0 && stepIdx === 0
 
   // Tab bar geometry
   const TAB_INNER = Platform.OS === 'ios' ? 49 : 56
@@ -366,8 +378,18 @@ export default function GuidedTour({ bizId, onDone }: Props) {
             <Text style={[styles.skipAll, { color: c.textMuted }]}>{t('tourSkipAll')}</Text>
           </TouchableOpacity>
 
-          {/* Right group: Skip section + Next */}
+          {/* Right group: Back + Skip section + Next */}
           <View style={[styles.rightBtns, isRtl && { flexDirection: 'row-reverse' }]}>
+            {!isFirstStep && (
+              <TouchableOpacity
+                onPress={back}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={[styles.skipSec, { color: c.textMuted }]}>
+                  {t('tourBack')}
+                </Text>
+              </TouchableOpacity>
+            )}
             {showSkipSec && (
               <TouchableOpacity
                 onPress={skipSection}
