@@ -299,6 +299,14 @@ export const translations = {
     // Guided product tour
     tourWelcomeTitle: 'Welcome to Ope!',
     tourWelcomeBody: "Ope learns your business patterns and helps you predict demand, order the right stock, and schedule the right number of staff. Let's take a quick look at what's here.",
+
+    // Tour — preferences (shown first, before the main walkthrough)
+    tourSectionPreferences: 'Preferences',
+    tourDarkModeTitle: 'Choose your look — dark or light?',
+    tourDarkModeBody: 'Ope works in both light and dark mode. Use the button below to switch — try it now! You can change it any time.',
+    tourFriendlyModeTitle: 'Prefer simpler wording?',
+    tourFriendlyModeBody: "Toggle \"Simple language\" below to replace technical terms (like 'MAPE' or 'safety buffer') with plain everyday words. Try it now — you can turn it off any time.",
+
     tourLogTitle: 'Log tab — your daily action',
     tourLogBody: "This is the tab you'll use every day. Tap each sale as it happens, or record your end-of-day totals here. The more you log, the smarter Ope gets.",
     tourSaleTitle: 'Tap to record sales',
@@ -687,6 +695,13 @@ export const translations = {
     // Guided product tour
     tourWelcomeTitle: '!ברוכים הבאים ל-Ope',
     tourWelcomeBody: 'Ope לומד את דפוסי העסק שלך ועוזר לך לחזות ביקוש, להזמין את המלאי הנכון ולתכנן את מספר העובדים הנדרש. בוא נסתכל מהר על מה שיש כאן.',
+
+    // Tour — preferences
+    tourSectionPreferences: 'העדפות',
+    tourDarkModeTitle: 'בחר את המראה שלך — כהה או בהיר?',
+    tourDarkModeBody: 'Ope עובד גם במצב בהיר וגם במצב כהה. השתמש בכפתור למטה כדי לעבור — נסה עכשיו! אפשר לשנות בכל עת.',
+    tourFriendlyModeTitle: 'מעדיף ניסוח פשוט יותר?',
+    tourFriendlyModeBody: 'הפעל "שפה פשוטה" למטה כדי להחליף מונחים טכניים (כמו \'MAPE\' או \'רזרבה\') במילים יומיומיות. נסה עכשיו — אפשר לכבות בכל עת.',
     tourLogTitle: 'לשונית יומן — הפעולה היומית שלך',
     tourLogBody: 'זו הלשונית שתשתמש בה כל יום. הקש על כל מכירה כשהיא קורית, או רשום את הסיכומים היומיים כאן. ככל שתרשום יותר, כך Ope ייחכם יותר.',
     tourSaleTitle: 'הקשה לרישום מכירות',

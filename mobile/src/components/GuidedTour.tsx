@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { useTheme } from '../contexts/ThemeContext'
+import { useAppTheme, useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { Lang, TranslationKey } from '../lib/i18n'
 import type { Theme } from '../lib/theme'
@@ -35,11 +35,13 @@ async function markDone(bizId: number) {
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
 interface MobileTourStep {
-  titleKey: TranslationKey
-  bodyKey:  TranslationKey
-  icon:     IoniconName
+  titleKey:       TranslationKey
+  bodyKey:        TranslationKey
+  icon:           IoniconName
   // Highlight the bottom-tab bar at this index (0=Log 1=Forecast 2=Analytics 3=Manage)
-  tabIndex?: 0 | 1 | 2 | 3
+  tabIndex?:      0 | 1 | 2 | 3
+  // Show an inline interactive toggle inside the tour card
+  preferenceType?: 'darkMode' | 'simpleMode'
 }
 
 interface MobileTourSection {
@@ -53,6 +55,13 @@ const SECTIONS: MobileTourSection[] = [
     nameKey: null,
     steps: [
       { titleKey: 'tourWelcomeTitle', bodyKey: 'tourWelcomeBody', icon: 'hand-right-outline' },
+    ],
+  },
+  {
+    nameKey: 'tourSectionPreferences',
+    steps: [
+      { titleKey: 'tourDarkModeTitle',     bodyKey: 'tourDarkModeBody',     icon: 'contrast-outline',  preferenceType: 'darkMode' },
+      { titleKey: 'tourFriendlyModeTitle', bodyKey: 'tourFriendlyModeBody', icon: 'text-outline',       preferenceType: 'simpleMode' },
     ],
   },
   {
@@ -114,7 +123,8 @@ interface Props {
 
 export default function GuidedTour({ bizId, onDone }: Props) {
   const c      = useTheme()
-  const { t, lang, setLang, dir } = useLanguage()
+  const { isDark, setPreference } = useAppTheme()
+  const { t, lang, setLang, dir, simpleMode, setSimpleMode } = useLanguage()
   const insets = useSafeAreaInsets()
   const { width: SW, height: SH } = Dimensions.get('window')
 
@@ -286,6 +296,46 @@ export default function GuidedTour({ bizId, onDone }: Props) {
           <Ionicons name={step.icon} size={36} color={c.primary} />
         </View>
 
+        {/* Inline preference toggle (darkMode / simpleMode steps) */}
+        {step.preferenceType === 'darkMode' && (
+          <TouchableOpacity
+            style={[
+              styles.prefToggle,
+              { backgroundColor: isDark ? c.primary : c.card, borderColor: isDark ? c.primary : c.border },
+            ]}
+            onPress={() => setPreference(isDark ? 'light' : 'dark')}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={isDark ? 'moon' : 'sunny-outline'}
+              size={20}
+              color={isDark ? '#fff' : c.textSub}
+            />
+            <Text style={[styles.prefToggleText, { color: isDark ? '#fff' : c.textSub }]}>
+              {isDark ? t('darkMode') : t('lightMode')}
+            </Text>
+          </TouchableOpacity>
+        )}
+        {step.preferenceType === 'simpleMode' && (
+          <TouchableOpacity
+            style={[
+              styles.prefToggle,
+              { backgroundColor: simpleMode ? c.primary : c.card, borderColor: simpleMode ? c.primary : c.border },
+            ]}
+            onPress={() => setSimpleMode(!simpleMode)}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={simpleMode ? 'checkmark-circle' : 'ellipse-outline'}
+              size={20}
+              color={simpleMode ? '#fff' : c.textSub}
+            />
+            <Text style={[styles.prefToggleText, { color: simpleMode ? '#fff' : c.textSub }]}>
+              {simpleMode ? t('simpleModeOn') : t('simpleModeOff')}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Mini tab indicator (tab-intro steps only) */}
         {hasTab && (
           <View style={[styles.tabStrip, { backgroundColor: c.card, borderColor: c.border }]}>
@@ -444,5 +494,16 @@ function makeStyles(c: Theme) {
       borderRadius: 13,
     },
     nextBtnText: { fontSize: 14, fontWeight: '700' },
+    prefToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      alignSelf: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 14,
+      borderWidth: 1.5,
+    },
+    prefToggleText: { fontSize: 14, fontWeight: '600' },
   })
 }

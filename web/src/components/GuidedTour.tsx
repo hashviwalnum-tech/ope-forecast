@@ -5,10 +5,11 @@ import type { Lang, TranslationKey } from '../i18n'
 // ── Section / step structure ────────────────────────────────────────────────
 
 interface TourStep {
-  titleKey:   TranslationKey
-  bodyKey:    TranslationKey
-  target?:    string
+  titleKey:    TranslationKey
+  bodyKey:     TranslationKey
+  target?:     string
   navigateTo?: string  // tab id to navigate to when this step is shown
+  interactive?: boolean  // allow clicking the spotlit element during the tour
 }
 
 interface TourSection {
@@ -27,8 +28,8 @@ const SECTIONS: TourSection[] = [
   {
     nameKey: 'tourSectionPreferences',
     steps: [
-      { titleKey: 'tourDarkModeTitle',     bodyKey: 'tourDarkModeBody',     navigateTo: 'home', target: '[data-tour="dark-mode-toggle"]' },
-      { titleKey: 'tourFriendlyModeTitle', bodyKey: 'tourFriendlyModeBody', navigateTo: 'settings', target: '[data-tour="settings-simple-lang"]' },
+      { titleKey: 'tourDarkModeTitle',     bodyKey: 'tourDarkModeBody',     navigateTo: 'home',     target: '[data-tour="dark-mode-toggle"]',    interactive: true },
+      { titleKey: 'tourFriendlyModeTitle', bodyKey: 'tourFriendlyModeBody', navigateTo: 'settings', target: '[data-tour="settings-simple-lang"]', interactive: true },
     ],
   },
   {
@@ -83,8 +84,9 @@ const SECTIONS: TourSection[] = [
       { titleKey: 'tourSettingsGearTitle',       bodyKey: 'tourSettingsGearBody',       navigateTo: 'home',     target: '[data-tour="settings-gear"]' },
       { titleKey: 'tourSettingsScheduleTitle',   bodyKey: 'tourSettingsScheduleBody',   navigateTo: 'settings', target: '[data-tour="settings-schedule"]' },
       { titleKey: 'tourSettingsStaffingTitle',   bodyKey: 'tourSettingsStaffingBody',   navigateTo: 'settings', target: '[data-tour="settings-staffing"]' },
-      { titleKey: 'tourSettingsStockNudgesTitle',bodyKey: 'tourSettingsStockNudgesBody',navigateTo: 'settings', target: '[data-tour="settings-stock"]' },
-      { titleKey: 'tourSettingsAppearanceTitle', bodyKey: 'tourSettingsAppearanceBody', navigateTo: 'settings', target: '[data-tour="settings-appearance"]' },
+      { titleKey: 'tourSettingsStockNudgesTitle', bodyKey: 'tourSettingsStockNudgesBody', navigateTo: 'settings', target: '[data-tour="settings-stock"]' },
+      { titleKey: 'tourSettingsNudgesTitle',      bodyKey: 'tourSettingsNudgesBody',      navigateTo: 'settings', target: '[data-tour="settings-nudges"]' },
+      { titleKey: 'tourSettingsAppearanceTitle',  bodyKey: 'tourSettingsAppearanceBody',  navigateTo: 'settings', target: '[data-tour="settings-appearance"]', interactive: true },
       { titleKey: 'tourSettingsPlanTitle',       bodyKey: 'tourSettingsPlanBody',       navigateTo: 'settings', target: '[data-tour="settings-plan"]' },
       { titleKey: 'tourSettingsTelegramTitle',   bodyKey: 'tourSettingsTelegramBody',   navigateTo: 'settings', target: '[data-tour="settings-telegram"]' },
     ],
@@ -236,18 +238,26 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
   const dotCount  = useStepDots ? totalSteps : totalSections
   const activeDot = useStepDots ? flatIdx : sectionIdx
 
+  // When a step is interactive the overlay panels don't dismiss on click — the user
+  // is expected to interact with the spotlit element first, then press Next.
+  // The outer container uses pointer-events:none so each panel handles its own clicks.
+  const isInteractive = step.interactive === true && rect !== null
+
   return (
-    <div className="fixed inset-0" style={{ zIndex: 9000 }} onClick={finish}>
+    <div className="fixed inset-0" style={{ zIndex: 9000, pointerEvents: 'none' }}>
 
       {/* ── Backdrop with spotlight ──────────────────────────────────────── */}
       {rect ? (
         <>
-          <div style={{ position:'fixed', inset:'0 0 auto 0', height: sTop,             background: OVERLAY }} />
-          <div style={{ position:'fixed', top: sBottom, left:0, right:0, bottom:0,      background: OVERLAY }} />
-          <div style={{ position:'fixed', top: sTop, left:0, width: sLeft, height: sH,  background: OVERLAY }} />
-          <div style={{ position:'fixed', top: sTop, left: sRight, right:0, height: sH, background: OVERLAY }} />
-          {/* click-blocker over the spotlit element so clicks don't dismiss */}
-          <div style={{ position:'fixed', top: sTop, left: sLeft, width: sW, height: sH }} onClick={stopProp} />
+          {/* Four overlay panels — each handles pointer events independently */}
+          <div style={{ position:'fixed', inset:'0 0 auto 0', height: sTop,             background: OVERLAY, pointerEvents: 'auto' }} onClick={isInteractive ? undefined : finish} />
+          <div style={{ position:'fixed', top: sBottom, left:0, right:0, bottom:0,      background: OVERLAY, pointerEvents: 'auto' }} onClick={isInteractive ? undefined : finish} />
+          <div style={{ position:'fixed', top: sTop, left:0, width: sLeft, height: sH,  background: OVERLAY, pointerEvents: 'auto' }} onClick={isInteractive ? undefined : finish} />
+          <div style={{ position:'fixed', top: sTop, left: sRight, right:0, height: sH, background: OVERLAY, pointerEvents: 'auto' }} onClick={isInteractive ? undefined : finish} />
+          {/* Click-blocker: only in non-interactive mode — prevents spotlight clicks from dismissing */}
+          {!isInteractive && (
+            <div style={{ position:'fixed', top: sTop, left: sLeft, width: sW, height: sH, pointerEvents: 'auto' }} onClick={stopProp} />
+          )}
           <div style={{
             position: 'fixed', top: sTop, left: sLeft, width: sW, height: sH,
             border: '2.5px solid rgb(13 148 136)',
@@ -257,14 +267,14 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
           }} />
         </>
       ) : (
-        <div style={{ position:'fixed', inset:0, background: OVERLAY }} />
+        <div style={{ position:'fixed', inset:0, background: OVERLAY, pointerEvents: 'auto' }} onClick={finish} />
       )}
 
       {/* ── Popover ───────────────────────────────────────────────────────── */}
       <div
         className="fixed bg-white dark:bg-slate-800 rounded-2xl shadow-2xl
                    border border-teal-100 dark:border-teal-800 p-5"
-        style={{ top: popTop, left: popLeft, width: POP_W, zIndex: 9001 }}
+        style={{ top: popTop, left: popLeft, width: POP_W, zIndex: 9001, pointerEvents: 'auto' }}
         dir={dir}
         onClick={stopProp}
       >
