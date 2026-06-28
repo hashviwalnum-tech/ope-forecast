@@ -25,6 +25,13 @@ const SECTIONS: TourSection[] = [
     ],
   },
   {
+    nameKey: 'tourSectionPreferences',
+    steps: [
+      { titleKey: 'tourDarkModeTitle',     bodyKey: 'tourDarkModeBody',     navigateTo: 'home', target: '[data-tour="dark-mode-toggle"]' },
+      { titleKey: 'tourFriendlyModeTitle', bodyKey: 'tourFriendlyModeBody', navigateTo: 'settings', target: '[data-tour="settings-simple-lang"]' },
+    ],
+  },
+  {
     nameKey: 'home',
     steps: [
       { titleKey: 'tourQuickActionsTitle', bodyKey: 'tourQuickActionsBody', navigateTo: 'home', target: '[data-tour="quick-actions"]' },
@@ -63,12 +70,23 @@ const SECTIONS: TourSection[] = [
   {
     nameKey: 'manage',
     steps: [
-      { titleKey: 'tourManageTitle',           bodyKey: 'tourManageBody',           navigateTo: 'products',   target: '[data-tour="nav-manage"]' },
-      { titleKey: 'tourManageProductsTitle',   bodyKey: 'tourManageProductsBody',   navigateTo: 'products' },
-      { titleKey: 'tourManageRegularsTitle',   bodyKey: 'tourManageRegularsBody',   navigateTo: 'regulars' },
-      { titleKey: 'tourManageRecurringTitle',  bodyKey: 'tourManageRecurringBody',  navigateTo: 'recurring' },
-      { titleKey: 'tourManageEventsTitle',     bodyKey: 'tourManageEventsBody',     navigateTo: 'events' },
-      { titleKey: 'tourManageSimpleLangTitle', bodyKey: 'tourManageSimpleLangBody', navigateTo: 'settings' },
+      { titleKey: 'tourManageTitle',          bodyKey: 'tourManageBody',          navigateTo: 'products',  target: '[data-tour="nav-manage"]' },
+      { titleKey: 'tourManageProductsTitle',  bodyKey: 'tourManageProductsBody',  navigateTo: 'products' },
+      { titleKey: 'tourManageRegularsTitle',  bodyKey: 'tourManageRegularsBody',  navigateTo: 'regulars' },
+      { titleKey: 'tourManageRecurringTitle', bodyKey: 'tourManageRecurringBody', navigateTo: 'recurring' },
+      { titleKey: 'tourManageEventsTitle',    bodyKey: 'tourManageEventsBody',    navigateTo: 'events' },
+    ],
+  },
+  {
+    nameKey: 'settings',
+    steps: [
+      { titleKey: 'tourSettingsGearTitle',       bodyKey: 'tourSettingsGearBody',       navigateTo: 'home',     target: '[data-tour="settings-gear"]' },
+      { titleKey: 'tourSettingsScheduleTitle',   bodyKey: 'tourSettingsScheduleBody',   navigateTo: 'settings', target: '[data-tour="settings-schedule"]' },
+      { titleKey: 'tourSettingsStaffingTitle',   bodyKey: 'tourSettingsStaffingBody',   navigateTo: 'settings', target: '[data-tour="settings-staffing"]' },
+      { titleKey: 'tourSettingsStockNudgesTitle',bodyKey: 'tourSettingsStockNudgesBody',navigateTo: 'settings', target: '[data-tour="settings-stock"]' },
+      { titleKey: 'tourSettingsAppearanceTitle', bodyKey: 'tourSettingsAppearanceBody', navigateTo: 'settings', target: '[data-tour="settings-appearance"]' },
+      { titleKey: 'tourSettingsPlanTitle',       bodyKey: 'tourSettingsPlanBody',       navigateTo: 'settings', target: '[data-tour="settings-plan"]' },
+      { titleKey: 'tourSettingsTelegramTitle',   bodyKey: 'tourSettingsTelegramBody',   navigateTo: 'settings', target: '[data-tour="settings-telegram"]' },
     ],
   },
   {

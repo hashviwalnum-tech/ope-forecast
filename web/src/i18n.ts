@@ -938,6 +938,29 @@ export const translations = {
     tourManageEventsBody: "Tag one-off events and ad campaigns here — a local festival, a social media boost, a flyer run. Ope measures how much extra business each one actually brought you, compared to what you would normally expect. Great for knowing which promotions are worth repeating.",
     tourManageSimpleLangTitle: 'Simple language mode',
     tourManageSimpleLangBody: "Under Manage → Settings, you'll find a 'Simple language' toggle. Switch it on and Ope replaces technical terms — like 'MAPE', 'safety buffer', or 'FIFO' — with plain everyday words. Great if any label feels unfamiliar. Both English and Hebrew get the simple version. The tour itself also uses the simpler wording when this mode is on.",
+
+    // Tour — preferences section (shown near the start, before Home, to set dark/simple mode early)
+    tourSectionPreferences: 'Preferences',
+    tourDarkModeTitle: 'Choose your look — dark or light?',
+    tourDarkModeBody: "Ope works in both light and dark mode. The sun/moon button in the top bar switches between them — try it now if you prefer a darker screen. You can change it any time.",
+    tourFriendlyModeTitle: 'Prefer simpler wording?',
+    tourFriendlyModeBody: "Ope has a \"Simple language\" mode that replaces technical terms (like 'MAPE' or 'safety buffer') with plain, everyday words. We'll show you exactly where to turn it on when we reach Settings. Worth enabling if any label in the app ever feels unfamiliar.",
+
+    // Tour — settings section (after Manage)
+    tourSettingsGearTitle: 'Your settings — always one click away',
+    tourSettingsGearBody: "That gear icon in the top bar opens Settings from any screen. This is where you set your opening schedule, staffing goals, appearance, Telegram, and your plan. Let's walk through each one.",
+    tourSettingsScheduleTitle: 'Your opening schedule',
+    tourSettingsScheduleBody: "Tell Ope which days you're open and your opening and closing hours. This is critical — days you mark as closed are completely skipped by the forecast, and hours outside your trading window are ignored entirely. Get this right first and everything else improves.",
+    tourSettingsStaffingTitle: 'Staffing goal',
+    tourSettingsStaffingBody: "How long a queue is acceptable to you? Set a maximum wait time or a maximum number of people in line. Ope uses this, together with your tap-by-tap sales data, to tell you exactly how many staff to schedule at each hour of the day.",
+    tourSettingsStockNudgesTitle: 'Stock management & nudges',
+    tourSettingsStockNudgesBody: "Stock management tracks your inventory and tells you when to reorder. Nudges are proactive alerts — Ope surfaces the one thing worth acting on today (an unusually busy day ahead, or stock running low) so nothing catches you off guard. You can also tune how often Telegram nudges fire.",
+    tourSettingsAppearanceTitle: 'Dark mode & simple language',
+    tourSettingsAppearanceBody: "Switch between dark and light mode here. You can also turn on Simple language mode — it replaces every technical term with a plain everyday word. Both settings are saved for next time. Try turning Simple language on now if anything in the app ever feels unclear.",
+    tourSettingsPlanTitle: 'Your plan',
+    tourSettingsPlanBody: "Ope is free for one location with up to 1 year of history and a generous allowance of events and ads — all features included. Premium adds multiple locations and extended history. You can switch here whenever you're ready.",
+    tourSettingsTelegramTitle: 'Connect Telegram',
+    tourSettingsTelegramBody: "Link your account to the Ope Telegram bot so you can log sales and get your daily forecast by chat — without opening the app. Generate a link code here, then send it to the bot. Great for logging on the go.",
   },
   he: {
     // Nav
@@ -1876,6 +1899,29 @@ export const translations = {
     tourManageEventsBody: 'תייג אירועים חד-פעמיים וקמפיינים פרסומיים כאן — פסטיבל מקומי, הגברת מדיה חברתית, חלוקת עלונים. Ope מודד כמה עסקים נוספים כל אחד מהם באמת הביא לך, בהשוואה למה שהיית מצפה בדרך כלל. מומלץ לדעת אילו מבצעים שווה לחזור עליהם.',
     tourManageSimpleLangTitle: 'מצב שפה פשוטה',
     tourManageSimpleLangBody: "תחת ניהול ← הגדרות, תמצא מתג 'שפה פשוטה'. הפעל אותו ו-Ope מחליף כל מונח טכני — כמו 'MAPE', 'מאגר בטיחות', או 'FIFO' — במילים יומיומיות פשוטות. מעולה אם תווית כלשהי נשמעת לא מוכרת. גם אנגלית וגם עברית מקבלות את הגרסה הפשוטה. הסיור עצמו גם משתמש בניסוח הפשוט יותר כשהמצב הזה פועל.",
+
+    // Tour — preferences section
+    tourSectionPreferences: 'העדפות',
+    tourDarkModeTitle: 'בחר את המראה שלך — כהה או בהיר?',
+    tourDarkModeBody: 'Ope עובד גם במצב בהיר וגם במצב כהה. כפתור השמש/ירח בסרגל העליון מחליף ביניהם — נסה עכשיו אם אתה מעדיף מסך כהה. תוכל לשנות זאת בכל עת.',
+    tourFriendlyModeTitle: 'מעדיף ניסוח פשוט יותר?',
+    tourFriendlyModeBody: "ל-Ope יש מצב 'שפה פשוטה' שמחליף מונחים טכניים (כמו 'MAPE' או 'מאגר בטיחות') במילים יומיומיות. נראה לך היכן להפעיל אותו כשנגיע להגדרות. מומלץ אם תווית כלשהי נשמעת לא מוכרת.",
+
+    // Tour — settings section
+    tourSettingsGearTitle: 'ההגדרות שלך — תמיד במרחק קליק',
+    tourSettingsGearBody: 'סמל גלגל השיניים בסרגל העליון פותח את ההגדרות מכל מסך. כאן מגדירים לוח זמנים, יעדי סגל, מראה, טלגרם ותוכנית. בוא נעבור על כל אחד.',
+    tourSettingsScheduleTitle: 'לוח הזמנים שלך',
+    tourSettingsScheduleBody: "ספר ל-Ope באילו ימים אתה פתוח ומהן שעות הפתיחה והסגירה. זה קריטי — ימים שמסומנים כסגורים מדולגים לחלוטין בתחזית, ושעות מחוץ לשעות הפעילות מתעלמות מהן לגמרי. הגדר זאת נכון ראשית וכל השאר ישתפר.",
+    tourSettingsStaffingTitle: 'יעד כוח האדם',
+    tourSettingsStaffingBody: 'כמה זמן המתנה מקובל עליך? הגדר זמן המתנה מקסימלי או מספר מקסימלי של אנשים בתור. Ope משתמש בזה, יחד עם נתוני המכירות שלך, כדי לומר לך בדיוק כמה עובדים לתזמן בכל שעה.',
+    tourSettingsStockNudgesTitle: 'ניהול מלאי ועדכונים',
+    tourSettingsStockNudgesBody: 'ניהול מלאי עוקב אחרי המלאי שלך ואומר לך מתי להזמין. עדכונים הם התראות יזומות — Ope מציף את הדבר האחד שכדאי לפעול עליו היום (יום עמוס שמתקרב, או מלאי שמסתיים) כדי שלא ייתפסו אותך לא מוכן. תוכל גם לכוונן את תדירות ההתראות בטלגרם.',
+    tourSettingsAppearanceTitle: 'מצב כהה ושפה פשוטה',
+    tourSettingsAppearanceBody: 'עבור בין מצב כהה ובהיר כאן. תוכל גם להפעיל מצב שפה פשוטה — הוא מחליף כל מונח טכני במילים יומיומיות. שתי ההגדרות נשמרות לפעם הבאה. נסה להפעיל שפה פשוטה עכשיו אם משהו באפליקציה נשמע לא ברור.',
+    tourSettingsPlanTitle: 'התוכנית שלך',
+    tourSettingsPlanBody: 'Ope חינמי לסניף אחד עם עד שנה של היסטוריה ומכסה נדיבה של אירועים ומודעות — כל התכונות כלולות. תוכנית הפרמיום מוסיפה מספר סניפים והיסטוריה מורחבת. תוכל לעבור כאן בכל עת.',
+    tourSettingsTelegramTitle: 'חיבור לטלגרם',
+    tourSettingsTelegramBody: "חבר את החשבון שלך לבוט Ope בטלגרם כדי לרשום מכירות ולקבל את התחזית היומית בצ'אט — בלי לפתוח את האפליקציה. צור קוד קישור כאן ואז שלח אותו לבוט. מצוין לרישום תוך כדי.",
   },
 } as const satisfies Record<Lang, Record<string, string>>
 

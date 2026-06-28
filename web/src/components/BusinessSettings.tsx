@@ -133,6 +133,9 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         {t('settingsHelpText')}
       </div>
 
+      {/* Opening days + hours — grouped for tour targeting */}
+      <div data-tour="settings-schedule">
+
       {/* Opening days */}
       <div>
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-3">
@@ -191,6 +194,11 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
           </select>
         </div>
       </div>
+
+      </div>{/* end settings-schedule */}
+
+      {/* Average service time + staffing — grouped for tour targeting */}
+      <div data-tour="settings-staffing">
 
       {/* Average service time */}
       <div>
@@ -273,8 +281,10 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         )}
       </div>
 
+      </div>{/* end settings-staffing */}
+
       {/* Stock & reorder management toggle */}
-      <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+      <div data-tour="settings-stock" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('stockMgmtLabel')}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('stockMgmtDesc')}</p>
         <button
@@ -293,7 +303,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       </div>
 
       {/* Proactive nudges toggle */}
-      <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+      <div data-tour="settings-nudges" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('nudgesLabel')}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('nudgesDesc')}</p>
         <button
@@ -365,7 +375,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       </div>
 
       {/* Dark mode toggle */}
-      <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+      <div data-tour="settings-appearance" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('appearanceLabel')}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">{t('appearanceDesc')}</p>
         <button
@@ -392,7 +402,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       </div>
 
       {/* Simple language mode toggle */}
-      <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+      <div data-tour="settings-simple-lang" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('simpleModeLabel')}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('simpleModeDesc')}</p>
         <button
@@ -427,7 +437,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       </button>
 
       {/* ── Plan / tier ─────────────────────────────────────────────── */}
-      <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+      <div data-tour="settings-plan" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('planLabel')}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">
           {currentTier === 'premium' ? t('planDescPremium') : t('planDescFree')}
@@ -468,7 +478,9 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       </div>
 
       {/* ── Telegram integration ─────────────────────────────────────── */}
-      <TelegramConnectPanel />
+      <div data-tour="settings-telegram">
+        <TelegramConnectPanel />
+      </div>
 
       {/* ── Feedback ─────────────────────────────────────────────────── */}
       <FeedbackPanel />
