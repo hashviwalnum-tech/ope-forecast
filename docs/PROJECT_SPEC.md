@@ -423,20 +423,33 @@ Do not compare raw sales during a promo to a random baseline. Instead: have the 
 
 ## 10. Free vs premium gating
 
-**Premium lifts limits / unlocks scale; the core decision tools stay free for everyone** (hourly, busiest-hour, staffing, change-detection, ordering, regulars/CLV, recurring patterns, full forecasting). Decided split:
+**Premium lifts limits / unlocks scale; the core decision tools stay free for everyone** (hourly, busiest-hour, staffing, change-detection, ordering, regulars/CLV, recurring patterns, full forecasting). **IRON RULE: never gate anything that affects FORECAST ACCURACY.** Recurring patterns, fluke handling, the forecast engine, the prediction quality itself — ALL free, always. Premium gates convenience and SCALE, never the quality of predictions. (Crippling accuracy for free users would kill adoption and the accumulated-context moat.) Decided split:
 
 **Premium:**
-- **Multiple locations** — free = **one** business/location; premium = more. Include a **"copy settings & products to a new location"** action (copies configuration, **NOT the data/history**). **The UI must NOT offer a "transfer data/history" option at all** — each location's history is its own; only settings and products are ever copied. **Locations must be deletable** (with a confirm step). **Switching an account to premium must actually raise the location limit at runtime** — a premium user can immediately add more locations; the limit check reads the live tier, not a value cached at signup.
-- **Extended history** — free history capped (~**1 year**); premium = more/unlimited.
-- **More ads** — ads remain the premium-gated action: free gets a limited (but somewhat expanded) number of **ads**; premium = more/unlimited.
+- **Multiple locations** — free = **one** business/location; premium = more. Include a **"copy settings & products to a new location"** action (copies configuration, **NOT the data/history**). **The UI must NOT offer a "transfer data/history" option at all.** **Locations must be deletable** (confirm step). **Switching to premium must raise the location limit at runtime** (limit check reads live tier).
+- **Extended history** — free history capped (~**1 year**); premium = **1.5 years** / more.
+- **Remove ads** — free has ads; premium removes them.
+- **More ads/events allowance** — premium gets more taggable ads/events (but the count never affects prediction accuracy).
+- **Advanced features** — self-tuning, deeper analytics, etc.
 - (future) POS integrations.
 
-**Free (generous / not gated):**
-- **Events (one-off)** — the previous 2-event cap is removed. Give free users a **generous expanded allowance of one-off events** (e.g. 10+, not 2 — this must actually change in the code). **Recurring/consistent events (RecurringPattern) are always unlimited and free** — they're core owner-taught context.
-- All analytics, ordering, staffing, change-detection, regulars/CLV, the advanced toolbox basics.
+**Free (generous / not gated):** full forecast accuracy, recurring patterns (unlimited), all analytics/ordering/staffing/change-detection/regulars, a generous one-off event allowance, one location, ~1yr history, with ads.
 
-- Enforce caps **server-side** (never only client). Simple per-account tier flag + limit checks. **Billing is deferred (Phase 3.5)** — build the gating now (with a manual way to set an account premium for testing), charge later.
-- *Note the §1.6 caution:* limits alone are a thin reason to pay; the multi-location and extended-history value, plus future deep features, are what should justify premium. Revisit pricing/value after beta.
+**Trial + pricing (Israel launch):**
+- **1-month free trial, NO credit card required** to start. After trial, premium features require payment; account gracefully drops to free limits if not converted (never delete their data).
+- **Pricing:** ~**₪30/month**, or an **annual plan ~₪300/year** (works out to ~₪25/mo). Launch-affordable to drive early adoption; room to raise later.
+
+**Payment architecture (build now, abstracted; turn on later with keys):**
+- Build the FULL premium system now — trial, gating, tier tracking, upgrade UI, subscription state, revenue/subscriber tracking — behind a **clean payment-provider ABSTRACTION** (an interface), so wiring a real processor later is a single contained step (plug in keys/SDK), NOT a rebuild.
+- **Web payments:** Stripe is NOT available to Israeli businesses — use a **merchant-of-record (Paddle / Lemon Squeezy, handles VAT/tax)** OR an **Israeli gateway (Tranzila/Cardcom/Meshulam/PayPlus, accepts Max/Isracard/Cal/Bit)**. Abstraction must allow either.
+- **Mobile (Google Play):** Play **requires** Google Play Billing for in-app subscriptions (15% under $1M/yr, else 30%). Mobile subs go through Play Billing. Must NOT steer Play users to outside payment (Play policy violation).
+- **Web download page:** offer the Android app via (a) Google Play link AND (b) **direct APK download**. A user who installs the direct APK + pays on the web avoids Google's cut. Offer a **bonus/incentive for direct download + web signup** — but ONLY promoted on the website/marketing, NEVER from inside the Play Store app (policy). The website is yours and not bound by Play rules.
+- **"Follow the cash" / management:** a simple internal view (admin-only) of active subscribers, trials, conversions, revenue — so the solo owner can track it. (A merchant-of-record also provides its own dashboard + handles invoicing/VAT.)
+
+**To "go live" later, the owner provides:** chosen web processor API keys, the Google Play subscription product (created in Play Console), and completed Israeli business registration (so the processor pays out). Until then, keep the admin-key manual tier-set for testing.
+
+- Enforce caps **server-side** (never only client). Tier flag + limit checks read live tier.
+- *Note the §1.6 caution:* limits alone are a thin reason to pay; multi-location, extended history, ad-removal, and deep features justify premium. Revisit pricing/value after beta.
 
 ## 11. Engineering conventions
 
