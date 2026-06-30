@@ -23,12 +23,14 @@ ALLOWED_ORIGINS = [o.strip() for o in _origins.split(",")]
 from app.db import engine
 from app.models import Base, StockBatch  # noqa: F401 — ensure table is registered
 from app.models.service_consumable import ServiceConsumable  # noqa: F401 — ensure table is registered
+from app.models.subscription import Subscription  # noqa: F401 — ensure table is registered
 from app.api import businesses, day_records, orders, products, sale_events, sales, periods, analytics, recurring_patterns, regulars
 from app.api import telegram as telegram_api
 from app.api import bot as bot_api
 from app.api import feedback as feedback_api
 from app.api import nudges as nudges_api
 from app.api import dev_catchup as dev_catchup_api
+from app.api import subscriptions as subscriptions_api
 
 
 def _migrate_sqlite_products(eng) -> None:
@@ -139,6 +141,25 @@ def _migrate_sqlite_products_v4(eng) -> None:
         conn.commit()
 
 
+def _migrate_sqlite_subscriptions(eng) -> None:
+    """Create subscriptions table if it doesn't exist yet (handled by create_all,
+    but also patches any missing columns in case of partial schema)."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(eng)
+    # create_all handles the new table; this only patches existing partial tables
+    if "subscriptions" not in inspector.get_table_names():
+        return
+    existing = {col["name"] for col in inspector.get_columns("subscriptions")}
+    with eng.connect() as conn:
+        if "subscription_provider" not in existing:
+            conn.execute(text("ALTER TABLE subscriptions ADD COLUMN subscription_provider TEXT"))
+        if "subscription_provider_id" not in existing:
+            conn.execute(text("ALTER TABLE subscriptions ADD COLUMN subscription_provider_id TEXT"))
+        if "renewal_at" not in existing:
+            conn.execute(text("ALTER TABLE subscriptions ADD COLUMN renewal_at TIMESTAMP"))
+        conn.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(engine)
@@ -149,6 +170,7 @@ async def lifespan(app: FastAPI):
     _migrate_sqlite_day_records(engine)
     _migrate_sqlite_telegram_links(engine)
     _migrate_sqlite_stock_batches(engine)
+    _migrate_sqlite_subscriptions(engine)
     dev_catchup_api.maybe_catchup_on_startup()  # DEV-ONLY: no-op unless DEV_CATCHUP_ENABLED=true
     yield
 
@@ -190,6 +212,7 @@ app.include_router(bot_api.router)
 app.include_router(feedback_api.router)
 app.include_router(nudges_api.router)
 app.include_router(dev_catchup_api.router)
+app.include_router(subscriptions_api.router)
 
 
 @app.get("/health", tags=["Health"])

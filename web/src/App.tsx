@@ -20,12 +20,13 @@ import PredictionsScreen from './components/PredictionsScreen'
 import RecurringPatternsPanel from './components/RecurringPatternsPanel'
 import RegularsPanel from './components/RegularsPanel'
 import ProductStatusPanel from './components/ProductStatusPanel'
+import PremiumPage from './components/PremiumPage'
 import { useAuth } from './contexts/AuthContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import LoginPage from './pages/LoginPage'
 import * as api from './api/client'
-import type { BusinessRead } from './api/types'
+import type { BusinessRead, SubscriptionRead } from './api/types'
 
 const FREE_BUSINESS_LIMIT = 1  // §10: free = one location; premium = more
 const SHOW_ADS = true
@@ -33,12 +34,12 @@ const SHOW_ADS = true
 type Tab =
   | 'home' | 'predictions_home' | 'insights'
   | 'backfill' | 'history' | 'import' | 'trends'
-  | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings' | 'toolbox' | 'stock'
+  | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings' | 'toolbox' | 'stock' | 'premium'
 type NavGroup = 'history' | 'manage'
 
 const GROUP_TAB_IDS: Record<NavGroup, Tab[]> = {
   history: ['history', 'backfill', 'trends', 'import'],
-  manage:  ['products', 'stock', 'regulars', 'recurring', 'events', 'predictions', 'toolbox'],
+  manage:  ['products', 'stock', 'regulars', 'recurring', 'events', 'predictions', 'toolbox', 'premium'],
 }
 
 
@@ -55,6 +56,7 @@ function AppInner() {
   const [waking, setWaking]                   = useState(false)
   const [onboardingDone, setOnboardingDone]   = useState(false)
   const [showTour, setShowTour]               = useState(false)
+  const [subInfo, setSubInfo]                 = useState<SubscriptionRead | null>(null)
 
   useEffect(() => {
     api.setWakingUpListener(setWaking)
@@ -105,6 +107,12 @@ function AppInner() {
   }, [session])
 
   useEffect(() => { loadBusinesses() }, [loadBusinesses])
+
+  // Load subscription info once on auth (lazy — don't block the main UI)
+  useEffect(() => {
+    if (!session) { setSubInfo(null); return }
+    api.subscription.get().then(setSubInfo).catch(() => { /* silently ignore */ })
+  }, [session])
 
   // Dev catch-up: fill missing days when the app loads so accuracy evolves without manual tapping.
   // Silently no-ops in production where DEV_CATCHUP_ENABLED is absent on the server.
@@ -224,6 +232,7 @@ function AppInner() {
         { id: 'events'      as Tab, label: t('promosEvents')       },
         { id: 'predictions' as Tab, label: t('predictionHistory')  },
         { id: 'toolbox'     as Tab, label: t('advancedPlanning')   },
+        { id: 'premium'     as Tab, label: t('premiumBilling')     },
       ],
     },
   ]
@@ -244,6 +253,7 @@ function AppInner() {
     predictions:      t('tabPredHistory'),
     toolbox:          t('tabToolbox'),
     stock:            t('tabStockStatus'),
+    premium:          t('tabPremium'),
   }
 
   if (authLoading || (session && !bizLoaded)) {
@@ -388,7 +398,7 @@ function AppInner() {
                   <div className="px-4 py-2.5">
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t('freeOneLocation')}</p>
                     <button
-                      onClick={() => { setTab('settings'); setSwitcherOpen(false) }}
+                      onClick={() => { setTab('premium'); setSwitcherOpen(false) }}
                       className="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-700 hover:underline transition-colors"
                     >
                       {t('upgradeForLocations')}
@@ -542,6 +552,30 @@ function AppInner() {
         </button>
       </header>
 
+      {/* ── Trial banner ─────────────────────────────────────────────── */}
+      {subInfo &&
+        subInfo.effective_tier === 'premium' &&
+        subInfo.subscription_status !== 'active' &&
+        subInfo.trial_days_remaining !== null &&
+        subInfo.trial_days_remaining > 0 &&
+        tab !== 'premium' && (
+        <div className="bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-700 px-6 py-2.5
+                        flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            {t('premiumTrialBannerMsg', {
+              n: subInfo.trial_days_remaining,
+              s: subInfo.trial_days_remaining === 1 ? '' : 's',
+            })}
+          </p>
+          <button
+            onClick={() => setTab('premium')}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition-colors shrink-0"
+          >
+            {t('premiumTrialBannerUpgrade')}
+          </button>
+        </div>
+      )}
+
       {/* ── Content row (side ad slots + main) ─────────────────────── */}
       <div className="flex">
 
@@ -592,6 +626,7 @@ function AppInner() {
           />}
           {tab === 'predictions'      && <PredictionsPanel />}
           {tab === 'toolbox'          && <AdvancedToolbox />}
+          {tab === 'premium'          && <PremiumPage />}
         </main>
 
         {/* Right ad slot — wide screens only */}

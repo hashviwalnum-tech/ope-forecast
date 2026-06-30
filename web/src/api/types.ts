@@ -107,6 +107,22 @@ export interface BusinessRead {
   tier: string
 }
 
+export interface SubscriptionRead {
+  user_id: string
+  tier: string              // "trial" | "premium" | "free"
+  effective_tier: string    // "premium" | "free"
+  trial_started_at: string | null
+  trial_ends_at: string | null
+  trial_days_remaining: number | null
+  subscription_status: string  // "none" | "active" | "cancelled" | "expired"
+  subscription_provider: string | null
+  renewal_at: string | null
+}
+
+export interface CheckoutResponse {
+  checkout_url: string
+}
+
 // ── Analytics ──────────────────────────────────────────────────────────────
 
 export interface ForecastDay {

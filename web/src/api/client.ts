@@ -2,6 +2,8 @@ import { supabase } from '../lib/supabase'
 import type {
   AccuracyResponse,
   BusinessRead,
+  CheckoutResponse,
+  SubscriptionRead,
   TelegramLinkCodeResponse,
   TelegramLinkStatus,
   DayRecordCreate,
@@ -255,6 +257,13 @@ export const telegram = {
   generateCode: ()               => POST<TelegramLinkCodeResponse>('/telegram/link-code', {}),
   getStatus:    ()               => GET<TelegramLinkStatus>('/telegram/link'),
   revoke:       ()               => DELETE('/telegram/link'),
+}
+
+export const subscription = {
+  get: () => GET<SubscriptionRead>('/subscription'),
+  startCheckout: (plan: 'monthly' | 'annual', success_url: string, cancel_url: string) =>
+    POST<CheckoutResponse>('/subscription/checkout', { plan, success_url, cancel_url }),
+  cancel: () => POST<SubscriptionRead>('/subscription/cancel', {}),
 }
 
 export const feedback = {

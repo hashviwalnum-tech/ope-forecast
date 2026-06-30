@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase'
 import type {
   AccuracyResponse,
   BusinessRead,
+  SubscriptionRead,
   DayRecordCreate,
   DayRecordRead,
   DayRecordUpdate,
@@ -243,6 +244,10 @@ export const recurringPatterns = {
   list:   ()                                        => GET<RecurringPatternRead[]>('/recurring-patterns'),
   create: (body: RecurringPatternCreate)            => POST<RecurringPatternRead>('/recurring-patterns', body),
   delete: (id: number)                              => DEL(`/recurring-patterns/${id}`),
+}
+
+export const subscription = {
+  get: () => GET<SubscriptionRead>('/subscription'),
 }
 
 export const feedback = {

@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import {
   View,
   Text,
@@ -12,8 +12,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
-import type { BusinessRead } from '../../api/types'
+import type { BusinessRead, SubscriptionRead } from '../../api/types'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import type { Theme } from '../../lib/theme'
 
 interface Props {
@@ -22,67 +23,75 @@ interface Props {
   onUpdated: (b: BusinessRead) => void
 }
 
-const PREMIUM_FEATURES = [
-  { icon: 'location-outline' as const, text: 'Multiple locations' },
-  { icon: 'time-outline' as const, text: 'Extended history beyond 1 year' },
-  { icon: 'megaphone-outline' as const, text: 'More ad campaigns (unlimited)' },
-  { icon: 'bar-chart-outline' as const, text: 'Advanced analytics & charts' },
-  { icon: 'flash-outline' as const, text: 'Priority server response' },
-]
+const FREE_FEATURE_KEYS = [
+  'premiumFreeItem1',
+  'premiumFreeItem2',
+  'premiumFreeItem3',
+  'premiumFreeItem4',
+  'premiumFreeItem5',
+  'premiumFreeItem6',
+] as const
 
-const FREE_FEATURES = [
-  { icon: 'analytics-outline' as const, text: 'Full forecasting & ordering advice' },
-  { icon: 'people-outline' as const, text: 'Staffing recommendations' },
-  { icon: 'heart-outline' as const, text: 'Regulars & CLV tracking' },
-  { icon: 'repeat-outline' as const, text: 'Recurring patterns (unlimited)' },
-  { icon: 'calendar-outline' as const, text: '1 year of history' },
-  { icon: 'megaphone-outline' as const, text: '10 one-off events' },
-]
+const PREMIUM_FEATURE_KEYS = [
+  'premiumPaidItem1',
+  'premiumPaidItem2',
+  'premiumPaidItem3',
+  'premiumPaidItem4',
+  'premiumPaidItem5',
+  'premiumPaidItem6',
+] as const
 
 export default function PremiumModal({ business, onClose, onUpdated }: Props) {
   const c = useTheme()
+  const { t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
-  const isPremium = business.tier === 'premium'
+  const [sub, setSub] = useState<SubscriptionRead | null>(null)
+  const [subLoading, setSubLoading] = useState(true)
   const [upgrading, setUpgrading] = useState(false)
 
-  const upgrade = () => {
-    Alert.alert(
-      'Upgrade to Premium',
-      'Set this account to premium tier?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Upgrade',
-          onPress: async () => {
-            setUpgrading(true)
-            try {
-              const updated = await api.businesses.setTier('premium')
-              onUpdated(updated)
-            } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : 'Failed to upgrade.')
-            } finally {
-              setUpgrading(false)
-            }
-          },
-        },
-      ]
-    )
+  const loadSub = useCallback(async () => {
+    setSubLoading(true)
+    try {
+      const data = await api.subscription.get()
+      setSub(data)
+    } catch {
+      // Silently fail — show info based on business.tier
+    } finally {
+      setSubLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { loadSub() }, [loadSub])
+
+  const isPremium = sub ? sub.effective_tier === 'premium' : business.tier === 'premium'
+  const isActive = sub?.subscription_status === 'active'
+  const isTrial = sub?.tier === 'trial' && isPremium
+  const daysLeft = sub?.trial_days_remaining
+
+  function statusBadge() {
+    if (isActive) return { label: t('premiumStatusPremium'), color: '#d97706' }
+    if (isTrial) return { label: t('premiumStatusTrial'), color: '#0d9488' }
+    return { label: t('premiumStatusFree'), color: c.textMuted }
   }
 
-  const downgrade = () => {
+  const badge = statusBadge()
+
+  const setTier = (tier: 'free' | 'premium') => {
     Alert.alert(
-      'Switch to Free',
-      'Downgrade this account to the free tier?',
+      tier === 'premium' ? t('premiumUpgradeToPremium') : t('premiumDowngradeToFree'),
+      tier === 'premium' ? 'Set this account to premium tier?' : 'Downgrade to the free tier?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Downgrade', style: 'destructive',
+          text: tier === 'premium' ? t('premiumUpgradeToPremium') : t('premiumDowngradeToFree'),
+          style: tier === 'free' ? 'destructive' : 'default',
           onPress: async () => {
             setUpgrading(true)
             try {
-              const updated = await api.businesses.setTier('free')
+              const updated = await api.businesses.setTier(tier)
               onUpdated(updated)
+              await loadSub()
             } catch (e) {
               Alert.alert('Error', e instanceof Error ? e.message : 'Failed to change tier.')
             } finally {
@@ -100,89 +109,131 @@ export default function PremiumModal({ business, onClose, onUpdated }: Props) {
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.backBtn} hitSlop={8}>
             <Ionicons name="chevron-back" size={22} color={c.onPrimary} />
-            <Text style={styles.backLabel}>Manage</Text>
+            <Text style={styles.backLabel}>{t('manage')}</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Premium</Text>
+          <Text style={styles.headerTitle}>{t('premiumTitle')}</Text>
           <View style={{ width: 60 }} />
         </View>
 
         <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
-          {/* Status badge */}
+
+          {/* Status card */}
           <View style={[styles.statusCard, isPremium && styles.statusCardPremium]}>
-            <Ionicons
-              name={isPremium ? 'star' : 'star-outline'}
-              size={32}
-              color={isPremium ? '#d97706' : c.textMuted}
-            />
-            <Text style={[styles.statusTitle, isPremium && styles.statusTitlePremium]}>
-              {isPremium ? 'Premium Account' : 'Free Account'}
-            </Text>
-            <Text style={styles.statusSub}>
-              {isPremium
-                ? 'You have access to all features.'
-                : 'Core features are free forever.'}
-            </Text>
+            <View style={styles.statusRow}>
+              <Ionicons
+                name={isPremium ? 'star' : 'star-outline'}
+                size={28}
+                color={badge.color}
+              />
+              <View style={[styles.badgePill, { backgroundColor: badge.color + '22' }]}>
+                <Text style={[styles.badgeText, { color: badge.color }]}>{badge.label}</Text>
+              </View>
+            </View>
+
+            {subLoading ? (
+              <ActivityIndicator size="small" color={c.primary} style={{ marginTop: 8 }} />
+            ) : (
+              <Text style={styles.statusSub}>
+                {isActive
+                  ? t('premiumActiveMsg')
+                  : isTrial && daysLeft !== null && daysLeft !== undefined && daysLeft > 0
+                    ? t('premiumTrialDays', { n: daysLeft, s: daysLeft === 1 ? '' : 's' })
+                    : isTrial
+                      ? t('premiumTrialEnded')
+                      : t('premiumFreeMsg')
+                }
+              </Text>
+            )}
+            {isTrial && (
+              <Text style={[styles.statusSub, { fontSize: 12, marginTop: 4, color: c.textMuted }]}>
+                {t('premiumTrialActive')}
+              </Text>
+            )}
           </View>
 
-          {/* Free tier features */}
-          <Text style={styles.sectionLabel}>Always free</Text>
-          {FREE_FEATURES.map(f => (
-            <View key={f.text} style={styles.featureRow}>
-              <Ionicons name={f.icon} size={18} color={c.primary} />
-              <Text style={styles.featureText}>{f.text}</Text>
+          {/* Free features */}
+          <Text style={styles.sectionLabel}>{t('premiumFreeFeatures')}</Text>
+          {FREE_FEATURE_KEYS.map(key => (
+            <View key={key} style={styles.featureRow}>
+              <Ionicons name="checkmark-circle" size={18} color={c.primary} />
+              <Text style={styles.featureText}>{t(key)}</Text>
             </View>
           ))}
 
           {/* Premium features */}
-          <Text style={[styles.sectionLabel, { marginTop: 24 }]}>Premium unlocks</Text>
-          {PREMIUM_FEATURES.map(f => (
-            <View key={f.text} style={styles.featureRow}>
+          <Text style={[styles.sectionLabel, { marginTop: 20, color: '#d97706' }]}>
+            {t('premiumPaidFeatures')}
+          </Text>
+          {PREMIUM_FEATURE_KEYS.map(key => (
+            <View key={key} style={styles.featureRow}>
               <Ionicons
-                name={f.icon}
+                name={isPremium ? 'checkmark-circle' : 'lock-closed-outline'}
                 size={18}
                 color={isPremium ? '#d97706' : c.textMuted}
               />
               <Text style={[styles.featureText, !isPremium && styles.featureTextLocked]}>
-                {f.text}
+                {t(key)}
               </Text>
-              {!isPremium && (
-                <Ionicons name="lock-closed" size={12} color={c.textMuted} />
-              )}
             </View>
           ))}
 
-          {/* Action button */}
-          {!isPremium ? (
-            <TouchableOpacity
-              style={styles.upgradeBtn}
-              onPress={upgrade}
-              disabled={upgrading}
-              activeOpacity={0.85}
-            >
-              {upgrading
-                ? <ActivityIndicator size="small" color="#fff" />
-                : <>
-                  <Ionicons name="star" size={18} color="#fff" />
-                  <Text style={styles.upgradeBtnText}>Upgrade to Premium</Text>
-                </>}
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={styles.downgradeBtn}
-              onPress={downgrade}
-              disabled={upgrading}
-              activeOpacity={0.8}
-            >
-              {upgrading
-                ? <ActivityIndicator size="small" color={c.textSub} />
-                : <Text style={styles.downgradeBtnText}>Switch to Free Tier</Text>}
-            </TouchableOpacity>
+          {/* Upgrade section — only when not active paying subscriber */}
+          {!isActive && (
+            <View style={styles.upgradeSection}>
+              <Text style={styles.upgradeSectionTitle}>{t('premiumUpgradeTitle')}</Text>
+
+              {/* Pricing display */}
+              <View style={styles.pricingRow}>
+                <View style={styles.pricingCard}>
+                  <Text style={styles.pricingAmount}>{t('premiumMonthly')}</Text>
+                </View>
+                <View style={[styles.pricingCard, styles.pricingCardAnnual]}>
+                  <Text style={[styles.pricingAmount, { color: '#d97706' }]}>{t('premiumAnnual')}</Text>
+                  <Text style={styles.pricingSave}>{t('premiumAnnualSave')}</Text>
+                </View>
+              </View>
+
+              {/* Web payment note */}
+              <View style={styles.webNoteBox}>
+                <Ionicons name="information-circle-outline" size={16} color={c.textMuted} />
+                <Text style={styles.webNoteText}>{t('premiumWebNote')}</Text>
+              </View>
+            </View>
           )}
 
-          <Text style={styles.legalNote}>
-            Billing is managed through the web app. Upgrading here sets your account tier
-            for testing purposes.
-          </Text>
+          {/* Test mode section */}
+          <View style={styles.testSection}>
+            <Text style={styles.testSectionTitle}>{t('premiumTestModeTitle')}</Text>
+            <Text style={styles.testSectionDesc}>{t('premiumTestModeDesc')}</Text>
+
+            {!isPremium ? (
+              <TouchableOpacity
+                style={styles.upgradeBtn}
+                onPress={() => setTier('premium')}
+                disabled={upgrading}
+                activeOpacity={0.85}
+              >
+                {upgrading
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <>
+                    <Ionicons name="star" size={16} color="#fff" />
+                    <Text style={styles.upgradeBtnText}>{t('premiumUpgradeToPremium')}</Text>
+                  </>}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.downgradeBtn}
+                onPress={() => setTier('free')}
+                disabled={upgrading}
+                activeOpacity={0.8}
+              >
+                {upgrading
+                  ? <ActivityIndicator size="small" color={c.textSub} />
+                  : <Text style={styles.downgradeBtnText}>{t('premiumDowngradeToFree')}</Text>}
+              </TouchableOpacity>
+            )}
+          </View>
+
         </ScrollView>
       </SafeAreaView>
     </Modal>
@@ -201,46 +252,70 @@ function makeStyles(c: Theme) {
     headerTitle: { flex: 1, fontSize: 20, fontWeight: '700', color: c.onPrimary, textAlign: 'center' },
 
     body: { flex: 1 },
-    bodyContent: { padding: 20, paddingBottom: 40 },
+    bodyContent: { padding: 20, paddingBottom: 48 },
 
     statusCard: {
-      alignItems: 'center', gap: 8, backgroundColor: c.card,
-      borderRadius: 16, padding: 24, marginBottom: 24,
-      borderWidth: 1, borderColor: c.border,
+      backgroundColor: c.card, borderRadius: 16, padding: 20, marginBottom: 24,
+      borderWidth: 1, borderColor: c.border, gap: 8,
     },
     statusCardPremium: {
       backgroundColor: '#fffbeb', borderColor: '#fde68a',
     },
-    statusTitle: { fontSize: 20, fontWeight: '700', color: c.text },
-    statusTitlePremium: { color: '#92400e' },
-    statusSub: { fontSize: 13, color: c.textSub, textAlign: 'center' },
+    statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    badgePill: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 },
+    badgeText: { fontSize: 12, fontWeight: '700' },
+    statusSub: { fontSize: 13, color: c.textSub },
 
     sectionLabel: {
-      fontSize: 12, fontWeight: '700', color: c.textMuted,
+      fontSize: 11, fontWeight: '700', color: c.textMuted,
       textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10,
     },
     featureRow: {
       flexDirection: 'row', alignItems: 'center', gap: 10,
-      paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: c.border,
+      paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: c.border,
     },
     featureText: { flex: 1, fontSize: 14, color: c.text },
     featureTextLocked: { color: c.textSub },
 
+    upgradeSection: {
+      marginTop: 28, backgroundColor: c.card,
+      borderRadius: 16, padding: 20, borderWidth: 1, borderColor: c.border,
+    },
+    upgradeSectionTitle: { fontSize: 16, fontWeight: '700', color: c.text, marginBottom: 14 },
+    pricingRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+    pricingCard: {
+      flex: 1, borderRadius: 12, padding: 14, borderWidth: 1.5,
+      borderColor: c.primary, backgroundColor: c.bg,
+      alignItems: 'center',
+    },
+    pricingCardAnnual: { borderColor: '#d97706' },
+    pricingAmount: { fontSize: 15, fontWeight: '700', color: c.primary },
+    pricingSave: { fontSize: 11, color: '#d97706', marginTop: 2 },
+
+    webNoteBox: {
+      flexDirection: 'row', gap: 8, alignItems: 'flex-start',
+      backgroundColor: c.bg, borderRadius: 10, padding: 12,
+      borderWidth: 1, borderColor: c.border,
+    },
+    webNoteText: { flex: 1, fontSize: 12, color: c.textSub, lineHeight: 17 },
+
+    testSection: {
+      marginTop: 28, backgroundColor: c.card, borderRadius: 16, padding: 16,
+      borderWidth: 1, borderColor: c.border, borderStyle: 'dashed',
+    },
+    testSectionTitle: { fontSize: 12, fontWeight: '700', color: c.textMuted, marginBottom: 2 },
+    testSectionDesc: { fontSize: 12, color: c.textMuted, marginBottom: 12 },
+
     upgradeBtn: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-      backgroundColor: '#d97706', borderRadius: 14, paddingVertical: 16, marginTop: 28,
+      backgroundColor: '#d97706', borderRadius: 12, paddingVertical: 13,
     },
-    upgradeBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+    upgradeBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
 
     downgradeBtn: {
-      alignItems: 'center', borderRadius: 14, paddingVertical: 14,
-      marginTop: 28, borderWidth: 1, borderColor: c.border,
+      alignItems: 'center', borderRadius: 12, paddingVertical: 12,
+      borderWidth: 1, borderColor: c.border,
     },
-    downgradeBtnText: { fontSize: 14, color: c.textSub },
-
-    legalNote: {
-      fontSize: 11, color: c.textMuted, textAlign: 'center', marginTop: 16, lineHeight: 16,
-    },
+    downgradeBtnText: { fontSize: 13, color: c.textSub },
   })
 }
-

@@ -101,6 +101,31 @@ def create_business(
     db.add(biz)
     db.commit()
     db.refresh(biz)
+
+    # Auto-start trial for new users (first business creation)
+    if len(existing) == 0:
+        from app.models.subscription import Subscription, TRIAL_DAYS
+        from datetime import datetime, timedelta, timezone
+        existing_sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
+        if existing_sub is None:
+            now = datetime.now(timezone.utc)
+            sub = Subscription(
+                user_id=user_id,
+                tier="trial",
+                trial_started_at=now,
+                trial_ends_at=now + timedelta(days=TRIAL_DAYS),
+                subscription_status="none",
+            )
+            db.add(sub)
+            # Give the new user premium features during trial
+            from sqlalchemy.orm.attributes import flag_modified
+            settings = dict(biz.settings or {})
+            settings["tier"] = "premium"
+            biz.settings = settings
+            flag_modified(biz, "settings")
+            db.commit()
+            db.refresh(biz)
+
     return biz
 
 

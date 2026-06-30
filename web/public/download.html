@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ope — Download the App</title>
+  <style>
+    :root {
+      --teal: #0d9488;
+      --teal-dark: #0f766e;
+      --teal-light: #ccfbf1;
+      --amber: #d97706;
+      --slate: #334155;
+      --slate-light: #f8fafc;
+      --slate-muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #f0fdfa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--slate);
+      min-height: 100vh;
+    }
+
+    .lang-toggle {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      display: flex;
+      gap: 4px;
+    }
+    .lang-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .lang-btn.active {
+      background: var(--teal);
+      color: white;
+      border-color: var(--teal);
+    }
+
+    header {
+      background: var(--teal);
+      color: white;
+      padding: 40px 24px 36px;
+      text-align: center;
+      position: relative;
+    }
+    .logo-text {
+      font-size: 2.8rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: white;
+    }
+    .logo-text span {
+      color: #5eead4;
+    }
+    .tagline {
+      font-size: 1.1rem;
+      color: #ccfbf1;
+      margin-top: 6px;
+      font-style: italic;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      color: var(--slate);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .download-cards {
+      display: grid;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    @media (min-width: 520px) {
+      .download-cards { grid-template-columns: 1fr 1fr; }
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      text-align: center;
+    }
+
+    .card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-align: center;
+      color: var(--slate);
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: var(--slate-muted);
+      line-height: 1.55;
+    }
+
+    .btn {
+      display: block;
+      text-align: center;
+      padding: 13px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.88; }
+
+    .btn-play {
+      background: #1a73e8;
+      color: white;
+    }
+
+    .btn-apk {
+      background: var(--teal);
+      color: white;
+    }
+
+    .discount-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      line-height: 1.55;
+      color: #92400e;
+    }
+    .discount-box strong { color: var(--amber); }
+
+    .policy-note {
+      font-size: 0.78rem;
+      color: var(--slate-muted);
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    .why-section {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 24px;
+      border: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    .why-section h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--teal-dark);
+    }
+    .why-section ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .why-section li {
+      display: flex;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--slate-muted);
+      line-height: 1.5;
+    }
+    .why-section li::before {
+      content: '✓';
+      color: var(--teal);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .web-signup {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .web-signup p {
+      font-size: 0.95rem;
+      color: var(--slate-muted);
+      margin-bottom: 12px;
+    }
+    .web-signup a.btn {
+      display: inline-block;
+      background: var(--teal-light);
+      color: var(--teal-dark);
+      border: 1px solid var(--teal);
+      padding: 10px 24px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+      color: var(--slate-muted);
+      border-top: 1px solid var(--border);
+    }
+    footer a {
+      color: var(--teal);
+      text-decoration: none;
+    }
+    footer a:hover { text-decoration: underline; }
+
+    /* Language visibility */
+    .he { display: none; }
+    [dir="rtl"] .lang-toggle { left: 20px; right: auto; }
+  </style>
+</head>
+<body>
+
+  <!-- Language toggle -->
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('he')">HE</button>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-text">Op<span>e</span></div>
+    <div class="tagline en">Know Tomorrow, Today.</div>
+    <div class="tagline he">דע מחר, היום.</div>
+  </header>
+
+  <div class="container">
+
+    <h2 class="en">Get Ope on your phone</h2>
+    <h2 class="he">קבל את Ope בטלפון שלך</h2>
+
+    <!-- Download cards -->
+    <div class="download-cards">
+
+      <!-- Google Play card -->
+      <div class="card">
+        <div class="card-icon">🟢</div>
+        <h3 class="en">Google Play</h3>
+        <h3 class="he">Google Play</h3>
+        <p class="en">The easiest way to install — updates automatically.</p>
+        <p class="he">הדרך הקלה ביותר להתקנה — מתעדכן אוטומטית.</p>
+        <a href="#google-play" class="btn btn-play">
+          <span class="en">Get on Google Play</span>
+          <span class="he">הורד מ-Google Play</span>
+        </a>
+        <p class="policy-note en">Available on Google Play (coming soon)</p>
+        <p class="policy-note he">זמין ב-Google Play (בקרוב)</p>
+      </div>
+
+      <!-- Direct APK card -->
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3 class="en">Direct APK</h3>
+        <h3 class="he">APK ישיר</h3>
+        <p class="en">Install directly on any Android device (version 8.0+). Download, open the file, and allow installation from unknown sources when prompted.</p>
+        <p class="he">התקן ישירות על כל מכשיר אנדרואיד (גרסה 8.0+). הורד, פתח את הקובץ ואשר התקנה ממקור לא ידוע כשתתבקש.</p>
+        <a href="#download-apk" class="btn btn-apk">
+          <span class="en">Download APK directly</span>
+          <span class="he">הורד APK ישירות</span>
+        </a>
+
+        <!-- Incentive box -->
+        <div class="discount-box">
+          <p class="en">
+            <strong>Save 10% on your first premium year</strong> — download directly and sign up on the web to skip Google's commission. We pass the savings on to you.<br />
+            Use code <strong>DIRECT10</strong> at checkout.
+          </p>
+          <p class="he">
+            <strong>חסוך 10% על שנת הפרמיום הראשונה שלך</strong> — הורד ישירות והירשם באפליקציית האינטרנט כדי לעקוף את העמלה של Google. אנו מעבירים את החיסכון אליך.<br />
+            השתמש בקוד <strong>DIRECT10</strong> בקופה.
+          </p>
+        </div>
+        <p class="policy-note en">* This discount applies to direct download + web signup only. Not available on purchases through Google Play.</p>
+        <p class="policy-note he">* הנחה זו חלה על הורדה ישירה + הרשמה ב-Web בלבד. אינה זמינה לרכישות דרך Google Play.</p>
+      </div>
+
+    </div>
+
+    <!-- Why direct? -->
+    <div class="why-section">
+      <h3 class="en">Why download directly?</h3>
+      <h3 class="he">למה להוריד ישירות?</h3>
+      <ul>
+        <li>
+          <span class="en">Faster updates — we push fixes instantly, no store review delay.</span>
+          <span class="he">עדכונים מהירים יותר — אנו דוחפים תיקונים מיד, ללא עיכוב ביקורת של החנות.</span>
+        </li>
+        <li>
+          <span class="en">Lower cost for us means a lower price for you — Google takes 15–30% of every in-app subscription.</span>
+          <span class="he">עלות נמוכה יותר עבורנו פירושה מחיר נמוך יותר עבורך — Google לוקחת 15–30% מכל מנוי באפליקציה.</span>
+        </li>
+        <li>
+          <span class="en">Same app, same features, same backend — just a different install path.</span>
+          <span class="he">אותה אפליקציה, אותן תכונות, אותו שרת — פשוט נתיב התקנה שונה.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Web signup CTA -->
+    <div class="web-signup">
+      <p class="en">Already installed? Sign up or log in on the web to manage your subscription.</p>
+      <p class="he">כבר התקנת? הירשם או התחבר באינטרנט כדי לנהל את המנוי שלך.</p>
+      <a href="https://ope-forecast-bngx.vercel.app" class="btn">
+        <span class="en">Sign up on the web →</span>
+        <span class="he">הירשם באינטרנט ←</span>
+      </a>
+    </div>
+
+  </div>
+
+  <footer>
+    <a href="/privacy.html" class="en">Privacy Policy</a>
+    <a href="/privacy.html" class="he">מדיניות פרטיות</a>
+    &nbsp;·&nbsp;
+    <span class="en">© 2026 Ope. All rights reserved.</span>
+    <span class="he">© 2026 Ope. כל הזכויות שמורות.</span>
+  </footer>
+
+  <script>
+    function setLang(lang) {
+      const isHe = lang === 'he';
+      document.documentElement.lang = lang;
+      document.documentElement.dir = isHe ? 'rtl' : 'ltr';
+
+      document.querySelectorAll('.en').forEach(el => {
+        el.style.display = isHe ? 'none' : '';
+      });
+      document.querySelectorAll('.he').forEach(el => {
+        el.style.display = isHe ? '' : 'none';
+      });
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.trim() === lang.toUpperCase());
+      });
+    }
+
+    // Detect browser language on load
+    const browserLang = navigator.language || navigator.userLanguage || 'en';
+    if (browserLang.startsWith('he')) {
+      setLang('he');
+    }
+  </script>
+</body>
+</html>

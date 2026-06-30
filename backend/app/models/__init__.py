@@ -12,6 +12,7 @@ from app.models.sale_event import SaleEvent
 from app.models.sale_record import SaleRecord
 from app.models.service_consumable import ServiceConsumable
 from app.models.stock_batch import StockBatch
+from app.models.subscription import Subscription
 from app.models.telegram_link import TelegramLink
 from app.models.tuner_state import TunerLog, TunerState
 
@@ -30,6 +31,7 @@ __all__ = [
     "SaleRecord",
     "ServiceConsumable",
     "StockBatch",
+    "Subscription",
     "TelegramLink",
     "TunerLog",
     "TunerState",
