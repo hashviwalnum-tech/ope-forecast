@@ -23,6 +23,7 @@ import ProductStatusPanel from './components/ProductStatusPanel'
 import PremiumPage from './components/PremiumPage'
 import { useAuth } from './contexts/AuthContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
+import { LANG_LABELS, type Lang } from './i18n'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import LoginPage from './pages/LoginPage'
 import * as api from './api/client'
@@ -482,19 +483,16 @@ function AppInner() {
 
         {/* Language switcher */}
         <div className="flex items-center shrink-0">
-          {(['en', 'he'] as const).map(l => (
-            <button
-              key={l}
-              onClick={() => setLang(l)}
-              className={`px-2 py-1 text-xs font-semibold rounded transition-colors ${
-                lang === l
-                  ? 'bg-teal-600 text-white'
-                  : 'text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-700'
-              }`}
-            >
-              {l === 'en' ? 'EN' : 'HE'}
-            </button>
-          ))}
+          <select
+            value={lang}
+            onChange={e => setLang(e.target.value as Lang)}
+            className="text-xs rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-1.5 py-1 cursor-pointer focus:outline-none focus:ring-1 focus:ring-teal-400"
+            aria-label="Language"
+          >
+            {(Object.entries(LANG_LABELS) as [Lang, string][]).map(([code, label]) => (
+              <option key={code} value={code}>{label}</option>
+            ))}
+          </select>
         </div>
 
         {/* Settings gear — primary entry point to settings */}

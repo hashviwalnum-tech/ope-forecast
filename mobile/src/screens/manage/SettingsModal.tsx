@@ -18,6 +18,7 @@ import * as api from '../../api/client'
 import type { BusinessRead } from '../../api/types'
 import { useTheme, useAppTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { LANG_LABELS, type Lang } from '../../lib/i18n'
 import type { Theme } from '../../lib/theme'
 
 interface Props {
@@ -182,24 +183,24 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
             {/* ── Language ── */}
             <Text style={[styles.sectionLabel, { color: c.text }]}>{t('language')}</Text>
             <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('languageHint')}</Text>
-            <View style={styles.segmentRow}>
-              {(['en', 'he'] as const).map(l => (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+              {(Object.entries(LANG_LABELS) as [Lang, string][]).map(([code, label]) => (
                 <TouchableOpacity
-                  key={l}
+                  key={code}
                   style={[
                     styles.segmentBtn,
                     { backgroundColor: c.card, borderColor: c.border },
-                    lang === l && { backgroundColor: c.primary, borderColor: c.primary },
+                    lang === code && { backgroundColor: c.primary, borderColor: c.primary },
                   ]}
-                  onPress={() => setLang(l)}
+                  onPress={() => setLang(code)}
                   activeOpacity={0.8}
                 >
                   <Text style={[
                     styles.segmentBtnText,
                     { color: c.textSub },
-                    lang === l && { color: c.onPrimary },
+                    lang === code && { color: c.onPrimary },
                   ]}>
-                    {l === 'en' ? 'English' : 'עברית'}
+                    {label}
                   </Text>
                 </TouchableOpacity>
               ))}

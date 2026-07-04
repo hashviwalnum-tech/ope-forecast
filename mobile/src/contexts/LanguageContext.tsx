@@ -1,7 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { I18nManager } from 'react-native'
-import { type Lang, type TranslationKey, makeT, translations } from '../lib/i18n'
+import { type Lang, type TranslationKey, makeT, translations, RTL_LANGS } from '../lib/i18n'
+
+const VALID_LANGS = new Set<string>(['en','he','zh','es','hi','ar','pt','ru','fr','bn','ur','id','de','ja','tr'])
 
 interface LanguageContextValue {
   lang: Lang
@@ -33,7 +35,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then(saved => {
-      if (saved === 'en' || saved === 'he') setLangState(saved)
+      if (VALID_LANGS.has(saved ?? '')) setLangState(saved as Lang)
     }).catch(() => {})
     AsyncStorage.getItem(SIMPLE_MODE_KEY).then(saved => {
       if (saved === '1') {
@@ -45,12 +47,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }).catch(() => {})
   }, [])
 
-  const dir: 'ltr' | 'rtl' = lang === 'he' ? 'rtl' : 'ltr'
+  const dir: 'ltr' | 'rtl' = RTL_LANGS.has(lang) ? 'rtl' : 'ltr'
 
   function setLang(l: Lang) {
     setLangState(l)
     AsyncStorage.setItem(STORAGE_KEY, l).catch(() => {})
-    I18nManager.forceRTL(l === 'he')
+    I18nManager.forceRTL(RTL_LANGS.has(l))
   }
 
   function setSimpleMode(v: boolean) {

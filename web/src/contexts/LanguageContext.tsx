@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { translations, simpleTranslations, type Lang, type TranslationKey } from '../i18n'
+import { translations, simpleTranslations, RTL_LANGS, type Lang, type TranslationKey } from '../i18n'
+
+const VALID_LANGS = new Set<string>(['en','he','zh','es','hi','ar','pt','ru','fr','bn','ur','id','de','ja','tr'])
 
 interface LanguageContextValue {
   lang: Lang
@@ -20,7 +22,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      return (saved === 'en' || saved === 'he') ? saved : 'en'
+      return VALID_LANGS.has(saved ?? '') ? saved as Lang : 'en'
     } catch {
       return 'en'
     }
@@ -43,7 +45,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   })
 
-  const dir = lang === 'he' ? 'rtl' : 'ltr'
+  const dir: 'ltr' | 'rtl' = RTL_LANGS.has(lang) ? 'rtl' : 'ltr'
 
   useEffect(() => {
     document.documentElement.lang = lang

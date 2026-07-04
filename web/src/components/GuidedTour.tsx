@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { Lang, TranslationKey } from '../i18n'
+import { LANG_LABELS, type Lang, type TranslationKey } from '../i18n'
 
 // ── Section / step structure ────────────────────────────────────────────────
 
@@ -311,20 +311,18 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
           </div>
 
           {/* In-tour language toggle */}
-          <div className={`flex items-center gap-1 shrink-0 ${isRtl ? 'mr-3' : 'ml-3'}`}>
-            {(['en', 'he'] as Lang[]).map(l => (
-              <button
-                key={l}
-                onClick={(e) => { stopProp(e); setLang(l) }}
-                className={`px-1.5 py-0.5 text-[10px] font-semibold rounded transition-colors ${
-                  lang === l
-                    ? 'bg-teal-600 text-white'
-                    : 'text-teal-500 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-700'
-                }`}
-              >
-                {l === 'en' ? 'EN' : 'עב'}
-              </button>
-            ))}
+          <div className={`flex items-center shrink-0 ${isRtl ? 'mr-3' : 'ml-3'}`}>
+            <select
+              value={lang}
+              onChange={e => { setLang(e.target.value as Lang) }}
+              onClick={stopProp}
+              className="text-[10px] rounded border border-teal-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-1 py-0.5 cursor-pointer focus:outline-none"
+              aria-label="Language"
+            >
+              {(Object.entries(LANG_LABELS) as [Lang, string][]).map(([code, label]) => (
+                <option key={code} value={code}>{label}</option>
+              ))}
+            </select>
           </div>
         </div>
 
