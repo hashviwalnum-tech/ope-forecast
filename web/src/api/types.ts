@@ -298,7 +298,7 @@ export interface ProductRead {
   price: number | null
   current_stock: number | null
   stock_as_of_date: string | null   // "YYYY-MM-DD"
-  lead_time_days: number
+  lead_time_days: number | null     // null for services — performed, not held
   service_time_minutes: number | null
   storage_capacity: number | null
   shelf_life_days: number | null
@@ -311,7 +311,9 @@ export interface ProductCreate {
   unit_mode?: 'whole' | 'decimal'
   is_favorite?: boolean
   price?: number
-  lead_time_days: number
+  // Required for 'stocked' products; must be omitted/null for 'service' —
+  // services are performed, not held, and have no lead time.
+  lead_time_days?: number | null
   current_stock?: number
   service_time_minutes?: number
   storage_capacity?: number
@@ -325,7 +327,7 @@ export interface ProductUpdate {
   unit_mode?: 'whole' | 'decimal'
   is_favorite?: boolean
   price?: number | null
-  lead_time_days?: number
+  lead_time_days?: number | null
   current_stock?: number | null
   service_time_minutes?: number | null
   storage_capacity?: number | null
@@ -518,7 +520,7 @@ export interface ProductForecastItem {
   days: ProductForecastDay[]
   avg_daily_demand: number
   forecast_demand_over_lead_time: number
-  lead_time_days: number
+  lead_time_days: number | null   // null for services — performed, not held
   safety_stock_units: number
   reorder_point: number
   suggested_order_qty: number

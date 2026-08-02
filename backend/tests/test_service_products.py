@@ -59,7 +59,7 @@ def service_product(db, spa_biz):
         name="Massage",
         unit="session",
         product_type="service",
-        lead_time_days=1,
+        lead_time_days=None,
     )
     db.add(prod)
     db.commit()
@@ -157,3 +157,128 @@ def test_service_with_no_consumables_is_silent(spa_client, service_product):
     assert svc.get("approaching_reorder") is False, "Service must never trigger approaching_reorder"
     assert svc.get("suggested_order_qty", 0) == 0.0, "Service must have 0 suggested order qty"
     assert svc.get("product_type") == "service", "product_type must be 'service'"
+
+
+# ── POST/PUT /products validation: stock-only fields don't block services ──────
+# (Fixtures above build service_product via direct ORM construction, which
+# bypasses the schema entirely — these tests go through the real endpoint,
+# which is where the "lead_time_days must be >= 1 (got 0)" bug actually lived.)
+
+@pytest.fixture()
+def products_client(db, biz):
+    def _db():
+        yield db
+
+    def _biz():
+        return biz
+
+    app.dependency_overrides[get_db] = _db
+    app.dependency_overrides[get_business] = _biz
+    with TestClient(app, raise_server_exceptions=True) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+def test_create_service_product_succeeds(products_client):
+    """A service ('performed, not stocked') must save without lead_time_days,
+    current_stock, storage_capacity, or shelf_life_days — those are
+    physical-good-only fields."""
+    r = products_client.post("/products", json={
+        "name": "Haircut",
+        "unit": "session",
+        "product_type": "service",
+    })
+    assert r.status_code == 201, r.text
+    data = r.json()
+    assert data["product_type"] == "service"
+    assert data["lead_time_days"] is None
+    assert data["current_stock"] is None
+    assert data["storage_capacity"] is None
+    assert data["shelf_life_days"] is None
+
+
+def test_create_stocked_product_with_zero_lead_time_still_fails(products_client):
+    """A physical good must still require lead_time_days >= 1 — only services
+    are exempt from this rule."""
+    r = products_client.post("/products", json={
+        "name": "Croissant",
+        "unit": "piece",
+        "product_type": "stocked",
+        "lead_time_days": 0,
+    })
+    assert r.status_code == 422
+
+
+def test_create_stocked_product_without_lead_time_fails(products_client):
+    """Omitting lead_time_days entirely for a physical good must also fail —
+    it's required for stocked products, just not for services."""
+    r = products_client.post("/products", json={
+        "name": "Croissant",
+        "unit": "piece",
+        "product_type": "stocked",
+    })
+    assert r.status_code == 422
+
+
+def test_create_service_ignores_stray_stock_fields(products_client):
+    """Even if a client mistakenly sends stock-only fields for a service, they
+    must not be persisted."""
+    r = products_client.post("/products", json={
+        "name": "Consultation",
+        "unit": "session",
+        "product_type": "service",
+        "current_stock": 5,
+        "storage_capacity": 10,
+        "shelf_life_days": 3,
+    })
+    assert r.status_code == 201, r.text
+    data = r.json()
+    assert data["current_stock"] is None
+    assert data["storage_capacity"] is None
+    assert data["shelf_life_days"] is None
+
+
+def test_update_stocked_to_service_clears_stock_fields(products_client):
+    """Converting an existing physical good to a service via PUT must clear
+    its stale stock-only fields, not leave them stranded."""
+    r = products_client.post("/products", json={
+        "name": "Bagel", "unit": "piece", "product_type": "stocked",
+        "lead_time_days": 2, "current_stock": 40, "storage_capacity": 100, "shelf_life_days": 3,
+    })
+    assert r.status_code == 201, r.text
+    pid = r.json()["id"]
+
+    r2 = products_client.put(f"/products/{pid}", json={"product_type": "service"})
+    assert r2.status_code == 200, r2.text
+    data = r2.json()
+    assert data["lead_time_days"] is None
+    assert data["current_stock"] is None
+    assert data["storage_capacity"] is None
+    assert data["shelf_life_days"] is None
+
+
+def test_create_order_for_service_rejected_cleanly(spa_client, service_product):
+    """POST /orders for a service (lead_time_days=None) must return a clean
+    400, not crash with an unhandled TypeError from `timedelta(days=None)`."""
+    resp = spa_client.post("/orders", json={
+        "product_id": service_product.id,
+        "ordered_date": "2026-01-15",
+        "quantity": 1,
+    })
+    assert resp.status_code == 400, resp.text
+
+
+def test_update_unrelated_field_does_not_clear_stocked_product(products_client):
+    """A PUT that doesn't touch product_type must not clobber an existing
+    stocked product's lead_time_days/stock fields."""
+    r = products_client.post("/products", json={
+        "name": "Bagel", "unit": "piece", "product_type": "stocked",
+        "lead_time_days": 2, "current_stock": 40,
+    })
+    pid = r.json()["id"]
+
+    r2 = products_client.put(f"/products/{pid}", json={"price": 3.5})
+    assert r2.status_code == 200, r2.text
+    data = r2.json()
+    assert data["lead_time_days"] == 2
+    assert data["current_stock"] == 40

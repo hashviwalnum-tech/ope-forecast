@@ -208,7 +208,7 @@ class ProductForecastItem(BaseModel):
     # ordering advice (populated when status == "ok")
     avg_daily_demand: float = 0.0
     forecast_demand_over_lead_time: float = 0.0
-    lead_time_days: int = 1
+    lead_time_days: Optional[int] = None
     safety_stock_units: float = 0.0
     reorder_point: float = 0.0
     suggested_order_qty: float = 0.0      # EOQ if costs known, else ROP-based

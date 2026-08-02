@@ -82,6 +82,15 @@ def update_product(product_id: int, body: ProductUpdate, db: Session = Depends(g
     )
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(row, field, value)
+    # A PUT that (re)declares this product as a service must clear any stale
+    # stock-only fields from before the conversion — exclude_none=True above
+    # would otherwise skip them, since the schema validator already normalized
+    # them to None (which looks indistinguishable from "not provided").
+    if body.product_type == "service":
+        row.lead_time_days = None
+        row.current_stock = None
+        row.storage_capacity = None
+        row.shelf_life_days = None
     # Auto-advance the stock baseline date whenever current_stock is explicitly set
     if stock_being_set:
         row.stock_as_of_date = today

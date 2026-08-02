@@ -22,7 +22,8 @@ class Product(Base):
     unit_mode: Mapped[str] = mapped_column(String(10), default="whole")
     price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     current_stock: Mapped[Optional[float]] = mapped_column(nullable=True)
-    lead_time_days: Mapped[int]
+    # Required for 'stocked' products; always None for 'service' (performed, not held).
+    lead_time_days: Mapped[Optional[int]] = mapped_column(nullable=True)
     service_time_minutes: Mapped[Optional[float]] = mapped_column(nullable=True)
     storage_capacity: Mapped[Optional[float]] = mapped_column(nullable=True)
     shelf_life_days: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)

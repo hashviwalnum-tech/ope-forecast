@@ -59,6 +59,8 @@ def create_order(
     product = db.get(Product, body.product_id)
     if not product or product.business_id != biz.id:
         raise HTTPException(404, "Product not found")
+    if product.lead_time_days is None:
+        raise HTTPException(400, "This product has no lead time — services are performed, not reordered.")
 
     # Enforce one reorder per product per day — edit today's open order instead
     existing = (

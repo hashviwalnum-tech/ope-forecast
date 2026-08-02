@@ -3,7 +3,11 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+# Physical-good-only fields: never required, and never meaningful, for a
+# 'service' product (performed, not stocked) — see the model validators below.
+_STOCK_ONLY_FIELDS = ("lead_time_days", "current_stock", "storage_capacity", "shelf_life_days")
 
 
 class ProductCreate(BaseModel):
@@ -14,7 +18,7 @@ class ProductCreate(BaseModel):
     is_favorite: bool = False
     price: Optional[float] = Field(None, ge=0)
     current_stock: Optional[float] = Field(None, ge=0)
-    lead_time_days: int = Field(..., ge=1, le=365)
+    lead_time_days: Optional[int] = Field(None, ge=1, le=365)
 
     @field_validator('name')
     @classmethod
@@ -33,6 +37,15 @@ class ProductCreate(BaseModel):
     storage_capacity: Optional[float] = Field(None, gt=0)
     shelf_life_days: Optional[int] = Field(None, ge=1)
 
+    @model_validator(mode="after")
+    def _stock_fields_by_type(self) -> "ProductCreate":
+        if self.product_type == "service":
+            for field in _STOCK_ONLY_FIELDS:
+                setattr(self, field, None)
+        elif self.lead_time_days is None:
+            raise ValueError("lead_time_days is required for stocked products")
+        return self
+
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -42,10 +55,20 @@ class ProductUpdate(BaseModel):
     is_favorite: Optional[bool] = None
     price: Optional[float] = Field(None, ge=0)
     current_stock: Optional[float] = Field(None, ge=0)
-    lead_time_days: Optional[int] = Field(None, ge=1)
+    lead_time_days: Optional[int] = Field(None, ge=1, le=365)
     service_time_minutes: Optional[float] = Field(None, gt=0)
     storage_capacity: Optional[float] = Field(None, gt=0)
     shelf_life_days: Optional[int] = Field(None, ge=1)
+
+    @model_validator(mode="after")
+    def _stock_fields_by_type(self) -> "ProductUpdate":
+        # Only normalize when this update explicitly (re)declares the product
+        # as a service — a partial update that doesn't touch product_type
+        # must not clobber an existing stocked product's fields.
+        if self.product_type == "service":
+            for field in _STOCK_ONLY_FIELDS:
+                setattr(self, field, None)
+        return self
 
 
 class ProductRead(BaseModel):
@@ -58,7 +81,7 @@ class ProductRead(BaseModel):
     is_favorite: bool = False
     price: Optional[float]
     current_stock: Optional[float]
-    lead_time_days: int
+    lead_time_days: Optional[int]
     service_time_minutes: Optional[float]
     storage_capacity: Optional[float]
     shelf_life_days: Optional[int]

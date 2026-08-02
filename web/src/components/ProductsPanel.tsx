@@ -186,8 +186,8 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
     if (!name) { setError(t('productNameRequired')); return }
     if (!unit) { setError(t('productUnitRequired')); return }
 
-    const lead_time_days = isService ? 0 : parseInt(form.lead_time_days)
-    if (!isService && (isNaN(lead_time_days) || lead_time_days < 1)) {
+    const lead_time_days = isService ? null : parseInt(form.lead_time_days)
+    if (!isService && (lead_time_days === null || isNaN(lead_time_days) || lead_time_days < 1)) {
       setError(t('productLeadTimeMin')); return
     }
 
@@ -218,8 +218,8 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
       setShowMore(false)
       nameRef.current?.focus()
       onCreated()
-    } catch (err) {
-      setError(String(err))
+    } catch {
+      setError(t('productSaveFailed'))
     } finally {
       setSaving(false)
     }
@@ -490,7 +490,7 @@ function productToEditForm(p: ProductRead): EditForm {
     product_type:         (p.product_type ?? 'stocked') as 'stocked' | 'service',
     unit_mode:            p.unit_mode ?? 'whole',
     price:                p.price               != null ? String(p.price)               : '',
-    lead_time_days:       String(p.lead_time_days),
+    lead_time_days:       p.lead_time_days != null ? String(p.lead_time_days) : '1',
     current_stock:        p.current_stock        != null ? String(p.current_stock)        : '',
     storage_capacity:     p.storage_capacity     != null ? String(p.storage_capacity)     : '',
     shelf_life_days:      p.shelf_life_days      != null ? String(p.shelf_life_days)      : '',
@@ -528,8 +528,8 @@ function EditProductForm({
     if (!name) { setError(t('productNameRequired')); return }
     if (!unit) { setError(t('productUnitRequired')); return }
 
-    const lead_time_days = isService ? 0 : parseInt(form.lead_time_days)
-    if (!isService && (isNaN(lead_time_days) || lead_time_days < 1)) {
+    const lead_time_days = isService ? null : parseInt(form.lead_time_days)
+    if (!isService && (lead_time_days === null || isNaN(lead_time_days) || lead_time_days < 1)) {
       setError(t('productLeadTimeMin')); return
     }
 
@@ -546,8 +546,8 @@ function EditProductForm({
         service_time_minutes: parseOptionalNumber(form.service_time_minutes) ?? undefined,
       })
       onSaved()
-    } catch (err) {
-      setError(String(err))
+    } catch {
+      setError(t('productSaveFailed'))
       setSaving(false)
     }
   }
