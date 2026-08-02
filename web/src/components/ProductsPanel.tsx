@@ -12,57 +12,53 @@ function parseOptionalNumber(s: string): number | null {
   return isNaN(n) ? null : n
 }
 
-// ── consumables sub-component (used inside edit form for services) ─────────────
+// ── consumables picker (shared by the add form's staged list and the edit
+// form's live-saved list — same look, different persistence) ──────────────────
 
-function ConsumablesSection({
-  serviceId,
-  allProducts,
+interface ConsumableRow {
+  key: number
+  name: string
+  qty: number
+  unit: string
+}
+
+function ConsumablePicker({
+  items,
+  stockedOptions,
+  excludeProductId,
+  onAdd,
+  onRemove,
 }: {
-  serviceId: number
-  allProducts: ProductRead[]
+  items: ConsumableRow[]
+  stockedOptions: ProductRead[]
+  excludeProductId?: number
+  onAdd: (productId: number, qty: number) => Promise<void>
+  onRemove: (key: number) => void
 }) {
   const { t } = useLanguage()
-  const [consumables, setConsumables] = useState<ServiceConsumableRead[]>([])
   const [adding, setAdding] = useState(false)
   const [newConsumableId, setNewConsumableId] = useState('')
   const [newQty, setNewQty] = useState('')
   const [saveErr, setSaveErr] = useState<string | null>(null)
 
   // Only stocked products can be consumables
-  const stocked = allProducts.filter(p => (p.product_type ?? 'stocked') === 'stocked' && p.id !== serviceId)
-
-  useEffect(() => {
-    productsApi.listConsumables(serviceId)
-      .then(setConsumables)
-      .catch(() => setConsumables([]))
-  }, [serviceId])
+  const stocked = stockedOptions.filter(p => (p.product_type ?? 'stocked') === 'stocked' && p.id !== excludeProductId)
 
   async function handleAdd() {
     const cid = parseInt(newConsumableId)
     const qty = parseFloat(newQty)
-    if (isNaN(cid) || cid < 1) { setSaveErr('Choose a product.'); return }
-    if (isNaN(qty) || qty <= 0) { setSaveErr('Enter a quantity greater than 0.'); return }
+    if (isNaN(cid) || cid < 1) { setSaveErr(t('consumableChoosePrompt')); return }
+    if (isNaN(qty) || qty <= 0) { setSaveErr(t('consumableQtyPositive')); return }
     setAdding(true)
     setSaveErr(null)
     try {
-      const body: ServiceConsumableCreate = { consumable_product_id: cid, qty_per_performance: qty }
-      const created = await productsApi.addConsumable(serviceId, body)
-      setConsumables(cs => [...cs, created])
+      await onAdd(cid, qty)
       setNewConsumableId('')
       setNewQty('')
     } catch (e) {
-      setSaveErr(e instanceof Error ? e.message : 'Failed to add.')
+      setSaveErr(e instanceof Error ? e.message : t('consumableAddFailed'))
     } finally {
       setAdding(false)
-    }
-  }
-
-  async function handleRemove(linkId: number) {
-    try {
-      await productsApi.deleteConsumable(serviceId, linkId)
-      setConsumables(cs => cs.filter(c => c.id !== linkId))
-    } catch {
-      // best-effort
     }
   }
 
@@ -71,15 +67,15 @@ function ConsumablesSection({
       <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">{t('consumablesTitle')}</p>
       <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{t('consumablesDesc')}</p>
 
-      {consumables.length > 0 && (
+      {items.length > 0 && (
         <ul className="mb-3 space-y-1">
-          {consumables.map(c => (
-            <li key={c.id} className="flex items-center justify-between gap-2 text-xs text-slate-700 dark:text-slate-300
+          {items.map(item => (
+            <li key={item.key} className="flex items-center justify-between gap-2 text-xs text-slate-700 dark:text-slate-300
                                       bg-slate-50 dark:bg-slate-700/50 rounded-lg px-3 py-2">
-              <span><strong>{c.consumable_name}</strong> — {c.qty_per_performance} {c.consumable_unit} per service</span>
+              <span><strong>{item.name}</strong> — {t('consumableUsagePerService', { qty: item.qty, unit: item.unit })}</span>
               <button
                 type="button"
-                onClick={() => handleRemove(c.id)}
+                onClick={() => onRemove(item.key)}
                 className="text-red-500 hover:text-red-700 font-medium shrink-0"
               >
                 {t('removeSupplyBtn')}
@@ -89,7 +85,7 @@ function ConsumablesSection({
         </ul>
       )}
 
-      {consumables.length === 0 && (
+      {items.length === 0 && (
         <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{t('noConsumables')}</p>
       )}
 
@@ -143,6 +139,94 @@ function ConsumablesSection({
   )
 }
 
+// ── consumables sub-component (edit form — persists to the API immediately) ───
+
+function ConsumablesSection({
+  serviceId,
+  allProducts,
+}: {
+  serviceId: number
+  allProducts: ProductRead[]
+}) {
+  const [consumables, setConsumables] = useState<ServiceConsumableRead[]>([])
+
+  useEffect(() => {
+    productsApi.listConsumables(serviceId)
+      .then(setConsumables)
+      .catch(() => setConsumables([]))
+  }, [serviceId])
+
+  async function handleAdd(productId: number, qty: number) {
+    const body: ServiceConsumableCreate = { consumable_product_id: productId, qty_per_performance: qty }
+    const created = await productsApi.addConsumable(serviceId, body)
+    setConsumables(cs => [...cs, created])
+  }
+
+  async function handleRemove(linkId: number) {
+    try {
+      await productsApi.deleteConsumable(serviceId, linkId)
+      setConsumables(cs => cs.filter(c => c.id !== linkId))
+    } catch {
+      // best-effort
+    }
+  }
+
+  return (
+    <ConsumablePicker
+      items={consumables.map(c => ({ key: c.id, name: c.consumable_name, qty: c.qty_per_performance, unit: c.consumable_unit }))}
+      stockedOptions={allProducts}
+      excludeProductId={serviceId}
+      onAdd={handleAdd}
+      onRemove={handleRemove}
+    />
+  )
+}
+
+// ── consumables sub-component (add form — staged locally until the product
+// is created, since a link needs a real product id) ────────────────────────
+
+interface StagedConsumable {
+  product_id: number
+  qty: number
+}
+
+function StagedConsumablesSection({
+  allProducts,
+  staged,
+  onChange,
+}: {
+  allProducts: ProductRead[]
+  staged: StagedConsumable[]
+  onChange: (items: StagedConsumable[]) => void
+}) {
+  const { t } = useLanguage()
+
+  async function handleAdd(productId: number, qty: number) {
+    if (staged.some(s => s.product_id === productId)) {
+      throw new Error(t('consumableAlreadyLinked'))
+    }
+    onChange([...staged, { product_id: productId, qty }])
+  }
+
+  function handleRemove(productId: number) {
+    onChange(staged.filter(s => s.product_id !== productId))
+  }
+
+  const items: ConsumableRow[] = staged.map(s => {
+    const p = allProducts.find(ap => ap.id === s.product_id)
+    return { key: s.product_id, name: p?.name ?? '', qty: s.qty, unit: p?.unit ?? '' }
+  })
+
+  return (
+    <ConsumablePicker
+      items={items}
+      stockedOptions={allProducts}
+      onAdd={handleAdd}
+      onRemove={handleRemove}
+    />
+  )
+}
+
 // ── add-product form ──────────────────────────────────────────────────────────
 
 type AddForm = {
@@ -164,12 +248,13 @@ const EMPTY_ADD: AddForm = {
   shelf_life_days: '', service_time_minutes: '',
 }
 
-function AddProductForm({ onCreated }: { onCreated: () => void }) {
+function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]; onCreated: () => void }) {
   const { t } = useLanguage()
   const [form, setForm]       = useState<AddForm>(EMPTY_ADD)
   const [showMore, setShowMore] = useState(false)
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
+  const [stagedConsumables, setStagedConsumables] = useState<StagedConsumable[]>([])
   const nameRef               = useRef<HTMLInputElement>(null)
 
   const isService = form.product_type === 'service'
@@ -206,7 +291,7 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
     setSaving(true)
     setError(null)
     try {
-      await productsApi.create({
+      const created = await productsApi.create({
         name, unit, product_type: form.product_type, unit_mode: form.unit_mode, lead_time_days,
         ...(price                !== null && { price }),
         ...(current_stock        !== null && { current_stock }),
@@ -214,8 +299,23 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
         ...(shelf_life_days_n    !== null && { shelf_life_days: shelf_life_days_n }),
         ...(service_time_minutes !== null && { service_time_minutes }),
       })
+
+      if (stagedConsumables.length > 0) {
+        try {
+          for (const s of stagedConsumables) {
+            await productsApi.addConsumable(created.id, {
+              consumable_product_id: s.product_id,
+              qty_per_performance: s.qty,
+            })
+          }
+        } catch {
+          setError(t('consumableLinkPartialFail'))
+        }
+      }
+
       setForm(EMPTY_ADD)
       setShowMore(false)
+      setStagedConsumables([])
       nameRef.current?.focus()
       onCreated()
     } catch {
@@ -444,10 +544,11 @@ function AddProductForm({ onCreated }: { onCreated: () => void }) {
       )}
 
       {isService && showMore && (
-        <div className="rounded-xl bg-teal-50/60 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 px-4 py-3">
-          <p className="text-xs font-semibold text-teal-700 dark:text-teal-300 mb-0.5">{t('consumablesTitle')}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{t('consumableSavedNote')} {t('consumablesDesc')}</p>
-        </div>
+        <StagedConsumablesSection
+          allProducts={allProducts}
+          staged={stagedConsumables}
+          onChange={setStagedConsumables}
+        />
       )}
 
       {error && (
@@ -921,7 +1022,7 @@ export default function ProductsPanel() {
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
           {t('productPanelDesc')}
         </p>
-        <AddProductForm onCreated={load} />
+        <AddProductForm allProducts={productList} onCreated={load} />
       </section>
 
       {/* ── product list ── */}
