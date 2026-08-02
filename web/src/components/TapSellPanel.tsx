@@ -90,9 +90,11 @@ function TapButton({
 
 function RecentTapsList({
   taps,
+  timezone,
   onDelete,
 }: {
   taps: RecentTap[]
+  timezone: string
   onDelete: (id: number) => void
 }) {
   const { t } = useLanguage()
@@ -104,7 +106,9 @@ function RecentTapsList({
       <ul className="space-y-1">
         {taps.map(tap => {
           const ts = new Date(tap.timestamp)
-          const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          // Explicit business timeZone — not the viewing device's timezone,
+          // which may differ from where the business actually operates.
+          const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: timezone })
           const label = tap.product_name ?? t('customerNoProduct')
           const qty = tap.quantity !== 1 ? ` ×${tap.quantity}` : ''
           return (
@@ -395,6 +399,7 @@ export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {})
       {summary && summary.recent_taps && summary.recent_taps.length > 0 && (
         <RecentTapsList
           taps={summary.recent_taps}
+          timezone={summary.timezone}
           onDelete={handleDeleteTap}
         />
       )}

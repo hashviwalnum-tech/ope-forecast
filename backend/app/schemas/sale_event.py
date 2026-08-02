@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from datetime import date as date_type, datetime
+from datetime import date as date_type, datetime, timezone
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class SaleEventCreate(BaseModel):
@@ -21,6 +21,19 @@ class SaleEventRead(BaseModel):
     unit_price: Optional[float]
 
     model_config = {"from_attributes": True}
+
+    @field_validator("timestamp")
+    @classmethod
+    def _tag_utc(cls, ts: datetime) -> datetime:
+        """Tag a naive datetime as UTC so it serializes with an explicit offset.
+
+        SaleEvent.timestamp is stored naive-but-UTC (see live_sales.py).
+        Without this, FastAPI serializes it as e.g. "2026-08-02T11:10:00"
+        with no offset, which browsers parse as *local browser time* instead
+        of UTC — silently shifting every displayed time by the viewer's
+        UTC offset.
+        """
+        return ts if ts.tzinfo is not None else ts.replace(tzinfo=timezone.utc)
 
 
 # ── today-summary response ─────────────────────────────────────────────────
@@ -43,6 +56,11 @@ class RecentTap(BaseModel):
     quantity: float
     timestamp: datetime
 
+    @field_validator("timestamp")
+    @classmethod
+    def _tag_utc(cls, ts: datetime) -> datetime:
+        return ts if ts.tzinfo is not None else ts.replace(tzinfo=timezone.utc)
+
 
 class TodaySummaryResponse(BaseModel):
     date: date_type
@@ -50,6 +68,7 @@ class TodaySummaryResponse(BaseModel):
     product_totals: list[ProductTap]   # running totals per product — feeds button badges
     hours: list[HourSlot]              # hourly breakdown for the end-of-day chart
     recent_taps: list[RecentTap]       # last 10 individual events, newest first
+    timezone: str                      # IANA name used to bucket "today" and its hours (business tz, or "UTC")
 
 
 # ── hourly backfill (past-day entry from register logs) ───────────────────────

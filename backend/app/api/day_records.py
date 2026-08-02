@@ -1,13 +1,18 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
 from app.engine.limits import check_entry_timing, check_history, check_non_working_day, history_cutoff
-from app.engine.live_sales import compute_open_hours, reconcile_customers_with_hours, utc_to_local_hour
+from app.engine.live_sales import (
+    compute_open_hours,
+    local_day_utc_bounds,
+    reconcile_customers_with_hours,
+    utc_to_local_date,
+    utc_to_local_hour,
+)
 from app.engine.outliers import detect_outliers
 from app.models import Business, DayRecord, Period, RecurringPattern, SaleEvent
 from app.schemas.day_record import (
@@ -31,22 +36,23 @@ def rollup_tap_days(db: Session, biz: Business) -> list[date]:
     Safe to call repeatedly — skips dates that already have a DayRecord.
     Returns the list of dates for which new records were created.
     """
-    today = date.today()
     settings = biz.settings or {}
     open_hours = compute_open_hours(settings)
     tz_name: str = settings.get("timezone", "UTC")
+    today = utc_to_local_date(datetime.now(timezone.utc), tz_name)
 
-    # Distinct dates with SaleEvents before today for this business
-    raw = (
-        db.query(func.date(SaleEvent.timestamp).label("d"))
-        .filter(
-            SaleEvent.business_id == biz.id,
-            SaleEvent.timestamp < datetime.combine(today, datetime.min.time()),
-        )
-        .distinct()
-        .all()
-    )
-    if not raw:
+    # All SaleEvents for this business, grouped by LOCAL calendar date (not
+    # the UTC date the raw timestamp happens to fall on — a sale a few hours
+    # before UTC midnight can be the business's next local day, or vice versa).
+    all_events = db.query(SaleEvent).filter(SaleEvent.business_id == biz.id).all()
+    if not all_events:
+        return []
+
+    past_dates = {
+        d for d in (utc_to_local_date(e.timestamp, tz_name) for e in all_events)
+        if d < today
+    }
+    if not past_dates:
         return []
 
     # Existing DayRecord dates — skip these
@@ -55,14 +61,11 @@ def rollup_tap_days(db: Session, biz: Business) -> list[date]:
     }
 
     created: list[date] = []
-    for (raw_date,) in raw:
-        # SQLite returns strings; Postgres returns date objects
-        event_date: date = raw_date if isinstance(raw_date, date) else date.fromisoformat(str(raw_date))
+    for event_date in sorted(past_dates):
         if event_date in existing:
             continue
 
-        day_start = datetime.combine(event_date, datetime.min.time())
-        day_end = datetime.combine(event_date, datetime.max.time())
+        day_start, day_end = local_day_utc_bounds(event_date, tz_name)
 
         # Sum customer-arrival taps (product_id=None) within open hours
         cust_events = (
@@ -71,7 +74,7 @@ def rollup_tap_days(db: Session, biz: Business) -> list[date]:
                 SaleEvent.business_id == biz.id,
                 SaleEvent.product_id.is_(None),
                 SaleEvent.timestamp >= day_start,
-                SaleEvent.timestamp <= day_end,
+                SaleEvent.timestamp < day_end,
             )
             .all()
         )
@@ -82,17 +85,17 @@ def rollup_tap_days(db: Session, biz: Business) -> list[date]:
 
         # Fall back to total open-hours event count when no customer taps
         if customers == 0:
-            all_events = (
+            all_day_events = (
                 db.query(SaleEvent)
                 .filter(
                     SaleEvent.business_id == biz.id,
                     SaleEvent.timestamp >= day_start,
-                    SaleEvent.timestamp <= day_end,
+                    SaleEvent.timestamp < day_end,
                 )
                 .all()
             )
             customers = sum(
-                1 for e in all_events
+                1 for e in all_day_events
                 if utc_to_local_hour(e.timestamp, tz_name) in open_hours
             )
 
@@ -130,7 +133,7 @@ def _timing_check(record_date: date, biz: Business) -> None:
 
 
 def _hourly_consistency_warning(
-    db: Session, biz_id: int, record_date: date, customers: int
+    db: Session, biz: Business, record_date: date, customers: int
 ) -> str | None:
     """Return a non-blocking warning when known hourly SaleEvent data exceeds the daily total.
 
@@ -142,16 +145,16 @@ def _hourly_consistency_warning(
     Only flag when sum of known hours > customers, since that is mathematically
     inconsistent with the daily total being the source of truth.
     """
-    day_start = datetime.combine(record_date, datetime.min.time())
-    day_end   = datetime.combine(record_date, datetime.max.time())
+    tz_name: str = (biz.settings or {}).get("timezone", "UTC")
+    day_start, day_end = local_day_utc_bounds(record_date, tz_name)
 
     hourly_total = (
         db.query(SaleEvent)
         .filter(
-            SaleEvent.business_id == biz_id,
+            SaleEvent.business_id == biz.id,
             SaleEvent.product_id.is_(None),
             SaleEvent.timestamp >= day_start,
-            SaleEvent.timestamp <= day_end,
+            SaleEvent.timestamp < day_end,
         )
         .with_entities(SaleEvent.quantity)
         .all()
@@ -177,8 +180,8 @@ def _apply_reconciliation(db: Session, biz: Business, record_date: date, manual_
     """
     settings = biz.settings or {}
     open_hours = compute_open_hours(settings)
-    day_start = datetime.combine(record_date, datetime.min.time())
-    day_end = datetime.combine(record_date, datetime.max.time())
+    tz_name: str = settings.get("timezone", "UTC")
+    day_start, day_end = local_day_utc_bounds(record_date, tz_name)
 
     events = (
         db.query(SaleEvent)
@@ -186,13 +189,13 @@ def _apply_reconciliation(db: Session, biz: Business, record_date: date, manual_
             SaleEvent.business_id == biz.id,
             SaleEvent.product_id.is_(None),  # customer-arrival taps only
             SaleEvent.timestamp >= day_start,
-            SaleEvent.timestamp <= day_end,
+            SaleEvent.timestamp < day_end,
         )
         .all()
     )
     hours_sum = sum(
         float(e.quantity) for e in events
-        if e.timestamp.hour in open_hours
+        if utc_to_local_hour(e.timestamp, tz_name) in open_hours
     )
     effective, _ = reconcile_customers_with_hours(manual_total, hours_sum)
     return effective
@@ -311,7 +314,7 @@ def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db), biz:
     db.refresh(row)
     # Non-blocking data-consistency check: warn only if hourly data STILL exceeds
     # the reconciled total (after reconciliation this should be rare)
-    warning = _hourly_consistency_warning(db, biz.id, body.date, reconciled_customers)
+    warning = _hourly_consistency_warning(db, biz, body.date, reconciled_customers)
     result = DayRecordRead.model_validate(row)
     result.warning = warning
     return result
@@ -339,7 +342,7 @@ def update_day_record(record_id: int, body: DayRecordUpdate, db: Session = Depen
     db.refresh(row)
     # Non-blocking data-consistency check
     new_customers = body.customers if body.customers is not None else row.customers
-    warning = _hourly_consistency_warning(db, biz.id, row.date, new_customers)
+    warning = _hourly_consistency_warning(db, biz, row.date, new_customers)
     result = DayRecordRead.model_validate(row)
     result.warning = warning
     return result

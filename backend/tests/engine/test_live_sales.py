@@ -1,13 +1,56 @@
 """Known-answer tests for engine.live_sales.rollup_by_hour and hourly_averages."""
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from app.engine.live_sales import (
     compute_open_hours,
     hourly_averages,
+    local_day_utc_bounds,
     reconcile_customers_with_hours,
     rollup_by_hour,
+    utc_to_local_date,
+    utc_to_local_hour,
     _DEFAULT_OPEN_HOURS,
 )
+
+
+# ── timezone bucketing: UTC storage → business-local day/hour ──────────────────
+# Asia/Jerusalem is UTC+3 (IDT) in August — matches the reported bug where a
+# 14:10 local (IDT) tap was shown as 11:10 because it was never converted.
+
+def test_utc_to_local_hour_same_calendar_day():
+    ts = datetime(2026, 8, 2, 11, 10)  # 11:10 UTC == 14:10 IDT, same day both ways
+    assert utc_to_local_hour(ts, "Asia/Jerusalem") == 14
+    assert utc_to_local_date(ts, "Asia/Jerusalem") == date(2026, 8, 2)
+
+
+def test_utc_to_local_date_crosses_midnight_forward():
+    """A sale just before UTC midnight can already be the next LOCAL day."""
+    ts = datetime(2026, 8, 2, 21, 30)  # 21:30 UTC == 00:30 IDT the next day
+    assert utc_to_local_hour(ts, "Asia/Jerusalem") == 0
+    assert utc_to_local_date(ts, "Asia/Jerusalem") == date(2026, 8, 3)
+
+
+def test_utc_to_local_date_crosses_midnight_backward():
+    """A sale just after UTC midnight can still be the PREVIOUS local day
+    for a timezone behind UTC."""
+    ts = datetime(2026, 8, 3, 2, 0)  # 02:00 UTC == 19:00 the previous day (US/Pacific, UTC-7 in August)
+    assert utc_to_local_date(ts, "America/Los_Angeles") == date(2026, 8, 2)
+    assert utc_to_local_hour(ts, "America/Los_Angeles") == 19
+
+
+def test_local_day_utc_bounds_known_answer():
+    start, end = local_day_utc_bounds(date(2026, 8, 2), "Asia/Jerusalem")
+    assert start == datetime(2026, 8, 1, 21, 0)
+    assert end == datetime(2026, 8, 2, 21, 0)
+
+
+def test_local_day_utc_bounds_half_open_matches_local_hour_helpers():
+    """Every timestamp whose local date is `d` must fall inside its own
+    [start, end) bounds, and the adjoining day's boundary timestamps must not."""
+    start, end = local_day_utc_bounds(date(2026, 8, 2), "Asia/Jerusalem")
+    assert utc_to_local_date(start, "Asia/Jerusalem") == date(2026, 8, 2)
+    assert utc_to_local_date(end - timedelta(microseconds=1), "Asia/Jerusalem") == date(2026, 8, 2)
+    assert utc_to_local_date(end, "Asia/Jerusalem") == date(2026, 8, 3)
 
 
 def test_empty_returns_empty():

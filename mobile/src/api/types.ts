@@ -159,6 +159,7 @@ export interface TodaySummaryResponse {
   product_totals: ProductTap[]
   hours: unknown[]
   recent_taps?: RecentTap[]
+  timezone: string   // IANA name (or "UTC") — the business tz "today" and recent_taps are bucketed in
 }
 
 export interface SaleRead {

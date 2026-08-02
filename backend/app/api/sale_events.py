@@ -7,15 +7,16 @@ DELETE /sale-events/{id}   — undo a specific tap
 """
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import datetime, timezone
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
-from app.engine.live_sales import rollup_by_hour
+from app.engine.live_sales import local_day_utc_bounds, rollup_by_hour, utc_to_local_date, utc_to_local_hour
 from app.models import Business, Product, SaleEvent
 from app.schemas.sale_event import (
     HourlyBackfillRequest,
@@ -68,23 +69,30 @@ def backfill_hourly(
     Replaces any existing SaleEvents for that date so re-submitting is safe.
     Creates one SaleEvent per hour slot with quantity = customers; the
     hourly-analytics engine sums quantities to get arrival-rate λ.
+
+    ``body.date`` and each slot's hour are the business's LOCAL calendar day
+    and local hour (read off a register) — they're converted to UTC before
+    storage so they line up with live-tap SaleEvents, which are stored as
+    true UTC.
     """
-    day_start = datetime.combine(body.date, datetime.min.time())
-    day_end = datetime.combine(body.date, datetime.max.time())
+    settings = biz.settings or {}
+    tz_name: str = settings.get("timezone", "UTC")
+    day_start, day_end = local_day_utc_bounds(body.date, tz_name)
     db.query(SaleEvent).filter(
         SaleEvent.business_id == biz.id,
         SaleEvent.timestamp >= day_start,
-        SaleEvent.timestamp <= day_end,
+        SaleEvent.timestamp < day_end,
     ).delete()
 
     for slot in body.hours:
-        ts = datetime.combine(body.date, datetime.min.time()).replace(
-            hour=slot.hour, minute=0, second=0, microsecond=0
+        local_ts = datetime.combine(body.date, datetime.min.time(), tzinfo=ZoneInfo(tz_name)).replace(
+            hour=slot.hour
         )
+        utc_ts = local_ts.astimezone(timezone.utc).replace(tzinfo=None)
         db.add(SaleEvent(
             business_id=biz.id,
             product_id=None,
-            timestamp=ts,
+            timestamp=utc_ts,
             quantity=slot.customers,
         ))
     db.commit()
@@ -93,14 +101,17 @@ def backfill_hourly(
 
 @router.get("/today", response_model=TodaySummaryResponse)
 def get_today_summary(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    today = date.today()
+    settings = biz.settings or {}
+    tz_name: str = settings.get("timezone", "UTC")
+    today = utc_to_local_date(datetime.now(timezone.utc), tz_name)
+    day_start, day_end = local_day_utc_bounds(today, tz_name)
 
     events = (
         db.query(SaleEvent)
         .filter(
             SaleEvent.business_id == biz.id,
-            SaleEvent.timestamp >= datetime.combine(today, datetime.min.time()),
-            SaleEvent.timestamp < datetime.combine(today, datetime.max.time()),
+            SaleEvent.timestamp >= day_start,
+            SaleEvent.timestamp < day_end,
         )
         .order_by(SaleEvent.timestamp)
         .all()
@@ -113,8 +124,10 @@ def get_today_summary(db: Session = Depends(get_db), biz: Business = Depends(get
         for p in db.query(Product).filter(Product.id.in_(pids)).all():
             name_map[p.id] = p.name
 
-    # Pass plain tuples to the pure engine function
-    raw = [(e.timestamp.hour, e.product_id, e.quantity) for e in events]
+    # Pass plain tuples to the pure engine function — hour must be the LOCAL
+    # hour so the end-of-day chart and hourly table match the business's
+    # clock, not the UTC storage clock.
+    raw = [(utc_to_local_hour(e.timestamp, tz_name), e.product_id, e.quantity) for e in events]
     rollup = rollup_by_hour(raw)
 
     # Build hour slots
@@ -167,6 +180,7 @@ def get_today_summary(db: Session = Depends(get_db), biz: Business = Depends(get
         product_totals=product_totals,
         hours=hours,
         recent_taps=recent_taps,
+        timezone=tz_name,
     )
 
 

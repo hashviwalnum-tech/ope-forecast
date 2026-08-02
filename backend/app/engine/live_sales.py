@@ -8,7 +8,7 @@ so the function is trivially testable without ORM objects.
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 _UTC = timezone.utc
@@ -38,6 +38,35 @@ def utc_to_local_hour(ts: datetime, tz_name: str) -> int:
     closing_hour, which are always expressed in local time.
     """
     return utc_to_local_dt(ts, tz_name).hour
+
+
+def utc_to_local_date(ts: datetime, tz_name: str) -> date:
+    """Return the local calendar date of a timestamp.
+
+    Naive datetimes are assumed to be UTC.  A sale stored a few hours before
+    UTC midnight can still fall on the *next* local calendar day (or vice
+    versa) depending on the business's timezone — this is the single source
+    of truth for "which local day does this sale belong to" used by daily
+    rollups and reconciliation so they never bucket by the UTC day instead.
+    """
+    return utc_to_local_dt(ts, tz_name).date()
+
+
+def local_day_utc_bounds(local_date: date, tz_name: str) -> tuple[datetime, datetime]:
+    """Return the [start, end) naive-UTC bounds of one local calendar day.
+
+    ``start`` is local midnight of ``local_date`` converted to naive UTC;
+    ``end`` is local midnight of the following day, also in naive UTC — so a
+    half-open ``timestamp >= start AND timestamp < end`` filter against the
+    (naive-UTC) SaleEvent.timestamp column captures exactly that local day,
+    including on DST-transition days where the local day is 23 or 25 hours.
+    """
+    tz = ZoneInfo(tz_name)
+    start_local = datetime.combine(local_date, datetime.min.time(), tzinfo=tz)
+    end_local = datetime.combine(local_date + timedelta(days=1), datetime.min.time(), tzinfo=tz)
+    start_utc = start_local.astimezone(_UTC).replace(tzinfo=None)
+    end_utc = end_local.astimezone(_UTC).replace(tzinfo=None)
+    return start_utc, end_utc
 
 
 def compute_open_hours(settings: dict) -> frozenset[int]:

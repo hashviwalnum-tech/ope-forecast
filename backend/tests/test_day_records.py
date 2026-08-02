@@ -275,6 +275,83 @@ def test_undo_restores_previous_customer_count(day_client):
     assert r3.json()["customers"] == 50
 
 
+# ── Local-timezone bucketing (bug fix regression guards) ───────────────────────
+
+def test_reconciliation_uses_local_hour_not_utc_hour(day_client, db, biz):
+    """With a non-UTC business timezone, open-hours filtering must use the tap's
+    LOCAL hour, not its raw stored UTC hour.
+
+    Business is Asia/Jerusalem (UTC+3 in September), open 9-17 local.
+    - 5 taps stored at UTC hour 7 == local hour 10 (open) → must count.
+    - 50 taps stored at UTC hour 15 == local hour 18 (closed) → must NOT count,
+      even though raw UTC hour 15 would incorrectly look "open" (9-17) if the
+      code compared the stored UTC hour directly instead of converting first.
+    """
+    import datetime
+    from app.models import SaleEvent
+
+    biz.settings = {"timezone": "Asia/Jerusalem", "opening_hour": 9, "closing_hour": 17}
+    db.commit()
+
+    for minute in range(5):
+        db.add(SaleEvent(
+            business_id=biz.id, product_id=None,
+            timestamp=datetime.datetime(2025, 9, 10, 7, minute, 0),
+            quantity=1.0,
+        ))
+    for minute in range(50):
+        db.add(SaleEvent(
+            business_id=biz.id, product_id=None,
+            timestamp=datetime.datetime(2025, 9, 10, 15, minute, 0),
+            quantity=1.0,
+        ))
+    db.commit()
+
+    r = day_client.post("/day-records", json={"date": DATE_A, "customers": 10})
+    assert r.status_code == 201, r.text
+    assert r.json()["customers"] == 10, (
+        "Local hour 18 (closed) must not count toward the open-hours sum even "
+        "though its raw UTC hour (15) falls inside 9-17; manual total should stand."
+    )
+
+
+def test_rollup_tap_days_assigns_local_day_not_utc_day(db, biz):
+    """A sale stored a few hours before UTC midnight can already be the
+    business's NEXT local calendar day — rollup must file it under that
+    local day's DayRecord, not the UTC day's.
+
+    2024-08-01 21:30 UTC == 2024-08-02 00:30 IDT (Asia/Jerusalem, UTC+3 in
+    August) — just after local midnight, so the local day is Aug 2, not
+    the UTC day (Aug 1). Dates are historical so they're always "in the past"
+    regardless of when this test runs. opening_hour == closing_hour (0, 0)
+    configures a 24-hour-open business so the 00:30 local tap isn't also
+    excluded by the (unrelated) open-hours filter.
+    """
+    import datetime
+    from app.models import SaleEvent
+    from app.api.day_records import rollup_tap_days
+
+    biz.settings = {"timezone": "Asia/Jerusalem", "opening_hour": 0, "closing_hour": 0}
+    db.commit()
+
+    db.add(SaleEvent(
+        business_id=biz.id, product_id=None,
+        timestamp=datetime.datetime(2024, 8, 1, 21, 30),
+        quantity=1.0,
+    ))
+    db.commit()
+
+    created = rollup_tap_days(db, biz)
+    assert created == [datetime.date(2024, 8, 2)], (
+        f"Expected the sale to roll up under the local day 2024-08-02, got {created}"
+    )
+
+    from app.models import DayRecord
+    record = db.query(DayRecord).filter_by(business_id=biz.id).first()
+    assert record.date == datetime.date(2024, 8, 2)
+    assert record.customers == 1
+
+
 def test_undo_of_undo_re_applies_overwrite(day_client):
     """A second undo re-applies the overwritten value (swap is bidirectional)."""
     r = day_client.post("/day-records", json={"date": DATE_A, "customers": 50})
