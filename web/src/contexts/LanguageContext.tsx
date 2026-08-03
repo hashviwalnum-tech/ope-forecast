@@ -82,7 +82,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
     if (vars) {
       for (const [k, v] of Object.entries(vars)) {
-        str = str.replace(`{${k}}`, String(v))
+        // replaceAll — some languages need the same token twice for grammatical
+        // agreement (e.g. Spanish "{n} producto{s} seleccionado{s}"); a plain
+        // replace() only fills the first occurrence and leaks "{s}" literally.
+        str = str.replaceAll(`{${k}}`, String(v))
       }
     }
     return str
