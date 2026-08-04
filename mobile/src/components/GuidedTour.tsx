@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useAppTheme, useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { Lang, TranslationKey } from '../lib/i18n'
+import type { TranslationKey } from '../lib/i18n'
 import type { Theme } from '../lib/theme'
 
 // ── Persistence ─────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ interface Props {
 export default function GuidedTour({ bizId, onDone }: Props) {
   const c      = useTheme()
   const { isDark, setPreference } = useAppTheme()
-  const { t, lang, setLang, dir, simpleMode, setSimpleMode } = useLanguage()
+  const { t, dir, simpleMode, setSimpleMode } = useLanguage()
   const insets = useSafeAreaInsets()
   const { width: SW, height: SH } = Dimensions.get('window')
 
@@ -249,7 +249,7 @@ export default function GuidedTour({ bizId, onDone }: Props) {
       {/* ── Tour card ─────────────────────────────────────────────────────── */}
       <View style={[styles.card, { top: CARD_TOP }]}>
 
-        {/* Top row: section progress + language toggle */}
+        {/* Top row: section progress */}
         <View style={[styles.topRow, isRtl && { flexDirection: 'row-reverse' }]}>
           {/* Section progress dots */}
           <View style={[styles.dotsRow, isRtl && { flexDirection: 'row-reverse' }]}>
@@ -267,31 +267,6 @@ export default function GuidedTour({ bizId, onDone }: Props) {
                   },
                 ]}
               />
-            ))}
-          </View>
-
-          {/* In-tour language toggle */}
-          <View style={styles.langToggle}>
-            {(['en', 'he'] as Lang[]).map(l => (
-              <TouchableOpacity
-                key={l}
-                onPress={() => setLang(l)}
-                style={[
-                  styles.langBtn,
-                  { borderColor: c.border, backgroundColor: c.card },
-                  lang === l && { backgroundColor: c.primary, borderColor: c.primary },
-                ]}
-                activeOpacity={0.8}
-                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-              >
-                <Text style={[
-                  styles.langBtnText,
-                  { color: c.textSub },
-                  lang === l && { color: c.onPrimary },
-                ]}>
-                  {l === 'en' ? 'EN' : 'עב'}
-                </Text>
-              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -449,21 +424,6 @@ function makeStyles(c: Theme) {
       height: 5,
       borderRadius: 3,
       opacity: 0.85,
-    },
-    langToggle: {
-      flexDirection: 'row',
-      gap: 4,
-      marginLeft: 8,
-    },
-    langBtn: {
-      paddingHorizontal: 6,
-      paddingVertical: 3,
-      borderRadius: 6,
-      borderWidth: 1,
-    },
-    langBtnText: {
-      fontSize: 10,
-      fontWeight: '700',
     },
     sectionLabel: {
       fontSize: 9,
