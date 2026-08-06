@@ -24,7 +24,7 @@ from app.db import engine
 from app.models import Base, StockBatch  # noqa: F401 — ensure table is registered
 from app.models.service_consumable import ServiceConsumable  # noqa: F401 — ensure table is registered
 from app.models.subscription import Subscription  # noqa: F401 — ensure table is registered
-from app.api import businesses, day_records, orders, products, sale_events, sales, periods, analytics, recurring_patterns, regulars
+from app.api import businesses, day_records, orders, products, sale_events, sales, periods, analytics, recurring_patterns, regulars, booked_counts
 from app.api import telegram as telegram_api
 from app.api import bot as bot_api
 from app.api import feedback as feedback_api
@@ -213,6 +213,7 @@ app.include_router(feedback_api.router)
 app.include_router(nudges_api.router)
 app.include_router(dev_catchup_api.router)
 app.include_router(subscriptions_api.router)
+app.include_router(booked_counts.router)
 
 
 @app.get("/health", tags=["Health"])

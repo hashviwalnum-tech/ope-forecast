@@ -28,6 +28,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
   const [feedback,        setFeedback]        = useState<{ ok: boolean; msg: string } | null>(null)
 
   const [stockMgmtEnabled, setStockMgmtEnabled] = useState(true)
+  const [appointmentBased, setAppointmentBased] = useState(false)
   const [nudgesEnabled, setNudgesEnabled] = useState(true)
   const [nudgeFreqHours, setNudgeFreqHours] = useState(24)
   const [nudgeSending, setNudgeSending] = useState(false)
@@ -62,6 +63,9 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       }
       if (typeof s.stock_management_enabled === 'boolean') {
         setStockMgmtEnabled(s.stock_management_enabled)
+      }
+      if (typeof s.appointment_based === 'boolean') {
+        setAppointmentBased(s.appointment_based)
       }
       if (typeof s.nudges_enabled === 'boolean') {
         setNudgesEnabled(s.nudges_enabled)
@@ -117,6 +121,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         stock_management_enabled: stockMgmtEnabled,
         nudges_enabled: nudgesEnabled,
         nudge_frequency_hours: nudgeFreqHours,
+        appointment_based: appointmentBased,
       })
       setFeedback({ ok: true, msg: t('settingsSavedOk') })
     } catch {
@@ -299,6 +304,25 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
             <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${stockMgmtEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
           </span>
           <span className="text-sm font-medium">{stockMgmtEnabled ? t('stockMgmtOn') : t('stockMgmtOff')}</span>
+        </button>
+      </div>
+
+      {/* Appointment-based toggle — blends booked counts into the forecast */}
+      <div data-tour="settings-appointments" className="border-t border-slate-100 dark:border-slate-700 pt-6">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('appointmentBasedLabel')}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('appointmentBasedDesc')}</p>
+        <button
+          type="button"
+          onClick={() => setAppointmentBased(v => !v)}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors w-full text-left
+            ${appointmentBased
+              ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-700 text-teal-800 dark:text-teal-300'
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'}`}
+        >
+          <span className={`w-9 h-5 rounded-full flex-shrink-0 relative transition-colors ${appointmentBased ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${appointmentBased ? 'translate-x-4' : 'translate-x-0.5'}`} />
+          </span>
+          <span className="text-sm font-medium">{appointmentBased ? t('appointmentBasedOn') : t('appointmentBasedOff')}</span>
         </button>
       </div>
 

@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase'
 import type {
   AccuracyResponse,
+  BookedCountRead,
   BusinessRead,
   CheckoutResponse,
   SubscriptionRead,
@@ -161,6 +162,7 @@ export const businesses = {
     onboarding_done?: boolean
     nudges_enabled?: boolean
     nudge_frequency_hours?: number
+    appointment_based?: boolean
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
   setTier: (tier: 'free' | 'premium') => PATCH<BusinessRead>('/businesses/me/tier', { tier }),
   delete: (id: number) => DELETE(`/businesses/${id}`),
@@ -241,6 +243,12 @@ export const recurringPatterns = {
   create: (body: RecurringPatternCreate)      => POST<RecurringPatternRead>('/recurring-patterns', body),
   update: (id: number, b: RecurringPatternUpdate) => PUT<RecurringPatternRead>(`/recurring-patterns/${id}`, b),
   delete: (id: number)                        => DELETE(`/recurring-patterns/${id}`),
+}
+
+export const bookedCounts = {
+  list:   ()                        => GET<BookedCountRead[]>('/booked-counts'),
+  upsert: (date: string, count: number) => PUT<BookedCountRead>(`/booked-counts/${date}`, { booked_count: count }),
+  delete: (date: string)            => DELETE(`/booked-counts/${date}`),
 }
 
 export const regulars = {

@@ -5,7 +5,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from app.api.deps import get_business, get_current_user, require_admin_key
 from app.db import get_db
-from app.models import Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord
+from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord
 
 FREE_BUSINESS_LIMIT = 1  # §10: free = one location; premium = more
 
@@ -41,6 +41,7 @@ class BusinessSettingsUpdate(BaseModel):
     onboarding_done: bool | None = None             # persisted server-side so it survives across devices
     nudges_enabled: bool | None = None             # enable/disable all proactive nudges (Telegram + in-app)
     nudge_frequency_hours: int | None = Field(None, ge=1, le=168)  # min hours between Telegram nudges
+    appointment_based: bool | None = None           # owner takes appointments — blend booked counts into the forecast
 
 
 @router.get("", response_model=list[BusinessRead])
@@ -206,6 +207,7 @@ def delete_business(
     db.query(Regular).filter_by(business_id=business_id).delete()
     db.query(Product).filter_by(business_id=business_id).delete()
     db.query(ForecastRun).filter_by(business_id=business_id).delete()
+    db.query(BookedCount).filter_by(business_id=business_id).delete()
     db.delete(biz)
     db.commit()
 

@@ -18,6 +18,7 @@ import ProductsPanel from './components/ProductsPanel'
 import PredictionsPanel from './components/PredictionsPanel'
 import PredictionsScreen from './components/PredictionsScreen'
 import RecurringPatternsPanel from './components/RecurringPatternsPanel'
+import BookedCountsPanel from './components/BookedCountsPanel'
 import RegularsPanel from './components/RegularsPanel'
 import ProductStatusPanel from './components/ProductStatusPanel'
 import PremiumPage from './components/PremiumPage'
@@ -35,12 +36,12 @@ const SHOW_ADS = true
 type Tab =
   | 'home' | 'predictions_home' | 'insights'
   | 'backfill' | 'history' | 'import' | 'trends'
-  | 'events' | 'products' | 'regulars' | 'recurring' | 'predictions' | 'settings' | 'toolbox' | 'stock' | 'premium'
+  | 'events' | 'products' | 'regulars' | 'recurring' | 'bookings' | 'predictions' | 'settings' | 'toolbox' | 'stock' | 'premium'
 type NavGroup = 'history' | 'manage'
 
 const GROUP_TAB_IDS: Record<NavGroup, Tab[]> = {
   history: ['history', 'backfill', 'trends', 'import'],
-  manage:  ['products', 'stock', 'regulars', 'recurring', 'events', 'predictions', 'toolbox', 'premium'],
+  manage:  ['products', 'stock', 'regulars', 'recurring', 'bookings', 'events', 'predictions', 'toolbox', 'premium'],
 }
 
 
@@ -205,6 +206,8 @@ function AppInner() {
 
   // ── Language-aware nav labels ─────────────────────────────────────────────
 
+  const appointmentBased = activeBusiness?.settings?.appointment_based === true
+
   const primaryTabs = [
     { id: 'home' as Tab,             label: t('home')              },
     { id: 'predictions_home' as Tab, label: t('predictions')       },
@@ -230,6 +233,9 @@ function AppInner() {
         { id: 'stock'       as Tab, label: t('stockStatusTab')     },
         { id: 'regulars'    as Tab, label: t('myRegulars')         },
         { id: 'recurring'   as Tab, label: t('recurringPatterns')  },
+        ...(appointmentBased
+          ? [{ id: 'bookings' as Tab, label: t('bookedAppointments') }]
+          : []),
         { id: 'events'      as Tab, label: t('promosEvents')       },
         { id: 'predictions' as Tab, label: t('predictionHistory')  },
         { id: 'toolbox'     as Tab, label: t('advancedPlanning')   },
@@ -247,6 +253,7 @@ function AppInner() {
     products:         t('tabProducts'),
     regulars:         t('tabRegulars'),
     recurring:        t('tabRecurring'),
+    bookings:         t('tabBookings'),
     backfill:         t('tabBackfill'),
     history:          t('tabHistory'),
     import:           t('tabImport'),
@@ -611,6 +618,7 @@ function AppInner() {
           {tab === 'stock'            && <ProductStatusPanel />}
           {tab === 'regulars'         && <RegularsPanel />}
           {tab === 'recurring'        && <RecurringPatternsPanel />}
+          {tab === 'bookings'         && <BookedCountsPanel />}
           {tab === 'backfill'         && <BackfillForm onSaved={refresh} />}
           {tab === 'history'          && <DayList refreshKey={refreshKey} />}
           {tab === 'import'           && <CsvImport onImported={afterImport} />}

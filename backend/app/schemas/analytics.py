@@ -30,6 +30,7 @@ class ForecastDay(BaseModel):
     interval_low: float
     interval_high: float
     model_weights: dict[str, float]
+    booked_count: Optional[int] = None  # owner-recorded booked appointments, when appointment_based is on
 
 
 class ForecastResponse(BaseModel):

@@ -16,7 +16,7 @@ import type { ForecastResponse, OrderRecordRead, ProductForecastItem, ProductFor
 
 // ── weekday translation map ───────────────────────────────────────────────────
 
-const WEEKDAY_SHORT: Record<Lang, Record<string, string>> = {
+const WEEKDAY_SHORT: Partial<Record<Lang, Record<string, string>>> = {
   en: {
     Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu',
     Friday: 'Fri', Saturday: 'Sat', Sunday: 'Sun',
@@ -28,7 +28,7 @@ const WEEKDAY_SHORT: Record<Lang, Record<string, string>> = {
 }
 
 function shortDay(weekday: string, lang: Lang): string {
-  return WEEKDAY_SHORT[lang][weekday] ?? weekday.slice(0, 3)
+  return WEEKDAY_SHORT[lang]?.[weekday] ?? weekday.slice(0, 3)
 }
 
 function fmtQty(n: number, unitMode: 'whole' | 'decimal', unit: string) {
@@ -418,6 +418,24 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
             <Bar dataKey="predicted" fill="#3a7470" radius={[6, 6, 0, 0]} maxBarSize={56} />
           </BarChart>
         </ResponsiveContainer>
+      )}
+
+      {/* Booked-vs-predicted (appointment businesses only — booked_count is only
+          ever populated when the owner has turned appointments on in settings) */}
+      {selected === 'customers' && forecast?.status === 'ok' && forecast.days.some(d => d.booked_count != null) && (
+        <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-4">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+            {t('bookedVsPredictedTitle')}
+          </p>
+          {forecast.days.filter(d => d.booked_count != null).map(d => (
+            <p key={d.date} className="text-sm text-slate-600 dark:text-slate-300">
+              {shortDay(d.weekday, lang)} {d.date.slice(5).replace('-', '/')} — {t('bookedVsPredictedRow', {
+                booked: String(d.booked_count),
+                predicted: String(Math.round(d.predicted_customers)),
+              })}
+            </p>
+          ))}
+        </div>
       )}
 
       {/* Ordering advice (product selected and has data) */}

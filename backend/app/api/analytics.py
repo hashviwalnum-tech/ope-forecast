@@ -18,6 +18,7 @@ from app.api.day_records import rollup_tap_days
 from app.api.deps import get_business
 from app.db import get_db
 from app.engine.accuracy import detect_drift, forecast_errors, mad, mape, mse, tracking_signal
+from app.engine.booking import booking_forecast, fit_booking_regression
 from app.engine.limits import history_cutoff
 from app.engine.monthly import monthly_summary
 from app.engine.ensemble import blend, model_weights, prediction_interval
@@ -56,7 +57,7 @@ from app.engine.queueing import (
     queue_length,
 )
 from app.engine.seasonality import seasonal_naive_forecast
-from app.models import Business, DayRecord, ForecastRun, Period, Product, Regular, RegularDailySpend, SaleEvent, SaleRecord
+from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, Regular, RegularDailySpend, SaleEvent, SaleRecord
 from app.models.service_consumable import ServiceConsumable
 from app.models.order_record import OrderRecord
 from app.models.stock_batch import StockBatch
@@ -426,20 +427,50 @@ def _cap_linear_trend(pred: float, same_wd_obs: list[float]) -> float:
     return float(max(0.0, min(pred, mu + half_band)))
 
 
+def _booking_forecast_for_date(
+    dates: list[date],
+    obs: list[float],
+    booked_by_date: dict[date, int],
+    target_date: date,
+) -> float | None:
+    """Predict target_date's total demand from its booked-appointment count.
+
+    Fits the booking regression (app/engine/booking.py) on historical
+    (booked, actual) pairs strictly before target_date, then applies it to
+    target_date's booked count. Returns None when target_date has no booked
+    count recorded, or there isn't yet enough paired history to fit —
+    exactly the same "earn your weight" thin-data guard as every other model.
+    """
+    if target_date not in booked_by_date:
+        return None
+    pair_bookings: list[float] = []
+    pair_actuals: list[float] = []
+    for d, o in zip(dates, obs):
+        if d < target_date and d in booked_by_date:
+            pair_bookings.append(booked_by_date[d])
+            pair_actuals.append(o)
+    fit = fit_booking_regression(pair_bookings, pair_actuals)
+    if fit is None:
+        return None
+    slope, intercept = fit
+    return booking_forecast(booked_by_date[target_date], slope, intercept)
+
+
 def _holdout_errors(
     obs: list[float],
     wds: list[int],
     dates: list[date] | None = None,
     n_per_weekday: int = 4,
+    booked_by_date: dict[date, int] | None = None,
 ) -> dict[str, dict[int, list[float]]]:
     """Leave-one-out signed errors (actual − predicted) for each model and weekday.
 
     For each weekday, the last n_per_weekday occurrences are treated as a holdout.
     Each point is predicted using only data that came before it in time.
 
-    Models: seasonal_naive, wma, exp_smoothing, linear_trend, year_over_year.
-    year_over_year requires dates to be provided; it produces no errors when
-    no year-ago data exists.
+    Models: seasonal_naive, wma, exp_smoothing, linear_trend, year_over_year,
+    booking. year_over_year requires dates; booking requires dates AND
+    booked_by_date. Both produce no errors when their required data is absent.
     """
     result: dict[str, dict[int, list[float]]] = {
         "seasonal_naive": {},
@@ -447,6 +478,7 @@ def _holdout_errors(
         "exp_smoothing": {},
         "linear_trend": {},
         "year_over_year": {},
+        "booking": {},
     }
 
     by_wd: dict[int, list[int]] = {}
@@ -459,6 +491,7 @@ def _holdout_errors(
         exp_e: list[float] = []
         lt_e: list[float] = []
         yoy_e: list[float] = []
+        bk_e: list[float] = []
 
         for hi in all_idx[-n_per_weekday:]:
             t_obs = obs[:hi]
@@ -488,11 +521,17 @@ def _holdout_errors(
                 if p is not None:
                     yoy_e.append(actual - p)
 
+                if booked_by_date:
+                    p = _booking_forecast_for_date(t_dates, t_obs, booked_by_date, dates[hi])
+                    if p is not None:
+                        bk_e.append(actual - p)
+
         result["seasonal_naive"][wd] = sn
         result["wma"][wd] = wma_e
         result["exp_smoothing"][wd] = exp_e
         result["linear_trend"][wd] = lt_e
         result["year_over_year"][wd] = yoy_e
+        result["booking"][wd] = bk_e
 
     return result
 
@@ -679,7 +718,18 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     wds = [r.date.weekday() for r in records]
     dates = [r.date for r in records]
 
-    holdout = _holdout_errors(obs, wds, dates, n_per_weekday=4)
+    # Booking-aware demand (spec: appointment businesses) — off by default,
+    # a per-business setting. When on, blend owner-recorded booked-appointment
+    # counts into the ensemble like every other model, weighted by its own
+    # holdout accuracy so it only earns influence once it's proven itself.
+    booked_by_date: dict[date, int] = {}
+    if (biz.settings or {}).get("appointment_based"):
+        booked_by_date = {
+            r.date: r.booked_count
+            for r in db.query(BookedCount).filter_by(business_id=biz.id).all()
+        }
+
+    holdout = _holdout_errors(obs, wds, dates, n_per_weekday=4, booked_by_date=booked_by_date or None)
 
     today = date.today()
     open_days = _open_days(biz)
@@ -732,6 +782,14 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
                 preds["year_over_year"] = p
                 maes["year_over_year"] = mad([abs(e) for e in errs])
 
+        if booked_by_date:
+            p = _booking_forecast_for_date(dates, obs, booked_by_date, target_date)
+            if p is not None:
+                errs = holdout["booking"].get(wd, [])
+                if errs:
+                    preds["booking"] = p
+                    maes["booking"] = mad([abs(e) for e in errs])
+
         if not preds:
             continue
 
@@ -773,6 +831,7 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             interval_low=lo_int,
             interval_high=hi_int,
             model_weights=weights_out,
+            booked_count=booked_by_date.get(target_date),
         ))
 
     db.commit()

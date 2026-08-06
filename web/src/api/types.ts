@@ -132,6 +132,14 @@ export interface ForecastDay {
   interval_low: number
   interval_high: number
   model_weights: Record<string, number>
+  booked_count: number | null
+}
+
+// ── BookedCount (appointment businesses) ───────────────────────────────────
+
+export interface BookedCountRead {
+  date: string
+  booked_count: number
 }
 
 export interface ForecastResponse {

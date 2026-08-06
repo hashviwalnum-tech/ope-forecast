@@ -1,4 +1,5 @@
 from app.models.base import Base
+from app.models.booked_count import BookedCount
 from app.models.business import Business
 from app.models.day_record import DayRecord
 from app.models.forecast_run import ForecastRun
@@ -18,6 +19,7 @@ from app.models.tuner_state import TunerLog, TunerState
 
 __all__ = [
     "Base",
+    "BookedCount",
     "Business",
     "DayRecord",
     "ForecastRun",
