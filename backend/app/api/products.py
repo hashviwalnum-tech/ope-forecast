@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
-from app.models import Business, Product, SaleRecord, SaleEvent
+from app.models import Business, Product, SaleRecord, SaleEvent, ServiceBookedCount
 from app.models.service_consumable import ServiceConsumable
 from app.models.stock_batch import StockBatch
 from app.schemas.product import ProductCreate, ProductRead, ProductUpdate
@@ -121,6 +121,7 @@ def delete_product(product_id: int, db: Session = Depends(get_db), biz: Business
         (ServiceConsumable.service_product_id == product_id) |
         (ServiceConsumable.consumable_product_id == product_id)
     ).delete(synchronize_session=False)
+    db.query(ServiceBookedCount).filter_by(product_id=product_id).delete(synchronize_session=False)
     db.delete(row)
     db.commit()
 

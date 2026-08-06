@@ -246,9 +246,15 @@ export const recurringPatterns = {
 }
 
 export const bookedCounts = {
-  list:   ()                        => GET<BookedCountRead[]>('/booked-counts'),
-  upsert: (date: string, count: number) => PUT<BookedCountRead>(`/booked-counts/${date}`, { booked_count: count }),
-  delete: (date: string)            => DELETE(`/booked-counts/${date}`),
+  list: (productId?: number) =>
+    GET<BookedCountRead[]>(productId != null ? `/booked-counts?product_id=${productId}` : '/booked-counts'),
+  upsert: (date: string, count: number, productId?: number) =>
+    PUT<BookedCountRead>(
+      `/booked-counts/${date}${productId != null ? `?product_id=${productId}` : ''}`,
+      { booked_count: count }
+    ),
+  delete: (date: string, productId?: number) =>
+    DELETE(`/booked-counts/${date}${productId != null ? `?product_id=${productId}` : ''}`),
 }
 
 export const regulars = {

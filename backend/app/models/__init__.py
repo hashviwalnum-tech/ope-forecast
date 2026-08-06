@@ -11,6 +11,7 @@ from app.models.regular import Regular
 from app.models.regular_daily_spend import RegularDailySpend
 from app.models.sale_event import SaleEvent
 from app.models.sale_record import SaleRecord
+from app.models.service_booked_count import ServiceBookedCount
 from app.models.service_consumable import ServiceConsumable
 from app.models.stock_batch import StockBatch
 from app.models.subscription import Subscription
@@ -31,6 +32,7 @@ __all__ = [
     "RegularDailySpend",
     "SaleEvent",
     "SaleRecord",
+    "ServiceBookedCount",
     "ServiceConsumable",
     "StockBatch",
     "Subscription",

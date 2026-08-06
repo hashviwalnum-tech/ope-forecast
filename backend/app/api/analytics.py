@@ -57,7 +57,7 @@ from app.engine.queueing import (
     queue_length,
 )
 from app.engine.seasonality import seasonal_naive_forecast
-from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, Regular, RegularDailySpend, SaleEvent, SaleRecord
+from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, Regular, RegularDailySpend, SaleEvent, SaleRecord, ServiceBookedCount
 from app.models.service_consumable import ServiceConsumable
 from app.models.order_record import OrderRecord
 from app.models.stock_batch import StockBatch
@@ -728,6 +728,14 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             r.date: r.booked_count
             for r in db.query(BookedCount).filter_by(business_id=biz.id).all()
         }
+        # Per-service detail is more granular than the whole-business total —
+        # when a date has any per-service entries, sum them across services and
+        # prefer that sum over the whole-business figure for that date (avoids
+        # double-counting; falls back to the whole-business entry otherwise).
+        svc_sum_by_date: dict[date, int] = {}
+        for r in db.query(ServiceBookedCount).filter_by(business_id=biz.id).all():
+            svc_sum_by_date[r.date] = svc_sum_by_date.get(r.date, 0) + r.booked_count
+        booked_by_date.update(svc_sum_by_date)
 
     holdout = _holdout_errors(obs, wds, dates, n_per_weekday=4, booked_by_date=booked_by_date or None)
 
@@ -1462,6 +1470,14 @@ def get_product_forecast(
     assume_on_time = bool((biz.settings or {}).get("assume_orders_arrive_on_time", False))
     ids_and_dates = [(r.id, r.date) for r in clean_records]
 
+    # Booking-aware demand (spec: appointment businesses) — per-service booked
+    # counts, sibling to the whole-business ones used in /forecast. Only
+    # relevant for service-type products; loaded once, grouped by product.
+    svc_booked_by_product: dict[int, dict[date, int]] = {}
+    if (biz.settings or {}).get("appointment_based"):
+        for r in db.query(ServiceBookedCount).filter_by(business_id=biz.id).all():
+            svc_booked_by_product.setdefault(r.product_id, {})[r.date] = r.booked_count
+
     result: list[ProductForecastItem] = []
 
     for prod in products_list:
@@ -1530,7 +1546,8 @@ def get_product_forecast(
 
         # ── ensemble forecast ─────────────────────────────────────────────────
         prod_wds = [d.weekday() for d in dates]
-        holdout = _holdout_errors(demands, prod_wds, dates, n_per_weekday=4)
+        booked_by_date = svc_booked_by_product.get(prod.id, {}) if prod_type == "service" else {}
+        holdout = _holdout_errors(demands, prod_wds, dates, n_per_weekday=4, booked_by_date=booked_by_date or None)
 
         forecast_days: list[ProductForecastDay] = []
         for offset in range(1, 8):
@@ -1580,6 +1597,14 @@ def get_product_forecast(
                     preds["year_over_year"] = p
                     maes["year_over_year"] = mad([abs(e) for e in errs])
 
+            if booked_by_date:
+                p = _booking_forecast_for_date(dates, demands, booked_by_date, target)
+                if p is not None:
+                    errs = holdout["booking"].get(wd, [])
+                    if errs:
+                        preds["booking"] = p
+                        maes["booking"] = mad([abs(e) for e in errs])
+
             if not preds:
                 continue
 
@@ -1599,6 +1624,7 @@ def get_product_forecast(
                 predicted_units=_round_qty(fval, unit_mode_f),
                 interval_low=_round_qty(max(0.0, lo), unit_mode_f),
                 interval_high=_round_qty(max(0.0, hi), unit_mode_f),
+                booked_count=booked_by_date.get(target),
             ))
 
         # ── ordering advice (forecast-based, stocked only) ───────────────────

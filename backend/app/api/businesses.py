@@ -5,7 +5,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from app.api.deps import get_business, get_current_user, require_admin_key
 from app.db import get_db
-from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord
+from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord, ServiceBookedCount
 
 FREE_BUSINESS_LIMIT = 1  # §10: free = one location; premium = more
 
@@ -208,6 +208,7 @@ def delete_business(
     db.query(Product).filter_by(business_id=business_id).delete()
     db.query(ForecastRun).filter_by(business_id=business_id).delete()
     db.query(BookedCount).filter_by(business_id=business_id).delete()
+    db.query(ServiceBookedCount).filter_by(business_id=business_id).delete()
     db.delete(biz)
     db.commit()
 

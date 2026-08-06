@@ -194,6 +194,7 @@ class ProductForecastDay(BaseModel):
     predicted_units: float
     interval_low: float
     interval_high: float
+    booked_count: Optional[int] = None  # owner-recorded booked count for this service, when appointment_based is on
 
 
 class ProductForecastItem(BaseModel):

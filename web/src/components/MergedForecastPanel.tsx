@@ -421,7 +421,8 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
       )}
 
       {/* Booked-vs-predicted (appointment businesses only — booked_count is only
-          ever populated when the owner has turned appointments on in settings) */}
+          ever populated when the owner has turned appointments on in settings).
+          Works for both the customers total and a selected service's own series. */}
       {selected === 'customers' && forecast?.status === 'ok' && forecast.days.some(d => d.booked_count != null) && (
         <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-4">
           <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
@@ -432,6 +433,21 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
               {shortDay(d.weekday, lang)} {d.date.slice(5).replace('-', '/')} — {t('bookedVsPredictedRow', {
                 booked: String(d.booked_count),
                 predicted: String(Math.round(d.predicted_customers)),
+              })}
+            </p>
+          ))}
+        </div>
+      )}
+      {typeof selected === 'number' && activeProduct?.status === 'ok' && activeProduct.days.some(d => d.booked_count != null) && (
+        <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-4">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+            {t('bookedVsPredictedTitle')}
+          </p>
+          {activeProduct.days.filter(d => d.booked_count != null).map(d => (
+            <p key={d.date} className="text-sm text-slate-600 dark:text-slate-300">
+              {shortDay(d.weekday, lang)} {d.date.slice(5).replace('-', '/')} — {t('bookedVsPredictedRow', {
+                booked: String(d.booked_count),
+                predicted: String(activeUMode === 'decimal' ? d.predicted_units.toFixed(2) : Math.round(d.predicted_units)),
               })}
             </p>
           ))}

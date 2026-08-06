@@ -140,6 +140,7 @@ export interface ForecastDay {
 export interface BookedCountRead {
   date: string
   booked_count: number
+  product_id: number | null  // null = whole-business total; set = a specific service
 }
 
 export interface ForecastResponse {
@@ -515,6 +516,7 @@ export interface ProductForecastDay {
   predicted_units: number
   interval_low: number
   interval_high: number
+  booked_count: number | null
 }
 
 export interface ProductForecastItem {

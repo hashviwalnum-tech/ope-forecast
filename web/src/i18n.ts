@@ -770,6 +770,8 @@ export const translations = {
     bookingsFillFields: 'Please fill in a date and a booked count.',
     bookedVsPredictedTitle: 'Booked vs. predicted',
     bookedVsPredictedRow: 'Booked {booked} · Predicted total ~{predicted}',
+    bookingsForLabel: 'For',
+    wholeBusinessOption: 'Whole business',
 
     // Onboarding wizard
     onboardingStep: 'Step {n} of {total}',
@@ -1807,6 +1809,8 @@ export const translations = {
     bookingsFillFields: 'נא למלא תאריך וכמות תורים קבועים.',
     bookedVsPredictedTitle: 'תורים קבועים לעומת תחזית',
     bookedVsPredictedRow: '{booked} קבועים · תחזית כוללת ~{predicted}',
+    bookingsForLabel: 'עבור',
+    wholeBusinessOption: 'כל העסק',
 
     // Onboarding wizard
     onboardingStep: 'שלב {n} מתוך {total}',
@@ -2470,6 +2474,7 @@ export const translations = {
     noBookedCounts: '还没有预约人数记录。', noBookedCountsDesc: '在上方添加某个即将到来的日期的预约人数。',
     bookedCountRow: '已预约 {n} 人', bookingsFillFields: '请填写日期和预约人数。',
     bookedVsPredictedTitle: '预约人数与预测对比', bookedVsPredictedRow: '预约 {booked} · 预测总数 ~{predicted}',
+    bookingsForLabel: '对象', wholeBusinessOption: '整个店铺',
     onboardingStep: '第 {n}/{total} 步', onboardingStepHoursTitle: '您什么时候营业？',
     onboardingStepHoursDesc: '只选择您实际开业的天 — 您不选的天会被预测完全跳过，从不计为零。这也有助于 Ope 将繁忙时段聚焦在您的实际营业时间。您可以随时在设置中更改。',
     onboardingStepProductsTitle: '添加您销售的产品',
@@ -3078,6 +3083,8 @@ export const translations = {
     bookingsFillFields: 'Completa una fecha y una cantidad de citas reservadas.',
     bookedVsPredictedTitle: 'Reservadas frente a previstas',
     bookedVsPredictedRow: 'Reservadas {booked} · Total previsto ~{predicted}',
+    bookingsForLabel: 'Para',
+    wholeBusinessOption: 'Todo el negocio',
     onboardingStep: 'Paso {n} de {total}', onboardingStepHoursTitle: '¿Cuándo abres?',
     onboardingStepHoursDesc: 'Selecciona solo los días que realmente abres — los días que no elijas se omiten completamente en la previsión y nunca se cuentan como cero. Esto también ayuda a Ope a centrar la vista de horas punta y el consejo de personal en tus horas reales de actividad. Puedes cambiarlo en cualquier momento en Ajustes.',
     onboardingStepProductsTitle: 'Añade lo que vendes',
@@ -3652,6 +3659,7 @@ export const translations = {
     noBookedCounts: 'अभी तक कोई बुक किए गए अपॉइंटमेंट नहीं हैं।', noBookedCountsDesc: 'ऊपर किसी आने वाले दिन के लिए बुक किए गए अपॉइंटमेंट की संख्या जोड़ें।',
     bookedCountRow: '{n} बुक किए गए', bookingsFillFields: 'कृपया एक तारीख़ और बुक किए गए अपॉइंटमेंट की संख्या भरें।',
     bookedVsPredictedTitle: 'बुक किए गए बनाम अनुमानित', bookedVsPredictedRow: '{booked} बुक किए गए · अनुमानित कुल ~{predicted}',
+    bookingsForLabel: 'किसके लिए', wholeBusinessOption: 'पूरा व्यवसाय',
     onboardingStep: 'चरण {n}/{total}', onboardingStepHoursTitle: 'आप कब खुले हैं?',
     onboardingStepHoursDesc: 'केवल वे दिन चुनें जो आप वास्तव में खुले हैं — जो दिन आप नहीं चुनते वे पूर्वानुमान से पूरी तरह छोड़ दिए जाते हैं और कभी शून्य नहीं गिने जाते। आप इसे कभी भी सेटिंग्स में बदल सकते हैं।',
     onboardingStepProductsTitle: 'जो आप बेचते हैं वो जोड़ें',
@@ -4469,6 +4477,8 @@ export const translations = {
     bookingsFillFields: 'يرجى إدخال تاريخ وعدد المواعيد المحجوزة.',
     bookedVsPredictedTitle: 'المحجوزة مقابل المتوقعة',
     bookedVsPredictedRow: 'محجوز {booked} · الإجمالي المتوقع ~{predicted}',
+    bookingsForLabel: 'لـ',
+    wholeBusinessOption: 'كل العمل',
     onboardingStep: 'الخطوة {n} من {total}',
     onboardingStepHoursTitle: 'متى تكون مفتوحًا؟',
     onboardingStepHoursDesc: 'اختر فقط الأيام التي تعمل فيها فعليًا — الأيام التي لا تختارها يتخطاها التوقع تمامًا ولا تُحسب كصفر أبدًا. يساعد هذا أيضًا Ope على تركيز عرض ساعات الذروة ونصيحة التوظيف على ساعات عملك الفعلية. يمكنك تغيير هذا في أي وقت من الإعدادات.',
@@ -5114,6 +5124,7 @@ export const translations = {
     noBookedCounts: 'Ainda não há agendamentos marcados.', noBookedCountsDesc: 'Adicione acima quantos agendamentos estão marcados para um dia próximo.',
     bookedCountRow: '{n} marcados', bookingsFillFields: 'Preencha uma data e a quantidade de agendamentos marcados.',
     bookedVsPredictedTitle: 'Marcados vs. previstos', bookedVsPredictedRow: 'Marcados {booked} · Total previsto ~{predicted}',
+    bookingsForLabel: 'Para', wholeBusinessOption: 'Todo o negócio',
     onboardingStep: 'Etapa {n} de {total}', onboardingStepHoursTitle: 'Quando você abre?',
     onboardingStepHoursDesc: 'Selecione apenas os dias em que você realmente abre — dias não selecionados são totalmente ignorados pela previsão e nunca contados como zero. Isso também ajuda o Ope a focar sua visão de horários de pico e a recomendação de escala nos seus horários reais de funcionamento. Você pode mudar isso a qualquer momento em Configurações.',
     onboardingStepProductsTitle: 'Adicione o que você vende',
@@ -5709,6 +5720,7 @@ export const translations = {
     noBookedCounts: 'Записей пока нет.', noBookedCountsDesc: 'Добавьте выше количество записей на ближайший день.',
     bookedCountRow: 'записано {n}', bookingsFillFields: 'Укажите дату и количество записей.',
     bookedVsPredictedTitle: 'Записи и прогноз', bookedVsPredictedRow: 'Записано {booked} · Прогноз всего ~{predicted}',
+    bookingsForLabel: 'Для', wholeBusinessOption: 'Весь бизнес',
     onboardingStep: 'Шаг {n} из {total}', onboardingStepHoursTitle: 'Когда вы открыты?',
     onboardingStepHoursDesc: 'Выбирайте только те дни, когда вы действительно открыты — дни, которые вы не выбрали, полностью пропускаются прогнозом и никогда не считаются нулевыми продажами. Это также помогает Ope сосредоточить раздел загруженных часов и рекомендации по персоналу на ваших реальных часах работы. Вы можете изменить это в любое время в настройках.',
     onboardingStepProductsTitle: 'Добавьте, что вы продаёте',
@@ -6655,6 +6667,8 @@ export const translations = {
     bookingsFillFields: 'Veuillez indiquer une date et un nombre de rendez-vous réservés.',
     bookedVsPredictedTitle: 'Réservés vs prévus',
     bookedVsPredictedRow: 'Réservés {booked} · Total prévu ~{predicted}',
+    bookingsForLabel: 'Pour',
+    wholeBusinessOption: "Toute l'entreprise",
 
     // Onboarding wizard
     onboardingStep: 'Étape {n} sur {total}',
@@ -7691,6 +7705,8 @@ export const translations = {
     bookingsFillFields: 'অনুগ্রহ করে একটি তারিখ এবং বুক করা সংখ্যা পূরণ করুন।',
     bookedVsPredictedTitle: 'বুক করা বনাম পূর্বাভাসিত',
     bookedVsPredictedRow: '{booked}টি বুক করা · মোট পূর্বাভাস ~{predicted}',
+    bookingsForLabel: 'জন্য',
+    wholeBusinessOption: 'পুরো ব্যবসা',
 
     // Onboarding wizard
     onboardingStep: 'ধাপ {n} এর {total}',
@@ -8727,6 +8743,8 @@ export const translations = {
     bookingsFillFields: 'براہ کرم تاریخ اور بک شدہ تعداد درج کریں۔',
     bookedVsPredictedTitle: 'بک شدہ بمقابلہ متوقع',
     bookedVsPredictedRow: '{booked} بک شدہ · متوقع کل ~{predicted}',
+    bookingsForLabel: 'کے لیے',
+    wholeBusinessOption: 'پورا کاروبار',
 
     // Onboarding wizard
     onboardingStep: 'مرحلہ {n} از {total}',
@@ -9763,6 +9781,8 @@ export const translations = {
     bookingsFillFields: 'Mohon isi tanggal dan jumlah janji temu.',
     bookedVsPredictedTitle: 'Dipesan vs. diperkirakan',
     bookedVsPredictedRow: 'Dipesan {booked} · Total perkiraan ~{predicted}',
+    bookingsForLabel: 'Untuk',
+    wholeBusinessOption: 'Seluruh bisnis',
 
     // Onboarding wizard
     onboardingStep: 'Langkah {n} dari {total}',
@@ -10799,6 +10819,8 @@ export const translations = {
     bookingsFillFields: 'Bitte geben Sie ein Datum und eine Anzahl gebuchter Termine ein.',
     bookedVsPredictedTitle: 'Gebucht vs. prognostiziert',
     bookedVsPredictedRow: 'Gebucht {booked} · Prognose gesamt ~{predicted}',
+    bookingsForLabel: 'Für',
+    wholeBusinessOption: 'Gesamtes Unternehmen',
 
     // Onboarding wizard
     onboardingStep: 'Schritt {n} von {total}',
@@ -11835,6 +11857,8 @@ export const translations = {
     bookingsFillFields: '日付と予約件数を入力してください。',
     bookedVsPredictedTitle: '予約件数と予測',
     bookedVsPredictedRow: '予約 {booked} ・ 予測合計 ~{predicted}',
+    bookingsForLabel: '対象',
+    wholeBusinessOption: '店舗全体',
 
     // Onboarding wizard
     onboardingStep: 'ステップ{n}/{total}',
@@ -12885,6 +12909,8 @@ export const translations = {
     bookingsFillFields: 'Lütfen bir tarih ve randevu sayısı girin.',
     bookedVsPredictedTitle: 'Alınan ve tahmin edilen',
     bookedVsPredictedRow: 'Alınan {booked} · Tahmini toplam ~{predicted}',
+    bookingsForLabel: 'Kimin için',
+    wholeBusinessOption: 'Tüm işletme',
 
     // Onboarding wizard
     onboardingStep: 'Adım {n}/{total}',

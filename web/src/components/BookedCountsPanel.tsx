@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
-import { bookedCounts as api } from '../api/client'
+import { bookedCounts as api, products as productsApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { BookedCountRead } from '../api/types'
+import type { BookedCountRead, ProductRead } from '../api/types'
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+type Target = 'business' | number
+
 export default function BookedCountsPanel() {
   const { t } = useLanguage()
+  const [services, setServices] = useState<ProductRead[]>([])
+  const [target, setTarget]   = useState<Target>('business')
   const [rows, setRows]       = useState<BookedCountRead[]>([])
   const [loading, setLoading] = useState(true)
   const [date, setDate]       = useState(todayStr())
@@ -16,13 +20,19 @@ export default function BookedCountsPanel() {
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
 
+  useEffect(() => {
+    productsApi.list()
+      .then(all => setServices(all.filter(p => p.product_type === 'service')))
+      .catch(() => {})
+  }, [])
+
   async function load() {
     setLoading(true)
-    try { setRows(await api.list()) } catch { /* ignore */ }
+    try { setRows(await api.list(target === 'business' ? undefined : target)) } catch { /* ignore */ }
     finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [target])
 
   async function save() {
     const n = parseInt(count, 10)
@@ -33,7 +43,7 @@ export default function BookedCountsPanel() {
     setSaving(true)
     setError(null)
     try {
-      await api.upsert(date, n)
+      await api.upsert(date, n, target === 'business' ? undefined : target)
       setCount('')
       load()
     } catch (e: unknown) {
@@ -45,7 +55,7 @@ export default function BookedCountsPanel() {
 
   async function del(d: string) {
     if (!confirm(t('removeBtn') + '?')) return
-    await api.delete(d)
+    await api.delete(d, target === 'business' ? undefined : target)
     load()
   }
 
@@ -58,6 +68,24 @@ export default function BookedCountsPanel() {
       <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800 px-4 py-3 text-sm text-teal-700 dark:text-teal-300">
         <strong>{t('bookingsIntroTitle')}</strong> {t('bookingsIntroDesc')}
       </div>
+
+      {services.length > 0 && (
+        <div>
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('bookingsForLabel')}</label>
+          <select
+            value={target === 'business' ? 'business' : String(target)}
+            onChange={e => setTarget(e.target.value === 'business' ? 'business' : Number(e.target.value))}
+            className="w-full sm:w-64 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
+                       bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
+                       focus:outline-none focus:ring-2 focus:ring-teal-300"
+          >
+            <option value="business">{t('wholeBusinessOption')}</option>
+            {services.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm space-y-4">
         <h3 className="font-semibold text-slate-700 dark:text-slate-200">{t('addBookedCountTitle')}</h3>
