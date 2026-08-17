@@ -401,6 +401,16 @@ export default function CsvImport({ onImported }: Props) {
               {t('csvNoProductsSelectedNote')}
             </p>
           )}
+          {/* Say plainly that a file WITH product columns replaces product
+              sales for those days — unlike an hours-only save, which never
+              touches them (F-006). */}
+          {confirmedProductIds.size > 0 && (
+            <div className="rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50/70 dark:bg-amber-900/15 px-3 py-2.5 space-y-1">
+              <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">{t('bfChangeTitle')}</p>
+              <p className="text-xs text-amber-700/90 dark:text-amber-200/80 leading-relaxed">{t('bfHoursReplaced')}</p>
+              <p className="text-xs text-amber-700/90 dark:text-amber-200/80 leading-relaxed">{t('bfProductsReplaced')}</p>
+            </div>
+          )}
           <button
             onClick={confirmProductCols}
             className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium

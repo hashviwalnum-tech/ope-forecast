@@ -14,13 +14,13 @@ no engine function was called directly to seed state.
 ## 1. Verdict
 
 **Not release-ready as it stood, and I would not have known that from the tests
-alone.** Thirty-one distinct defects came out of this, and the serious ones only
+alone.** Thirty-two distinct defects came out of this, and the serious ones only
 appear when a real business uses the app for months: staffing advice inflated
 3.5×, every free-tier limit silently unenforced after the trial, a forecast that
 ignored the ads the owner had told it about, a home screen that grew to 55,000
 characters, and an Insights page confidently stating something false.
 
-**It is close now.** All 31 are fixed, the suite is at **669 passing with no
+**It is close now.** All 32 are fixed, the suite is at **679 passing with no
 expected failures**, the year replays with **6 operational complaints** (down
 from 82), the feature sweep across every screen returns **zero findings**, and
 the forecasting genuinely beats both naive baselines.
@@ -225,7 +225,7 @@ Every surface, on a business with a full year of history. Details in
 ## 5. Every bug found
 
 Full detail, root cause and fix for each is in
-[`FINDINGS.md`](FINDINGS.md). Summary — **32 findings, 31 fixed**:
+[`FINDINGS.md`](FINDINGS.md). Summary — **32 findings, all fixed**:
 
 **Severity 1 — wrong numbers shown to the owner (13):** staffing inflated 3.5×
 by counting items as customers · per-item service time used as per-customer ·
@@ -252,16 +252,18 @@ customers on average" · two screens naming different peak hours on a near-tie �
 "Saving…" shown while loading · 5 tests already failing on `main` before this
 started · `npx tsc --noEmit` silently type-checking nothing at all.
 
-**Unfixed (1):** F-006 — `backfill-hourly` deletes every sale event for the day,
-including product taps, so an owner who tapped products and later backfilled
-corrected hourly counts from their register loses that day's product breakdown.
-**Now reproduced:** 36 burgers and 22.5 portions of fries vanished silently while
-the customer count was corrected as intended. Reachable from the *Add Past Day*
-form and the CSV importer, so a CSV with hourly columns wipes the product detail
-of every day it covers. Left unfixed because the fix is a product decision, not a
-correction — narrowing the delete stops the data loss but leaves stale product
-rows behind on a genuine re-import, and choosing between silent deletion and
-silent staleness is the owner's call. **It should be settled before beta.**
+**F-006, previously the one unfixed finding, is now fixed.** `backfill-hourly`
+deleted every sale event for the day, so submitting corrected hourly customer
+counts silently wiped the product breakdown an owner had tapped during service.
+It now replaces only the kind of data the submission actually provides —
+customers-only leaves product rows untouched, a submission carrying product
+totals replaces them so re-import stays idempotent — and the owner is shown, in
+plain language before saving, what is being replaced and what is being kept. A
+second double-count was found alongside it: the CSV importer's per-product writes
+appended rather than replaced, so importing the same file twice doubled that
+day's sales and the stock drawn down from them.
+
+**Nothing is knowingly left broken.**
 
 ---
 

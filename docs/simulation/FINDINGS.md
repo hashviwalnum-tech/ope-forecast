@@ -65,44 +65,62 @@ uneditable four hours before the shop closes, silently breaking the documented
 `app/api/analytics.py:827`. Works, but deprecated since Python 3.12 and will
 warn/break on a future runtime. Should be `datetime.now(timezone.utc)`.
 
-### F-006 · S2 · Hourly backfill destroys same-day product taps — **REPRODUCED, still unfixed**
-`app/api/sale_events.py:81-85` — `backfill_hourly` deletes **every** SaleEvent in
-the day's window, then re-inserts one customer-count row per hour with
-`product_id=None`. An owner who tapped products during the day and later
-backfilled corrected hourly customer counts from their register loses the entire
-product breakdown for that day.
+### F-006 · S2 · Hourly backfill destroyed same-day product taps — **FIXED**
+`app/api/sale_events.py`, `app/api/sales.py`.
 
-**Now reproduced end to end** (it was flagged from reading during Phase 0 and
-verified afterwards). Tapping 45 customers, 36 burgers and 22.5 portions of fries
-on one day, then submitting corrected hourly counts for that same day:
+`backfill_hourly` deleted **every** SaleEvent in the day's window before writing,
+then re-inserted one customer-count row per hour. An owner who tapped products
+during service and later tidied up their hourly customer counts from the register
+lost the entire product breakdown for that day — silently, with nothing in the
+response to say so. Reachable from the *Add Past Day* form and the CSV importer,
+so a CSV with hourly columns wiped the product detail of every day it covered.
+
+Reproduced before fixing: tapping 45 customers, 36 burgers and 22.5 portions of
+fries, then submitting corrected hourly counts, corrected the customer figure and
+left `{}` for products.
+
+**The rule now: only replace the kind of data the submission actually provides.**
+
+* **Customers-only submission** (the Add Past Day form, a register export with no
+  product columns) — replaces the hourly customer counts and **does not touch
+  product rows at all**.
+* **Submission that carries product totals** (`products` on the request, e.g. a
+  CSV with product columns) — replaces product rows for that day as well, which
+  is what keeps re-importing the same file idempotent.
+
+The response now reports what actually happened — `replaced_hours`,
+`replaced_products`, `kept_products` — instead of leaving the owner to guess.
+
+**A second, related double-count.** The CSV importer writes per-product totals
+through `POST /sales`, which **appended**: importing the same file twice created
+two rows for the same day and product, doubling that day's sales and the stock
+drawn down from them. A day has one total per product, so that endpoint now
+replaces rather than appends — which also gives the owner a way to correct a typo
+without deleting rows by hand.
+
+**What the owner sees before saving.** A new `GET /sale-events/backfill-preview`
+returns what is already stored for a date. The Add Past Day form shows a plain
+note — *"What this save will change · Your hourly customer counts for this day
+will be replaced · Kept as they are: Burger × 36, Fries × 22.5 · These product
+sales stay exactly as you tapped them"* — and the CSV importer says the opposite
+where it applies, that a file with product columns replaces product sales too.
+All of it through the translation system in **all 15 languages**, and inside the
+existing RTL-safe layout.
+
+Verified end to end:
 
 ```
-after tapping        : {'Burger': 36.0, 'Fries': 22.5} | customer taps: 45
-after backfill-hourly: {}                              | customer taps: 48
+after tapping                     products={'Burger': 36.0, 'Fries': 22.5}  customers=45
+after HOURS-ONLY backfill         products={'Burger': 36.0, 'Fries': 22.5}  customers=48
+after import WITH product columns products={'Burger': 40.0, 'Fries': 18.0}  customers=48
+after RE-importing the same file  products={'Burger': 40.0, 'Fries': 18.0}  customers=48
 ```
 
-The customer count is corrected as intended; **the entire product breakdown is
-silently gone.** No warning, no confirmation, nothing in the response to say
-anything was removed.
-
-**Reachable from two UI paths**, not just the API: the *Add Past Day* form
-(`BackfillForm.tsx:152`) and the CSV importer (`CsvImport.tsx:299`) — so a CSV
-with hourly columns wipes the product detail of every day it covers.
-
-**Why it is still unfixed:** it is the only finding whose fix is a genuine
-product decision rather than a correction. The endpoint's "replace everything for
-this day" behaviour is what makes re-submitting a corrected import safe and
-idempotent, which is deliberate and valuable. Narrowing the delete to only
-customer-count rows (`product_id IS NULL`) fixes the data loss, but then
-re-importing a day whose product figures also changed leaves the old product rows
-behind — trading silent deletion for silent staleness. Choosing between those is
-the owner's call about how import should behave, not a bug fix.
-
-**Ship assessment: this one should be fixed before beta.** It silently destroys
-data the owner deliberately entered, on a path the app actively encourages
-(tap during the day, tidy up from the register later), and the mitigation is
-narrow (`DELETE … WHERE product_id IS NULL`) plus telling the owner what is about
-to be replaced.
+Ten tests cover it: hours-only preserves products while still updating customers;
+re-submitting hours is idempotent; a submission with products replaces them; a
+re-import does not double-count; a product belonging to another business is
+rejected; the `/sales` path replaces rather than appends, both on an identical
+re-import and on a corrected one; and the preview reports what exists.
 
 ### F-007 · S2 · Outlier detection pesters a very steady business — **open**
 `app/engine/outliers.py`.

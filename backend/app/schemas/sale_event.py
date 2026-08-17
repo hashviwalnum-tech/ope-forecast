@@ -78,10 +78,44 @@ class HourlySlot(BaseModel):
     customers: float = Field(..., gt=0)
 
 
+class ProductUnits(BaseModel):
+    """Units of one product sold on the day being submitted."""
+    product_id: int
+    units: float = Field(..., ge=0)
+
+
 class HourlyBackfillRequest(BaseModel):
     date: date_type
     hours: list[HourlySlot] = Field(..., min_length=1)
+    # Per-product totals for the same day, when the submission actually has
+    # them (a register export, or a CSV with product columns).  Left unset for
+    # a customers-only submission — and that distinction matters: the endpoint
+    # only ever replaces the kind of data it was actually given.  It used to
+    # wipe every sale event for the day regardless, so an owner who tapped
+    # products during service and later tidied up their hourly customer counts
+    # silently lost the whole product breakdown for that day.
+    products: Optional[list[ProductUnits]] = None
 
 
 class HourlyBackfillResponse(BaseModel):
     inserted: int
+    # What the submission actually did, so the client can tell the owner
+    # plainly rather than leaving them to guess.
+    replaced_hours: int = 0
+    replaced_products: int = 0
+    kept_products: int = 0
+
+
+class BackfillPreviewProduct(BaseModel):
+    product_id: int
+    product_name: str
+    units: float
+
+
+class BackfillPreviewResponse(BaseModel):
+    """What is already stored for a date, so the owner can be shown what a
+    submission is about to replace and what it will leave alone."""
+    date: date_type
+    existing_hours: int              # hourly customer-count rows already stored
+    existing_hour_customers: float   # their total
+    existing_products: list[BackfillPreviewProduct]

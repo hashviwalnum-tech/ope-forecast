@@ -9,6 +9,12 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'What this save will change',
+    bfHoursReplaced: 'Your hourly customer counts for this day will be replaced.',
+    bfKeptItems: 'Kept as they are: {items}',
+    bfKeptNote: 'These product sales stay exactly as you tapped them — saving hours only never touches them.',
+    bfProductsReplaced: 'Your product sales for this day will be replaced too, because this file includes product columns.',
     moreOnTheWay: '+{n} more on the way',
     egPatternLabel: 'Sunday school trips',
     egRegularName: 'Sarah',
@@ -1069,6 +1075,12 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'מה השמירה הזו תשנה',
+    bfHoursReplaced: 'ספירת הלקוחות לפי שעה ליום הזה תוחלף.',
+    bfKeptItems: 'נשמר כפי שהוא: {items}',
+    bfKeptNote: 'מכירות המוצרים האלה נשארות בדיוק כפי שרשמתם — שמירת שעות בלבד לא נוגעת בהן.',
+    bfProductsReplaced: 'גם מכירות המוצרים ליום הזה יוחלפו, כי הקובץ הזה כולל עמודות מוצרים.',
     moreOnTheWay: 'עוד {n} בדרך',
     egPatternLabel: 'טיולי בית ספר בימי ראשון',
     egRegularName: 'שרה',
@@ -2129,6 +2141,12 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: '此次保存会更改什么',
+    bfHoursReplaced: '这一天的每小时顾客数将被替换。',
+    bfKeptItems: '保持不变：{items}',
+    bfKeptNote: '这些商品销量会完全保留您记录的数据——只保存小时数据不会影响它们。',
+    bfProductsReplaced: '这一天的商品销量也会被替换，因为此文件包含商品列。',
     moreOnTheWay: '另有 {n} 批在途',
     egPatternLabel: '周日学校团体',
     egRegularName: '小美',
@@ -2712,6 +2730,12 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'Qué cambiará al guardar',
+    bfHoursReplaced: 'Se reemplazarán tus recuentos de clientes por hora de este día.',
+    bfKeptItems: 'Se mantiene igual: {items}',
+    bfKeptNote: 'Estas ventas por producto quedan tal como las registraste: guardar solo las horas nunca las toca.',
+    bfProductsReplaced: 'Las ventas por producto de este día también se reemplazarán, porque este archivo incluye columnas de productos.',
     moreOnTheWay: '+{n} más en camino',
     egPatternLabel: 'Excursiones escolares los domingos',
     egRegularName: 'Sara',
@@ -3348,6 +3372,12 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'इस सेव से क्या बदलेगा',
+    bfHoursReplaced: 'इस दिन की घंटेवार ग्राहक संख्या बदल दी जाएगी।',
+    bfKeptItems: 'जैसा है वैसा ही रहेगा: {items}',
+    bfKeptNote: 'ये उत्पाद बिक्री वैसी ही रहेंगी जैसी आपने दर्ज की थीं — केवल घंटे सहेजने से इन पर कोई असर नहीं पड़ता।',
+    bfProductsReplaced: 'इस दिन की उत्पाद बिक्री भी बदली जाएगी, क्योंकि इस फ़ाइल में उत्पाद कॉलम हैं।',
     moreOnTheWay: '+{n} और रास्ते में',
     egPatternLabel: 'रविवार को स्कूल यात्राएँ',
     egRegularName: 'सारा',
@@ -3941,6 +3971,12 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'ما الذي سيتغيّر بهذا الحفظ',
+    bfHoursReplaced: 'سيتم استبدال أعداد العملاء بالساعة لهذا اليوم.',
+    bfKeptItems: 'يبقى كما هو: {items}',
+    bfKeptNote: 'تبقى مبيعات هذه المنتجات كما سجّلتها تمامًا — حفظ الساعات وحدها لا يمسّها أبدًا.',
+    bfProductsReplaced: 'سيتم استبدال مبيعات المنتجات لهذا اليوم أيضًا، لأن هذا الملف يتضمّن أعمدة منتجات.',
     moreOnTheWay: 'و{n} أخرى في الطريق',
     egPatternLabel: 'رحلات مدرسية أيام الأحد',
     egRegularName: 'سارة',
@@ -4834,6 +4870,12 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'O que esta gravação vai alterar',
+    bfHoursReplaced: 'As suas contagens de clientes por hora deste dia serão substituídas.',
+    bfKeptItems: 'Mantém-se como está: {items}',
+    bfKeptNote: 'Estas vendas por produto ficam exatamente como as registou — guardar só as horas nunca lhes toca.',
+    bfProductsReplaced: 'As vendas por produto deste dia também serão substituídas, porque este ficheiro inclui colunas de produtos.',
     moreOnTheWay: '+{n} a caminho',
     egPatternLabel: 'Visitas escolares ao domingo',
     egRegularName: 'Sara',
@@ -5457,6 +5499,12 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'Что изменит это сохранение',
+    bfHoursReplaced: 'Почасовые данные о клиентах за этот день будут заменены.',
+    bfKeptItems: 'Останется без изменений: {items}',
+    bfKeptNote: 'Эти продажи по товарам сохранятся ровно так, как вы их отметили — сохранение только часов их не затрагивает.',
+    bfProductsReplaced: 'Продажи по товарам за этот день тоже будут заменены, так как в файле есть колонки товаров.',
     moreOnTheWay: 'ещё {n} в пути',
     egPatternLabel: 'Школьные экскурсии по воскресеньям',
     egRegularName: 'Сара',
@@ -6075,6 +6123,12 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'Ce que cet enregistrement va modifier',
+    bfHoursReplaced: 'Vos comptages horaires de clients pour ce jour seront remplacés.',
+    bfKeptItems: 'Conservé tel quel : {items}',
+    bfKeptNote: "Ces ventes par produit restent exactement telles que vous les avez saisies — enregistrer seulement les heures n'y touche jamais.",
+    bfProductsReplaced: 'Les ventes par produit de ce jour seront également remplacées, car ce fichier contient des colonnes de produits.',
     moreOnTheWay: '+{n} autres en route',
     egPatternLabel: 'Sorties scolaires le dimanche',
     egRegularName: 'Sarah',
@@ -7134,6 +7188,12 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'এই সেভ কী বদলাবে',
+    bfHoursReplaced: 'এই দিনের ঘণ্টাভিত্তিক গ্রাহক সংখ্যা প্রতিস্থাপিত হবে।',
+    bfKeptItems: 'যেমন আছে তেমনই থাকবে: {items}',
+    bfKeptNote: 'এই পণ্য বিক্রয় ঠিক যেমন আপনি রেকর্ড করেছেন তেমনই থাকবে — শুধু ঘণ্টা সেভ করলে এগুলোতে কিছু হয় না।',
+    bfProductsReplaced: 'এই দিনের পণ্য বিক্রয়ও প্রতিস্থাপিত হবে, কারণ এই ফাইলে পণ্যের কলাম আছে।',
     moreOnTheWay: 'আরও {n}টি পথে',
     egPatternLabel: 'রবিবারে স্কুলের ভ্রমণ',
     egRegularName: 'সারা',
@@ -8193,6 +8253,12 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'یہ محفوظ کرنے سے کیا بدلے گا',
+    bfHoursReplaced: 'اس دن کی گھنٹہ وار گاہکوں کی گنتی تبدیل کر دی جائے گی۔',
+    bfKeptItems: 'جوں کا توں رہے گا: {items}',
+    bfKeptNote: 'یہ مصنوعات کی فروخت بالکل ویسی ہی رہے گی جیسے آپ نے درج کی تھی — صرف گھنٹے محفوظ کرنے سے ان پر اثر نہیں پڑتا۔',
+    bfProductsReplaced: 'اس دن کی مصنوعات کی فروخت بھی تبدیل ہوگی، کیونکہ اس فائل میں مصنوعات کے کالم ہیں۔',
     moreOnTheWay: 'مزید {n} راستے میں',
     egPatternLabel: 'اتوار کو اسکول کے دورے',
     egRegularName: 'سارہ',
@@ -9252,6 +9318,12 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'Apa yang akan berubah',
+    bfHoursReplaced: 'Jumlah pelanggan per jam untuk hari ini akan diganti.',
+    bfKeptItems: 'Tetap seperti apa adanya: {items}',
+    bfKeptNote: 'Penjualan produk ini tetap persis seperti yang Anda catat — menyimpan jam saja tidak pernah mengubahnya.',
+    bfProductsReplaced: 'Penjualan produk untuk hari ini juga akan diganti, karena berkas ini memuat kolom produk.',
     moreOnTheWay: '+{n} lagi dalam perjalanan',
     egPatternLabel: 'Kunjungan sekolah tiap Minggu',
     egRegularName: 'Sarah',
@@ -10311,6 +10383,12 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'Was dieses Speichern ändert',
+    bfHoursReplaced: 'Ihre stündlichen Kundenzahlen für diesen Tag werden ersetzt.',
+    bfKeptItems: 'Bleibt unverändert: {items}',
+    bfKeptNote: 'Diese Produktverkäufe bleiben genau so, wie Sie sie erfasst haben — nur Stunden zu speichern rührt sie nie an.',
+    bfProductsReplaced: 'Die Produktverkäufe dieses Tages werden ebenfalls ersetzt, da diese Datei Produktspalten enthält.',
     moreOnTheWay: '+{n} weitere unterwegs',
     egPatternLabel: 'Schulausflüge am Sonntag',
     egRegularName: 'Sarah',
@@ -11370,6 +11448,12 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'この保存で変わること',
+    bfHoursReplaced: 'この日の時間帯別の客数が置き換わります。',
+    bfKeptItems: 'そのまま残るもの：{items}',
+    bfKeptNote: 'これらの商品売上は記録したままそのまま残ります。時間だけを保存しても影響しません。',
+    bfProductsReplaced: 'このファイルには商品の列が含まれるため、この日の商品売上も置き換わります。',
     moreOnTheWay: '他に {n} 件が配送中',
     egPatternLabel: '日曜の学校団体',
     egRegularName: 'さくら',
@@ -12429,6 +12513,12 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    // 'What this save will change' — shown before a backfill/import
+    bfChangeTitle: 'Bu kayıt neyi değiştirecek',
+    bfHoursReplaced: 'Bu güne ait saatlik müşteri sayıları değiştirilecek.',
+    bfKeptItems: 'Olduğu gibi kalıyor: {items}',
+    bfKeptNote: 'Bu ürün satışları girdiğiniz şekliyle aynen kalır — yalnızca saatleri kaydetmek onlara asla dokunmaz.',
+    bfProductsReplaced: 'Bu dosyada ürün sütunları olduğu için bu güne ait ürün satışları da değiştirilecek.',
     moreOnTheWay: '+{n} tanesi daha yolda',
     egPatternLabel: 'Pazar günleri okul gezileri',
     egRegularName: 'Sarah',

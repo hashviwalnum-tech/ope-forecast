@@ -7,7 +7,7 @@ DELETE /sale-events/{id}   — undo a specific tap
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date as date_type, datetime, timezone
 from typing import Optional
 from zoneinfo import ZoneInfo
 
@@ -20,6 +20,8 @@ from app.db import get_db
 from app.engine.live_sales import local_day_utc_bounds, rollup_by_hour, utc_to_local_date, utc_to_local_hour
 from app.models import Business, Product, SaleEvent
 from app.schemas.sale_event import (
+    BackfillPreviewProduct,
+    BackfillPreviewResponse,
     HourlyBackfillRequest,
     HourlyBackfillResponse,
     HourSlot,
@@ -65,11 +67,20 @@ def backfill_hourly(
     db: Session = Depends(get_db),
     biz: Business = Depends(get_business),
 ):
-    """Record hourly customer counts for a past day from register logs.
+    """Record hourly customer counts — and optionally per-product totals — for a day.
 
-    Replaces any existing SaleEvents for that date so re-submitting is safe.
-    Creates one SaleEvent per hour slot with quantity = customers; the
-    hourly-analytics engine sums quantities to get arrival-rate λ.
+    **Only replaces the kind of data the submission actually provides.**  This
+    used to delete every SaleEvent in the day's window before writing, so an
+    owner who tapped products during service and later tidied up their hourly
+    customer counts from the register silently lost the entire product
+    breakdown for that day — no warning, nothing in the response to say so.
+
+    * Hourly customer counts are always replaced; that is what makes
+      re-submitting a corrected day safe and idempotent.
+    * Product rows are replaced **only when ``body.products`` is supplied**
+      (a register export, or a CSV with product columns), which keeps
+      re-importing the same file idempotent. A customers-only submission
+      leaves them completely untouched.
 
     ``body.date`` and each slot's hour are the business's LOCAL calendar day
     and local hour (read off a register) — they're converted to UTC before
@@ -79,25 +90,110 @@ def backfill_hourly(
     settings = biz.settings or {}
     tz_name: str = settings.get("timezone", "UTC")
     day_start, day_end = local_day_utc_bounds(body.date, tz_name)
-    db.query(SaleEvent).filter(
+
+    in_day = (
         SaleEvent.business_id == biz.id,
         SaleEvent.timestamp >= day_start,
         SaleEvent.timestamp < day_end,
-    ).delete()
+    )
+
+    # Always replace the customer-count aggregate — that is what was submitted.
+    replaced_hours = (
+        db.query(SaleEvent)
+        .filter(*in_day, SaleEvent.product_id.is_(None))
+        .delete(synchronize_session=False)
+    )
+
+    product_rows = db.query(SaleEvent).filter(*in_day, SaleEvent.product_id.isnot(None))
+    if body.products is None:
+        replaced_products = 0
+        kept_products = product_rows.count()      # left exactly as they were
+    else:
+        kept_products = 0
+        replaced_products = product_rows.delete(synchronize_session=False)
+
+    def _utc_at(hour: int) -> datetime:
+        local_ts = datetime.combine(
+            body.date, datetime.min.time(), tzinfo=ZoneInfo(tz_name)
+        ).replace(hour=hour)
+        return local_ts.astimezone(timezone.utc).replace(tzinfo=None)
 
     for slot in body.hours:
-        local_ts = datetime.combine(body.date, datetime.min.time(), tzinfo=ZoneInfo(tz_name)).replace(
-            hour=slot.hour
-        )
-        utc_ts = local_ts.astimezone(timezone.utc).replace(tzinfo=None)
         db.add(SaleEvent(
             business_id=biz.id,
             product_id=None,
-            timestamp=utc_ts,
+            timestamp=_utc_at(slot.hour),
             quantity=slot.customers,
         ))
+
+    if body.products:
+        # Park product totals at the busiest submitted hour so they sit inside
+        # the day's opening hours and are never filtered out as closed-hour data.
+        busiest = max(body.hours, key=lambda s: s.customers).hour
+        at = _utc_at(busiest)
+        for pu in body.products:
+            prod = db.get(Product, pu.product_id)
+            if not prod or prod.business_id != biz.id:
+                raise HTTPException(404, f"Product {pu.product_id} not found")
+            if pu.units > 0:
+                db.add(SaleEvent(
+                    business_id=biz.id,
+                    product_id=pu.product_id,
+                    timestamp=at,
+                    quantity=pu.units,
+                ))
+
     db.commit()
-    return HourlyBackfillResponse(inserted=len(body.hours))
+    return HourlyBackfillResponse(
+        inserted=len(body.hours),
+        replaced_hours=replaced_hours,
+        replaced_products=replaced_products,
+        kept_products=kept_products,
+    )
+
+
+@router.get("/backfill-preview", response_model=BackfillPreviewResponse)
+def backfill_preview(
+    day: date_type,
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """What is already stored for a date, so the owner can be shown what a
+    submission will replace and what it will leave alone — before they save."""
+    settings = biz.settings or {}
+    tz_name: str = settings.get("timezone", "UTC")
+    day_start, day_end = local_day_utc_bounds(day, tz_name)
+    rows = (
+        db.query(SaleEvent)
+        .filter(
+            SaleEvent.business_id == biz.id,
+            SaleEvent.timestamp >= day_start,
+            SaleEvent.timestamp < day_end,
+        )
+        .all()
+    )
+    hours = [r for r in rows if r.product_id is None]
+    prod_rows = [r for r in rows if r.product_id is not None]
+
+    totals: dict[int, float] = {}
+    for r in prod_rows:
+        totals[r.product_id] = totals.get(r.product_id, 0.0) + float(r.quantity)
+    names: dict[int, str] = {}
+    if totals:
+        for p in db.query(Product).filter(Product.id.in_(totals.keys())).all():
+            names[p.id] = p.name
+
+    return BackfillPreviewResponse(
+        date=day,
+        existing_hours=len(hours),
+        existing_hour_customers=sum(float(r.quantity) for r in hours),
+        existing_products=[
+            BackfillPreviewProduct(
+                product_id=pid, product_name=names.get(pid, f"#{pid}"), units=round(u, 3)
+            )
+            for pid, u in sorted(totals.items(), key=lambda kv: -kv[1])
+        ],
+    )
 
 
 @router.get("/today", response_model=TodaySummaryResponse)

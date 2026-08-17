@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { businesses, dayRecords, products, sales, saleEvents } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { BusinessRead, ProductRead, SaleRead } from '../api/types'
+import type { BackfillPreviewResponse, BusinessRead, ProductRead, SaleRead } from '../api/types'
 
 function localToday(): string {
   const d = new Date()
@@ -57,12 +57,29 @@ export default function BackfillForm({ onSaved }: Props) {
 
   // hourly breakdown (optional)
   const [showHourly, setShowHourly] = useState(false)
+  // What is already stored for this date, so the owner can see what saving
+  // hours will replace and what it will leave alone (F-006).
+  const [existing, setExisting] = useState<BackfillPreviewResponse | null>(null)
   const [hourlyData, setHourlyData] = useState<Record<number, string>>({})
 
   useEffect(() => {
     products.list().then(setProductList).catch(() => {})
     businesses.me().then(setBiz).catch(() => {})
   }, [])
+
+  // Look up what is already stored for this date whenever the owner opens the
+  // hourly panel or changes the date, so the "what will change" note is
+  // accurate for the day actually being saved.
+  useEffect(() => {
+    if (!showHourly) return
+    let cancelled = false
+    saleEvents.backfillPreview(date)
+      .then(r => { if (!cancelled) setExisting(r) })
+      .catch(() => { if (!cancelled) setExisting(null) })
+    // Clearing on the way OUT (rather than synchronously on the way in) keeps
+    // a previous date's figures from lingering while the next fetch resolves.
+    return () => { cancelled = true; setExisting(null) }
+  }, [date, showHourly])
 
   const locked = isTodayLocked(biz)
   const nonWorking = isNonWorkingDay(date, biz)
@@ -158,6 +175,9 @@ export default function BackfillForm({ onSaved }: Props) {
       setUnitsSold({})
       setHourlyData({})
       setFeedback({ ok: true, msg: t('savedFeedback') })
+      if (showHourly) {
+        saleEvents.backfillPreview(date).then(setExisting).catch(() => setExisting(null))
+      }
       onSaved()
     } catch (err) {
       const raw = err instanceof Error ? err.message : 'Save failed'
@@ -321,6 +341,32 @@ export default function BackfillForm({ onSaved }: Props) {
 
         {showHourly && (
           <div className="border-t border-slate-100 dark:border-slate-700 px-4 pb-4 pt-3 space-y-3 bg-slate-50/50 dark:bg-slate-800/50">
+            {/* What this save will change — saving hours only never touches
+                the product sales the owner tapped during service. */}
+            {existing !== null && (existing.existing_hours > 0 || existing.existing_products.length > 0) && (
+              <div className="rounded-lg border border-amber-200 dark:border-amber-900/50 bg-amber-50/70 dark:bg-amber-900/15 px-3 py-2.5 space-y-1">
+                <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">{t('bfChangeTitle')}</p>
+                {existing.existing_hours > 0 && (
+                  <p className="text-xs text-amber-700/90 dark:text-amber-200/80 leading-relaxed">
+                    {t('bfHoursReplaced')}
+                  </p>
+                )}
+                {existing.existing_products.length > 0 && (
+                  <>
+                    <p className="text-xs text-amber-700/90 dark:text-amber-200/80 leading-relaxed">
+                      {t('bfKeptItems', {
+                        items: existing.existing_products
+                          .map(p => `${p.product_name} × ${p.units}`)
+                          .join(', '),
+                      })}
+                    </p>
+                    <p className="text-xs text-amber-700/70 dark:text-amber-200/60 leading-relaxed">
+                      {t('bfKeptNote')}
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               {t('hourlyBreakdownDesc')}
             </p>

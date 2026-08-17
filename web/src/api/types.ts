@@ -480,7 +480,23 @@ export interface HourlyBackfillSlot {
   customers: number
 }
 
+export interface BackfillPreviewProduct {
+  product_id: number
+  product_name: string
+  units: number
+}
+
+export interface BackfillPreviewResponse {
+  date: string
+  existing_hours: number
+  existing_hour_customers: number
+  existing_products: BackfillPreviewProduct[]
+}
+
 export interface HourlyBackfillResponse {
+  replaced_hours?: number
+  replaced_products?: number
+  kept_products?: number
   inserted: number
 }
 

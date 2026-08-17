@@ -42,8 +42,22 @@ def create_sale(body: SaleCreate, db: Session = Depends(get_db), biz: Business =
     product = db.get(Product, body.product_id)
     if not product or product.business_id != biz.id:
         raise HTTPException(404, "Product not found")
-    row = SaleRecord(**body.model_dump())
-    db.add(row)
+
+    # A day has ONE total per product, so re-submitting the same day and product
+    # replaces that figure rather than adding a second row.  Appending meant
+    # re-importing the same CSV double-counted the day's sales — which then
+    # double-counted the stock drawn down from it — and left no way to correct a
+    # typo except deleting rows by hand.
+    row = (
+        db.query(SaleRecord)
+        .filter_by(day_record_id=body.day_record_id, product_id=body.product_id)
+        .first()
+    )
+    if row is None:
+        row = SaleRecord(**body.model_dump())
+        db.add(row)
+    else:
+        row.units_sold = body.units_sold
     db.commit()
     db.refresh(row)
     return row

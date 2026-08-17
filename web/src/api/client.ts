@@ -10,6 +10,7 @@ import type {
   DayRecordCreate,
   HourlyAnalyticsResponse,
   HourlyBackfillSlot,
+  BackfillPreviewResponse,
   HourlyBackfillResponse,
   InsightsResponse,
   MonthlyResponse,
@@ -193,8 +194,13 @@ export const saleEvents = {
   tap:      (body: SaleEventCreate)  => POST<SaleEventRead>('/sale-events', body),
   today:    ()                       => GET<TodaySummaryResponse>('/sale-events/today'),
   undo:     (id: number)             => DELETE(`/sale-events/${id}`),
-  backfillHourly: (date: string, hours: HourlyBackfillSlot[]) =>
-    POST<HourlyBackfillResponse>('/sale-events/backfill-hourly', { date, hours }),
+  backfillHourly: (date: string, hours: HourlyBackfillSlot[], products?: { product_id: number; units: number }[]) =>
+    POST<HourlyBackfillResponse>('/sale-events/backfill-hourly',
+      products ? { date, hours, products } : { date, hours }),
+  // What is already stored for a date, so the owner can be shown what a save
+  // will replace and what it will leave alone.
+  backfillPreview: (day: string) =>
+    GET<BackfillPreviewResponse>(`/sale-events/backfill-preview?day=${encodeURIComponent(day)}`),
 }
 
 export const products = {
