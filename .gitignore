@@ -24,3 +24,6 @@ backend/ev_batch_*.sql
 backend/seed_output.sql
 backend/exec_*.txt
 backend/gen_seed_*.py
+
+# Simulation test database (never committed — throwaway local SQLite)
+backend/sim/

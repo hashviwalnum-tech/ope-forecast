@@ -1,0 +1,274 @@
+{
+  "seed": "ope-nyc-burger-2025-v1",
+  "eval_from_day_index": 28,
+  "n_open_days": 313,
+  "n_logged_open_days": 311,
+  "n_eval_days_incl_anomalies": 287,
+  "n_eval_days_excl_anomalies": 285,
+  "unit_distributions": {
+    "weekday_normal": {
+      "mean": 0.9981,
+      "median": 1.0,
+      "sd": 0.0984,
+      "p10": 0.8977,
+      "p90": 1.0915,
+      "expected_customers_at_base": 499.1
+    },
+    "weekday_promo": {
+      "mean": 1.1389,
+      "median": 1.1287,
+      "sd": 0.0731,
+      "p10": 1.075,
+      "p90": 1.1852,
+      "expected_customers_at_base": 569.5
+    },
+    "sunday_normal": {
+      "mean": 0.7174,
+      "median": 0.7185,
+      "sd": 0.1049,
+      "p10": 0.5894,
+      "p90": 0.8394,
+      "expected_customers_at_base": 358.7
+    },
+    "sunday_promo": {
+      "mean": 1.0686,
+      "median": 1.0562,
+      "sd": 0.0595,
+      "p10": 1.0375,
+      "p90": 1.0813,
+      "expected_customers_at_base": 534.3
+    }
+  },
+  "excl_anomalies": {
+    "noise_floor_oracle_mean": {
+      "n": 285,
+      "MAD": 38.68,
+      "MSE": 3177.9,
+      "MAPE": 7.67,
+      "bias": 3.23,
+      "tracking_signal": 23.77
+    },
+    "noise_floor_oracle_median": {
+      "n": 285,
+      "MAD": 38.64,
+      "MSE": 3197.9,
+      "MAPE": 7.67,
+      "bias": 3.55,
+      "tracking_signal": 26.16
+    },
+    "baseline_a_last_week_same_weekday": {
+      "n": 283,
+      "MAD": 81.61,
+      "MSE": 14272.4,
+      "MAPE": 15.93,
+      "bias": 1.13,
+      "tracking_signal": 3.93
+    },
+    "baseline_b_trailing_4wk_weekday_mean": {
+      "n": 285,
+      "MAD": 63.13,
+      "MSE": 7316.3,
+      "MAPE": 12.34,
+      "bias": 5.56,
+      "tracking_signal": 25.08
+    }
+  },
+  "incl_anomalies": {
+    "noise_floor_oracle_mean": {
+      "n": 287,
+      "MAD": 43.11,
+      "MSE": 6874.6,
+      "MAPE": 9.11,
+      "bias": 5.15,
+      "tracking_signal": 34.29
+    },
+    "noise_floor_oracle_median": {
+      "n": 287,
+      "MAD": 43.08,
+      "MSE": 6889.9,
+      "MAPE": 9.11,
+      "bias": 5.46,
+      "tracking_signal": 36.4
+    },
+    "baseline_a_last_week_same_weekday": {
+      "n": 285,
+      "MAD": 85.66,
+      "MSE": 17547.3,
+      "MAPE": 17.46,
+      "bias": 2.64,
+      "tracking_signal": 8.79
+    },
+    "baseline_b_trailing_4wk_weekday_mean": {
+      "n": 287,
+      "MAD": 67.49,
+      "MSE": 11023.3,
+      "MAPE": 13.87,
+      "bias": 7.29,
+      "tracking_signal": 31.01
+    }
+  },
+  "per_weekday_excl_anomalies": {
+    "Monday": {
+      "mean_customers": 554.5,
+      "floor": {
+        "n": 47,
+        "MAD": 39.44,
+        "MSE": 3341.1,
+        "MAPE": 7.21,
+        "bias": 10.01,
+        "tracking_signal": 11.93
+      },
+      "baseline_a": {
+        "n": 46,
+        "MAD": 75.11,
+        "MSE": 9991.5,
+        "MAPE": 13.73,
+        "bias": 4.5,
+        "tracking_signal": 2.76
+      },
+      "baseline_b": {
+        "n": 47,
+        "MAD": 55.07,
+        "MSE": 5100.5,
+        "MAPE": 10.13,
+        "bias": 8.06,
+        "tracking_signal": 6.88
+      }
+    },
+    "Tuesday": {
+      "mean_customers": 529.3,
+      "floor": {
+        "n": 47,
+        "MAD": 34.39,
+        "MSE": 2539.6,
+        "MAPE": 7.13,
+        "bias": -9.95,
+        "tracking_signal": -13.59
+      },
+      "baseline_a": {
+        "n": 47,
+        "MAD": 87.77,
+        "MSE": 26122.7,
+        "MAPE": 16.72,
+        "bias": -18.11,
+        "tracking_signal": -9.7
+      },
+      "baseline_b": {
+        "n": 47,
+        "MAD": 70.59,
+        "MSE": 10211.3,
+        "MAPE": 13.46,
+        "bias": -14.26,
+        "tracking_signal": -9.49
+      }
+    },
+    "Wednesday": {
+      "mean_customers": 546.6,
+      "floor": {
+        "n": 48,
+        "MAD": 43.55,
+        "MSE": 4229.5,
+        "MAPE": 7.82,
+        "bias": 1.69,
+        "tracking_signal": 1.87
+      },
+      "baseline_a": {
+        "n": 48,
+        "MAD": 71.04,
+        "MSE": 10683.0,
+        "MAPE": 12.56,
+        "bias": 5.88,
+        "tracking_signal": 3.97
+      },
+      "baseline_b": {
+        "n": 48,
+        "MAD": 56.03,
+        "MSE": 6651.1,
+        "MAPE": 9.81,
+        "bias": 9.4,
+        "tracking_signal": 8.05
+      }
+    },
+    "Thursday": {
+      "mean_customers": 542.4,
+      "floor": {
+        "n": 47,
+        "MAD": 32.67,
+        "MSE": 2440.3,
+        "MAPE": 6.53,
+        "bias": -0.04,
+        "tracking_signal": -0.06
+      },
+      "baseline_a": {
+        "n": 47,
+        "MAD": 68.09,
+        "MSE": 9060.5,
+        "MAPE": 13.39,
+        "bias": 12.38,
+        "tracking_signal": 8.55
+      },
+      "baseline_b": {
+        "n": 47,
+        "MAD": 56.24,
+        "MSE": 5457.7,
+        "MAPE": 10.76,
+        "bias": 15.78,
+        "tracking_signal": 13.18
+      }
+    },
+    "Friday": {
+      "mean_customers": 541.9,
+      "floor": {
+        "n": 49,
+        "MAD": 37.48,
+        "MSE": 3148.9,
+        "MAPE": 7.06,
+        "bias": 2.38,
+        "tracking_signal": 3.11
+      },
+      "baseline_a": {
+        "n": 49,
+        "MAD": 67.84,
+        "MSE": 7987.9,
+        "MAPE": 12.75,
+        "bias": 2.2,
+        "tracking_signal": 1.59
+      },
+      "baseline_b": {
+        "n": 49,
+        "MAD": 52.07,
+        "MSE": 4623.1,
+        "MAPE": 9.68,
+        "bias": 5.57,
+        "tracking_signal": 5.24
+      }
+    },
+    "Sunday": {
+      "mean_customers": 443.1,
+      "floor": {
+        "n": 47,
+        "MAD": 44.49,
+        "MSE": 3347.1,
+        "MAPE": 10.3,
+        "bias": 15.33,
+        "tracking_signal": 16.19
+      },
+      "baseline_a": {
+        "n": 46,
+        "MAD": 121.33,
+        "MSE": 22210.7,
+        "MAPE": 26.83,
+        "bias": -0.15,
+        "tracking_signal": -0.06
+      },
+      "baseline_b": {
+        "n": 47,
+        "MAD": 89.4,
+        "MSE": 11982.9,
+        "MAPE": 20.38,
+        "bias": 8.71,
+        "tracking_signal": 4.58
+      }
+    }
+  }
+}

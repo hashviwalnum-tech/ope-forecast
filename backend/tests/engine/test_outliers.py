@@ -34,18 +34,19 @@ def test_exactly_min_observations_required():
 
 
 def test_high_outlier_flagged():
-    obs = [100.0, 110.0, 90.0, 105.0, 1000.0]
-    wds = [0,     0,     0,    0,     0     ]
+    # MIN_SAME_WEEKDAY (6) reference points plus the candidate.
+    obs = [100.0, 110.0, 90.0, 105.0, 95.0, 108.0, 1000.0]
+    wds = [0] * 7
     results = detect_outliers(obs, wds)
     assert len(results) == 1
-    assert results[0].day_index == 4
+    assert results[0].day_index == 6
     assert results[0].direction == "high"
     assert results[0].value == 1000.0
 
 
 def test_low_outlier_flagged():
-    obs = [100.0, 110.0, 90.0, 105.0, 3.0]
-    wds = [0,     0,     0,    0,     0  ]
+    obs = [100.0, 110.0, 90.0, 105.0, 95.0, 108.0, 3.0]
+    wds = [0] * 7
     results = detect_outliers(obs, wds)
     assert len(results) == 1
     assert results[0].direction == "low"
@@ -53,16 +54,20 @@ def test_low_outlier_flagged():
 
 
 def test_normal_spread_not_flagged():
-    obs = [95.0, 100.0, 105.0, 98.0, 102.0]
-    wds = [0,    0,     0,     0,    0     ]
+    obs = [95.0, 100.0, 105.0, 98.0, 102.0, 97.0, 103.0]
+    wds = [0] * 7
     assert detect_outliers(obs, wds) == []
 
 
 def test_weekdays_independent():
     """A spike on weekday 1 must not affect weekday 0 detection."""
-    obs = [100.0, 100.0, 100.0, 100.0,   # Mon Mon Mon Mon
-           100.0, 100.0, 100.0, 9000.0]  # Tue Tue Tue Tue
-    wds = [0, 1, 0, 1, 0, 1, 0, 1]
+    mon = [100.0, 120.0, 85.0, 108.0, 92.0, 115.0, 100.0]
+    tue = [100.0, 120.0, 85.0, 108.0, 92.0, 115.0, 9000.0]
+    obs: list[float] = []
+    wds: list[int] = []
+    for m, t in zip(mon, tue):
+        obs += [m, t]
+        wds += [0, 1]
     results = detect_outliers(obs, wds)
     flagged_weekdays = {r.weekday for r in results}
     assert 0 not in flagged_weekdays, "Monday should not be flagged"
@@ -71,26 +76,54 @@ def test_weekdays_independent():
 
 def test_known_answer_iqr():
     """
-    IQR known-answer test.
-    Reference set for index 4 (value=1000): [100, 110, 90, 105]
-      sorted:  [90, 100, 105, 110]
-      Q1 (np.percentile, linear): 90 + 0.75*(100-90) = 97.5
-      Q3 (np.percentile, linear): 105 + 0.25*(110-105) = 106.25
-      IQR: 8.75
-      upper fence: 106.25 + 1.5*8.75 = 119.375
-      1000.0 >> 119.375 → flagged.
+    IQR known-answer test (hand-computable).
+
+    Reference set for the candidate (leave-one-out) is [90, 100, 110, 120, 130, 140]:
+      Q1 (np.percentile, linear): position 0.25*(6-1)=1.25 → 100 + 0.25*(110-100) = 102.5
+      Q3 (np.percentile, linear): position 0.75*(6-1)=3.75 → 120 + 0.75*(130-120) = 127.5
+      IQR         = 127.5 − 102.5 = 25.0
+      lower fence = 102.5 − 1.5*25 =  65.0
+      upper fence = 127.5 + 1.5*25 = 165.0
+      median      = 115.0
+    The candidate 1000 is far above 165 → flagged 'high'.
+    None of the six reference days flags, because each of *their* reference sets
+    contains the 1000 and therefore has enormously wide fences.
     """
-    import numpy as np
-    obs = [100.0, 110.0, 90.0, 105.0, 1000.0]
-    wds = [0,     0,     0,    0,     0     ]
+    obs = [90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 1000.0]
+    wds = [0] * 7
     results = detect_outliers(obs, wds)
     assert len(results) == 1
     r = results[0]
-    ref = np.array([100.0, 110.0, 90.0, 105.0])
-    assert r.weekday_median == pytest.approx(round(float(np.median(ref)), 1))
-    assert r.weekday_iqr == pytest.approx(
-        round(float(np.percentile(ref, 75) - np.percentile(ref, 25)), 2)
-    )
+    assert r.day_index == 6
+    assert r.direction == "high"
+    assert r.weekday_median == pytest.approx(115.0)
+    assert r.weekday_iqr == pytest.approx(25.0)
+
+
+@pytest.mark.xfail(strict=True, reason="FINDING F-007: Tukey fences are scale-free, "
+                                       "so a very steady business gets flagged on ±4% moves")
+def test_very_steady_business_is_not_pestered():
+    """A business whose Mondays run 98–103 must not be told 104 is unusual.
+
+    Tukey fences have no notion of practical significance: on a tight history the
+    IQR is ~1.5 customers, so the fence sits at 103 and an utterly ordinary 104
+    trips it.  Spec §6 explicitly forbids firing on ordinary fluctuation.
+    """
+    obs = [100.0, 98.0, 101.0, 99.0, 103.0, 100.0, 104.0]
+    wds = [0] * 7
+    assert detect_outliers(obs, wds) == []
+
+
+def test_min_same_weekday_threshold_is_enforced():
+    """One point short of MIN_SAME_WEEKDAY, even a wild spike stays unflagged.
+
+    Guards the deliberate 'needs enough history before flagging at all' rule
+    (spec §6) so it cannot be silently loosened.
+    """
+    n = MIN_SAME_WEEKDAY - 1
+    obs = [100.0] * (n - 1) + [50_000.0]
+    wds = [0] * n
+    assert detect_outliers(obs, wds) == []
 
 
 def test_uniform_weekday_not_flagged():

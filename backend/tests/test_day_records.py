@@ -226,11 +226,14 @@ def test_import_backfill_does_not_overwrite_customer_total(day_client, db, biz):
 
 def test_import_multiple_rows_all_stored_correctly(day_client):
     """Simulate importing multiple days: every stored value must match the input."""
+    # Dates must be RELATIVE to today: absolute dates silently age past the free
+    # tier's 365-day history cap and turn this into a 403 months after it was
+    # written (which is exactly what happened).
+    from datetime import date as _date, timedelta as _td
+    _today = _date.today()
     rows = [
-        ("2025-08-01", 42),
-        ("2025-08-02", 70),
-        ("2025-08-03", 100),
-        ("2025-08-04", 5),
+        ((_today - _td(days=d)).isoformat(), c)
+        for d, c in ((30, 42), (29, 70), (28, 100), (27, 5))
     ]
     stored = {}
     for date_str, customers in rows:
