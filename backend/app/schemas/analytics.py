@@ -34,10 +34,15 @@ class ForecastDay(BaseModel):
 
 
 class ForecastResponse(BaseModel):
+    # 'ok' | 'learning' (early, wide range shown) | 'not_enough_data'
     status: str
     message: Optional[str] = None
     days: list[ForecastDay]
     drift_alert: Optional[str] = None  # plain-language sustained-drift warning
+    # Only set while status == 'learning', so the client can show progress
+    # ("day 6 of 14") instead of a bare "still learning" label.
+    days_logged: Optional[int] = None
+    days_needed: Optional[int] = None
 
 
 class AccuracyResponse(BaseModel):

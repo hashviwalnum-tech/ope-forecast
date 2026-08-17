@@ -9,6 +9,10 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Still learning',
+    learningNote: 'Day {n} of {needed}. These are rough ranges — they get much more accurate after about two weeks of logging.',
+    learningRangesTitle: 'Rough range for each day',
     // Nav
     home: 'Home',
     predictions: 'Predictions',
@@ -1048,6 +1052,10 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'עדיין לומדים',
+    learningNote: 'יום {n} מתוך {needed}. אלו טווחים גסים — הם נעשים הרבה יותר מדויקים אחרי כשבועיים של רישום.',
+    learningRangesTitle: 'טווח משוער לכל יום',
     // Nav
     home: 'בית',
     predictions: 'תחזיות',
@@ -2087,6 +2095,10 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: '仍在学习中',
+    learningNote: '第 {n} 天，共 {needed} 天。这些是粗略范围——记录约两周后会准确得多。',
+    learningRangesTitle: '每天的大致范围',
     home: '首页', predictions: '预测', history: '历史', manage: '管理',
     pastDays: '历史日期', addPastDay: '添加历史日期', monthlyTrends: '月度趋势',
     importData: '导入数据', myProducts: '我的产品', myRegulars: '我的常客',
@@ -2649,6 +2661,10 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Todavía aprendiendo',
+    learningNote: 'Día {n} de {needed}. Son rangos aproximados: se vuelven mucho más precisos tras unas dos semanas de registro.',
+    learningRangesTitle: 'Rango aproximado de cada día',
     home: 'Inicio', predictions: 'Predicciones', history: 'Historial', manage: 'Gestionar',
     pastDays: 'Días anteriores', addPastDay: 'Añadir día anterior', monthlyTrends: 'Tendencias mensuales',
     importData: 'Importar datos', myProducts: 'Mis productos', myRegulars: 'Mis habituales',
@@ -3264,6 +3280,10 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'अभी सीख रहे हैं',
+    learningNote: '{needed} में से दिन {n}। ये मोटे अनुमान हैं — लगभग दो सप्ताह दर्ज करने के बाद ये कहीं अधिक सटीक हो जाते हैं।',
+    learningRangesTitle: 'हर दिन का अनुमानित दायरा',
     home: 'होम', predictions: 'पूर्वानुमान', history: 'इतिहास', manage: 'प्रबंधन',
     pastDays: 'पिछले दिन', addPastDay: 'पिछला दिन जोड़ें', monthlyTrends: 'मासिक रुझान',
     importData: 'डेटा आयात करें', myProducts: 'मेरे उत्पाद', myRegulars: 'मेरे नियमित ग्राहक',
@@ -3836,6 +3856,10 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'ما زلنا نتعلم',
+    learningNote: 'اليوم {n} من {needed}. هذه نطاقات تقريبية — تصبح أدق بكثير بعد أسبوعين تقريبًا من التسجيل.',
+    learningRangesTitle: 'النطاق التقريبي لكل يوم',
     home: 'الرئيسية',
     predictions: 'التوقعات',
     history: 'السجل',
@@ -4708,6 +4732,10 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Ainda a aprender',
+    learningNote: 'Dia {n} de {needed}. São intervalos aproximados — ficam bem mais precisos após cerca de duas semanas de registo.',
+    learningRangesTitle: 'Intervalo aproximado de cada dia',
     home: 'Início', predictions: 'Previsões', history: 'Histórico', manage: 'Gerenciar',
     pastDays: 'Dias anteriores', addPastDay: 'Adicionar dia anterior', monthlyTrends: 'Tendências mensais',
     importData: 'Importar dados', myProducts: 'Meus produtos', myRegulars: 'Meus clientes fiéis',
@@ -5310,6 +5338,10 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Ещё учимся',
+    learningNote: 'День {n} из {needed}. Это примерные диапазоны — они станут гораздо точнее примерно через две недели записей.',
+    learningRangesTitle: 'Примерный диапазон на каждый день',
     home: 'Главная', predictions: 'Прогнозы', history: 'История', manage: 'Управление',
     pastDays: 'Прошлые дни', addPastDay: 'Добавить прошлый день', monthlyTrends: 'Месячные тренды',
     importData: 'Импорт данных', myProducts: 'Мои товары', myRegulars: 'Мои постоянные клиенты',
@@ -5907,6 +5939,10 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Encore en apprentissage',
+    learningNote: 'Jour {n} sur {needed}. Ce sont des fourchettes approximatives — elles deviennent bien plus précises après environ deux semaines de saisie.',
+    learningRangesTitle: 'Fourchette approximative par jour',
     // Nav
     home: 'Accueil',
     predictions: 'Prévisions',
@@ -6945,6 +6981,10 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'এখনও শিখছি',
+    learningNote: '{needed}-এর মধ্যে দিন {n}। এগুলো আনুমানিক পরিসর — প্রায় দুই সপ্তাহ নথিভুক্ত করার পর অনেক বেশি নির্ভুল হয়।',
+    learningRangesTitle: 'প্রতিদিনের আনুমানিক পরিসর',
     // Nav
     home: 'হোম',
     predictions: 'পূর্বাভাস',
@@ -7983,6 +8023,10 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'ابھی سیکھ رہے ہیں',
+    learningNote: 'دن {n} از {needed}۔ یہ تخمینی حدود ہیں — تقریباً دو ہفتے اندراج کے بعد یہ کہیں زیادہ درست ہو جاتی ہیں۔',
+    learningRangesTitle: 'ہر دن کی تخمینی حد',
     // Nav
     home: 'ہوم',
     predictions: 'پیشگوئیاں',
@@ -9021,6 +9065,10 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Masih belajar',
+    learningNote: 'Hari {n} dari {needed}. Ini rentang kasar — jauh lebih akurat setelah sekitar dua minggu pencatatan.',
+    learningRangesTitle: 'Perkiraan rentang tiap hari',
     // Nav
     home: 'Beranda',
     predictions: 'Prediksi',
@@ -10059,6 +10107,10 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Lernt noch',
+    learningNote: 'Tag {n} von {needed}. Das sind grobe Bandbreiten — nach etwa zwei Wochen Erfassung werden sie deutlich genauer.',
+    learningRangesTitle: 'Ungefähre Bandbreite pro Tag',
     // Nav
     home: 'Startseite',
     predictions: 'Prognosen',
@@ -11097,6 +11149,10 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'まだ学習中です',
+    learningNote: '{needed}日中{n}日目。これは大まかな範囲です。約2週間記録すると精度が大きく上がります。',
+    learningRangesTitle: '各日のおおよその範囲',
     // Nav
     home: 'ホーム',
     predictions: '予測',
@@ -12135,6 +12191,10 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Hâlâ öğreniyor',
+    learningNote: '{needed} günün {n}. günü. Bunlar kaba aralıklar — yaklaşık iki hafta kayıt sonrasında çok daha isabetli olur.',
+    learningRangesTitle: 'Her gün için yaklaşık aralık',
     // Nav
     home: 'Anasayfa',
     predictions: 'Tahminler',

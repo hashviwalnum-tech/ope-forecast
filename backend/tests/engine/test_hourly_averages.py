@@ -184,3 +184,97 @@ def test_peak_hours_avg_taps_are_whole_numbers():
         # round() must be a lossless no-op when displayed — no 7.5 → "7.5"
         assert round(avg) == int(round(avg)), \
             f"Hour {hour}: avg {avg} must be safely roundable to a whole number"
+
+
+# ── FINDING F-009: arrivals must be CUSTOMERS, not units sold ────────────────
+# A customer who buys a burger, fries and a drink is ONE arrival.  Summing raw
+# quantities inflated the arrival rate by the basket size, which inflated every
+# staffing recommendation (a 60-customer hour was reported as 211 arrivals and
+# "schedule 13 people") and misstated the busiest-hour chart.
+
+from app.engine.live_sales import (  # noqa: E402
+    customer_arrivals_by_day_hour,
+    service_minutes_per_customer,
+)
+
+
+def test_one_customer_with_a_three_item_basket_is_one_arrival():
+    """Known answer: 1 customer tap + 3 product taps in hour 12 → λ = 1, not 4."""
+    events = [
+        (D1, 12, None, 1.0),   # "a customer arrived"
+        (D1, 12, 1, 1.0),      # burger
+        (D1, 12, 2, 1.0),      # fries
+        (D1, 12, 3, 1.0),      # drink
+    ]
+    assert hourly_averages(events) == [(12, 1.0, 1)]
+
+
+def test_ten_customers_buying_twenty_five_items_is_ten_arrivals():
+    events = [(D1, 13, None, 10.0)] + [(D1, 13, 1, 25.0)]
+    assert hourly_averages(events) == [(13, 10.0, 1)]
+
+
+def test_hourly_backfill_rows_count_as_arrivals():
+    """backfill-hourly writes per-hour customer counts with product_id=None."""
+    events = [(D1, 9, None, 64.0), (D1, 10, None, 71.0)]
+    assert hourly_averages(events) == [(9, 64.0, 1), (10, 71.0, 1)]
+
+
+def test_product_only_tapper_counts_one_arrival_per_tap():
+    """A business that never taps 'a customer' — each tap is one transaction."""
+    events = [(D1, 9, 1, 1.0), (D1, 9, 2, 2.0), (D1, 9, 1, 1.0)]
+    assert hourly_averages(events) == [(9, 3.0, 1)]
+
+
+def test_tap_style_is_decided_per_day():
+    """D1 has customer taps, D2 is product-only — each day uses its own rule."""
+    events = [
+        (D1, 9, None, 5.0), (D1, 9, 1, 12.0),   # D1: 5 arrivals
+        (D2, 9, 1, 1.0), (D2, 9, 2, 1.0),       # D2: 2 taps → 2 arrivals
+    ]
+    assert hourly_averages(events) == [(9, 3.5, 2)]   # (5 + 2) / 2 days
+
+
+def test_closed_hours_never_contribute_arrivals():
+    events = [(D1, 3, None, 99.0), (D1, 9, None, 10.0)]
+    assert hourly_averages(events, open_hours={9, 10, 11}) == [(9, 10.0, 1)]
+
+
+# ── service time is per CUSTOMER (whole basket), not per item ────────────────
+
+def test_service_minutes_per_customer_sums_the_basket():
+    """Known answer: burger 6 + fries 2 + drink 1 = 9 minutes for ONE customer.
+
+    The old code took the *average* of (6, 2, 1) = 3 min, which understates by
+    a factor of three how long that customer occupies a server.
+    """
+    events = [
+        (D1, 12, None, 1.0),
+        (D1, 12, 1, 1.0), (D1, 12, 2, 1.0), (D1, 12, 3, 1.0),
+    ]
+    svc = {1: 6.0, 2: 2.0, 3: 1.0}
+    assert service_minutes_per_customer(events, svc, 5.0)[12] == 9.0
+
+
+def test_service_minutes_per_customer_averages_over_customers():
+    """2 customers, one buys a 6-min burger, the other a 2-min side → 4 min each."""
+    events = [(D1, 12, None, 2.0), (D1, 12, 1, 1.0), (D1, 12, 2, 1.0)]
+    assert service_minutes_per_customer(events, {1: 6.0, 2: 2.0}, 5.0)[12] == 4.0
+
+
+def test_service_minutes_falls_back_to_default_without_product_detail():
+    """A business that only taps arrivals keeps its configured average."""
+    events = [(D1, 12, None, 40.0)]
+    assert service_minutes_per_customer(events, {}, 3.5)[12] == 3.5
+
+
+def test_products_with_no_service_time_use_the_business_default():
+    events = [(D1, 12, None, 1.0), (D1, 12, 1, 2.0)]
+    assert service_minutes_per_customer(events, {1: None}, 4.0)[12] == 8.0
+
+
+def test_arrivals_by_day_hour_known_answer():
+    events = [(D1, 9, None, 3.0), (D1, 10, None, 4.0), (D2, 9, None, 5.0)]
+    assert customer_arrivals_by_day_hour(events) == {
+        (D1, 9): 3.0, (D1, 10): 4.0, (D2, 9): 5.0
+    }

@@ -10,7 +10,7 @@ import os
 from datetime import datetime, timezone
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return clock.now_naive_utc()
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
@@ -27,6 +27,7 @@ from app.db import get_db
 from app.models import Business, Product, SaleEvent
 from app.models.telegram_link import TelegramLink
 from app.schemas.telegram import BotLogSaleRequest, BotLogSaleResponse
+from app import clock
 
 router = APIRouter(prefix="/bot", tags=["Bot"])
 

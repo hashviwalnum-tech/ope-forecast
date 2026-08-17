@@ -13,6 +13,7 @@ from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.api.deps import get_business
 from app.db import get_db
 from app.models import Business, Product
@@ -36,10 +37,11 @@ def _is_locked(ordered_date: date, biz: Business) -> bool:
     closing = settings.get("closing_hour")
     if closing is None:
         return False
-    closing_dt = datetime(
-        ordered_date.year, ordered_date.month, ordered_date.day, int(closing)
-    )
-    return datetime.now() >= closing_dt
+    # closing_hour is the owner's wall clock, so the comparison must be made on
+    # the business's local clock — not the server's.  Comparing against a UTC
+    # server locked New York orders four hours before the shop actually closed.
+    local_now = clock.now_local(settings)
+    return (local_now.date(), local_now.hour) >= (ordered_date, int(closing))
 
 
 def _get_or_404(db: Session, order_id: int, biz_id: int) -> OrderRecord:

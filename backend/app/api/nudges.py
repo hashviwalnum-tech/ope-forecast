@@ -33,6 +33,7 @@ from app.api.deps import get_business
 from app.db import get_db
 from app.engine.nudges import Nudge, compute_forecast_nudge, compute_stock_nudge, pick_top_nudge
 from app.models import Business
+from app import clock
 
 router = APIRouter(prefix="/nudges", tags=["Nudges"])
 
@@ -40,7 +41,7 @@ _DEFAULT_FREQUENCY_HOURS = 24
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return clock.now_naive_utc()
 
 
 class NudgeItem(BaseModel):

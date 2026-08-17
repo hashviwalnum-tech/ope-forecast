@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.api.deps import get_current_user, require_admin_key
 from app.billing.provider import payment_provider
 from app.db import get_db
@@ -19,7 +20,7 @@ def _get_or_create_subscription(user_id: str, db: Session) -> Subscription:
     """Get existing subscription or auto-create a trial for the user."""
     sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
     if sub is None:
-        now = datetime.now(timezone.utc)
+        now = clock.now_utc()
         sub = Subscription(
             user_id=user_id,
             tier="trial",
@@ -88,7 +89,7 @@ def cancel_subscription(
     if sub.subscription_provider_id:
         payment_provider.cancel_subscription(sub.subscription_provider_id)
     sub.subscription_status = "cancelled"
-    sub.updated_at = datetime.now(timezone.utc)
+    sub.updated_at = clock.now_utc()
     db.commit()
     db.refresh(sub)
     _sync_business_tier(user_id, sub.effective_tier, db)
@@ -116,7 +117,7 @@ async def payment_webhook(
             sub.subscription_status = "active"
             sub.subscription_provider_id = sub_id
             sub.renewal_at = renewal
-            sub.updated_at = datetime.now(timezone.utc)
+            sub.updated_at = clock.now_utc()
             db.commit()
             _sync_business_tier(user_id, "premium", db)
     elif event.get("type") == "subscription.cancelled":
@@ -124,7 +125,7 @@ async def payment_webhook(
         sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
         if sub and user_id:
             sub.subscription_status = "cancelled"
-            sub.updated_at = datetime.now(timezone.utc)
+            sub.updated_at = clock.now_utc()
             db.commit()
             _sync_business_tier(user_id, sub.effective_tier, db)
     return {"ok": True}
@@ -139,7 +140,7 @@ def admin_subscriptions(
 ):
     """Admin-only: all subscriptions with trial/subscriber/revenue stats."""
     subs = db.query(Subscription).order_by(Subscription.created_at.desc()).all()
-    now = datetime.now(timezone.utc)
+    now = clock.now_utc()
 
     rows = []
     for s in subs:

@@ -114,7 +114,115 @@ clean and `npm run build` succeeds.
 
 ## Phase 1 — first 14 simulated days
 
-_not started_
+Setup: the owner **taps every sale live** for two weeks — 550-ish taps a day
+through `POST /sale-events`, at the real simulated hour each sale happened.
+This is the live-capture path, and it turned out to be where the worst bugs were.
+
+### F-009 · S1 · Staffing advice was inflated ~3.5× — it counted items, not customers — **FIXED**
+`app/engine/live_sales.py: hourly_averages`.
+
+`hourly_averages` summed the **quantity of every SaleEvent** to get the hourly
+arrival rate λ. But a customer who buys a burger, fries and a drink generates
+four events. So an hour that genuinely saw **60 customers was reported as 211
+arrivals**, and Ope told a burger restaurant to **"schedule 13 people"** for a
+9–10am hour. Verified against the simulated truth: reported 211/211/208/226/229/
+238/224/212 against actual 59.7/57.9/57.8/63.9/64.3/66.0/63.2/59.0 — exactly
+customers + units, in every hour.
+
+This affects **every business whose customers buy more than one item**, i.e.
+essentially every café, restaurant and shop. It corrupted the busiest-hour chart,
+the peak-hour insight, expected wait times, queue lengths, and every
+"what if I add a worker" comparison.
+
+*Root cause:* `rollup_tap_days` already knew the right rule — customer-arrival
+taps are the ones with `product_id IS NULL`, with a fallback to counting tap
+events for a product-only tapper. `hourly_averages` never applied it, so the
+daily view and the hourly view disagreed about the same day.
+
+*Fix:* new pure function `customer_arrivals_by_day_hour()` applying exactly that
+rule, decided **per day** so a business can change tapping habits mid-history.
+`hourly_averages` now returns customers. After the fix Ope reports
+60/58/58/64/64/66/63/59 — the true numbers — and staffing drops to 10–12 for a
+60-customer hour that costs ~8 staff-minutes per customer.
+
+### F-010 · S1 · Service time was a per-*item* average used as a per-*customer* time — **FIXED**
+`effective_service_time` averaged the service times of the items in the mix. A
+customer ordering a burger (6 min), fries (2 min) and a drink (1 min) came out
+at **3 minutes** — the mean of the three — when that customer actually occupies
+staff for **9 minutes**. The queue model needs time-per-customer, so this
+understated the work by the basket size, partially masking F-009.
+
+*Fix:* new `service_minutes_per_customer()` = total work in the hour ÷ customers
+in the hour, falling back to the business default when there is no product
+detail. Known-answer tests pin both the sum-the-basket rule and the fallback.
+
+### F-011 · S1 · The Insights page bucketed hours in UTC — **FIXED**
+`app/api/analytics.py` (insights). It used `e.timestamp.hour` raw, while every
+other hourly surface converts with `utc_to_local_dt`. For the New York
+restaurant, Insights reported the busiest hour as **4–5pm when it was actually
+12–1pm** — off by exactly the UTC offset. Worse, the opening-hours filter was
+then applied to UTC hours, so it silently analysed the wrong slice of the day.
+Two screens gave different answers to "when am I busiest".
+
+*Fix:* convert to the business's local clock first. Insights and
+`/hourly-analytics` now agree exactly (peak 2–3pm at 66.0, quietest 11–12 at 57.8).
+
+### F-012 · S1 · Product taps were bucketed by UTC calendar day — **FIXED**
+`app/api/analytics.py` (product forecast) used `se.timestamp.date()`, so an
+evening sale in New York (after 20:00 local = past UTC midnight) counted toward
+the **next** day's product demand. Now uses the business's local date.
+
+### F-013 · S2 · Past Days was empty for an owner who only taps — **FIXED**
+`GET /day-records` never called `rollup_tap_days`. Spec §9 says tap-only days
+roll into past days automatically after closing; in practice that only happened
+as a side effect of visiting an *analytics* screen. An owner who tapped all week
+and then opened Past Days to check their numbers found nothing there. Now the
+Past Days endpoint performs the roll-up itself.
+
+### F-014 · S2 · A new owner saw "not enough data" everywhere for two weeks — **FIXED (feature)**
+Confirmed by running it: for the first 14 days, `/forecast`, `/accuracy` and
+`/ordering` all returned "not enough data". That is the worst possible first
+fortnight — the owner is doing the work and getting nothing back, right when
+they are deciding whether the app is worth the effort.
+
+*Built:* a deliberately humble early forecast, live from the **second logged day**.
+New pure function `early_forecast()` in `app/engine/forecasting.py`:
+* no same-weekday history yet → the average of everything logged so far;
+* some same-weekday history → the same-weekday average **shrunk toward** that
+  overall average with weight `k/(k+1)`, so one quiet opening Sunday cannot
+  anchor every future Sunday;
+* the band is the spread of all logged days, widened by the small-sample factor
+  `√(1+1/n)` at z = 1.0 — visibly wider than the mature ±0.7σ band, because the
+  uncertainty genuinely is larger; a flat history still yields ±25 % rather than
+  a fake-precise single value.
+
+`/forecast` returns `status: "learning"` with `days_logged` / `days_needed`. The
+web panel now draws the chart in this state, above a calm amber "Still learning —
+day 9 of 14" note, and lists **the range for each day** underneath so the range
+is what the owner reads, not the midpoint. Ten known-answer tests. All copy went
+through the translation system in **all 15 languages** (no new hardcoded strings).
+The **ordering recommendation deliberately stays gated** at the full 14 days — a
+rough range is useful, a wrong order quantity costs real money.
+
+### F-015 · S3 · Closed weekdays were reported as "0.0 customers on average" — **FIXED**
+`/weekday-averages` emitted every weekday, so the restaurant's closed Saturday
+came back as `avg_customers: 0.0, n_observations: 0` — the missing-day-is-not-zero
+rule leaking into an API response, and it reads as "you serve nobody on Saturdays".
+Weekdays with no observations are now omitted. (Note: this endpoint is currently
+called by neither the web nor the mobile client — it is dead surface area, which
+is worth deciding about separately.)
+
+### F-016 · S2 · Copying a location turns services into stocked products — **found by reading, not yet verified**
+`app/api/businesses.py: copy_business` copies a fixed field list that omits
+`product_type` and `is_favorite`. A "Birthday Party Package" service copied to a
+new location should stay a service; instead it lands as a `stocked` product (the
+column default) with no lead time. To be confirmed when premium multi-location
+is exercised in Phase 3.
+
+**Phase 1 result:** after the fixes, the 14-day run completes with **zero issues
+recorded**, every tapped day rolls up to exactly the right customer count, the
+hourly chart matches the simulated truth hour for hour, and a forecast is
+available from day 2. Suite: **599 passed, 1 xfailed**; `tsc` clean; web builds.
 
 ## Phase 2 — days 15–90
 

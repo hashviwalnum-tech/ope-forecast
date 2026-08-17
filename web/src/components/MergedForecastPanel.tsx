@@ -317,7 +317,8 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
 
   const activeUMode = (activeProduct?.unit_mode ?? 'whole') as 'whole' | 'decimal'
 
-  if (selected === 'customers' && forecast?.status === 'ok') {
+  const learning = forecast?.status === 'learning'
+  if (selected === 'customers' && (forecast?.status === 'ok' || learning)) {
     chartData = forecast.days.map(d => ({
       name: `${shortDay(d.weekday, lang)} ${d.date.slice(5).replace('-', '/')}`,
       fullDay: d.weekday,
@@ -382,6 +383,19 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
         })}
       </div>
 
+      {/* Still-learning notice — the first fortnight shows ranges, not confident numbers */}
+      {selected === 'customers' && learning && (
+        <div className="mb-4 rounded-xl bg-amber-50/60 dark:bg-amber-900/15 border border-amber-100 dark:border-amber-900/40 px-4 py-3">
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t('learningTitle')}</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-amber-700/90 dark:text-amber-200/80">
+            {t('learningNote', {
+              n: String(forecast?.days_logged ?? 0),
+              needed: String(forecast?.days_needed ?? 14),
+            })}
+          </p>
+        </div>
+      )}
+
       {/* Chart */}
       {noData ? (
         <div className="flex flex-col items-center justify-center py-10">
@@ -418,6 +432,20 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
             <Bar dataKey="predicted" fill="#3a7470" radius={[6, 6, 0, 0]} maxBarSize={56} />
           </BarChart>
         </ResponsiveContainer>
+      )}
+
+      {/* While learning, lead with the RANGE for each day rather than the midpoint */}
+      {selected === 'customers' && learning && chartData.length > 0 && (
+        <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-4">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+            {t('learningRangesTitle')}
+          </p>
+          {chartData.map(d => (
+            <p key={d.name} className="text-sm text-slate-600 dark:text-slate-300">
+              {d.name} — <strong>{d.low} – {d.high}</strong> {yLabel}
+            </p>
+          ))}
+        </div>
       )}
 
       {/* Booked-vs-predicted (appointment businesses only — booked_count is only

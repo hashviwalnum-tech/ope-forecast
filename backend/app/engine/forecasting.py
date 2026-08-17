@@ -69,6 +69,63 @@ def seasonality_index(day_average: float, overall_average: float) -> float:
     return day_average / overall_average
 
 
+MIN_EARLY_OBSERVATIONS = 2
+
+
+def early_forecast(
+    observations: list[float],
+    weekdays: list[int],
+    target_weekday: int,
+) -> tuple[float, float] | None:
+    """A deliberately humble forecast for a business with only days of history.
+
+    The mature ensemble needs weeks of same-weekday history before it means
+    anything.  Before that, an owner should still see *something* — but framed
+    as a range they can plan around, not a confident single number.
+
+    Method (nothing clever, and nothing that pretends to know more than it does):
+
+    * With no same-weekday history yet, the estimate is simply the average of
+      every day logged so far.
+    * With some same-weekday history, the same-weekday average is **shrunk
+      toward** that overall average, with weight ``k / (k + 1)`` for ``k``
+      same-weekday observations.  One Sunday is not evidence that every Sunday
+      looks like it; four Sundays mostly are.  This is ordinary shrinkage, and it
+      stops a single quiet opening day from anchoring a whole weekday.
+    * The band is the spread of everything logged so far, widened by the
+      small-sample factor ``sqrt(1 + 1/n)`` and taken at z = 1.0 — noticeably
+      wider than the mature ±0.7σ band, because the uncertainty really is larger.
+      With too few points to estimate spread, ±25 % is used so the range is never
+      shown as a falsely precise single value.
+
+    Returns ``(low, high)``, or ``None`` when there is not even enough data for
+    this.  The caller supplies the point estimate as the midpoint.
+    """
+    if len(observations) != len(weekdays):
+        raise ValueError("observations and weekdays must have the same length")
+    n = len(observations)
+    if n < MIN_EARLY_OBSERVATIONS:
+        return None
+
+    overall = float(np.mean(observations))
+    same_wd = [v for v, w in zip(observations, weekdays) if w == target_weekday]
+    if same_wd:
+        k = len(same_wd)
+        weight = k / (k + 1.0)
+        point = weight * float(np.mean(same_wd)) + (1.0 - weight) * overall
+    else:
+        point = overall
+
+    if n >= 2:
+        spread = float(np.std(observations, ddof=1)) * float(np.sqrt(1.0 + 1.0 / n))
+    else:
+        spread = 0.0
+    if spread <= 0:
+        spread = abs(point) * 0.25
+
+    return (max(0.0, point - spread), point + spread)
+
+
 def year_over_year_forecast(
     dates: list[date],
     values: list[float],

@@ -30,6 +30,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.api.deps import get_db, require_admin_key
 from app.db import SessionLocal
 from app.models import Business, DayRecord, Product, SaleEvent, SaleRecord
@@ -183,7 +184,7 @@ def _run_catchup(db: Session, biz_id: int) -> dict:
     )
     existing_dates: set[date] = {r.date for r in existing}
 
-    today = date.today()
+    today = clock.today_local(biz.settings if biz else None)
     yesterday = today - timedelta(days=1)
 
     # If no history exists, seed from 90 days ago so the forecast has material to work with
@@ -322,7 +323,7 @@ def dev_catchup_status(db: Session = Depends(get_db)):
         for r in db.query(DayRecord).filter_by(business_id=biz_id).all()
     }
 
-    today = date.today()
+    today = clock.today_local(biz.settings if biz else None)
     yesterday = today - timedelta(days=1)
     last_logged = max(existing_dates, default=today - timedelta(days=91))
 

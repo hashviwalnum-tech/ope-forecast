@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.api.deps import get_business
 from app.db import get_db
 from app.engine.live_sales import local_day_utc_bounds, rollup_by_hour, utc_to_local_date, utc_to_local_hour
@@ -48,7 +49,7 @@ def create_sale_event(body: SaleEventCreate, db: Session = Depends(get_db), biz:
     row = SaleEvent(
         business_id=biz.id,
         product_id=body.product_id,
-        timestamp=datetime.now(),
+        timestamp=clock.now_naive_utc(),
         quantity=body.quantity,
         unit_price=body.unit_price,
     )
@@ -103,7 +104,7 @@ def backfill_hourly(
 def get_today_summary(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     settings = biz.settings or {}
     tz_name: str = settings.get("timezone", "UTC")
-    today = utc_to_local_date(datetime.now(timezone.utc), tz_name)
+    today = clock.today_local(settings)
     day_start, day_end = local_day_utc_bounds(today, tz_name)
 
     events = (

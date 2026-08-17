@@ -4,6 +4,7 @@ from calendar import monthrange
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.api.deps import get_business
 from app.db import get_db
 from app.models import Business, Regular
@@ -20,16 +21,16 @@ def _clv(r: Regular) -> float:
     return round(r.visit_frequency_per_week * 52.0 * r.avg_spend * r.expected_lifespan_years, 2)
 
 
-def _today_amount(db: Session, regular_id: int) -> float | None:
+def _today_amount(db: Session, regular_id: int, settings: dict | None) -> float | None:
     row = (
         db.query(RegularDailySpend)
-        .filter_by(regular_id=regular_id, date=date.today())
+        .filter_by(regular_id=regular_id, date=clock.today_local(settings))
         .first()
     )
     return row.amount if row else None
 
 
-def _to_read(r: Regular, db: Session) -> RegularRead:
+def _to_read(r: Regular, db: Session, settings: dict | None = None) -> RegularRead:
     # Derive visit_count from actual spend records so the displayed count
     # stays accurate even if the stored counter drifted (e.g. from early
     # testing before the same-day uniqueness constraint was enforced).
@@ -47,7 +48,7 @@ def _to_read(r: Regular, db: Session) -> RegularRead:
         first_visit_date=r.first_visit_date,
         last_visit_date=r.last_visit_date,
         clv=_clv(r),
-        today_amount=_today_amount(db, r.id),
+        today_amount=_today_amount(db, r.id, settings),
     )
 
 
@@ -61,7 +62,7 @@ def _get_or_404(db: Session, reg_id: int, biz_id: int) -> Regular:
 @router.get("", response_model=list[RegularRead])
 def list_regulars(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     rows = db.query(Regular).filter_by(business_id=biz.id).order_by(Regular.name).all()
-    return [_to_read(r, db) for r in rows]
+    return [_to_read(r, db, biz.settings) for r in rows]
 
 
 @router.post("", response_model=RegularRead, status_code=201)
@@ -74,12 +75,12 @@ def create_regular(
     db.add(row)
     db.commit()
     db.refresh(row)
-    return _to_read(row, db)
+    return _to_read(row, db, biz.settings)
 
 
 @router.get("/{reg_id}", response_model=RegularRead)
 def get_regular(reg_id: int, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    return _to_read(_get_or_404(db, reg_id, biz.id), db)
+    return _to_read(_get_or_404(db, reg_id, biz.id), db, biz.settings)
 
 
 @router.put("/{reg_id}", response_model=RegularRead)
@@ -94,7 +95,7 @@ def update_regular(
         setattr(row, field, value)
     db.commit()
     db.refresh(row)
-    return _to_read(row, db)
+    return _to_read(row, db, biz.settings)
 
 
 @router.delete("/{reg_id}", status_code=204)
@@ -118,7 +119,7 @@ def record_visit(
     visit_count increments only when first recording this day.
     """
     row = _get_or_404(db, reg_id, biz.id)
-    today = date.today()
+    today = clock.today_local(biz.settings)
 
     amount = body.amount_paid if body.amount_paid is not None else row.avg_spend
 
@@ -142,7 +143,7 @@ def record_visit(
     if row.visit_count != actual_count:
         row.visit_count = actual_count
         db.commit()
-    return _to_read(row, db)
+    return _to_read(row, db, biz.settings)
 
 
 @router.get("/{reg_id}/profitability", response_model=RegularProfitabilityRead)
@@ -153,7 +154,7 @@ def get_profitability(
 ):
     """Return how much this regular has earned the business this month, this year, and all time."""
     row = _get_or_404(db, reg_id, biz.id)
-    today = date.today()
+    today = clock.today_local(biz.settings)
 
     spends = db.query(RegularDailySpend).filter_by(regular_id=reg_id).all()
 

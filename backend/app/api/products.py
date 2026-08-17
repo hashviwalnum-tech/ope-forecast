@@ -3,6 +3,7 @@ from datetime import date as _date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.api.deps import get_business
 from app.db import get_db
 from app.models import Business, Product, SaleRecord, SaleEvent, ServiceBookedCount
@@ -55,7 +56,7 @@ def _create_initial_batch(
 @router.post("", response_model=ProductRead, status_code=201)
 def create_product(body: ProductCreate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     data = body.model_dump()
-    today = _date.today()
+    today = clock.today_local(biz.settings)
     if data.get("current_stock") is not None:
         data["stock_as_of_date"] = today
     row = Product(business_id=biz.id, **data)
@@ -76,7 +77,7 @@ def get_product(product_id: int, db: Session = Depends(get_db), biz: Business = 
 @router.put("/{product_id}", response_model=ProductRead)
 def update_product(product_id: int, body: ProductUpdate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     row = _get_or_404(db, product_id, biz.id)
-    today = _date.today()
+    today = clock.today_local(biz.settings)
     stock_being_set = (
         "current_stock" in body.model_fields_set and body.current_stock is not None
     )

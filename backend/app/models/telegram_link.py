@@ -3,13 +3,14 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return clock.now_naive_utc()
 from typing import Optional
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
+from app import clock
 
 
 class TelegramLink(Base):

@@ -14,6 +14,7 @@ from statistics import mean, median, stdev
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.api.day_records import rollup_tap_days
 from app.api.deps import get_business
 from app.db import get_db
@@ -23,12 +24,20 @@ from app.engine.limits import history_cutoff
 from app.engine.monthly import monthly_summary
 from app.engine.ensemble import blend, model_weights, prediction_interval
 from app.engine.forecasting import (
+    MIN_EARLY_OBSERVATIONS,
+    early_forecast,
     exponential_smoothing,
     linear_trend,
     year_over_year_forecast,
     weighted_moving_average,
 )
-from app.engine.live_sales import compute_open_hours, hourly_averages, hourly_product_mix, utc_to_local_dt
+from app.engine.live_sales import (
+    compute_open_hours,
+    hourly_averages,
+    hourly_product_mix,
+    service_minutes_per_customer,
+    utc_to_local_dt,
+)
 from app.engine.ordering import (
     BatchInfo,
     apply_order_constraints,
@@ -316,7 +325,7 @@ def _clean_records(db: Session, biz: Business) -> list[DayRecord]:
     rollup_tap_days(db, biz)
 
     open_days = _open_days(biz)
-    cutoff = history_cutoff(biz.tier, date.today())
+    cutoff = history_cutoff(biz.tier, clock.today_local(biz.settings))
 
     periods = db.query(Period).filter_by(business_id=biz.id).all()
     blocked: set[date] = set()
@@ -702,17 +711,66 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
 # ── /forecast ─────────────────────────────────────────────────────────────
 
+def _learning_forecast(db: Session, biz: Business, records: list[DayRecord]) -> ForecastResponse:
+    """The first-fortnight forecast: honest, wide, and clearly still learning.
+
+    A brand-new owner used to see "not enough data" on every screen for two
+    solid weeks, which gives them no reason to keep logging.  From the second
+    logged day onward they now get a range instead — with status='learning' so
+    the client can label it plainly and lead with the range rather than a
+    falsely confident single number.  The ordering recommendation stays behind
+    the full MIN_RECORDS gate: a range is useful, a wrong order quantity costs
+    real money.
+    """
+    obs = _effective_obs(records)
+    wds = [r.date.weekday() for r in records]
+    today = clock.today_local(biz.settings)
+    open_days = _open_days(biz)
+
+    days: list[ForecastDay] = []
+    for offset in range(1, 8):
+        target_date = today + timedelta(days=offset)
+        wd = target_date.weekday()
+        if open_days is not None and wd not in open_days:
+            continue
+        band = early_forecast(obs, wds, wd)
+        if band is None:
+            continue
+        lo, hi = band
+        days.append(ForecastDay(
+            date=target_date,
+            weekday=target_date.strftime("%A"),
+            predicted_customers=round((lo + hi) / 2),
+            interval_low=max(0, round(lo)),
+            interval_high=max(0, round(hi)),
+            model_weights={},
+        ))
+
+    if not days:
+        return ForecastResponse(
+            status="not_enough_data",
+            message=f"Need at least {MIN_EARLY_OBSERVATIONS} logged days before "
+                    f"Ope can estimate anything ({len(records)} so far). Keep logging.",
+            days=[],
+        )
+
+    return ForecastResponse(
+        status="learning",
+        message=f"Still learning — this is a rough range from your first "
+                f"{len(records)} day{'s' if len(records) != 1 else ''}. "
+                f"Accuracy improves a lot after about two weeks of logging.",
+        days=days,
+        days_logged=len(records),
+        days_needed=MIN_RECORDS,
+    )
+
+
 @router.get("/forecast", response_model=ForecastResponse)
 def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     records = _clean_records(db, biz)
 
     if len(records) < MIN_RECORDS:
-        return ForecastResponse(
-            status="not_enough_data",
-            message=f"Need at least {MIN_RECORDS} clean days of data "
-                    f"({len(records)} so far). Keep logging.",
-            days=[],
-        )
+        return _learning_forecast(db, biz, records)
 
     obs = _effective_obs(records)
     wds = [r.date.weekday() for r in records]
@@ -739,7 +797,7 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
     holdout = _holdout_errors(obs, wds, dates, n_per_weekday=4, booked_by_date=booked_by_date or None)
 
-    today = date.today()
+    today = clock.today_local(biz.settings)
     open_days = _open_days(biz)
     days: list[ForecastDay] = []
 
@@ -824,7 +882,7 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
         db.add(ForecastRun(
             business_id=biz.id,
-            created_at=datetime.utcnow(),
+            created_at=clock.now_naive_utc(),
             target_date=target_date,
             predicted_value=pred_int,
             interval_low=lo_int,
@@ -1038,7 +1096,12 @@ def get_weekday_averages(db: Session = Depends(get_db), biz: Business = Depends(
     weekdays = []
     for i, name in enumerate(_WD_NAMES):
         vals = by_wd[i]
-        avg = mean(vals) if vals else 0.0
+        # A closed or not-yet-logged weekday has NO data — reporting it as an
+        # average of 0.0 customers is the missing-day-is-not-zero rule leaking
+        # into the UI, and reads as "we serve nobody on Saturdays".  Omit it.
+        if not vals:
+            continue
+        avg = mean(vals)
         std = stdev(vals) if len(vals) > 1 else 0.0
         weekdays.append(WeekdayAvg(
             weekday=name,
@@ -1076,7 +1139,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
     ids_and_dates = [(r.id, r.date) for r in all_records]
     z = service_level_z(_SERVICE_LEVEL)
-    today = date.today()
+    today = clock.today_local(biz.settings)
     assume_on_time = bool((biz.settings or {}).get("assume_orders_arrive_on_time", False))
     result: list[OrderingRow] = []
 
@@ -1188,7 +1251,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
 @router.get("/forecast-history", response_model=ForecastHistoryResponse)
 def get_forecast_history(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    today = date.today()
+    today = clock.today_local(biz.settings)
 
     past_runs = (
         db.query(ForecastRun)
@@ -1335,19 +1398,18 @@ def get_hourly_analytics(
         )
 
     avgs = hourly_averages(raw, open_hours)
-    mix_by_hour = hourly_product_mix(raw, open_hours)
 
     # Build a product_id → service_time_minutes lookup (None when not set)
     products_list = db.query(Product).filter_by(business_id=biz.id).all()
     svc_by_pid: dict[int, float | None] = {p.id: p.service_time_minutes for p in products_list}
+    # Minutes of staff work one CUSTOMER costs in each hour (whole basket, not
+    # the per-item average) — the quantity the M/M/c model actually needs.
+    svc_by_hour = service_minutes_per_customer(raw, svc_by_pid, avg_svc, open_hours)
 
     hours: list[HourlySlotAvg] = []
     for hour, avg_taps_raw, n in avgs:
         avg_taps_int = int(round(avg_taps_raw))  # customers are whole people
-        hour_mix = mix_by_hour.get(hour, {})
-        # (quantity, service_time_or_None) — None product_id or no override → falls back to default
-        product_mix_pairs = [(qty, svc_by_pid.get(pid)) for pid, qty in hour_mix.items()]
-        eff_svc = effective_service_time(product_mix_pairs, avg_svc) if product_mix_pairs else avg_svc
+        eff_svc = svc_by_hour.get(hour, avg_svc)
         staff = _recommended_staff(avg_taps_raw, eff_svc, settings)
         time_range = _fmt_hour_range(hour)
         word = "person" if staff == 1 else "people"
@@ -1457,14 +1519,17 @@ def get_product_forecast(
         .filter_by(business_id=biz.id)
         .all()
     )
+    # Bucket by the business's LOCAL calendar day — a tap stored a few hours
+    # before UTC midnight belongs to the shop's own day, not the UTC one.
+    _tz: str = (biz.settings or {}).get("timezone", "UTC")
     tap_by_prod_date: dict[tuple[int, date], float] = {}
     for se in all_events:
         if se.product_id is None:
             continue
-        key = (se.product_id, se.timestamp.date())
+        key = (se.product_id, utc_to_local_dt(se.timestamp, _tz).date())
         tap_by_prod_date[key] = tap_by_prod_date.get(key, 0.0) + se.quantity
 
-    today = date.today()
+    today = clock.today_local(biz.settings)
     open_days = _open_days(biz)
     z = service_level_z(_SERVICE_LEVEL)
     assume_on_time = bool((biz.settings or {}).get("assume_orders_arrive_on_time", False))
@@ -1801,13 +1866,11 @@ def get_hourly_by_weekday(
 
     def _build_slots(ev_subset: list) -> list[WeekdayHourlySlot]:
         avgs = hourly_averages(ev_subset, open_hours)
-        mix = hourly_product_mix(ev_subset, open_hours)
+        svc_by_hour = service_minutes_per_customer(ev_subset, svc_by_pid, avg_svc, open_hours)
         slots: list[WeekdayHourlySlot] = []
         for hour, avg_taps_raw, _ in avgs:
             avg_taps_int = int(round(avg_taps_raw))  # customers are whole people
-            hour_mix = mix.get(hour, {})
-            pairs = [(qty, svc_by_pid.get(pid)) for pid, qty in hour_mix.items()]
-            eff_svc = effective_service_time(pairs, avg_svc) if pairs else avg_svc
+            eff_svc = svc_by_hour.get(hour, avg_svc)
             staff = _recommended_staff(avg_taps_raw, eff_svc, settings)
             _wa, _wr = marginal_waits(avg_taps_raw, eff_svc, staff)
             slots.append(WeekdayHourlySlot(
@@ -1865,7 +1928,7 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     Each field is None when data is insufficient, so the frontend can show an
     honest "keep logging" message for that section instead of a fabricated value.
     """
-    today = date.today()
+    today = clock.today_local(biz.settings)
 
     all_records = (
         db.query(DayRecord)
@@ -1931,10 +1994,16 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         .all()
     )
     if events:
-        n_days_taps = len({e.timestamp.date() for e in events})
+        # SaleEvent.timestamp is stored as naive UTC.  Bucketing it raw puts a
+        # New York shop's lunch rush in the 4pm column and applies the
+        # opening-hours filter to the wrong hours entirely — so convert to the
+        # business's own clock first, exactly as /hourly-analytics does.
+        tz_name: str = settings.get("timezone", "UTC")
+        local = [utc_to_local_dt(e.timestamp, tz_name) for e in events]
+        n_days_taps = len({lt.date() for lt in local})
         if n_days_taps >= MIN_HOURLY_DAYS:
-            raw = [(e.timestamp.date(), e.timestamp.hour, e.product_id, e.quantity)
-                   for e in events]
+            raw = [(lt.date(), lt.hour, e.product_id, e.quantity)
+                   for e, lt in zip(events, local)]
             avgs = hourly_averages(raw, open_hours)
             active_slots = [(h, avg, n) for h, avg, n in avgs if avg > 0]
             if active_slots:

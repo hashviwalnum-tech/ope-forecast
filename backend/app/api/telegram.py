@@ -12,11 +12,12 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return clock.now_naive_utc()
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.api.deps import get_business
 from app.db import get_db
 from app.models import Business

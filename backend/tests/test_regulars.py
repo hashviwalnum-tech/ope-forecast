@@ -73,12 +73,12 @@ def test_record_visit_different_days_increments_count(db, regular):
 
 
 def test_today_amount_returns_none_when_no_visit(db, regular):
-    assert _today_amount(db, regular.id) is None
+    assert _today_amount(db, regular.id, None) is None
 
 
 def test_today_amount_returns_recorded_amount(db, regular):
     _do_record(db, regular, amount=42.0)
-    assert _today_amount(db, regular.id) == 42.0
+    assert _today_amount(db, regular.id, None) == 42.0
 
 
 def test_edit_same_day_total_sarah_20_to_30(db, regular):

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app import clock
 from app.api.deps import get_business
 from app.db import get_db
 from app.engine.limits import check_entry_timing, check_history, check_non_working_day, history_cutoff
@@ -39,7 +40,7 @@ def rollup_tap_days(db: Session, biz: Business) -> list[date]:
     settings = biz.settings or {}
     open_hours = compute_open_hours(settings)
     tz_name: str = settings.get("timezone", "UTC")
-    today = utc_to_local_date(datetime.now(timezone.utc), tz_name)
+    today = clock.today_local(settings)
 
     # All SaleEvents for this business, grouped by LOCAL calendar date (not
     # the UTC date the raw timestamp happens to fall on — a sale a few hours
@@ -119,15 +120,16 @@ _WD_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
 def _timing_check(record_date: date, biz: Business) -> None:
     """Raise HTTPException 422 if entry-timing rules block this date."""
     settings = biz.settings or {}
-    tz_name: str = settings.get("timezone", "UTC")
     raw_open = settings.get("opening_hour")
     raw_close = settings.get("closing_hour")
     opening = int(raw_open) if raw_open is not None else None
     closing = int(raw_close) if raw_close is not None else None
     opening_days = settings.get("opening_days")
+    # opening_hour/closing_hour are the owner's wall clock, so "now" must be too.
+    local_now = clock.now_local(settings)
     try:
-        check_non_working_day(record_date, date.today(), opening_days)
-        check_entry_timing(record_date, date.today(), utc_to_local_hour(datetime.now(), tz_name), opening, closing)
+        check_non_working_day(record_date, local_now.date(), opening_days)
+        check_entry_timing(record_date, local_now.date(), local_now.hour, opening, closing)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
@@ -279,8 +281,13 @@ def rollup_tap_days_endpoint(db: Session = Depends(get_db), biz: Business = Depe
 
 @router.get("", response_model=list[DayRecordRead])
 def list_day_records(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+    # Spec §9: tap-only days roll into past days automatically after closing.
+    # This is the Past Days screen, so it must do that roll-up itself — an owner
+    # who taps all week and then opens Past Days used to find it empty, because
+    # only the analytics endpoints happened to trigger the roll-up.
+    rollup_tap_days(db, biz)
     query = db.query(DayRecord).filter_by(business_id=biz.id)
-    cutoff = history_cutoff(biz.tier, date.today())
+    cutoff = history_cutoff(biz.tier, clock.today_local(biz.settings))
     if cutoff is not None:
         query = query.filter(DayRecord.date >= cutoff)
     return query.order_by(DayRecord.date).all()
@@ -289,7 +296,7 @@ def list_day_records(db: Session = Depends(get_db), biz: Business = Depends(get_
 @router.post("", response_model=DayRecordRead, status_code=201)
 def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
     try:
-        check_history(biz.tier, body.date, date.today())
+        check_history(biz.tier, body.date, clock.today_local(biz.settings))
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
     _timing_check(body.date, biz)

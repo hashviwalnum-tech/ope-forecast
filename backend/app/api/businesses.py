@@ -6,6 +6,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from app.api.deps import get_business, get_current_user, require_admin_key
 from app.db import get_db
 from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord, ServiceBookedCount
+from app import clock
 
 FREE_BUSINESS_LIMIT = 1  # §10: free = one location; premium = more
 
@@ -109,7 +110,7 @@ def create_business(
         from datetime import datetime, timedelta, timezone
         existing_sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
         if existing_sub is None:
-            now = datetime.now(timezone.utc)
+            now = clock.now_utc()
             sub = Subscription(
                 user_id=user_id,
                 tier="trial",

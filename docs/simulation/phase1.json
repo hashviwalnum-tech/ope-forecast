@@ -1,0 +1,1739 @@
+{
+ "days": [
+  {
+   "day": "2025-08-01",
+   "weekday": "Fri",
+   "actual": 468,
+   "stored": 468,
+   "promo": [],
+   "forecast_status": "not_enough_data",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-03",
+   "weekday": "Sun",
+   "actual": 410,
+   "stored": 410,
+   "promo": [],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-04",
+   "weekday": "Mon",
+   "actual": 477,
+   "stored": 477,
+   "promo": [],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-05",
+   "weekday": "Tue",
+   "actual": 437,
+   "stored": 437,
+   "promo": [],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-06",
+   "weekday": "Wed",
+   "actual": 460,
+   "stored": 460,
+   "promo": [],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-07",
+   "weekday": "Thu",
+   "actual": 589,
+   "stored": 589,
+   "promo": [
+    "Opening-week flyers"
+   ],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-08",
+   "weekday": "Fri",
+   "actual": 528,
+   "stored": 528,
+   "promo": [
+    "Opening-week flyers"
+   ],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-10",
+   "weekday": "Sun",
+   "actual": 521,
+   "stored": 521,
+   "promo": [
+    "Opening-week flyers"
+   ],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-11",
+   "weekday": "Mon",
+   "actual": 497,
+   "stored": 497,
+   "promo": [],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-12",
+   "weekday": "Tue",
+   "actual": 506,
+   "stored": 506,
+   "promo": [],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-13",
+   "weekday": "Wed",
+   "actual": 525,
+   "stored": 525,
+   "promo": [],
+   "forecast_status": "learning",
+   "tomorrow": null
+  },
+  {
+   "day": "2025-08-14",
+   "weekday": "Thu",
+   "actual": 484,
+   "stored": 484,
+   "promo": [],
+   "forecast_status": "learning",
+   "tomorrow": null
+  }
+ ],
+ "checks": {
+  "forecast": {
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 9 days. Accuracy improves a lot after about two weeks of logging.",
+   "days": [
+    {
+     "date": "2025-08-15",
+     "weekday": "Friday",
+     "predicted_customers": 471.0,
+     "interval_low": 434.0,
+     "interval_high": 508.0,
+     "model_weights": {},
+     "booked_count": null
+    },
+    {
+     "date": "2025-08-17",
+     "weekday": "Sunday",
+     "predicted_customers": 442.0,
+     "interval_low": 405.0,
+     "interval_high": 479.0,
+     "model_weights": {},
+     "booked_count": null
+    },
+    {
+     "date": "2025-08-18",
+     "weekday": "Monday",
+     "predicted_customers": 483.0,
+     "interval_low": 445.0,
+     "interval_high": 520.0,
+     "model_weights": {},
+     "booked_count": null
+    },
+    {
+     "date": "2025-08-19",
+     "weekday": "Tuesday",
+     "predicted_customers": 472.0,
+     "interval_low": 435.0,
+     "interval_high": 509.0,
+     "model_weights": {},
+     "booked_count": null
+    },
+    {
+     "date": "2025-08-20",
+     "weekday": "Wednesday",
+     "predicted_customers": 486.0,
+     "interval_low": 449.0,
+     "interval_high": 523.0,
+     "model_weights": {},
+     "booked_count": null
+    },
+    {
+     "date": "2025-08-21",
+     "weekday": "Thursday",
+     "predicted_customers": 479.0,
+     "interval_low": 442.0,
+     "interval_high": 516.0,
+     "model_weights": {},
+     "booked_count": null
+    }
+   ],
+   "drift_alert": null,
+   "days_logged": 9,
+   "days_needed": 14
+  },
+  "accuracy": {
+   "status": "not_enough_data",
+   "n_observations": 9,
+   "mad": null,
+   "mse": null,
+   "mape": null,
+   "tracking_signal": null,
+   "bias_warning": null,
+   "drift_alert": null,
+   "message": "Need at least 14 clean days. (9 so far). Keep logging."
+  },
+  "ordering": {
+   "status": "not_enough_data",
+   "message": "Need at least 14 days of data for ordering recommendations (9 so far).",
+   "products": []
+  },
+  "weekday averages": {
+   "status": "ok",
+   "message": null,
+   "weekdays": [
+    {
+     "weekday": "Monday",
+     "weekday_idx": 0,
+     "avg_customers": 487.0,
+     "std_dev": 14.1,
+     "n_observations": 2
+    },
+    {
+     "weekday": "Tuesday",
+     "weekday_idx": 1,
+     "avg_customers": 471.5,
+     "std_dev": 48.8,
+     "n_observations": 2
+    },
+    {
+     "weekday": "Wednesday",
+     "weekday_idx": 2,
+     "avg_customers": 492.5,
+     "std_dev": 46.0,
+     "n_observations": 2
+    },
+    {
+     "weekday": "Thursday",
+     "weekday_idx": 3,
+     "avg_customers": 484.0,
+     "std_dev": 0.0,
+     "n_observations": 1
+    },
+    {
+     "weekday": "Friday",
+     "weekday_idx": 4,
+     "avg_customers": 468.0,
+     "std_dev": 0.0,
+     "n_observations": 1
+    },
+    {
+     "weekday": "Saturday",
+     "weekday_idx": 5,
+     "avg_customers": 0.0,
+     "std_dev": 0.0,
+     "n_observations": 0
+    },
+    {
+     "weekday": "Sunday",
+     "weekday_idx": 6,
+     "avg_customers": 410.0,
+     "std_dev": 0.0,
+     "n_observations": 1
+    }
+   ]
+  },
+  "hourly analytics": {
+   "status": "ok",
+   "message": null,
+   "n_days_data": 12,
+   "avg_service_time_minutes": 3.5,
+   "hours": [
+    {
+     "hour": 9,
+     "avg_taps": 60,
+     "n_days": 12,
+     "recommended_staff": 10,
+     "label": "For 9\u201310 am, schedule 10 people",
+     "expected_wait_minutes": 3.6,
+     "queue_length": 3.56,
+     "marginal_note": "Adding a 11th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 20 min.",
+     "wait_if_add": 1.3,
+     "wait_if_remove": 20.3
+    },
+    {
+     "hour": 10,
+     "avg_taps": 58,
+     "n_days": 12,
+     "recommended_staff": 11,
+     "label": "For 10\u201311 am, schedule 11 people",
+     "expected_wait_minutes": 2.2,
+     "queue_length": 2.14,
+     "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+     "wait_if_add": 0.9,
+     "wait_if_remove": 7.2
+    },
+    {
+     "hour": 11,
+     "avg_taps": 58,
+     "n_days": 12,
+     "recommended_staff": 11,
+     "label": "For 11 am\u201312 pm, schedule 11 people",
+     "expected_wait_minutes": 2.4,
+     "queue_length": 2.3,
+     "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 8 min.",
+     "wait_if_add": 1.0,
+     "wait_if_remove": 8.0
+    },
+    {
+     "hour": 12,
+     "avg_taps": 64,
+     "n_days": 12,
+     "recommended_staff": 11,
+     "label": "For 12\u20131 pm, schedule 11 people",
+     "expected_wait_minutes": 4.3,
+     "queue_length": 4.63,
+     "marginal_note": "Adding a 12th person cuts the wait from 4 min to 2 min. 1 fewer person pushes the wait to 30 min.",
+     "wait_if_add": 1.6,
+     "wait_if_remove": 30.1
+    },
+    {
+     "hour": 13,
+     "avg_taps": 64,
+     "n_days": 12,
+     "recommended_staff": 11,
+     "label": "For 1\u20132 pm, schedule 11 people",
+     "expected_wait_minutes": 4.1,
+     "queue_length": 4.44,
+     "marginal_note": "Adding a 12th person cuts the wait from 4 min to 2 min. 1 fewer person pushes the wait to 26 min.",
+     "wait_if_add": 1.5,
+     "wait_if_remove": 26.4
+    },
+    {
+     "hour": 14,
+     "avg_taps": 66,
+     "n_days": 12,
+     "recommended_staff": 12,
+     "label": "For 2\u20133 pm, schedule 12 people",
+     "expected_wait_minutes": 2.0,
+     "queue_length": 2.21,
+     "marginal_note": "Adding a 13th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 6 min.",
+     "wait_if_add": 0.8,
+     "wait_if_remove": 6.0
+    },
+    {
+     "hour": 15,
+     "avg_taps": 63,
+     "n_days": 12,
+     "recommended_staff": 11,
+     "label": "For 3\u20134 pm, schedule 11 people",
+     "expected_wait_minutes": 2.6,
+     "queue_length": 2.72,
+     "marginal_note": "Adding a 12th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 10 min.",
+     "wait_if_add": 1.0,
+     "wait_if_remove": 9.6
+    },
+    {
+     "hour": 16,
+     "avg_taps": 59,
+     "n_days": 12,
+     "recommended_staff": 11,
+     "label": "For 4\u20135 pm, schedule 11 people",
+     "expected_wait_minutes": 2.1,
+     "queue_length": 2.02,
+     "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+     "wait_if_add": 0.8,
+     "wait_if_remove": 6.5
+    }
+   ]
+  },
+  "hourly by weekday": {
+   "status": "ok",
+   "message": null,
+   "weekdays": [
+    {
+     "weekday": "Monday",
+     "weekday_idx": 0,
+     "peak_hour": 14,
+     "peak_avg_taps": 68.0,
+     "n_days_data": 2,
+     "hours": [
+      {
+       "hour": 9,
+       "avg_taps": 59,
+       "recommended_staff": 11,
+       "label": "9\u201310 am",
+       "expected_wait_minutes": 2.0,
+       "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 6 min.",
+       "wait_if_add": 0.8,
+       "wait_if_remove": 6.3
+      },
+      {
+       "hour": 10,
+       "avg_taps": 51,
+       "recommended_staff": 9,
+       "label": "10\u201311 am",
+       "expected_wait_minutes": 3.7,
+       "marginal_note": "Adding a 10th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 23 min.",
+       "wait_if_add": 1.3,
+       "wait_if_remove": 22.6
+      },
+      {
+       "hour": 11,
+       "avg_taps": 62,
+       "recommended_staff": 11,
+       "label": "11 am\u201312 pm",
+       "expected_wait_minutes": 2.2,
+       "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 8 min.",
+       "wait_if_add": 0.9,
+       "wait_if_remove": 7.5
+      },
+      {
+       "hour": 12,
+       "avg_taps": 60,
+       "recommended_staff": 10,
+       "label": "12\u20131 pm",
+       "expected_wait_minutes": 5.6,
+       "marginal_note": "Adding a 11th person cuts the wait from 6 min to 2 min. 1 fewer person pushes the wait to 205 min.",
+       "wait_if_add": 1.8,
+       "wait_if_remove": 204.6
+      },
+      {
+       "hour": 13,
+       "avg_taps": 64,
+       "recommended_staff": 12,
+       "label": "1\u20132 pm",
+       "expected_wait_minutes": 2.0,
+       "marginal_note": "Adding a 13th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 6 min.",
+       "wait_if_add": 0.9,
+       "wait_if_remove": 6.1
+      },
+      {
+       "hour": 14,
+       "avg_taps": 68,
+       "recommended_staff": 12,
+       "label": "2\u20133 pm",
+       "expected_wait_minutes": 3.2,
+       "marginal_note": "Adding a 13th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 13 min.",
+       "wait_if_add": 1.3,
+       "wait_if_remove": 13.2
+      },
+      {
+       "hour": 15,
+       "avg_taps": 62,
+       "recommended_staff": 11,
+       "label": "3\u20134 pm",
+       "expected_wait_minutes": 4.6,
+       "marginal_note": "Adding a 12th person cuts the wait from 5 min to 2 min. 1 fewer person pushes the wait to 33 min.",
+       "wait_if_add": 1.7,
+       "wait_if_remove": 32.8
+      },
+      {
+       "hour": 16,
+       "avg_taps": 60,
+       "recommended_staff": 12,
+       "label": "4\u20135 pm",
+       "expected_wait_minutes": 2.3,
+       "marginal_note": "Adding a 13th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+       "wait_if_add": 1.0,
+       "wait_if_remove": 6.9
+      }
+     ]
+    },
+    {
+     "weekday": "Tuesday",
+     "weekday_idx": 1,
+     "peak_hour": 15,
+     "peak_avg_taps": 67.0,
+     "n_days_data": 2,
+     "hours": [
+      {
+       "hour": 9,
+       "avg_taps": 54,
+       "recommended_staff": 10,
+       "label": "9\u201310 am",
+       "expected_wait_minutes": 2.6,
+       "marginal_note": "Adding a 11th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 10 min.",
+       "wait_if_add": 1.0,
+       "wait_if_remove": 9.7
+      },
+      {
+       "hour": 10,
+       "avg_taps": 58,
+       "recommended_staff": 11,
+       "label": "10\u201311 am",
+       "expected_wait_minutes": 2.3,
+       "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+       "wait_if_add": 0.9,
+       "wait_if_remove": 7.3
+      },
+      {
+       "hour": 11,
+       "avg_taps": 50,
+       "recommended_staff": 9,
+       "label": "11 am\u201312 pm",
+       "expected_wait_minutes": 3.5,
+       "marginal_note": "Adding a 10th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 19 min.",
+       "wait_if_add": 1.2,
+       "wait_if_remove": 19.5
+      },
+      {
+       "hour": 12,
+       "avg_taps": 58,
+       "recommended_staff": 11,
+       "label": "12\u20131 pm",
+       "expected_wait_minutes": 5.8,
+       "marginal_note": "Adding a 12th person cuts the wait from 6 min to 2 min. 1 fewer person pushes the wait to 73 min.",
+       "wait_if_add": 2.0,
+       "wait_if_remove": 72.9
+      },
+      {
+       "hour": 13,
+       "avg_taps": 66,
+       "recommended_staff": 11,
+       "label": "1\u20132 pm",
+       "expected_wait_minutes": 3.1,
+       "marginal_note": "Adding a 12th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 14 min.",
+       "wait_if_add": 1.2,
+       "wait_if_remove": 14.3
+      },
+      {
+       "hour": 14,
+       "avg_taps": 64,
+       "recommended_staff": 12,
+       "label": "2\u20133 pm",
+       "expected_wait_minutes": 4.5,
+       "marginal_note": "Adding a 13th person cuts the wait from 5 min to 2 min. 1 fewer person pushes the wait to 26 min.",
+       "wait_if_add": 1.7,
+       "wait_if_remove": 26.3
+      },
+      {
+       "hour": 15,
+       "avg_taps": 67,
+       "recommended_staff": 11,
+       "label": "3\u20134 pm",
+       "expected_wait_minutes": 3.1,
+       "marginal_note": "Adding a 12th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 14 min.",
+       "wait_if_add": 1.2,
+       "wait_if_remove": 13.9
+      },
+      {
+       "hour": 16,
+       "avg_taps": 54,
+       "recommended_staff": 10,
+       "label": "4\u20135 pm",
+       "expected_wait_minutes": 5.1,
+       "marginal_note": "Adding a 11th person cuts the wait from 5 min to 2 min. 1 fewer person pushes the wait to 51 min.",
+       "wait_if_add": 1.7,
+       "wait_if_remove": 50.5
+      }
+     ]
+    },
+    {
+     "weekday": "Wednesday",
+     "weekday_idx": 2,
+     "peak_hour": 12,
+     "peak_avg_taps": 66.0,
+     "n_days_data": 2,
+     "hours": [
+      {
+       "hour": 9,
+       "avg_taps": 62,
+       "recommended_staff": 11,
+       "label": "9\u201310 am",
+       "expected_wait_minutes": 2.1,
+       "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+       "wait_if_add": 0.9,
+       "wait_if_remove": 6.9
+      },
+      {
+       "hour": 10,
+       "avg_taps": 54,
+       "recommended_staff": 9,
+       "label": "10\u201311 am",
+       "expected_wait_minutes": 3.9,
+       "marginal_note": "Adding a 10th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 30 min.",
+       "wait_if_add": 1.3,
+       "wait_if_remove": 30.2
+      },
+      {
+       "hour": 11,
+       "avg_taps": 56,
+       "recommended_staff": 11,
+       "label": "11 am\u201312 pm",
+       "expected_wait_minutes": 3.2,
+       "marginal_note": "Adding a 12th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 13 min.",
+       "wait_if_add": 1.3,
+       "wait_if_remove": 12.6
+      },
+      {
+       "hour": 12,
+       "avg_taps": 66,
+       "recommended_staff": 11,
+       "label": "12\u20131 pm",
+       "expected_wait_minutes": 3.1,
+       "marginal_note": "Adding a 12th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 13 min.",
+       "wait_if_add": 1.2,
+       "wait_if_remove": 13.4
+      },
+      {
+       "hour": 13,
+       "avg_taps": 66,
+       "recommended_staff": 12,
+       "label": "1\u20132 pm",
+       "expected_wait_minutes": 2.2,
+       "marginal_note": "Adding a 13th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+       "wait_if_add": 0.9,
+       "wait_if_remove": 6.7
+      },
+      {
+       "hour": 14,
+       "avg_taps": 66,
+       "recommended_staff": 11,
+       "label": "2\u20133 pm",
+       "expected_wait_minutes": 3.6,
+       "marginal_note": "Adding a 12th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 19 min.",
+       "wait_if_add": 1.4,
+       "wait_if_remove": 18.9
+      },
+      {
+       "hour": 15,
+       "avg_taps": 61,
+       "recommended_staff": 10,
+       "label": "3\u20134 pm",
+       "expected_wait_minutes": 5.9,
+       "marginal_note": "Adding a 11th person cuts the wait from 6 min to 2 min. 1 fewer person would overload the queue \u2014 keep at least 10.",
+       "wait_if_add": 1.9,
+       "wait_if_remove": null
+      },
+      {
+       "hour": 16,
+       "avg_taps": 62,
+       "recommended_staff": 10,
+       "label": "4\u20135 pm",
+       "expected_wait_minutes": 2.8,
+       "marginal_note": "Adding a 11th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 12 min.",
+       "wait_if_add": 1.0,
+       "wait_if_remove": 12.3
+      }
+     ]
+    },
+    {
+     "weekday": "Thursday",
+     "weekday_idx": 3,
+     "peak_hour": 12,
+     "peak_avg_taps": 72.0,
+     "n_days_data": 2,
+     "hours": [
+      {
+       "hour": 9,
+       "avg_taps": 62,
+       "recommended_staff": 10,
+       "label": "9\u201310 am",
+       "expected_wait_minutes": 4.6,
+       "marginal_note": "Adding a 11th person cuts the wait from 5 min to 2 min. 1 fewer person pushes the wait to 54 min.",
+       "wait_if_add": 1.6,
+       "wait_if_remove": 54.2
+      },
+      {
+       "hour": 10,
+       "avg_taps": 69,
+       "recommended_staff": 13,
+       "label": "10\u201311 am",
+       "expected_wait_minutes": 4.1,
+       "marginal_note": "Adding a 14th person cuts the wait from 4 min to 2 min. 1 fewer person pushes the wait to 19 min.",
+       "wait_if_add": 1.6,
+       "wait_if_remove": 18.9
+      },
+      {
+       "hour": 11,
+       "avg_taps": 64,
+       "recommended_staff": 12,
+       "label": "11 am\u201312 pm",
+       "expected_wait_minutes": 3.7,
+       "marginal_note": "Adding a 13th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 16 min.",
+       "wait_if_add": 1.4,
+       "wait_if_remove": 16.2
+      },
+      {
+       "hour": 12,
+       "avg_taps": 72,
+       "recommended_staff": 13,
+       "label": "12\u20131 pm",
+       "expected_wait_minutes": 3.2,
+       "marginal_note": "Adding a 14th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 12 min.",
+       "wait_if_add": 1.3,
+       "wait_if_remove": 11.8
+      },
+      {
+       "hour": 13,
+       "avg_taps": 67,
+       "recommended_staff": 12,
+       "label": "1\u20132 pm",
+       "expected_wait_minutes": 3.0,
+       "marginal_note": "Adding a 13th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 12 min.",
+       "wait_if_add": 1.2,
+       "wait_if_remove": 11.6
+      },
+      {
+       "hour": 14,
+       "avg_taps": 71,
+       "recommended_staff": 12,
+       "label": "2\u20133 pm",
+       "expected_wait_minutes": 2.4,
+       "marginal_note": "Adding a 13th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 8 min.",
+       "wait_if_add": 1.0,
+       "wait_if_remove": 8.3
+      },
+      {
+       "hour": 15,
+       "avg_taps": 68,
+       "recommended_staff": 11,
+       "label": "3\u20134 pm",
+       "expected_wait_minutes": 4.7,
+       "marginal_note": "Adding a 12th person cuts the wait from 5 min to 2 min. 1 fewer person pushes the wait to 48 min.",
+       "wait_if_add": 1.6,
+       "wait_if_remove": 48.2
+      },
+      {
+       "hour": 16,
+       "avg_taps": 62,
+       "recommended_staff": 12,
+       "label": "4\u20135 pm",
+       "expected_wait_minutes": 2.9,
+       "marginal_note": "Adding a 13th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 10 min.",
+       "wait_if_add": 1.2,
+       "wait_if_remove": 10.0
+      }
+     ]
+    },
+    {
+     "weekday": "Friday",
+     "weekday_idx": 4,
+     "peak_hour": 14,
+     "peak_avg_taps": 67.0,
+     "n_days_data": 2,
+     "hours": [
+      {
+       "hour": 9,
+       "avg_taps": 62,
+       "recommended_staff": 10,
+       "label": "9\u201310 am",
+       "expected_wait_minutes": 2.5,
+       "marginal_note": "Adding a 11th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 10 min.",
+       "wait_if_add": 1.0,
+       "wait_if_remove": 10.2
+      },
+      {
+       "hour": 10,
+       "avg_taps": 59,
+       "recommended_staff": 11,
+       "label": "10\u201311 am",
+       "expected_wait_minutes": 3.8,
+       "marginal_note": "Adding a 12th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 19 min.",
+       "wait_if_add": 1.4,
+       "wait_if_remove": 19.0
+      },
+      {
+       "hour": 11,
+       "avg_taps": 58,
+       "recommended_staff": 11,
+       "label": "11 am\u201312 pm",
+       "expected_wait_minutes": 2.4,
+       "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 8 min.",
+       "wait_if_add": 1.0,
+       "wait_if_remove": 8.1
+      },
+      {
+       "hour": 12,
+       "avg_taps": 66,
+       "recommended_staff": 11,
+       "label": "12\u20131 pm",
+       "expected_wait_minutes": 3.8,
+       "marginal_note": "Adding a 12th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 21 min.",
+       "wait_if_add": 1.4,
+       "wait_if_remove": 21.4
+      },
+      {
+       "hour": 13,
+       "avg_taps": 64,
+       "recommended_staff": 11,
+       "label": "1\u20132 pm",
+       "expected_wait_minutes": 2.4,
+       "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 8 min.",
+       "wait_if_add": 1.0,
+       "wait_if_remove": 8.4
+      },
+      {
+       "hour": 14,
+       "avg_taps": 67,
+       "recommended_staff": 12,
+       "label": "2\u20133 pm",
+       "expected_wait_minutes": 2.4,
+       "marginal_note": "Adding a 13th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 8 min.",
+       "wait_if_add": 1.0,
+       "wait_if_remove": 8.1
+      },
+      {
+       "hour": 15,
+       "avg_taps": 64,
+       "recommended_staff": 11,
+       "label": "3\u20134 pm",
+       "expected_wait_minutes": 2.8,
+       "marginal_note": "Adding a 12th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 11 min.",
+       "wait_if_add": 1.1,
+       "wait_if_remove": 10.8
+      },
+      {
+       "hour": 16,
+       "avg_taps": 59,
+       "recommended_staff": 10,
+       "label": "4\u20135 pm",
+       "expected_wait_minutes": 3.6,
+       "marginal_note": "Adding a 11th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 21 min.",
+       "wait_if_add": 1.3,
+       "wait_if_remove": 20.6
+      }
+     ]
+    },
+    {
+     "weekday": "Sunday",
+     "weekday_idx": 6,
+     "peak_hour": 12,
+     "peak_avg_taps": 62.0,
+     "n_days_data": 2,
+     "hours": [
+      {
+       "hour": 9,
+       "avg_taps": 58,
+       "recommended_staff": 10,
+       "label": "9\u201310 am",
+       "expected_wait_minutes": 2.0,
+       "marginal_note": "Adding a 11th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+       "wait_if_add": 0.8,
+       "wait_if_remove": 6.8
+      },
+      {
+       "hour": 10,
+       "avg_taps": 56,
+       "recommended_staff": 10,
+       "label": "10\u201311 am",
+       "expected_wait_minutes": 5.7,
+       "marginal_note": "Adding a 11th person cuts the wait from 6 min to 2 min. 1 fewer person pushes the wait to 125 min.",
+       "wait_if_add": 1.9,
+       "wait_if_remove": 124.5
+      },
+      {
+       "hour": 11,
+       "avg_taps": 58,
+       "recommended_staff": 11,
+       "label": "11 am\u201312 pm",
+       "expected_wait_minutes": 2.3,
+       "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 8 min.",
+       "wait_if_add": 0.9,
+       "wait_if_remove": 7.6
+      },
+      {
+       "hour": 12,
+       "avg_taps": 62,
+       "recommended_staff": 11,
+       "label": "12\u20131 pm",
+       "expected_wait_minutes": 2.0,
+       "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 6 min.",
+       "wait_if_add": 0.8,
+       "wait_if_remove": 6.3
+      },
+      {
+       "hour": 13,
+       "avg_taps": 60,
+       "recommended_staff": 11,
+       "label": "1\u20132 pm",
+       "expected_wait_minutes": 2.1,
+       "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+       "wait_if_add": 0.9,
+       "wait_if_remove": 6.7
+      },
+      {
+       "hour": 14,
+       "avg_taps": 60,
+       "recommended_staff": 10,
+       "label": "2\u20133 pm",
+       "expected_wait_minutes": 4.4,
+       "marginal_note": "Adding a 11th person cuts the wait from 4 min to 2 min. 1 fewer person pushes the wait to 39 min.",
+       "wait_if_add": 1.5,
+       "wait_if_remove": 39.1
+      },
+      {
+       "hour": 15,
+       "avg_taps": 57,
+       "recommended_staff": 10,
+       "label": "3\u20134 pm",
+       "expected_wait_minutes": 2.6,
+       "marginal_note": "Adding a 11th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 10 min.",
+       "wait_if_add": 1.0,
+       "wait_if_remove": 10.4
+      },
+      {
+       "hour": 16,
+       "avg_taps": 55,
+       "recommended_staff": 10,
+       "label": "4\u20135 pm",
+       "expected_wait_minutes": 1.9,
+       "marginal_note": "Adding a 11th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 6 min.",
+       "wait_if_add": 0.7,
+       "wait_if_remove": 6.1
+      }
+     ]
+    }
+   ],
+   "overall_fallback": [
+    {
+     "hour": 9,
+     "avg_taps": 60,
+     "recommended_staff": 10,
+     "label": "9\u201310 am",
+     "expected_wait_minutes": 3.6,
+     "marginal_note": "Adding a 11th person cuts the wait from 4 min to 1 min. 1 fewer person pushes the wait to 20 min.",
+     "wait_if_add": 1.3,
+     "wait_if_remove": 20.3
+    },
+    {
+     "hour": 10,
+     "avg_taps": 58,
+     "recommended_staff": 11,
+     "label": "10\u201311 am",
+     "expected_wait_minutes": 2.2,
+     "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+     "wait_if_add": 0.9,
+     "wait_if_remove": 7.2
+    },
+    {
+     "hour": 11,
+     "avg_taps": 58,
+     "recommended_staff": 11,
+     "label": "11 am\u201312 pm",
+     "expected_wait_minutes": 2.4,
+     "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 8 min.",
+     "wait_if_add": 1.0,
+     "wait_if_remove": 8.0
+    },
+    {
+     "hour": 12,
+     "avg_taps": 64,
+     "recommended_staff": 11,
+     "label": "12\u20131 pm",
+     "expected_wait_minutes": 4.3,
+     "marginal_note": "Adding a 12th person cuts the wait from 4 min to 2 min. 1 fewer person pushes the wait to 30 min.",
+     "wait_if_add": 1.6,
+     "wait_if_remove": 30.1
+    },
+    {
+     "hour": 13,
+     "avg_taps": 64,
+     "recommended_staff": 11,
+     "label": "1\u20132 pm",
+     "expected_wait_minutes": 4.1,
+     "marginal_note": "Adding a 12th person cuts the wait from 4 min to 2 min. 1 fewer person pushes the wait to 26 min.",
+     "wait_if_add": 1.5,
+     "wait_if_remove": 26.4
+    },
+    {
+     "hour": 14,
+     "avg_taps": 66,
+     "recommended_staff": 12,
+     "label": "2\u20133 pm",
+     "expected_wait_minutes": 2.0,
+     "marginal_note": "Adding a 13th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 6 min.",
+     "wait_if_add": 0.8,
+     "wait_if_remove": 6.0
+    },
+    {
+     "hour": 15,
+     "avg_taps": 63,
+     "recommended_staff": 11,
+     "label": "3\u20134 pm",
+     "expected_wait_minutes": 2.6,
+     "marginal_note": "Adding a 12th person cuts the wait from 3 min to 1 min. 1 fewer person pushes the wait to 10 min.",
+     "wait_if_add": 1.0,
+     "wait_if_remove": 9.6
+    },
+    {
+     "hour": 16,
+     "avg_taps": 59,
+     "recommended_staff": 11,
+     "label": "4\u20135 pm",
+     "expected_wait_minutes": 2.1,
+     "marginal_note": "Adding a 12th person cuts the wait from 2 min to 1 min. 1 fewer person pushes the wait to 7 min.",
+     "wait_if_add": 0.8,
+     "wait_if_remove": 6.5
+    }
+   ],
+   "n_days_total": 12
+  },
+  "product forecast": {
+   "status": "ok",
+   "message": null,
+   "products": [
+    {
+     "product_id": 11,
+     "name": "Birthday Party Package",
+     "unit": "bookings",
+     "product_type": "service",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 2.0,
+       "interval_low": 2.0,
+       "interval_high": 2.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 2.0,
+       "interval_low": 2.0,
+       "interval_high": 2.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 2.0,
+       "interval_low": 2.0,
+       "interval_high": 2.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 2.0,
+     "forecast_demand_over_lead_time": 0.0,
+     "lead_time_days": null,
+     "safety_stock_units": 0.0,
+     "reorder_point": 0.0,
+     "suggested_order_qty": 0.0,
+     "current_stock": null,
+     "projected_stock": null,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": false,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": false
+    },
+    {
+     "product_id": 10,
+     "name": "Brownie Sundae",
+     "unit": "portions",
+     "product_type": "stocked",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 102.0,
+       "interval_low": 102.0,
+       "interval_high": 102.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 86.0,
+       "interval_low": 86.0,
+       "interval_high": 86.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 104.0,
+       "interval_low": 104.0,
+       "interval_high": 104.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 91.0,
+     "forecast_demand_over_lead_time": 292.0,
+     "lead_time_days": 3,
+     "safety_stock_units": 37.0,
+     "reorder_point": 329.0,
+     "suggested_order_qty": 329.0,
+     "current_stock": 192.5,
+     "projected_stock": -832.0,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    },
+    {
+     "product_id": 1,
+     "name": "Classic Beef Burger",
+     "unit": "burgers",
+     "product_type": "stocked",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 186.0,
+       "interval_low": 186.0,
+       "interval_high": 186.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 142.0,
+       "interval_low": 142.0,
+       "interval_high": 142.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 193.0,
+       "interval_low": 193.0,
+       "interval_high": 193.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 162.0,
+     "forecast_demand_over_lead_time": 347.0,
+     "lead_time_days": 2,
+     "safety_stock_units": 82.0,
+     "reorder_point": 429.0,
+     "suggested_order_qty": 429.0,
+     "current_stock": 495.0,
+     "projected_stock": -1329.0,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    },
+    {
+     "product_id": 7,
+     "name": "Coleslaw",
+     "unit": "kg",
+     "product_type": "stocked",
+     "unit_mode": "decimal",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 21.78,
+       "interval_low": 21.78,
+       "interval_high": 21.78,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 18.58,
+       "interval_low": 18.58,
+       "interval_high": 18.58,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 19.39,
+       "interval_low": 19.39,
+       "interval_high": 19.39,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 16.47,
+     "forecast_demand_over_lead_time": 19.92,
+     "lead_time_days": 1,
+     "safety_stock_units": 12.3,
+     "reorder_point": 32.21,
+     "suggested_order_qty": 32.21,
+     "current_stock": 33.0,
+     "projected_stock": -167.25,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    },
+    {
+     "product_id": 3,
+     "name": "Crispy Chicken Burger",
+     "unit": "burgers",
+     "product_type": "stocked",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 105.0,
+       "interval_low": 105.0,
+       "interval_high": 105.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 102.0,
+       "interval_low": 102.0,
+       "interval_high": 102.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 102.0,
+       "interval_low": 102.0,
+       "interval_high": 102.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 97.0,
+     "forecast_demand_over_lead_time": 206.0,
+     "lead_time_days": 2,
+     "safety_stock_units": 65.0,
+     "reorder_point": 271.0,
+     "suggested_order_qty": 271.0,
+     "current_stock": 275.0,
+     "projected_stock": -880.0,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    },
+    {
+     "product_id": 2,
+     "name": "Double Beef Burger",
+     "unit": "burgers",
+     "product_type": "stocked",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 105.0,
+       "interval_low": 105.0,
+       "interval_high": 105.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 142.0,
+       "interval_low": 142.0,
+       "interval_high": 142.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 108.0,
+       "interval_low": 108.0,
+       "interval_high": 108.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 124.0,
+     "forecast_demand_over_lead_time": 237.0,
+     "lead_time_days": 2,
+     "safety_stock_units": 71.0,
+     "reorder_point": 308.0,
+     "suggested_order_qty": 308.0,
+     "current_stock": 330.0,
+     "projected_stock": -1121.0,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    },
+    {
+     "product_id": 5,
+     "name": "Fries",
+     "unit": "portions",
+     "product_type": "stocked",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 186.0,
+       "interval_low": 186.0,
+       "interval_high": 186.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 193.0,
+       "interval_low": 193.0,
+       "interval_high": 193.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 223.0,
+       "interval_low": 223.0,
+       "interval_high": 223.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 208.0,
+     "forecast_demand_over_lead_time": 401.0,
+     "lead_time_days": 2,
+     "safety_stock_units": 54.0,
+     "reorder_point": 455.0,
+     "suggested_order_qty": 455.0,
+     "current_stock": 770.0,
+     "projected_stock": -1665.0,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    },
+    {
+     "product_id": 9,
+     "name": "Milkshake",
+     "unit": "cups",
+     "product_type": "stocked",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 114.0,
+       "interval_low": 114.0,
+       "interval_high": 114.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 158.0,
+       "interval_low": 158.0,
+       "interval_high": 158.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 116.0,
+       "interval_low": 116.0,
+       "interval_high": 116.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 114.0,
+     "forecast_demand_over_lead_time": 388.0,
+     "lead_time_days": 3,
+     "safety_stock_units": 114.0,
+     "reorder_point": 502.0,
+     "suggested_order_qty": 502.0,
+     "current_stock": 220.0,
+     "projected_stock": -1024.0,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    },
+    {
+     "product_id": 6,
+     "name": "Onion Rings",
+     "unit": "portions",
+     "product_type": "stocked",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 103.0,
+       "interval_low": 103.0,
+       "interval_high": 103.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 87.0,
+       "interval_low": 87.0,
+       "interval_high": 87.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 58.0,
+       "interval_low": 58.0,
+       "interval_high": 58.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 76.0,
+     "forecast_demand_over_lead_time": 165.0,
+     "lead_time_days": 2,
+     "safety_stock_units": 56.0,
+     "reorder_point": 222.0,
+     "suggested_order_qty": 222.0,
+     "current_stock": 275.0,
+     "projected_stock": -497.0,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    },
+    {
+     "product_id": 8,
+     "name": "Soft Drink",
+     "unit": "cups",
+     "product_type": "stocked",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 286.0,
+       "interval_low": 286.0,
+       "interval_high": 286.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 214.0,
+       "interval_low": 214.0,
+       "interval_high": 214.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 286.0,
+       "interval_low": 286.0,
+       "interval_high": 286.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 268.0,
+     "forecast_demand_over_lead_time": 1048.0,
+     "lead_time_days": 4,
+     "safety_stock_units": 116.0,
+     "reorder_point": 1164.0,
+     "suggested_order_qty": 1164.0,
+     "current_stock": 1375.0,
+     "projected_stock": -1799.0,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    },
+    {
+     "product_id": 4,
+     "name": "Veggie Burger",
+     "unit": "burgers",
+     "product_type": "stocked",
+     "unit_mode": "whole",
+     "is_favorite": false,
+     "status": "ok",
+     "message": null,
+     "days": [
+      {
+       "date": "2025-08-18",
+       "weekday": "Monday",
+       "predicted_units": 77.0,
+       "interval_low": 77.0,
+       "interval_high": 77.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-19",
+       "weekday": "Tuesday",
+       "predicted_units": 65.0,
+       "interval_low": 65.0,
+       "interval_high": 65.0,
+       "booked_count": null
+      },
+      {
+       "date": "2025-08-20",
+       "weekday": "Wednesday",
+       "predicted_units": 58.0,
+       "interval_low": 58.0,
+       "interval_high": 58.0,
+       "booked_count": null
+      }
+     ],
+     "avg_daily_demand": 64.0,
+     "forecast_demand_over_lead_time": 200.0,
+     "lead_time_days": 3,
+     "safety_stock_units": 37.0,
+     "reorder_point": 237.0,
+     "suggested_order_qty": 237.0,
+     "current_stock": 165.0,
+     "projected_stock": -566.0,
+     "stock_untracked": false,
+     "approaching_reorder": false,
+     "order_now": true,
+     "eoq": null,
+     "n_days_data": 9,
+     "constraint_notes": [],
+     "projected_runout_warning": true
+    }
+   ]
+  },
+  "insights": {
+   "status": "ok",
+   "message": null,
+   "n_days_logged": 12,
+   "n_months_logged": 1,
+   "first_date": "2025-08-01",
+   "last_date": "2025-08-14",
+   "busiest_day": {
+    "weekday": "Wednesday",
+    "avg_customers": 492.5,
+    "pct_vs_mean": 4.0
+   },
+   "slowest_day": {
+    "weekday": "Tuesday",
+    "avg_customers": 471.5,
+    "pct_vs_mean": -0.5
+   },
+   "pct_diff_busiest_slowest": 4.5,
+   "peak_hour": {
+    "hour": 14,
+    "label": "2\u20133 pm",
+    "avg_taps": 66.0
+   },
+   "quietest_hour": {
+    "hour": 11,
+    "label": "11 am\u201312 pm",
+    "avg_taps": 57.8
+   },
+   "yoy_growth_pct": null,
+   "yoy_prev_period_label": null,
+   "yoy_curr_period_label": null,
+   "forecast_accuracy_mape": null,
+   "accuracy_early_mape": null,
+   "accuracy_recent_mape": null,
+   "accuracy_improved": null,
+   "weekday_trends": [],
+   "seasonal_alerts": [],
+   "declining_regulars": []
+  },
+  "monthly summary": {
+   "status": "ok",
+   "message": null,
+   "n_total_days": 9,
+   "months": [
+    {
+     "year": 2025,
+     "month": 8,
+     "month_label": "Aug 2025",
+     "total_customers": 4264.0,
+     "logged_days": 9,
+     "avg_daily_customers": 473.8,
+     "mom_pct_change": null
+    }
+   ],
+   "history_points": [
+    {
+     "date": "2025-08-01",
+     "customers": 468.0
+    },
+    {
+     "date": "2025-08-03",
+     "customers": 410.0
+    },
+    {
+     "date": "2025-08-04",
+     "customers": 477.0
+    },
+    {
+     "date": "2025-08-05",
+     "customers": 437.0
+    },
+    {
+     "date": "2025-08-06",
+     "customers": 460.0
+    },
+    {
+     "date": "2025-08-11",
+     "customers": 497.0
+    },
+    {
+     "date": "2025-08-12",
+     "customers": 506.0
+    },
+    {
+     "date": "2025-08-13",
+     "customers": 525.0
+    },
+    {
+     "date": "2025-08-14",
+     "customers": 484.0
+    }
+   ]
+  },
+  "lift": {
+   "status": "ok",
+   "message": null,
+   "periods": [
+    {
+     "period_id": 1,
+     "label": "Opening-week flyers",
+     "type": "ad",
+     "start_date": "2025-08-07",
+     "end_date": "2025-08-10",
+     "target_product_id": null,
+     "total_actual": 1638.0,
+     "total_baseline": 1362.0,
+     "total_lift_customers": 276.0,
+     "pct_lift": 20.3,
+     "lift_per_cost": 0.69
+    }
+   ]
+  },
+  "forecast history": {
+   "status": "no_history",
+   "message": "No forecast history yet. Past forecasts will appear here once their dates pass.",
+   "history": []
+  },
+  "stray_hours": []
+ },
+ "issues": [],
+ "forecasts": [
+  {
+   "made_on": "2025-08-01",
+   "status": "not_enough_data",
+   "message": "Need at least 2 logged days before Ope can estimate anything (1 so far). Keep logging."
+  },
+  {
+   "made_on": "2025-08-02",
+   "status": "not_enough_data",
+   "message": "Need at least 2 logged days before Ope can estimate anything (1 so far). Keep logging."
+  },
+  {
+   "made_on": "2025-08-03",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 2 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-04",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 3 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-05",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 4 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-06",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 5 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-07",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 5 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-08",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 5 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-09",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 5 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-10",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 5 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-11",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 6 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-12",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 7 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-13",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 8 days. Accuracy improves a lot after about two weeks of logging."
+  },
+  {
+   "made_on": "2025-08-14",
+   "status": "learning",
+   "message": "Still learning \u2014 this is a rough range from your first 9 days. Accuracy improves a lot after about two weeks of logging."
+  }
+ ]
+}

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
+from app import clock
 
 
 @dataclass
@@ -36,7 +37,7 @@ class StubPaymentProvider:
         return SubscriptionStatus(
             subscription_id=subscription_id,
             status="active",
-            renewal_at=datetime.now(timezone.utc) + timedelta(days=30),
+            renewal_at=clock.now_utc() + timedelta(days=30),
         )
 
     def verify_webhook(self, payload: bytes, signature: str) -> dict:

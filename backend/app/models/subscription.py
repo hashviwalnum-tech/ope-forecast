@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base
+from app import clock
 
 TRIAL_DAYS = 30
 
@@ -25,7 +26,7 @@ class Subscription(Base):
     def effective_tier(self) -> str:
         """What tier this user actually has right now."""
         from datetime import timezone
-        now = datetime.now(timezone.utc)
+        now = clock.now_utc()
         # Active subscription → premium
         if self.subscription_status == "active":
             return "premium"
@@ -44,7 +45,7 @@ class Subscription(Base):
         if self.tier != "trial" or self.trial_ends_at is None:
             return None
         from datetime import timezone
-        now = datetime.now(timezone.utc)
+        now = clock.now_utc()
         trial_end = self.trial_ends_at
         if trial_end.tzinfo is None:
             trial_end = trial_end.replace(tzinfo=timezone.utc)

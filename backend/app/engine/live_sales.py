@@ -33,7 +33,7 @@ def utc_to_local_hour(ts: datetime, tz_name: str) -> int:
     """Return the local hour of a timestamp.
 
     Naive datetimes are assumed to be UTC (matching how SaleEvents are stored
-    via ``datetime.now()`` on a UTC server).  The result is the hour in the
+    via ``app.clock.now_naive_utc()``).  The result is the hour in the
     business's local timezone so it can be compared against opening_hour /
     closing_hour, which are always expressed in local time.
     """
@@ -168,39 +168,109 @@ def reconcile_customers_with_hours(
     return (manual_total, "manual-with-unknown")
 
 
+def customer_arrivals_by_day_hour(
+    events: list[tuple[date, int, int | None, float]],
+    open_hours: set[int] | None = None,
+) -> dict[tuple[date, int], float]:
+    """How many CUSTOMERS arrived in each (day, hour) — not how many units sold.
+
+    This distinction is the whole point of the function.  A customer who buys a
+    burger, fries and a drink is ONE arrival, not four.  Summing raw quantities
+    inflates the arrival rate by the basket size, which then inflates every
+    staffing recommendation and misstates the busiest-hour chart.
+
+    Two tap styles are supported, decided per day so a business can change habit:
+      * The owner taps "a customer arrived" (product_id is None) — including
+        rows written by the hourly backfill, which store per-hour customer
+        counts the same way.  Those quantities ARE the arrival count.
+      * The owner only ever taps products.  Then each tap is one transaction,
+        so arrivals = the number of tap events.
+
+    Mirrors the rule ``rollup_tap_days`` already uses for the daily total, so
+    the hourly view and the daily view can never disagree about the same day.
+    """
+    in_scope = [
+        (day, hour, pid, qty) for day, hour, pid, qty in events
+        if open_hours is None or hour in open_hours
+    ]
+    days_with_customer_taps = {day for day, _h, pid, _q in in_scope if pid is None}
+
+    arrivals: dict[tuple[date, int], float] = defaultdict(float)
+    for day, hour, pid, qty in in_scope:
+        if day in days_with_customer_taps:
+            if pid is None:
+                arrivals[(day, hour)] += qty
+        else:
+            arrivals[(day, hour)] += 1.0     # one tap ≈ one transaction
+    return dict(arrivals)
+
+
 def hourly_averages(
     events: list[tuple[date, int, int | None, float]],
     open_hours: set[int] | None = None,
 ) -> list[tuple[int, float, int]]:
-    """Average tap count per hour of day across all days in the dataset.
+    """Average number of CUSTOMERS arriving per hour of day, across the dataset.
 
     Args:
         events:     list of (date, hour 0–23, product_id or None, quantity).
         open_hours: hours to include (e.g. {9,10,...,21}).  None = all hours.
 
     Returns:
-        Sorted list of (hour, avg_taps_per_day, n_days_in_dataset).
-        Only hours that have at least one tap in any day are returned.
-        The average denominates over the full dataset size (days with zero
-        taps at that hour count as zero, not as absent).
+        Sorted list of (hour, avg_customers_per_day, n_days_in_dataset).
+        Only hours that have at least one arrival in any day are returned.
+        The average denominates over the days actually tracked during open
+        hours — a day where that hour saw nobody counts as a real zero, but a
+        day the owner never tracked at all does not dilute the average.
     """
-    # Count only days that had at least one event within open hours.
-    # Days whose taps are all outside the opening-hours window are not "tracked"
-    # during open hours and must not dilute the per-hour averages.
-    filtered_dates: set[date] = {
-        day for day, hour, _pid, _qty in events
-        if open_hours is None or hour in open_hours
-    }
-    n_days = len(filtered_dates)
-    if n_days == 0:
+    arrivals = customer_arrivals_by_day_hour(events, open_hours)
+    if not arrivals:
         return []
 
+    n_days = len({day for day, _hour in arrivals})
     hour_totals: dict[int, float] = defaultdict(float)
-    for day, hour, _pid, qty in events:
-        if open_hours is None or hour in open_hours:
-            hour_totals[hour] += qty
+    for (_day, hour), n in arrivals.items():
+        hour_totals[hour] += n
 
     return [
         (hour, round(hour_totals[hour] / n_days, 2), n_days)
         for hour in sorted(hour_totals.keys())
     ]
+
+
+def service_minutes_per_customer(
+    events: list[tuple[date, int, int | None, float]],
+    service_time_by_product: dict[int, float | None],
+    default_service_time_minutes: float,
+    open_hours: set[int] | None = None,
+) -> dict[int, float]:
+    """Minutes of staff work ONE customer costs, per hour of day.
+
+    The queue model needs the time a single *customer* occupies a server.  That
+    is the whole basket, not the average item: a customer who orders a burger
+    (6 min), fries (2 min) and a drink (1 min) ties up staff for 9 minutes, not
+    for the 3-minute average of those three items.
+
+    So: total work in the hour ÷ customers in the hour.  Hours with no product
+    detail — or none of the products carrying a service time — fall back to the
+    business default, which is exactly what a business that only taps customer
+    arrivals should get.
+    """
+    arrivals = customer_arrivals_by_day_hour(events, open_hours)
+    customers_by_hour: dict[int, float] = defaultdict(float)
+    for (_day, hour), n in arrivals.items():
+        customers_by_hour[hour] += n
+
+    work_by_hour: dict[int, float] = defaultdict(float)
+    for day, hour, pid, qty in events:
+        if open_hours is not None and hour not in open_hours:
+            continue
+        if pid is None:
+            continue                      # an arrival marker, not a sold item
+        svc = service_time_by_product.get(pid)
+        work_by_hour[hour] += qty * (svc if svc is not None else default_service_time_minutes)
+
+    out: dict[int, float] = {}
+    for hour, customers in customers_by_hour.items():
+        work = work_by_hour.get(hour, 0.0)
+        out[hour] = work / customers if (work > 0 and customers > 0) else default_service_time_minutes
+    return out
