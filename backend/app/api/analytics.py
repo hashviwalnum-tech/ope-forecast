@@ -22,7 +22,7 @@ from app.engine.accuracy import detect_drift, forecast_errors, mad, mape, mse, t
 from app.engine.booking import booking_forecast, fit_booking_regression
 from app.engine.limits import history_cutoff
 from app.engine.monthly import monthly_summary
-from app.engine.ensemble import blend, model_weights, prediction_interval
+from app.engine.ensemble import blend, debias, model_weights, prediction_interval
 from app.engine.forecasting import (
     MIN_EARLY_OBSERVATIONS,
     early_forecast,
@@ -168,6 +168,10 @@ def _compute_projected_stock(
             DayRecord.business_id == biz_id,
             SaleRecord.product_id == prod.id,
             DayRecord.date > baseline_date,
+            # Bounded at today, exactly as arrivals are.  Without this, a single
+            # day record dated in the future subtracts its sales with no matching
+            # delivery and silently drags projected stock down forever.
+            DayRecord.date <= today,
         )
         .all()
     )
@@ -177,7 +181,7 @@ def _compute_projected_stock(
     # Also count live taps (SaleEvents) on days that have no manual SaleRecord
     if tap_by_prod_date is not None:
         for (pid, d), qty in tap_by_prod_date.items():
-            if pid == prod.id and d > baseline_date and d not in sale_record_dates:
+            if pid == prod.id and baseline_date < d <= today and d not in sale_record_dates:
                 sales_since += qty
 
     # Add consumable depletion from services that use this product as a supply.
@@ -196,6 +200,7 @@ def _compute_projected_stock(
                 DayRecord.business_id == biz_id,
                 SaleRecord.product_id == link.service_product_id,
                 DayRecord.date > baseline_date,
+                DayRecord.date <= today,
             )
             .all()
         )
@@ -548,7 +553,7 @@ def _holdout_errors(
 
 def _completed_period_ratios(
     db: Session, biz: Business, today: date
-) -> dict[str, list[float]]:
+) -> tuple[dict[str, list[float]], dict[tuple[str, int], list[float]]]:
     """actual ÷ baseline for each of this business's FINISHED promotions, by type.
 
     This is deliberately the same measurement the Lift screen shows the owner —
@@ -559,12 +564,18 @@ def _completed_period_ratios(
     Only periods that have ended are used (a promotion still running has not
     finished proving itself), and only ones with enough surrounding history to
     build a baseline at all.
+
+    Returns (ratios_by_type, ratios_by_type_and_weekday).  The second is the
+    same measurements split by weekday, because a promotion mostly rescues the
+    quiet days: one pooled figure left Sunday promo days under-forecast by 152
+    customers each while weekdays were nearly right.
     """
     ratios: dict[str, list[float]] = {}
+    by_wd: dict[tuple[str, int], list[float]] = {}
     periods = db.query(Period).filter_by(business_id=biz.id).all()
     finished = [p for p in periods if p.end_date < today]
     if not finished:
-        return ratios
+        return ratios, by_wd
 
     all_records = (
         db.query(DayRecord).filter_by(business_id=biz.id).order_by(DayRecord.date).all()
@@ -585,7 +596,7 @@ def _completed_period_ratios(
         and (open_days is None or r.date.weekday() in open_days)
     ]
     if len(train) < MIN_RECORDS:
-        return ratios
+        return ratios, by_wd
     train_obs = _effective_obs(train)
     train_wds = [r.date.weekday() for r in train]
 
@@ -598,19 +609,27 @@ def _completed_period_ratios(
         ]
         if not during:
             continue
-        actual = sum(float(r.customers) for r in during)
+        actual = 0.0
         baseline = 0.0
         ok = True
         for r in during:
             try:
-                baseline += seasonal_naive_forecast(train_obs, train_wds, r.date.weekday())
+                day_base = seasonal_naive_forecast(train_obs, train_wds, r.date.weekday())
             except ValueError:
                 ok = False
                 break
+            if day_base > 0:
+                # Per-DAY ratio as well as the period total, so the weekday
+                # split has something to learn from.
+                by_wd.setdefault((p.type, r.date.weekday()), []).append(
+                    float(r.customers) / day_base
+                )
+            actual += float(r.customers)
+            baseline += day_base
         if not ok or baseline <= 0:
             continue
         ratios.setdefault(p.type, []).append(actual / baseline)
-    return ratios
+    return ratios, by_wd
 
 
 def _active_period_types(db: Session, biz: Business, target: date) -> list[str]:
@@ -881,7 +900,7 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     # Tagged days are (rightly) kept out of the training baseline, so without
     # this the forecast for a promo day is the forecast for an ordinary day —
     # low on every single one, and the ordering advice low with it.
-    period_ratios = _completed_period_ratios(db, biz, today)
+    period_ratios, period_ratios_by_wd = _completed_period_ratios(db, biz, today)
 
     for offset in range(1, 8):
         target_date = today + timedelta(days=offset)
@@ -941,14 +960,26 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         if not preds:
             continue
 
+        # Each model is shifted by its own recent signed error on this weekday
+        # before blending.  Inverse-error weighting cannot see bias, so without
+        # this a business whose demand is growing gets a forecast that lags —
+        # every trailing-average model is low in the same direction and they all
+        # keep similar MAEs, so the blend never notices.
+        debiased = {
+            m: debias(p_val, holdout[m].get(wd, []))
+            for m, p_val in preds.items()
+        }
+
         weights = model_weights(list(maes.values()))
-        forecast_val = blend(list(preds.values()), weights)
+        forecast_val = blend(list(debiased.values()), weights)
 
         # Scale up (or down) for a promotion the owner has already tagged on this
         # date, by however much their OWN past promotions of that type actually
         # moved the needle.  1.0 — no change — when they have never run one.
         active_types = _active_period_types(db, biz, target_date)
-        uplift = uplift_for_day(period_ratios, active_types)
+        uplift = uplift_for_day(period_ratios, active_types,
+                                ratios_by_type_weekday=period_ratios_by_wd,
+                                weekday=wd)
         forecast_val *= uplift
 
         # Only use errors from models that were actually included in the blend,
@@ -1293,7 +1324,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         proj_stock, stock_untracked = _compute_projected_stock(db, biz.id, prod, today, assume_on_time=assume_on_time)
         effective_stock = proj_stock if proj_stock is not None else prod.current_stock
 
-        constrained_qty, cap_notes = apply_order_constraints(
+        constrained_qty, cap_notes, cap_codes = apply_order_constraints(
             base_qty,
             storage_capacity=prod.storage_capacity,
             current_stock=effective_stock,
@@ -1302,6 +1333,27 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         )
         suggested_qty = _round_qty(constrained_qty, unit_mode)
         order_now = effective_stock is not None and not stock_untracked and effective_stock <= rop
+        # Never tell the owner to "order now" and then suggest zero units — that
+        # is a contradiction they cannot act on.  When storage leaves no room,
+        # the note explains that instead.
+        if order_now and suggested_qty <= 0:
+            order_now = False
+        # A structural warning worth saying out loud: some shops simply cannot
+        # hold enough to cover a delivery, so they will hover below the reorder
+        # point forever no matter how diligently they order.
+        if prod.storage_capacity is not None and rop > prod.storage_capacity:
+            cap_notes.append(
+                f"Your storage holds {_round_qty(prod.storage_capacity, unit_mode):g} "
+                f"{prod.unit}, but covering a {prod.lead_time_days}-day delivery needs about "
+                f"{_round_qty(rop, unit_mode):g}. Order smaller amounts more often, "
+                f"or make more room."
+            )
+            cap_codes.append({"code": "storage_below_reorder_point", "params": {
+                "capacity": _round_qty(prod.storage_capacity, unit_mode),
+                "unit": prod.unit,
+                "days": prod.lead_time_days,
+                "needed": _round_qty(rop, unit_mode),
+            }})
         approaching_reorder = (
             not stock_untracked and
             effective_stock is not None and
@@ -1330,6 +1382,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             suggested_order_qty=suggested_qty,
             n_days_data=n_data,
             constraint_notes=cap_notes,
+            constraint_codes=cap_codes,
             fifo_note=fifo_n,
             older_stock_warning=older_w,
             spoilage_alert=spoil_a,
@@ -1830,7 +1883,7 @@ def get_product_forecast(
         )
         effective_stock = proj_stock if proj_stock is not None else prod.current_stock
 
-        constrained_qty, cap_notes = apply_order_constraints(
+        constrained_qty, cap_notes, cap_codes = apply_order_constraints(
             base_qty,
             storage_capacity=prod.storage_capacity,
             current_stock=effective_stock,
@@ -1843,6 +1896,21 @@ def get_product_forecast(
             effective_stock is not None and
             effective_stock <= rop
         )
+        if order_now and suggested_qty <= 0:
+            order_now = False   # see /ordering: never "order now" for zero units
+        if prod.storage_capacity is not None and rop > prod.storage_capacity:
+            cap_notes.append(
+                f"Your storage holds {_round_qty(prod.storage_capacity, unit_mode):g} "
+                f"{prod.unit}, but covering a {prod.lead_time_days}-day delivery needs about "
+                f"{_round_qty(rop, unit_mode):g}. Order smaller amounts more often, "
+                f"or make more room."
+            )
+            cap_codes.append({"code": "storage_below_reorder_point", "params": {
+                "capacity": _round_qty(prod.storage_capacity, unit_mode),
+                "unit": prod.unit,
+                "days": prod.lead_time_days,
+                "needed": _round_qty(rop, unit_mode),
+            }})
         approaching_reorder = (
             not stock_untracked and
             effective_stock is not None and
@@ -1892,6 +1960,7 @@ def get_product_forecast(
             eoq=eoq_val,
             n_days_data=n_data,
             constraint_notes=cap_notes,
+            constraint_codes=cap_codes,
             projected_runout_warning=runout_warning,
         ))
 

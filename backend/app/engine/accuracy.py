@@ -74,17 +74,30 @@ def detect_drift(
     window: int = 21,
     threshold_pct: float = 10.0,
 ) -> str | None:
-    """Detect sustained demand drift between recent and prior observations.
+    """Detect a recent CHANGE in demand, by comparing the last *window* days
+    with the *window* days immediately before them.
 
-    Compares mean(values[-window:]) to mean(values[:-window]).
-    Returns a plain-language alert string when the recent mean deviates by
-    more than threshold_pct from the prior baseline, else None.
-    Requires at least 2 * window observations; returns None otherwise.
+    The comparison window matters more than it looks.  Comparing the last three
+    weeks against the whole of history answers "are you different from your
+    all-time average", which for any growing business is permanently yes: over
+    the simulated year — a restaurant quietly growing about 0.1 % a day — that
+    version fired the identical "demand is ~11 % higher than usual" alert on
+    **65 separate days** and never once cleared.  An alarm that is always on is
+    not an alarm.
+
+    Comparing against the immediately preceding stretch answers the question the
+    owner actually cares about: *has something changed lately?*  Steady growth
+    barely registers between adjacent windows (and belongs on the Insights page
+    as a trend, not as a warning), while a genuine step change still fires.
+
+    Returns a plain-language alert when the recent mean deviates by more than
+    threshold_pct from the preceding window, else None.  Requires at least
+    2 * window observations.
     """
     if len(values) < 2 * window:
         return None
 
-    prior = values[:-window]
+    prior = values[-2 * window:-window]
     recent = values[-window:]
 
     prior_mean = float(np.mean(prior))

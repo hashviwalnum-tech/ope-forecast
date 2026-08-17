@@ -203,3 +203,66 @@ def test_ensemble_per_weekday_filtering():
     # than Monday errors when the two models are compared
     assert sat_errors == [5.0, 6.0]
     assert mon_errors == [1.0, 2.0, 3.0]
+
+
+# ── debias (FINDING F-019) ───────────────────────────────────────────────────
+# Inverse-error weighting cannot see bias: a model that is always 20 low and a
+# model that is unbiased but noisier can share an MAE.  In a growing business
+# every trailing-average model is low in the same direction, so the blend
+# inherits the lag — measured at +19.9 customers a day over the simulated year.
+#
+# But the correction must only fire on a bias that is real.  A first version
+# shrank by sample size alone and made things worse: bias +18.7 → +11.5 but
+# MAPE 10.3% → 11.7%, because with four holdout points it was mostly correcting
+# noise.  The shift is now weighted by mean-versus-its-own-standard-error.
+
+from app.engine.ensemble import debias  # noqa: E402
+
+
+def test_debias_leaves_a_prediction_alone_without_evidence():
+    assert debias(500.0, []) == 500.0
+    assert debias(500.0, [40.0]) == 500.0, "one point cannot establish a bias"
+
+
+def test_a_certain_bias_is_applied_in_full():
+    """Four identical errors have zero spread — the bias is unambiguous."""
+    assert debias(500.0, [20.0] * 4) == pytest.approx(520.0)
+
+
+def test_debias_ignores_errors_that_average_out():
+    assert debias(500.0, [10.0, -10.0, 10.0, -10.0]) == pytest.approx(500.0)
+
+
+def test_a_mean_no_bigger_than_its_own_noise_moves_nothing():
+    """mean 10, standard error ~25 — indistinguishable from noise."""
+    assert debias(500.0, [60.0, -40.0, 50.0, -30.0]) == pytest.approx(500.0)
+
+
+def test_a_clear_bias_survives_some_scatter():
+    """Consistently low by roughly 30, with modest scatter — a real lag."""
+    got = debias(500.0, [25.0, 35.0, 28.0, 32.0])
+    assert 515.0 < got < 530.0
+
+
+def test_more_consistent_evidence_keeps_more_of_the_shift():
+    noisy = debias(500.0, [10.0, 50.0, -5.0, 45.0])
+    tight = debias(500.0, [24.0, 26.0, 25.0, 25.0])
+    assert tight - 500.0 > noisy - 500.0
+
+
+def test_debias_corrects_downward_too():
+    assert debias(500.0, [-30.0] * 4) == pytest.approx(470.0)
+
+
+def test_a_freak_error_cannot_move_the_forecast_more_than_a_fifth():
+    assert debias(500.0, [5000.0] * 4) == pytest.approx(600.0)
+    assert debias(500.0, [-5000.0] * 4) == pytest.approx(400.0)
+
+
+def test_debias_does_not_change_the_spread_used_for_the_interval():
+    """A constant shift moves the centre, never the width — so the prediction
+    interval stays correctly sized after debiasing."""
+    errs = [20.0, 30.0, 10.0, 20.0]
+    before = prediction_interval(500.0, errs)
+    after = prediction_interval(debias(500.0, errs), errs)
+    assert (after[1] - after[0]) == pytest.approx(before[1] - before[0])

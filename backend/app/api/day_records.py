@@ -6,7 +6,13 @@ from sqlalchemy.orm import Session
 from app import clock
 from app.api.deps import get_business
 from app.db import get_db
-from app.engine.limits import check_entry_timing, check_history, check_non_working_day, history_cutoff
+from app.engine.limits import (
+    check_entry_timing,
+    check_history,
+    check_non_working_day,
+    check_not_in_the_future,
+    history_cutoff,
+)
 from app.engine.live_sales import (
     compute_open_hours,
     local_day_utc_bounds,
@@ -128,6 +134,7 @@ def _timing_check(record_date: date, biz: Business) -> None:
     # opening_hour/closing_hour are the owner's wall clock, so "now" must be too.
     local_now = clock.now_local(settings)
     try:
+        check_not_in_the_future(record_date, local_now.date())
         check_non_working_day(record_date, local_now.date(), opening_days)
         check_entry_timing(record_date, local_now.date(), local_now.hour, opening, closing)
     except ValueError as e:

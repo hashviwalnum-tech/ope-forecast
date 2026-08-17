@@ -86,3 +86,48 @@ def test_overlapping_ad_and_event_take_the_larger_not_the_product():
 def test_a_promo_type_with_no_history_contributes_nothing():
     assert uplift_for_day({"ad": []}, ["ad"]) == 1.0
     assert uplift_for_day({"event": [1.60] * 4}, ["ad", "event"]) == pytest.approx(1.48)
+
+
+# ── per-weekday uplift (FINDING F-020) ───────────────────────────────────────
+# A promotion mostly rescues the QUIET days, so one pooled uplift is wrong
+# whenever the weekdays differ.  In the simulated restaurant a promo lifted an
+# ordinary weekday ~14% but a Sunday ~49%, and the pooled figure left Sunday
+# promo days under-forecast by 152 customers each (MAPE 24.9%).
+
+from app.engine.promo_uplift import WEEKDAY_PRIOR_WEIGHT, weekday_uplift  # noqa: E402
+
+
+def test_no_same_weekday_history_falls_back_to_the_pooled_uplift():
+    pooled = learned_uplift([1.20] * 4)
+    assert weekday_uplift([1.20] * 4, []) == pytest.approx(pooled)
+
+
+def test_weekday_uplift_is_shrunk_toward_the_pooled_uplift():
+    """Pooled from [1.2]*4 is 1.16.  With two Sundays at 1.50:
+
+        (1.50 + 1.50 + 3 * 1.16) / (2 + 3) = 1.296
+    """
+    got = weekday_uplift([1.20] * 4, [1.50, 1.50])
+    assert got == pytest.approx((1.50 * 2 + 3 * 1.16) / 5)
+    assert 1.16 < got < 1.50, "must sit between the pooled and the weekday figure"
+
+
+def test_plenty_of_same_weekday_history_converges_on_that_weekday():
+    pooled = learned_uplift([1.20] * 4)
+    got = weekday_uplift([1.20] * 4, [1.50] * 30)
+    assert got == pytest.approx((1.50 * 30 + WEEKDAY_PRIOR_WEIGHT * pooled)
+                                / (30 + WEEKDAY_PRIOR_WEIGHT))
+    assert got > 1.45
+
+
+def test_uplift_for_day_uses_the_weekday_figure_when_given_one():
+    pool = {"ad": [1.20] * 4}
+    by_wd = {("ad", 6): [1.50] * 30}
+    sunday = uplift_for_day(pool, ["ad"], ratios_by_type_weekday=by_wd, weekday=6)
+    monday = uplift_for_day(pool, ["ad"], ratios_by_type_weekday=by_wd, weekday=0)
+    assert sunday > monday
+    assert monday == pytest.approx(learned_uplift([1.20] * 4))
+
+
+def test_weekday_detail_still_degrades_to_no_change_without_history():
+    assert uplift_for_day({}, ["ad"], ratios_by_type_weekday={}, weekday=6) == 1.0

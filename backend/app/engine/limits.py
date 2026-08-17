@@ -44,6 +44,21 @@ def check_history(tier: str, record_date: date, today: date) -> None:
         )
 
 
+def check_not_in_the_future(record_date: date, today: date) -> None:
+    """Raise ValueError if the owner is trying to log a day that hasn't happened.
+
+    Nothing stopped this before, so a mistyped year (2027 for 2026) was accepted
+    in silence, and then quietly did damage in two places: the phantom day joined
+    the forecast's training history, and its "sales" were subtracted from
+    projected stock with no matching delivery ever arriving.
+    """
+    if record_date > today:
+        raise ValueError(
+            f"{record_date} hasn't happened yet — you can only log days up to today "
+            f"({today}). Check the date and try again."
+        )
+
+
 def check_entry_timing(
     record_date: date,
     today: date,

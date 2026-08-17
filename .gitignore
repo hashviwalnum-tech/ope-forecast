@@ -31,3 +31,6 @@ backend/sim/
 # Simulation run artifacts (regenerable; the summarised results are committed)
 docs/simulation/year_state.json
 docs/simulation/year_run.log
+docs/simulation/run_*.log
+docs/simulation/year_state_*.json
+docs/simulation/score_*.txt

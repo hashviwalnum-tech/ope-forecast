@@ -333,9 +333,136 @@ location's products, stock/history NOT being copied, and free accounts blocked.
   "probable range, not possible range" choice in spec §6 — but it does mean the
   real number falls outside the stated range every other day.
 
-## Phase 3 — days 91–365
+## Phase 3 — days 91–365 (the full year)
 
-_not started_
+The full 365 simulated days, with the owner also placing every reorder Ope
+recommended, recording four regulars' visits, teaching Ope a recurring Friday
+lunch pattern, tagging all 22 promotions, and reviewing every day Ope flagged.
+
+The first full-year run finished with **82 operational complaints**. Two
+patterns accounted for all of them.
+
+### F-021 · S2 · The drift alert became permanent wallpaper — **FIXED**
+`app/engine/accuracy.py: detect_drift`.
+
+The identical alert — *"Your demand has been ~11.3 % higher than usual over the
+last 3 weeks"* — fired on **65 separate days** and never once cleared.
+
+*Root cause:* it compared the last three weeks against **all of history**. That
+answers "are you different from your all-time average", which for any growing
+business is permanently yes. The simulated restaurant grows about 0.1 % a day
+from mid-year; within weeks the recent mean is >10 % above the lifetime mean and
+stays there forever. An alarm that is always on is not an alarm — the owner
+learns to ignore it, and a genuine shift then goes unnoticed.
+
+*Fix:* compare the recent window against the **window immediately before it**,
+which is the question the owner actually cares about — *has something changed
+lately?* Steady growth barely registers between adjacent windows (that belongs
+on Insights as a trend, not as a warning), while a real step change still fires
+and then correctly goes quiet once the new level is established. Four new tests
+pin all of that, including that a long stable past cannot drown out a recent
+drop. After the fix: **65 alerts → 5**, and those five are a genuine ~10 % jump.
+
+### F-019 · S1 · The forecast lagged a growing business — **FIXED, then fixed again**
+Splitting the year at the point the growth trend starts:
+
+| | n | bias | MAPE |
+|---|---:|---:|---:|
+| ordinary days, flat period | 102 | **−1.5** | 9.55 % |
+| ordinary days, growth period | 128 | **+19.9** | 9.51 % |
+
+Before the business started growing Ope was essentially unbiased. Once it grew,
+Ope ran ~20 customers low **every single day** — and since the ordering advice is
+derived from the forecast, it under-ordered every day too.
+
+*Root cause, and it is a structural one:* **inverse-error weighting is blind to
+bias.** A model that is consistently 20 low and a model that is unbiased but
+noisier can have exactly the same MAE, so the ensemble never learns to prefer
+the honest one. When demand grows, *all* the trailing-average models are low in
+the same direction and all keep similar MAEs, so the blend simply inherits the
+lag. The linear-trend model is in the mix and would have corrected it, but it is
+one of four near-equally-weighted voices. Spec §2 predicted this exact failure;
+the tracking signal in §7 is supposed to catch it, but it was only ever
+*reported*, never fed back into the blend.
+
+*Fix:* each model is now shifted by its own recent signed holdout error before
+blending — which is what a tracking signal is *for*.
+
+**The first attempt made accuracy worse, and that is worth recording.** Shrinking
+the correction by sample size alone cut the bias (+18.7 → +11.5 customers) but
+pushed MAPE from **10.32 % to 11.67 %**: with only four holdout points per
+weekday, most of the "bias" being corrected was noise. The correction is now
+weighted by how large the mean error is against **its own standard error**
+(`weight = max(0, 1 − (se/mean)²)`), so a mean no bigger than its own noise moves
+the forecast not at all, while a consistent lag across many observations is
+applied nearly in full. Measured A/B, with and without, on identical years.
+
+### F-020 · S1 · One promo uplift for all weekdays under-forecast Sundays badly — **FIXED**
+After F-017 the promo bias fell from +112 to +54, but the residual was very
+unevenly spread:
+
+| | n | bias | MAPE |
+|---|---:|---:|---:|
+| weekday promo days | 43 | +26.2 | 10.52 % |
+| **Sunday promo days** | 12 | **+151.7** | **24.86 %** |
+| Sunday, no promo | 35 | +2.8 | 13.50 % |
+
+*Root cause:* a promotion mostly rescues the **quiet** days. This restaurant's
+Sundays are its weak day, so a promotion lifts a Sunday far more than a weekday —
+and a single pooled uplift splits the difference, over-correcting weekdays and
+badly under-correcting Sundays. Any business with an uneven week has this shape.
+
+*Fix:* the uplift is now learned per weekday, shrunk toward the business's pooled
+uplift, which is itself shrunk toward "no change". With no same-weekday promo
+history it is exactly the pooled figure; with plenty it converges on the
+weekday's own. Five more known-answer tests.
+
+### F-022 · S1 · A day that hasn't happened yet could be logged — **FIXED**
+Nothing stopped a future-dated day record. `POST /day-records` with
+`2027-01-01` returned **201 Created**. A mistyped year was accepted in silence
+and then did damage in two places: the phantom day joined the forecast's
+training history, and its "sales" were subtracted from projected stock with no
+delivery ever arriving to match, dragging the projection down permanently.
+Now refused with a plain-language message; today and past dates are unaffected.
+
+Related and fixed with it: `_compute_projected_stock` summed sales with **no
+upper date bound** while counting arrivals only up to today — so any future-dated
+record silently corrupted the stock figure. Sales are now bounded at today too,
+matching arrivals.
+
+### F-023 · S2 · "Order now — quantity 0", 17 times — **FIXED**
+The reorder screen told the owner to order immediately and then suggested
+**zero units**, with no explanation. It happens when a product's storage
+capacity is smaller than its reorder point: the shop physically cannot hold
+enough to cover a delivery, so it hovers below the reorder point forever no
+matter how diligently the owner orders (Milkshake: 400 units of storage,
+reorder point 475).
+
+*Fix:* "order now" is never shown with a zero quantity. Instead the owner is told
+what is actually wrong — *"There's no room for more right now — your storage is
+full"* — and, when the shortfall is structural, *"Your storage holds 400 cups,
+but covering a 3-day delivery needs about 475. Order smaller amounts more often,
+or make more room."*
+
+### F-024 · S2 · Ordering advice was shown in English regardless of language — **FIXED**
+The ordering constraint notes were English prose generated in the backend and
+rendered raw, so a Hebrew, Spanish or Japanese owner read *"Capped at 200 — your
+storage limit."* in English on a screen they look at every day. This is the exact
+localisation leak the project spec keeps calling out.
+
+*Fix:* the engine now returns a structured `{code, params}` alongside the English,
+following the pattern already used for the staffing notes (the client formats it,
+the English stays as a fallback). Four new codes translated into **all 15
+languages**; the web panel prefers the codes and falls back to the prose. Five
+tests, including one asserting that every English note has a structured twin so a
+translated client can never silently drop a warning the English one shows.
+
+### The free-tier limit fix biting in a realistic year
+With F-018 fixed, the simulated account's trial expires after 30 days and the
+**free ad allowance genuinely runs out mid-year** — the run log records five
+refusals with the upsell message. The simulated owner now does what the limit is
+designed to prompt: upgrades and retries. That is the limit working end to end
+over a year of real usage, not just in a unit test.
 
 ## Phase 4 — UI pass
 

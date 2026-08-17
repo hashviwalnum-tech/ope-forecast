@@ -11,7 +11,7 @@ import {
 import { analytics, orders as ordersApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
-import type { Lang } from '../i18n'
+import type { Lang, TranslationKey } from '../i18n'
 import type { ForecastResponse, OrderRecordRead, ProductForecastItem, ProductForecastResponse } from '../api/types'
 
 // ── weekday translation map ───────────────────────────────────────────────────
@@ -43,7 +43,22 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
   const { unit } = item
   const uMode = (item.unit_mode ?? 'whole') as 'whole' | 'decimal'
   const qty = item.suggested_order_qty
-  const notes = item.constraint_notes ?? []
+  // Prefer the structured codes so the note is shown in the owner's language;
+  // fall back to the backend's English prose for anything not yet coded.
+  const codeKey: Record<string, TranslationKey> = {
+    storage_capped: 'ocStorageCapped',
+    storage_full: 'ocStorageFull',
+    shelf_life_capped: 'ocShelfLifeCapped',
+    storage_below_reorder_point: 'ocStorageBelowReorder',
+  }
+  const coded = item.constraint_codes ?? []
+  const notes: string[] = coded.length > 0
+    ? coded.map((c, i) =>
+        codeKey[c.code]
+          ? t(codeKey[c.code], c.params as Record<string, string | number>)
+          : (item.constraint_notes ?? [])[i] ?? '')
+      .filter(Boolean)
+    : (item.constraint_notes ?? [])
 
   const [showOrderForm, setShowOrderForm] = useState(false)
   const [orderQty, setOrderQty]           = useState(

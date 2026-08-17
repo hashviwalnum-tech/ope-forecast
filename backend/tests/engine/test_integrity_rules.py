@@ -499,3 +499,62 @@ def test_event_period_flagged_record_not_auto_cleared():
         "A flagged record inside an event period must NOT be auto-cleared; "
         "the owner decides whether it is a fluke or an underperforming event."
     )
+
+
+# ── FINDING F-021: the drift alert must not become permanent wallpaper ────────
+
+def test_steady_gradual_growth_does_not_fire_a_permanent_alert():
+    """A business growing ~0.1%/day is not "drifting" — it is just growing.
+
+    Against all-of-history this fired on 65 separate days of the simulated year
+    and never cleared.  Against the preceding three weeks the week-to-week change
+    is ~2%, well inside the threshold.
+    """
+    values = [400.0 * (1.0011 ** i) for i in range(200)]
+    assert detect_drift(values, window=21, threshold_pct=10.0) is None
+
+
+def test_a_genuine_step_change_still_fires():
+    """The alert must survive the fix — a real regime shift is what it is for."""
+    values = [400.0] * 60 + [320.0] * 21     # a 20% drop
+    alert = detect_drift(values, window=21, threshold_pct=10.0)
+    assert alert is not None and "lower" in alert.lower()
+
+
+def test_alert_clears_once_the_new_level_is_established():
+    """After the shift has been the norm for a while, it stops being news.
+
+    Against all-of-history the alert would keep firing for months; against the
+    preceding window it correctly falls silent once both windows sit at the new
+    level, which is what lets a real future change stand out again.
+    """
+    values = [400.0] * 60 + [320.0] * 60
+    assert detect_drift(values, window=21, threshold_pct=10.0) is None
+
+
+def test_ancient_history_cannot_drown_out_a_recent_change():
+    """A long stable past must not dilute a genuine recent drop."""
+    values = [500.0] * 300 + [380.0] * 21
+    alert = detect_drift(values, window=21, threshold_pct=10.0)
+    assert alert is not None and "lower" in alert.lower()
+
+
+# ── FINDING F-022: a day that hasn't happened yet must be refused ────────────
+
+def test_future_dates_are_refused():
+    """A mistyped year used to be accepted in silence, then quietly did damage:
+    the phantom day joined the forecast's training history, and its "sales" were
+    subtracted from projected stock with no delivery ever arriving to match."""
+    from datetime import date as _d
+    from app.engine.limits import check_not_in_the_future
+    with pytest.raises(ValueError, match="hasn't happened yet"):
+        check_not_in_the_future(_d(2027, 1, 1), _d(2026, 3, 10))
+    with pytest.raises(ValueError):
+        check_not_in_the_future(_d(2026, 3, 11), _d(2026, 3, 10))
+
+
+def test_today_and_past_dates_are_allowed():
+    from datetime import date as _d
+    from app.engine.limits import check_not_in_the_future
+    check_not_in_the_future(_d(2026, 3, 10), _d(2026, 3, 10))   # today
+    check_not_in_the_future(_d(2025, 3, 10), _d(2026, 3, 10))   # a year back

@@ -9,6 +9,11 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: "Capped at {qty} — that's all your storage will hold.",
+    ocStorageFull: "There's no room for more right now — your storage is full. Sell some of what you have before reordering.",
+    ocShelfLifeCapped: 'Capped at {qty} — any more would spoil before you sold it (it keeps about {days} days).',
+    ocStorageBelowReorder: 'Your storage holds {capacity} {unit}, but covering a {days}-day delivery needs about {needed}. Order smaller amounts more often, or make more room.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Still learning',
     learningNote: 'Day {n} of {needed}. These are rough ranges — they get much more accurate after about two weeks of logging.',
@@ -1052,6 +1057,11 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: 'מוגבל ל-{qty} — זה כל מה שהאחסון שלך מכיל.',
+    ocStorageFull: 'אין מקום ליותר כרגע — האחסון מלא. מכרו חלק ממה שיש לפני הזמנה נוספת.',
+    ocShelfLifeCapped: 'מוגבל ל-{qty} — יותר מזה יתקלקל לפני שתספיקו למכור (נשמר בערך {days} ימים).',
+    ocStorageBelowReorder: 'האחסון מכיל {capacity} {unit}, אבל כיסוי משלוח של {days} ימים דורש בערך {needed}. הזמינו כמויות קטנות לעתים קרובות יותר, או פנו מקום.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'עדיין לומדים',
     learningNote: 'יום {n} מתוך {needed}. אלו טווחים גסים — הם נעשים הרבה יותר מדויקים אחרי כשבועיים של רישום.',
@@ -2095,6 +2105,11 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: '上限 {qty} — 这是您仓储的极限。',
+    ocStorageFull: '目前放不下更多了——仓储已满。先卖掉一些再补货。',
+    ocShelfLifeCapped: '上限 {qty} — 再多会在卖出前变质（约可存放 {days} 天）。',
+    ocStorageBelowReorder: '您的仓储可放 {capacity} {unit}，但覆盖 {days} 天的配送约需 {needed}。请少量多次订货，或腾出更多空间。',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: '仍在学习中',
     learningNote: '第 {n} 天，共 {needed} 天。这些是粗略范围——记录约两周后会准确得多。',
@@ -2661,6 +2676,11 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: 'Limitado a {qty}: es todo lo que cabe en tu almacén.',
+    ocStorageFull: 'Ahora mismo no hay sitio para más: tu almacén está lleno. Vende algo de lo que tienes antes de volver a pedir.',
+    ocShelfLifeCapped: 'Limitado a {qty}: más se estropearía antes de venderse (dura unos {days} días).',
+    ocStorageBelowReorder: 'Tu almacén guarda {capacity} {unit}, pero cubrir una entrega de {days} días necesita unos {needed}. Pide cantidades menores más a menudo, o haz más espacio.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Todavía aprendiendo',
     learningNote: 'Día {n} de {needed}. Son rangos aproximados: se vuelven mucho más precisos tras unas dos semanas de registro.',
@@ -3280,6 +3300,11 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: '{qty} तक सीमित — आपके भंडारण में इतना ही आता है।',
+    ocStorageFull: 'अभी और रखने की जगह नहीं है — भंडारण भरा है। दोबारा ऑर्डर करने से पहले कुछ बेच लें।',
+    ocShelfLifeCapped: '{qty} तक सीमित — इससे ज़्यादा बिकने से पहले खराब हो जाएगा (लगभग {days} दिन चलता है)।',
+    ocStorageBelowReorder: 'आपके भंडारण में {capacity} {unit} आते हैं, पर {days} दिन की डिलीवरी के लिए लगभग {needed} चाहिए। कम मात्रा में ज़्यादा बार ऑर्डर करें, या जगह बनाएँ।',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'अभी सीख रहे हैं',
     learningNote: '{needed} में से दिन {n}। ये मोटे अनुमान हैं — लगभग दो सप्ताह दर्ज करने के बाद ये कहीं अधिक सटीक हो जाते हैं।',
@@ -3856,6 +3881,11 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: 'محدود بـ {qty} — هذا كل ما يتسع له مخزنك.',
+    ocStorageFull: 'لا مكان للمزيد الآن — المخزن ممتلئ. بِع بعض ما لديك قبل إعادة الطلب.',
+    ocShelfLifeCapped: 'محدود بـ {qty} — أي كمية أكبر ستفسد قبل بيعها (تبقى نحو {days} يومًا).',
+    ocStorageBelowReorder: 'يتسع مخزنك لـ {capacity} {unit}، لكن تغطية توصيل خلال {days} أيام تحتاج نحو {needed}. اطلب كميات أصغر بوتيرة أعلى، أو وفّر مساحة أكبر.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'ما زلنا نتعلم',
     learningNote: 'اليوم {n} من {needed}. هذه نطاقات تقريبية — تصبح أدق بكثير بعد أسبوعين تقريبًا من التسجيل.',
@@ -4732,6 +4762,11 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: 'Limitado a {qty} — é tudo o que o seu armazém comporta.',
+    ocStorageFull: 'Neste momento não há espaço para mais — o armazém está cheio. Venda parte do que tem antes de voltar a encomendar.',
+    ocShelfLifeCapped: 'Limitado a {qty} — mais estragava-se antes de vender (dura cerca de {days} dias).',
+    ocStorageBelowReorder: 'O seu armazém guarda {capacity} {unit}, mas cobrir uma entrega de {days} dias precisa de cerca de {needed}. Encomende quantidades menores mais vezes, ou liberte espaço.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Ainda a aprender',
     learningNote: 'Dia {n} de {needed}. São intervalos aproximados — ficam bem mais precisos após cerca de duas semanas de registo.',
@@ -5338,6 +5373,11 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: 'Ограничено {qty} — больше на складе не поместится.',
+    ocStorageFull: 'Сейчас места больше нет — склад заполнен. Продайте часть запаса, прежде чем заказывать снова.',
+    ocShelfLifeCapped: 'Ограничено {qty} — больше испортится, не успев продаться (хранится около {days} дней).',
+    ocStorageBelowReorder: 'На складе помещается {capacity} {unit}, но чтобы покрыть доставку за {days} дн. нужно около {needed}. Заказывайте меньше, но чаще, или освободите место.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Ещё учимся',
     learningNote: 'День {n} из {needed}. Это примерные диапазоны — они станут гораздо точнее примерно через две недели записей.',
@@ -5939,6 +5979,11 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: "Limité à {qty} — c'est tout ce que votre stockage peut contenir.",
+    ocStorageFull: 'Pas de place pour plus en ce moment — votre stockage est plein. Vendez une partie avant de recommander.',
+    ocShelfLifeCapped: "Limité à {qty} — au-delà, cela s'abîmerait avant d'être vendu (se conserve environ {days} jours).",
+    ocStorageBelowReorder: 'Votre stockage contient {capacity} {unit}, mais couvrir une livraison de {days} jours en demande environ {needed}. Commandez de plus petites quantités plus souvent, ou libérez de la place.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Encore en apprentissage',
     learningNote: 'Jour {n} sur {needed}. Ce sont des fourchettes approximatives — elles deviennent bien plus précises après environ deux semaines de saisie.',
@@ -6981,6 +7026,11 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: '{qty}-এ সীমাবদ্ধ — আপনার সংরক্ষণে এতটুকুই ধরে।',
+    ocStorageFull: 'এখন আর জায়গা নেই — সংরক্ষণ ভরা। আবার অর্ডার করার আগে কিছু বিক্রি করুন।',
+    ocShelfLifeCapped: '{qty}-এ সীমাবদ্ধ — এর বেশি বিক্রির আগেই নষ্ট হবে (প্রায় {days} দিন টেকে)।',
+    ocStorageBelowReorder: 'আপনার সংরক্ষণে {capacity} {unit} ধরে, কিন্তু {days} দিনের ডেলিভারি সামলাতে প্রায় {needed} দরকার। কম পরিমাণে বেশি বার অর্ডার করুন, বা জায়গা বাড়ান।',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'এখনও শিখছি',
     learningNote: '{needed}-এর মধ্যে দিন {n}। এগুলো আনুমানিক পরিসর — প্রায় দুই সপ্তাহ নথিভুক্ত করার পর অনেক বেশি নির্ভুল হয়।',
@@ -8023,6 +8073,11 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: '{qty} تک محدود — آپ کے ذخیرے میں اتنا ہی سما سکتا ہے۔',
+    ocStorageFull: 'ابھی مزید کی گنجائش نہیں — ذخیرہ بھرا ہوا ہے۔ دوبارہ آرڈر سے پہلے کچھ فروخت کریں۔',
+    ocShelfLifeCapped: '{qty} تک محدود — اس سے زیادہ فروخت سے پہلے خراب ہو جائے گا (تقریباً {days} دن چلتا ہے)۔',
+    ocStorageBelowReorder: 'آپ کے ذخیرے میں {capacity} {unit} آتے ہیں، مگر {days} دن کی ترسیل کے لیے تقریباً {needed} درکار ہیں۔ کم مقدار زیادہ بار منگوائیں، یا جگہ بنائیں۔',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'ابھی سیکھ رہے ہیں',
     learningNote: 'دن {n} از {needed}۔ یہ تخمینی حدود ہیں — تقریباً دو ہفتے اندراج کے بعد یہ کہیں زیادہ درست ہو جاتی ہیں۔',
@@ -9065,6 +9120,11 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: 'Dibatasi {qty} — hanya sebanyak itu yang muat di penyimpanan Anda.',
+    ocStorageFull: 'Belum ada ruang untuk tambahan — penyimpanan penuh. Jual sebagian dulu sebelum memesan lagi.',
+    ocShelfLifeCapped: 'Dibatasi {qty} — lebih dari itu akan rusak sebelum terjual (tahan sekitar {days} hari).',
+    ocStorageBelowReorder: 'Penyimpanan Anda memuat {capacity} {unit}, tetapi menutup pengiriman {days} hari butuh sekitar {needed}. Pesan lebih sedikit tapi lebih sering, atau tambah ruang.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Masih belajar',
     learningNote: 'Hari {n} dari {needed}. Ini rentang kasar — jauh lebih akurat setelah sekitar dua minggu pencatatan.',
@@ -10107,6 +10167,11 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: 'Begrenzt auf {qty} — mehr passt nicht in Ihr Lager.',
+    ocStorageFull: 'Im Moment ist kein Platz mehr — Ihr Lager ist voll. Verkaufen Sie erst etwas, bevor Sie nachbestellen.',
+    ocShelfLifeCapped: 'Begrenzt auf {qty} — mehr würde verderben, bevor es verkauft ist (hält etwa {days} Tage).',
+    ocStorageBelowReorder: 'Ihr Lager fasst {capacity} {unit}, aber für eine Lieferzeit von {days} Tagen brauchen Sie etwa {needed}. Bestellen Sie kleinere Mengen häufiger, oder schaffen Sie mehr Platz.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Lernt noch',
     learningNote: 'Tag {n} von {needed}. Das sind grobe Bandbreiten — nach etwa zwei Wochen Erfassung werden sie deutlich genauer.',
@@ -11149,6 +11214,11 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: '{qty} が上限です — 保管スペースの限界です。',
+    ocStorageFull: '今は追加で置く場所がありません — 保管がいっぱいです。少し売ってから再発注してください。',
+    ocShelfLifeCapped: '{qty} が上限です — それ以上は売り切る前に傷みます（約 {days} 日もちます）。',
+    ocStorageBelowReorder: '保管できるのは {capacity} {unit} ですが、{days} 日分の配送をまかなうには約 {needed} 必要です。少量をこまめに発注するか、場所を増やしてください。',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'まだ学習中です',
     learningNote: '{needed}日中{n}日目。これは大まかな範囲です。約2週間記録すると精度が大きく上がります。',
@@ -12191,6 +12261,11 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    // Ordering constraint notes (structured codes from the backend)
+    ocStorageCapped: '{qty} ile sınırlı — deponuza ancak bu kadarı sığıyor.',
+    ocStorageFull: 'Şu anda daha fazlası için yer yok — deponuz dolu. Yeniden sipariş vermeden önce bir kısmını satın.',
+    ocShelfLifeCapped: '{qty} ile sınırlı — fazlası satılmadan bozulur (yaklaşık {days} gün dayanır).',
+    ocStorageBelowReorder: 'Deponuz {capacity} {unit} alıyor, ancak {days} günlük teslimatı karşılamak için yaklaşık {needed} gerekiyor. Daha küçük miktarları daha sık sipariş edin veya yer açın.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Hâlâ öğreniyor',
     learningNote: '{needed} günün {n}. günü. Bunlar kaba aralıklar — yaklaşık iki hafta kayıt sonrasında çok daha isabetli olur.',

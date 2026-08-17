@@ -544,7 +544,8 @@ export interface ProductForecastItem {
   order_now: boolean
   eoq?: number
   n_days_data: number
-  constraint_notes: string[]
+  constraint_notes: string[]          // English fallback
+  constraint_codes?: { code: string; params: Record<string, string | number> }[]
   projected_runout_warning: boolean
 }
 

@@ -113,7 +113,9 @@ class OrderingRow(BaseModel):
     eoq: Optional[float] = None
     suggested_order_qty: float = 0.0
     n_days_data: int = 0                       # 0 = no sales history yet; UI hides reorder section
-    constraint_notes: list[str] = []
+    constraint_notes: list[str] = []          # English fallback
+    # Structured equivalents so the client can render them translated.
+    constraint_codes: list[dict] = []
     # Batch-FIFO fields
     fifo_note: Optional[str] = None           # always shown when batches exist: "assumes oldest first (FIFO)"
     older_stock_warning: Optional[str] = None # older batches expiring before new order arrives
@@ -226,7 +228,9 @@ class ProductForecastItem(BaseModel):
     order_now: bool = False
     eoq: Optional[float] = None
     n_days_data: int = 0
-    constraint_notes: list[str] = []
+    constraint_notes: list[str] = []          # English fallback
+    # Structured equivalents so the client can render them translated.
+    constraint_codes: list[dict] = []
     # True when projected stock will hit zero before any pending order arrives
     projected_runout_warning: bool = False
 

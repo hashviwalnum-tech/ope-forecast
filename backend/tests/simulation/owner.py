@@ -151,10 +151,17 @@ class SimulatedOwner:
             if p.target != "customers" and p.target in self.s.product_ids:
                 body["target_product_id"] = self.s.product_ids[p.target]
             r = self.ope.try_("POST", "/periods", json=body)
+            if r.status_code == 403 and "premium" in str(self._body(r)).lower():
+                # The free allowance has run out.  A real owner who runs this
+                # many promotions upgrades — which is exactly what the limit is
+                # there to prompt — so record it and retry.
+                self.note(day, f"free cap hit ({p.kind})",
+                          f"'{p.label}': {self._body(r)} -> upgrading to premium")
+                self.ope.set_tier("premium")
+                r = self.ope.try_("POST", "/periods", json=body)
             if r.status_code == 201:
                 self.s.promos_created[p.label] = r.json()["id"]
             else:
-                # A refusal here is meaningful — it is the free-tier cap biting.
                 self.note(day, f"tag {p.kind}",
                           f"'{p.label}' refused: {r.status_code} {self._body(r)}")
 

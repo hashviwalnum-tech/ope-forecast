@@ -163,6 +163,12 @@ def bootstrap(fresh: bool = True):
 
     app.dependency_overrides[get_current_user] = _sim_user
 
+    if os.environ.get("OPE_SIM_NO_DEBIAS") == "1":
+        # A/B control: neutralise the per-model bias correction so its effect on
+        # accuracy can be measured in isolation.  Test-side only.
+        import app.api.analytics as _an
+        _an.debias = lambda prediction, signed_errors, **kw: prediction
+
     client = TestClient(app)
     client.__enter__()          # runs lifespan → create_all + migrations
     return Ope(client, clock_mod), app, clock_mod

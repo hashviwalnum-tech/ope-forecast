@@ -142,12 +142,20 @@ def apply_order_constraints(
     current_stock: float | None = None,
     shelf_life_days: int | None = None,
     avg_daily_demand: float | None = None,
-) -> tuple[float, list[str]]:
+) -> tuple[float, list[str], list[dict]]:
     """Cap a base order recommendation by storage and shelf-life constraints.
 
-    Returns (capped_order, notes) where notes contains a plain-language message
-    for each constraint that is actually binding.  When neither constraint is set,
-    the order passes through unchanged and notes is empty.
+    Returns ``(capped_order, notes, codes)``:
+
+    * ``notes`` — English prose, kept as the fallback for any client that does
+      not understand a code yet;
+    * ``codes`` — ``{"code": ..., "params": {...}}`` so the client can render the
+      message in the owner's own language.  Backend-generated English shown raw
+      in the UI is exactly the localisation leak the project spec keeps calling
+      out, and the ordering advice is read daily.
+
+    When neither constraint is set the order passes through unchanged and both
+    lists are empty.
 
     Args:
         base_order: unconstrained recommended order quantity.
@@ -159,15 +167,28 @@ def apply_order_constraints(
     """
     order = base_order
     notes: list[str] = []
+    codes: list[dict] = []
 
     if storage_capacity is not None:
         stock = current_stock if current_stock is not None else 0.0
         available_space = max(0.0, storage_capacity - stock)
         if order > available_space:
             order = available_space
-            notes.append(
-                f"Capped at {available_space:.0f} — your storage limit."
-            )
+            if available_space <= 0:
+                # "Order now — quantity 0" is a contradiction the owner cannot
+                # act on, and it happened 17 times over the simulated year.  Say
+                # what is actually wrong instead: there is no room.
+                notes.append(
+                    "There's no room for more right now — your storage is full. "
+                    "Sell some of what you have before reordering."
+                )
+                codes.append({"code": "storage_full", "params": {}})
+            else:
+                notes.append(
+                    f"Capped at {available_space:.0f} — your storage limit."
+                )
+                codes.append({"code": "storage_capped",
+                              "params": {"qty": round(available_space)}})
 
     if shelf_life_days is not None and avg_daily_demand is not None:
         sellable = avg_daily_demand * shelf_life_days
@@ -177,8 +198,10 @@ def apply_order_constraints(
                 f"Capped at {sellable:.0f} — more would spoil before selling "
                 f"(shelf life: {shelf_life_days} days)."
             )
+            codes.append({"code": "shelf_life_capped",
+                          "params": {"qty": round(sellable), "days": shelf_life_days}})
 
-    return order, notes
+    return order, notes, codes
 
 
 def projected_stock_timeline(
