@@ -360,6 +360,27 @@ def _clean_records(db: Session, biz: Business) -> list[DayRecord]:
     ]
 
 
+def _history_records(db: Session, biz: Business) -> list[DayRecord]:
+    """Every day the owner logged, for history and trends views.
+
+    Unlike ``_clean_records`` this keeps days inside tagged ad/event periods —
+    they really happened and belong in the owner's own history.  It still drops
+    days the owner explicitly marked as a fluke to ignore, and weekdays the
+    business is closed, and it never invents a missing day.
+    """
+    rollup_tap_days(db, biz)
+    open_days = _open_days(biz)
+    cutoff = history_cutoff(biz.tier, clock.today_local(biz.settings))
+    query = db.query(DayRecord).filter_by(business_id=biz.id)
+    if cutoff is not None:
+        query = query.filter(DayRecord.date >= cutoff)
+    return [
+        r for r in query.order_by(DayRecord.date).all()
+        if r.outlier_status != "excluded"
+        and (open_days is None or r.date.weekday() in open_days)
+    ]
+
+
 def _effective_obs(records: list[DayRecord]) -> list[float]:
     """Convert records to a customer observation series.
 
@@ -1643,16 +1664,21 @@ def get_monthly_summary(
     db: Session = Depends(get_db),
     biz: Business = Depends(get_business),
 ):
-    """Monthly aggregation of clean customer data for the trends view.
+    """Monthly aggregation for the trends & history view.
 
-    Applies the same cleaning rules as the forecasting engine:
-    - event/ad periods excluded
-    - outlier 'excluded'/'event' records dropped
-    - closed weekdays excluded
-    - unreviewed 'flagged' outliers replaced with their weekday median
-    - missing days are simply absent (never zero-filled)
+    This is a HISTORY view — "every day you've logged" — not the forecasting
+    baseline, and the two want different data.  It used to reuse the baseline,
+    which strips out every day inside a tagged ad or event: on the simulated
+    year that silently dropped 55 real trading days, reported "256 days logged"
+    where the owner had logged 311, showed those days as gaps in a chart
+    captioned "every day you've logged", and drew a monthly trend line for a
+    business that had never run any promotions.
+
+    So: every logged day, at its real value.  The two things still honoured are
+    the owner's own instructions — days they marked as a fluke to ignore, and
+    weekdays they are closed — and missing days stay absent, never zero-filled.
     """
-    records = _clean_records(db, biz)
+    records = _history_records(db, biz)
 
     if not records:
         return MonthlyResponse(
@@ -1663,8 +1689,9 @@ def get_monthly_summary(
             ),
         )
 
-    obs = _effective_obs(records)
-    day_data = [(r.date, v) for r, v in zip(records, obs)]
+    # Real values, not the median-substituted ones the forecaster uses: a
+    # history view should show what actually happened.
+    day_data = [(r.date, float(r.customers)) for r in records]
 
     months_raw = monthly_summary(day_data)
 
@@ -2388,8 +2415,28 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
         if current_pace == 0:
             continue
-        ly_avg   = mean(ly_vals)
-        pct_diff_s = (ly_avg - current_pace) / current_pace * 100
+        ly_avg = mean(ly_vals)
+
+        # Compare that month against the level the business was running at AROUND
+        # THAT TIME, not against today's pace.  Comparing to today confuses growth
+        # with seasonality: a business that has simply got busier shows every
+        # future month as "typically slower", which is exactly what happened —
+        # three consecutive months were announced as slower purely because the
+        # shop had grown about 23% over the year.  A ±5-month window either side
+        # of the same month gives the local level and cancels the trend out.
+        mid = date(fut_yr - yr_back, fut_mo, 15)
+        around = [
+            v for r, v in zip(clean_records, obs_c)
+            if abs((r.date - mid).days) <= 150
+        ]
+        if len(around) < 60:
+            continue                       # not enough surrounding history to judge
+        ly_baseline = mean(around)
+        if ly_baseline <= 0:
+            continue
+
+        seasonal_index = ly_avg / ly_baseline          # 1.0 = an ordinary month
+        pct_diff_s = (seasonal_index - 1.0) * 100
         if abs(pct_diff_s) < _MIN_SEASONAL_PCT:
             continue
 
@@ -2402,6 +2449,7 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             pct_difference=round(abs(pct_diff_s), 1),
             direction="busier" if pct_diff_s > 0 else "quieter",
             weeks_away=weeks_away,
+            expected_pace=round(current_pace * seasonal_index),
         ))
 
     seasonal_alerts_out.sort(key=lambda x: x.weeks_away)

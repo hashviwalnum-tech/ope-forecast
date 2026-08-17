@@ -88,6 +88,7 @@ function SeasonalRow({ alert }: { alert: InsightsSeasonalAlert }) {
             last_yr: String(Math.round(alert.last_year_avg)),
             pct:     alert.pct_difference.toFixed(0),
             pace:    String(Math.round(alert.current_pace)),
+            expected: String(Math.round(alert.expected_pace ?? alert.current_pace)),
           })}
         </p>
         <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{weeksNote}</p>

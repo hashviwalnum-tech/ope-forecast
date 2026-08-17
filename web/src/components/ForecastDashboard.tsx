@@ -154,13 +154,20 @@ function ProductOrderActions({
 
   const isWhole = unitMode === 'whole'
 
-  // Most recent pending order (any date — backend enforces lock)
+  // Only orders that are genuinely still coming.  effective_status accounts for
+  // the "always assume orders arrive on time" setting — without it, an owner
+  // with that switched on saw a year of long-since-delivered orders listed as
+  // "in transit", one row each, which made this card thousands of lines long.
   const allPending = productOrders
-    .filter(o => o.status === 'pending')
+    .filter(o => (o.effective_status ?? o.status) === 'pending')
     .sort((a, b) => b.ordered_date.localeCompare(a.ordered_date))
   const activePending = allPending[0] ?? null
-  // Older pending orders beyond the most recent (shown as in-transit info)
+  // Older deliveries still on their way, newest first.  Capped, because a long
+  // list of them is noise — the owner cares about what is arriving soon.
+  const MAX_IN_TRANSIT_SHOWN = 4
   const otherPending = allPending.slice(1)
+  const shownPending = otherPending.slice(0, MAX_IN_TRANSIT_SHOWN)
+  const hiddenPendingCount = otherPending.length - shownPending.length
 
   const [showForm, setShowForm]   = useState(false)
   const [qty, setQty]             = useState(
@@ -218,7 +225,7 @@ function ProductOrderActions({
   return (
     <div className="px-4 py-2.5 border-t border-slate-100 dark:border-slate-700 space-y-1.5">
       {/* Additional in-transit pending orders */}
-      {otherPending.map(o => (
+      {shownPending.map(o => (
         <div key={o.id} className="flex items-center gap-3 flex-wrap">
           <p className="text-xs text-teal-600 dark:text-teal-300 flex-1">
             📦 {t('inTransitInfo', { qty: String(o.quantity), unit, date: o.expected_arrival_date })}
@@ -234,6 +241,11 @@ function ProductOrderActions({
           )}
         </div>
       ))}
+      {hiddenPendingCount > 0 && (
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          {t('moreOnTheWay', { n: String(hiddenPendingCount) })}
+        </p>
+      )}
 
       {/* Active (most recent) pending order — info row with edit / mark arrived / cancel */}
       {activePending && !editing && (

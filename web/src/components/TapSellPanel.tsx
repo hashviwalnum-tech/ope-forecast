@@ -97,7 +97,7 @@ function RecentTapsList({
   timezone: string
   onDelete: (id: number) => void
 }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   if (taps.length === 0) return null
 
   return (
@@ -108,7 +108,8 @@ function RecentTapsList({
           const ts = new Date(tap.timestamp)
           // Explicit business timeZone — not the viewing device's timezone,
           // which may differ from where the business actually operates.
-          const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: timezone })
+          // Format in the language the owner picked, not the browser's.
+          const timeStr = ts.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', timeZone: timezone })
           const label = tap.product_name ?? t('customerNoProduct')
           const qty = tap.quantity !== 1 ? ` ×${tap.quantity}` : ''
           return (

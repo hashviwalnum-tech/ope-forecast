@@ -555,6 +555,9 @@ export interface ProductForecastItem {
 // ── Order records (ordering lifecycle) ───────────────────────────────────────
 
 export interface OrderRecordRead {
+  // 'pending' | 'arrived' | 'cancelled', accounting for the business's
+  // "always assume orders arrive on time" setting. Prefer this over `status`.
+  effective_status?: string
   id: number
   business_id: number
   product_id: number
@@ -604,6 +607,7 @@ export interface InsightsWeekdayTrend {
 }
 
 export interface InsightsSeasonalAlert {
+  expected_pace?: number   // this month's seasonal shape applied to today's pace
   month_name: string
   last_year_avg: number
   current_pace: number

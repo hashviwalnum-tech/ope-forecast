@@ -267,6 +267,9 @@ class InsightsWeekdayTrend(BaseModel):
 
 
 class InsightsSeasonalAlert(BaseModel):
+    # What this month should run at, given how it compared with the business's
+    # own level a year ago (its seasonal shape) applied to today's pace.
+    expected_pace: Optional[float] = None
     month_name: str        # e.g. "July 2026"
     last_year_avg: float   # avg customers/day that month last year
     current_pace: float    # recent 4-week avg customers/day

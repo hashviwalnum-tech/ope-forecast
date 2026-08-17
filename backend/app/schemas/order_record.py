@@ -25,5 +25,11 @@ class OrderRecordRead(BaseModel):
     quantity: float
     expected_arrival_date: date
     status: str
+    # What the order's status effectively IS, given the business's
+    # "always assume orders arrive on time" setting.  The stock projection has
+    # always honoured that setting, but the stored status never changed — so an
+    # owner with it switched on saw a year of long-since-delivered orders still
+    # listed as "in transit", one row each, on their home screen.
+    effective_status: Optional[str] = None
 
     model_config = {"from_attributes": True}

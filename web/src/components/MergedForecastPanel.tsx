@@ -309,7 +309,9 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
     return (
       <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
         <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-3">{t('demandForecast')}</h2>
-        <p className="text-sm text-slate-400 animate-pulse">{t('savingLabel')}</p>
+        {/* This is a READ, not a write — 'Saving…' told the owner the app was
+            writing something when it was only fetching the forecast. */}
+        <p className="text-sm text-slate-400 animate-pulse">{t('loadingLabel')}</p>
       </section>
     )
   }

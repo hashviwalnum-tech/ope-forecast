@@ -19,6 +19,11 @@ from __future__ import annotations
 import os
 from datetime import timedelta
 
+# Imported at module level so FastAPI can resolve the annotation on _sim_user:
+# `from __future__ import annotations` makes annotations strings, and FastAPI
+# looks them up in module globals, not in the enclosing function's scope.
+from fastapi import Request
+
 from tests.simulation.generator import YEAR_DAYS, YEAR_START
 from tests.simulation.harness import SIM_USER_ID, prepare_env
 
@@ -31,7 +36,6 @@ def main() -> None:
     )
 
     import uvicorn
-    from fastapi import Request
 
     from app import clock
     from app.api.deps import get_current_user

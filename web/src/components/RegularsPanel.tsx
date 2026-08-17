@@ -8,16 +8,20 @@ import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { MonthlyVisits, RegularCreate, RegularProfitabilityRead, RegularRead, RegularUpdate } from '../api/types'
 
-const fmtMoney = (v: number) =>
-  new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
+// Format in the language the owner PICKED in Ope, not the one their browser
+// happens to be set to.  Passing `undefined` follows the browser, so an owner
+// who had switched Ope to English still read Hebrew dates and Hebrew-marked
+// currency on the regulars screen — and vice versa.
+const fmtMoney = (v: number, lang: string) =>
+  new Intl.NumberFormat(lang, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
 
-function fmtCLV(clv: number) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(clv)
+function fmtCLV(clv: number, lang: string) {
+  return new Intl.NumberFormat(lang, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(clv)
 }
 
-function fmtDate(d: string | null) {
+function fmtDate(d: string | null, lang: string) {
   if (!d) return null
-  return new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  return new Date(d).toLocaleDateString(lang, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function liveClv(avgSpend: number, freq: number, years: number) {
@@ -27,7 +31,7 @@ function liveClv(avgSpend: number, freq: number, years: number) {
 // ── Profitability chart (per regular) ────────────────────────────────────────
 
 function ProfitabilityChart({ regularId }: { regularId: number }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { isDark } = useTheme()
   const [data, setData] = useState<RegularProfitabilityRead | null>(null)
   const [loading, setLoading] = useState(true)
@@ -60,7 +64,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
   const barColors = ['#4e8b87', '#3a7470', '#2c5f5c']
 
   const fmt = (v: number) =>
-    new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
+    new Intl.NumberFormat(lang, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
 
   // Churn chart data — only include months that have at least one visit, OR the last 6 months to show trend
   const monthNames = [
@@ -123,7 +127,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
         </ResponsiveContainer>
         {data.first_visit_date && (
           <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-            {t('firstVisitLabel', { date: fmtDate(data.first_visit_date) ?? '' })}
+            {t('firstVisitLabel', { date: fmtDate(data.first_visit_date, lang) ?? '' })}
           </p>
         )}
       </div>
@@ -185,7 +189,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function RegularsPanel() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [rows, setRows]         = useState<RegularRead[]>([])
   const [loading, setLoading]   = useState(true)
   const [adding, setAdding]     = useState(false)
@@ -385,7 +389,7 @@ export default function RegularsPanel() {
           <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 px-4 py-3">
             <p className="text-xs text-teal-600 dark:text-teal-400 font-medium">
               {t('clvEstimateText', { years: String(form.expected_lifespan_years ?? 3) })}
-              <span className="text-teal-800 dark:text-teal-200 font-bold ml-1">{fmtCLV(clvPreview)}</span>
+              <span className="text-teal-800 dark:text-teal-200 font-bold ml-1">{fmtCLV(clvPreview, lang)}</span>
             </p>
             <p className="text-[11px] text-teal-500 dark:text-teal-500 mt-0.5">
               {t('clvFormulaText', {
@@ -513,7 +517,7 @@ export default function RegularsPanel() {
                     <span className="font-semibold text-slate-800 dark:text-slate-100">{r.name}</span>
                     <span className="text-xs bg-teal-50 dark:bg-teal-900/40 text-teal-600 dark:text-teal-300 border border-teal-100 dark:border-teal-800
                                      rounded-full px-2 py-0.5 font-medium">
-                      CLV {fmtCLV(r.clv)}
+                      CLV {fmtCLV(r.clv, lang)}
                     </span>
                   </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -522,7 +526,7 @@ export default function RegularsPanel() {
                   {r.notes && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 italic">{r.notes}</p>}
                   {r.last_visit_date && (
                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                      {t('lastVisitLabel', { date: fmtDate(r.last_visit_date) ?? '' })}
+                      {t('lastVisitLabel', { date: fmtDate(r.last_visit_date, lang) ?? '' })}
                     </p>
                   )}
                 </div>
@@ -552,19 +556,19 @@ export default function RegularsPanel() {
                   <div>
                     <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityThisMonth')}</span>
                     <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
-                      {fmtMoney(profMap[r.id].this_month)}
+                      {fmtMoney(profMap[r.id].this_month, lang)}
                     </span>
                   </div>
                   <div>
                     <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityThisYear')}</span>
                     <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
-                      {fmtMoney(profMap[r.id].this_year)}
+                      {fmtMoney(profMap[r.id].this_year, lang)}
                     </span>
                   </div>
                   <div>
                     <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityAllTime')}</span>
                     <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
-                      {fmtMoney(profMap[r.id].all_time)}
+                      {fmtMoney(profMap[r.id].all_time, lang)}
                     </span>
                   </div>
                 </div>

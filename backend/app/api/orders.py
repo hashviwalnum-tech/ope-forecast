@@ -112,17 +112,37 @@ def create_order(
     return row
 
 
+def _effective_status(row: OrderRecord, today: date, assume_on_time: bool) -> str:
+    """A pending order whose delivery date has passed counts as arrived when the
+    owner has asked us to assume orders arrive on time."""
+    if row.status == "pending" and assume_on_time and row.expected_arrival_date <= today:
+        return "arrived"
+    return row.status
+
+
 @router.get("", response_model=list[OrderRecordRead])
 def list_orders(
     db: Session = Depends(get_db),
     biz: Business = Depends(get_business),
 ):
-    return (
+    settings = biz.settings or {}
+    today = clock.today_local(settings)
+    assume_on_time = bool(settings.get("assume_orders_arrive_on_time", False))
+    rows = (
         db.query(OrderRecord)
         .filter_by(business_id=biz.id)
         .order_by(OrderRecord.ordered_date.desc())
         .all()
     )
+    return [
+        OrderRecordRead(
+            id=r.id, business_id=r.business_id, product_id=r.product_id,
+            ordered_date=r.ordered_date, quantity=r.quantity,
+            expected_arrival_date=r.expected_arrival_date, status=r.status,
+            effective_status=_effective_status(r, today, assume_on_time),
+        )
+        for r in rows
+    ]
 
 
 @router.put("/{order_id}", response_model=OrderRecordRead)
