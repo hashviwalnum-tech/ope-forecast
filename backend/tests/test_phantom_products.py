@@ -6,7 +6,8 @@ must never create SaleRecord entries, and existing product data is unchanged.
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.deps import get_business
+from app.api.deps import get_business, get_tier
+from app.engine.limits import Tier
 from app.db import get_db
 from app.main import app
 from app.models import DayRecord, Product, SaleRecord
@@ -21,6 +22,7 @@ def imp_client(db, biz):
         return biz
     app.dependency_overrides[get_db] = _db
     app.dependency_overrides[get_business] = _biz
+    app.dependency_overrides[get_tier] = lambda: Tier('free')
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c
     app.dependency_overrides.clear()

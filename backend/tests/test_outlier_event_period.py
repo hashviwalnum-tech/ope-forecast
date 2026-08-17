@@ -9,7 +9,8 @@ fluke prompt just because a period is tagged)."
 import pytest
 from datetime import date
 
-from app.api.deps import get_business
+from app.api.deps import get_business, get_tier
+from app.engine.limits import Tier
 from app.db import get_db
 from app.main import app
 from app.models import DayRecord, Period
@@ -27,6 +28,7 @@ def outlier_client(db, biz):
 
     app.dependency_overrides[get_db] = _db
     app.dependency_overrides[get_business] = _biz
+    app.dependency_overrides[get_tier] = lambda: Tier('free')
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c
     app.dependency_overrides.clear()

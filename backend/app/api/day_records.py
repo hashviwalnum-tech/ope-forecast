@@ -4,9 +4,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app import clock
-from app.api.deps import get_business
+from app.api.deps import get_business, get_tier
 from app.db import get_db
 from app.engine.limits import (
+    Tier,
     check_entry_timing,
     check_history,
     check_non_working_day,
@@ -287,23 +288,26 @@ def rollup_tap_days_endpoint(db: Session = Depends(get_db), biz: Business = Depe
 
 
 @router.get("", response_model=list[DayRecordRead])
-def list_day_records(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+def list_day_records(db: Session = Depends(get_db), biz: Business = Depends(get_business),
+                     tier: Tier = Depends(get_tier)):
     # Spec §9: tap-only days roll into past days automatically after closing.
     # This is the Past Days screen, so it must do that roll-up itself — an owner
     # who taps all week and then opens Past Days used to find it empty, because
     # only the analytics endpoints happened to trigger the roll-up.
     rollup_tap_days(db, biz)
     query = db.query(DayRecord).filter_by(business_id=biz.id)
-    cutoff = history_cutoff(biz.tier, clock.today_local(biz.settings))
+    cutoff = history_cutoff(tier, clock.today_local(biz.settings))
     if cutoff is not None:
         query = query.filter(DayRecord.date >= cutoff)
     return query.order_by(DayRecord.date).all()
 
 
 @router.post("", response_model=DayRecordRead, status_code=201)
-def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db),
+                      biz: Business = Depends(get_business),
+                      tier: Tier = Depends(get_tier)):
     try:
-        check_history(biz.tier, body.date, clock.today_local(biz.settings))
+        check_history(tier, body.date, clock.today_local(biz.settings))
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
     _timing_check(body.date, biz)

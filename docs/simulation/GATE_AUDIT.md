@@ -1,10 +1,13 @@
 # Gate audit — everything that depends on user / subscription state
 
 **Why.** The trial-to-free transition leaked (F-018) because the tier every limit
-check reads — `Business.settings["tier"]` — is a **cached flag**, and the only
+check read — `Business.settings["tier"]` — was a **cached flag**, and the only
 thing that ever wrote it back down was the client calling `GET /subscription`.
 A user who never opened the premium screen kept unlimited locations, ads, events
 and history permanently.
+
+**Outcome.** Three further leaks found, all in the Telegram path — then the cache
+itself removed, so the class of bug is gone rather than patched.
 
 This is a full sweep of every place in the backend that gates a feature, a limit
 or a tier, checking one thing: **does it resolve authoritative state on the
@@ -18,53 +21,64 @@ class of bug stops being a free upgrade and starts being lost revenue.
 
 ## The rule
 
-`Business.settings["tier"]` is a **cache, not a source of truth.** The source of
-truth is the `Subscription` row, via `Subscription.effective_tier` (active
-subscription → premium; inside trial window → premium; otherwise free).
+**There is no tier cache any more.**
 
-`deps.sync_user_tier(db, user_id)` is the **one** function that reconciles the
-two. Any code path that reads `biz.tier` must have run it first for that user.
+`Business.settings["tier"]` used to be the value every limit check read, kept in
+step by whichever code path remembered to sync it. That is now gone as a concept:
 
-There is exactly one deliberate exception: `settings["tier_admin_override"]`,
-set by the admin-key `PATCH /businesses/me/tier`, pins a tier for testing before
-billing exists. It is respected by design and is only reachable with the server's
-`ADMIN_KEY`.
+* `Business` has **no `.tier` attribute**. Reaching for it raises.
+* The tier is obtained only from **`deps.resolve_tier(db, user_id)`**, which
+  reads the `Subscription` row — the source of truth — on every call.
+* It is returned as an **`app.engine.limits.Tier`**, and every limit helper
+  requires that type. Passing a bare string fails. So a caller cannot reach a
+  gate at all without having resolved the tier first: **forgetting is now an
+  error instead of a silent entitlement leak.**
+* Endpoints that gate declare `tier: Tier = Depends(get_tier)` and pass it
+  explicitly to whatever needs it.
 
----
+One deliberate exception remains: `settings["tier_admin_override"]`, set only by
+the admin-key `PATCH /businesses/me/tier`, pins a tier for testing until billing
+exists. That is a manual act behind the server's own key, not a stale value, and
+`resolve_tier` is the only thing that honours it.
+
+Legacy rows in production still carry a leftover `settings["tier"]` string. It is
+now inert — a test asserts that a business carrying `{"tier": "premium"}` with no
+subscription and no override resolves to **free**.
 
 ## Every gate found
 
-### Tier / limit gates
+All eleven now take an explicitly resolved `Tier`. The "originally" column
+records what each did when the audit began.
 
-| # | Gate | Where | How it resolves tier | Status |
+| # | Gate | Where | Originally | Now |
 |---|---|---|---|---|
-| 1 | History cutoff (forecast baseline) | `analytics.py` `_clean_records` | `get_business` → `sync_user_tier` | **safe** |
-| 2 | History cutoff (trends & history) | `analytics.py` `_history_records` | `get_business` → `sync_user_tier` | **safe** |
-| 3 | History cutoff (Past Days list) | `day_records.py` `list_day_records` | `get_business` → `sync_user_tier` | **safe** |
-| 4 | Reject a day older than the free cap | `day_records.py` `create_day_record` | `get_business` → `sync_user_tier` | **safe** |
-| 5 | Ad / event allowance | `periods.py` `create_period` | `get_business` → `sync_user_tier` | **safe** |
-| 6 | Second location | `businesses.py` `create_business` | explicit `sync_user_tier` | **was leaking — fixed (F-018)** |
-| 7 | Copy a location | `businesses.py` `copy_business` | explicit `sync_user_tier` | **was leaking — fixed (F-018)** |
-| 8 | Tier reported to the client | `businesses.py` `list` / `me` | explicit `sync_user_tier` | **was leaking — fixed (F-018)** |
-| 9 | **Telegram bot forecast** | `bot.py` `_business_for_chat` | now `sync_user_tier` on the linked business | **was leaking — fixed by this audit** |
-| 10 | **Telegram bot ordering** | `bot.py` `_business_for_chat` | same helper | **was leaking — fixed by this audit** |
-| 11 | **Telegram nudge fan-out** | `bot.py` `bot_send_all_nudges` | now `sync_user_tier` per business | **was leaking — fixed by this audit** |
+| 1 | History cutoff (forecast baseline) | `analytics.py` `_clean_records` | read the cached flag, refreshed by `get_business` | takes `tier: Tier` |
+| 2 | History cutoff (trends & history) | `analytics.py` `_history_records` | same | takes `tier: Tier` |
+| 3 | History cutoff (Past Days list) | `day_records.py` `list_day_records` | same | `Depends(get_tier)` |
+| 4 | Reject a day older than the free cap | `day_records.py` `create_day_record` | same | `Depends(get_tier)` |
+| 5 | Ad / event allowance | `periods.py` `create_period` | same | `Depends(get_tier)` |
+| 6 | Second location | `businesses.py` `create_business` | **leaking** (F-018) | `resolve_tier` at the check |
+| 7 | Copy a location | `businesses.py` `copy_business` | **leaking** (F-018) | `resolve_tier` at the check |
+| 8 | Tier reported to the client | `businesses.py` `list` / `me` | **leaking** (F-018) | resolved and set explicitly |
+| 9 | Telegram bot forecast | `bot.py` | **leaking** — never resolved at all | `resolve_tier`, passed in |
+| 10 | Telegram bot ordering | `bot.py` | **leaking** — same | `resolve_tier`, passed in |
+| 11 | Telegram nudge fan-out | `bot.py` | **leaking** — same | resolves per business |
 
 ### Gates 9–11: what was wrong
 
 The bot resolves its business from the `TelegramLink` row with
 `db.get(Business, link.business_id)` — it never goes through `get_business`, so
-`sync_user_tier` never ran. Both bot read endpoints call straight into the
-analytics functions, which read `biz.tier` for the history cutoff.
+nothing ever refreshed the cached tier on that path. Both bot read endpoints call
+straight into the analytics functions, which gated history depth on it.
 
 Consequence: **an expired trial with a linked Telegram bot kept premium history
 depth in its forecasts indefinitely.** Worse than the original F-018 leak,
-because the bot path also never *refreshed* the cached flag, so nothing on that
-path could ever correct itself.
+because the bot path also never *refreshed* the flag, so it could never
+self-correct.
 
-Fixed by resolving the live tier inside `_business_for_chat` and in the nudge
-loop, immediately after loading the business and before it is handed to anything
-that gates.
+The seven analytics endpoints that reach a gate (`/forecast`, `/accuracy`,
+`/weekday-averages`, `/ordering`, `/monthly-summary`, `/product-forecast`,
+`/insights`) now declare `tier: Tier = Depends(get_tier)` and pass it down.
 
 ### Admin-key gates
 
@@ -112,41 +126,66 @@ that these are harmless:
 * `nudges.py` — gates on `settings["nudges_enabled"]` and a frequency stamp, both
   owner preferences rather than entitlements.
 * `subscriptions.py` `_sync_business_tier` — **was a second implementation** of
-  the tier sync with subtly different rules. Now delegates to
-  `deps.sync_user_tier`, so there is one implementation. Two copies of "is this
-  user premium" is precisely how two parts of an app come to disagree.
+  the tier sync with subtly different rules. Two copies of "is this user premium"
+  is precisely how two parts of an app come to disagree. **Now deleted
+  entirely**, along with its call sites: with no cache there is nothing to sync,
+  and a subscription change takes effect on the very next gated request.
 
 ---
 
-## Standing guard
+---
 
-`tests/test_tier_limits.py::test_no_new_code_path_reads_a_tier_off_a_directly_loaded_business`
-parses the application's AST and fails if **any function** both loads a Business
-directly with `db.get(Business, …)` and reads `.tier`, without also calling
-`sync_user_tier`. That is exactly the shape of gates 9–11, so the same mistake
-cannot be reintroduced silently.
+## Billing-adjacent changes
 
-Alongside it, eleven behavioural tests cover: the trial granting premium; the
-trial expiring **without the client asking**; the ad, event, history and location
-caps all binding; ads and events having separate allowances; an admin upgrade
-taking effect at runtime; and the bot no longer serving a stale tier.
+What changed in code that will matter once real money is involved:
+
+| File | Change | Effect on billing |
+|---|---|---|
+| `subscriptions.py` | `_sync_business_tier` **deleted**, and its three call sites removed from `GET /subscription`, `POST /subscription/cancel` and the webhook handler | A subscription change now takes effect on the **very next gated request**. Previously an entitlement only appeared once something wrote the cache — which for a *paying* customer meant a purchase that did not take effect until the app happened to refresh. |
+| `businesses.py` `create_business` | The trial no longer writes `settings["tier"] = "premium"` | The 30-day trial grants premium purely by the `Subscription` row existing. There is no flag left to go stale when it expires — the original F-018 bug cannot recur. |
+| `businesses.py` `PATCH /me/tier` | Unchanged behaviour; still writes `tier` + `tier_admin_override` | Still the manual grant path behind `ADMIN_KEY`, and now the **only** thing `settings["tier"]` is read for. Spec §3.5 replaces this with a verified payment when billing lands; nothing else needs to change when it does. |
+| `deps.py` | `sync_user_tier` (read-and-write) replaced by `resolve_tier` (read-only) | No request writes to the database just to answer "is this user premium". Fewer writes, and no lost-update risk between concurrent requests. |
+| `bot.py` | Resolves the tier itself and passes it in | The Telegram bot is a paying customer's channel too; it was serving premium depth to expired accounts. |
+| `engine/limits.py` | `Tier` type; all three limit helpers require it | A future billing code path physically cannot call a limit check with an unresolved value. |
+
+Three tests cover the billing paths specifically: activating a subscription lifts
+the limits on the next request with no refresh in between; cancelling removes the
+entitlement at once; and the tier *reported* to the client always matches the
+tier the gates *enforce*, so a screen can never claim premium while a gate
+refuses.
+
+**Unchanged:** the payment provider abstraction, the checkout flow, and the
+webhook handler's logic. `payment_provider.verify_webhook` still returns `{}` for
+the stub, so the webhook remains a no-op until a real provider is wired in — that
+is pre-existing and expected.
 
 ---
 
 ## Verdict
 
-**Three leaks found by this audit, all in the Telegram path, all fixed.**
-Every remaining gate resolves authoritative state server-side at the moment of
-the gated action. Nothing gates on a client-supplied value, and the one cached
-value that limits still read (`settings["tier"]`) is now reconciled from the
-subscription on every path that reaches it.
+**Three leaks were found by the audit, all in the Telegram path, all fixed — and
+the underlying cache has since been removed entirely.**
 
-**One thing to decide before billing:** `settings["tier"]` remains a cache that
-happens to be kept correct, rather than being removed in favour of reading the
-subscription directly at each check. Keeping it is a performance choice (one
-query saved per request). It is currently safe, but every new code path is one
-more chance to read it without syncing — which is why the AST guard exists. If
-you would rather not carry that risk into a paid product, the alternative is to
-make `Business.tier` unavailable and have the limit helpers take an explicitly
-resolved tier argument, so forgetting becomes a type error rather than a silent
-leak.
+Every gate now resolves authoritative state server-side at the moment of the
+gated action. Nothing gates on a client-supplied value, and there is no longer a
+cached tier for anything to read.
+
+### Standing guards
+
+Four tests keep it that way:
+
+* **No `.tier` on the model** — asserts the attribute does not exist, so the old
+  mistake is not expressible.
+* **Nothing reads a tier out of settings** — parses every module's AST (not a
+  grep, so the docstrings explaining this history do not trip it) and fails on
+  any `settings["tier"]` subscript or `.get("tier")` call outside `deps.py` and
+  `businesses.py`.
+* **Limit helpers reject an unresolved tier** — passing the bare string
+  `"premium"` to `history_cutoff` or `check_periods` raises.
+* **No function loads a Business directly and reads a tier** — the shape of the
+  three Telegram leaks.
+
+Alongside them, nineteen behavioural tests cover the trial granting premium, the
+trial expiring without the client asking, all four caps binding, an admin grant
+being honoured, a stale settings string being ignored, and the billing paths
+below.

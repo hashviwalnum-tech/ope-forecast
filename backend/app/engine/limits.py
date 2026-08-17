@@ -4,7 +4,42 @@ Tier limit definitions and enforcement helpers.
 These are pure functions — no DB, no framework — so they can be tested
 directly and reused from any API route.
 """
+from dataclasses import dataclass
 from datetime import date, timedelta
+
+FREE = "free"
+PREMIUM = "premium"
+
+
+@dataclass(frozen=True)
+class Tier:
+    """A tier that has been **resolved from authoritative state**.
+
+    Existing as a distinct type is the whole point.  The tier used to be read
+    straight off ``Business.settings["tier"]`` — a cache that only some code paths
+    refreshed — and every leak we found (the trial that never ended, the three
+    Telegram bot gates) was some code reading that cache without refreshing it
+    first.  Making the limit helpers demand a ``Tier`` rather than a ``str``
+    means a caller cannot reach them at all without going through
+    ``app.api.deps.resolve_tier``, which reads the subscription.  Forgetting is
+    now a type error rather than a silent entitlement leak.
+
+    ``Business`` deliberately has no ``.tier`` attribute any more, so the old
+    mistake will not even run.
+    """
+
+    value: str
+
+    def __post_init__(self) -> None:
+        if self.value not in (FREE, PREMIUM):
+            raise ValueError(f"tier must be {FREE!r} or {PREMIUM!r}, got {self.value!r}")
+
+    @property
+    def is_premium(self) -> bool:
+        return self.value == PREMIUM
+
+    def __str__(self) -> str:
+        return self.value
 
 
 def _fmt_hour(h: int) -> str:
@@ -22,14 +57,14 @@ FREE_EVENTS_LIMIT = 10   # one-off events; §10 spec: generous expanded allowanc
 FREE_ADS_LIMIT = 5       # ads remain gated but expanded from 2
 
 
-def history_cutoff(tier: str, today: date) -> date | None:
+def history_cutoff(tier: Tier, today: date) -> date | None:
     """Oldest accessible date for this tier, or None for unlimited."""
-    if tier == "premium":
+    if tier.is_premium:
         return None
     return today - timedelta(days=FREE_HISTORY_DAYS)
 
 
-def check_history(tier: str, record_date: date, today: date) -> None:
+def check_history(tier: Tier, record_date: date, today: date) -> None:
     """Raise ValueError if a free account is trying to add/access a date beyond the cap.
 
     The boundary date itself (exactly 365 days ago) is allowed.
@@ -120,13 +155,13 @@ def check_non_working_day(
         )
 
 
-def check_periods(tier: str, current_count: int, period_type: str = "event") -> None:
+def check_periods(tier: Tier, current_count: int, period_type: str = "event") -> None:
     """Raise ValueError if a free account has hit the per-type periods cap.
 
     Events and ads have separate limits (§10: events generous, ads gated).
     RecurringPatterns are always unlimited and free — do not call this for them.
     """
-    if tier == "premium":
+    if tier.is_premium:
         return
     if period_type == "ad":
         limit = FREE_ADS_LIMIT

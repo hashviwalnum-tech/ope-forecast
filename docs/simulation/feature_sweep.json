@@ -22744,11 +22744,7 @@
   ],
   "nudges": {
    "enabled": true,
-   "nudge": {
-    "type": "low_stock",
-    "message": "Stock is low for Classic Beef Burger, Veggie Burger, and 3 more \u2014 you're at or below the reorder point. Place your order now to avoid running out.",
-    "priority": 3
-   }
+   "nudge": null
   },
   "subscription": {
    "user_id": "00000000-0000-4000-8000-00000000ope1",

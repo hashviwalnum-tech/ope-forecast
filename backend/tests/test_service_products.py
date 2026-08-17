@@ -10,7 +10,8 @@ import pytest
 from datetime import date, timedelta
 from fastapi.testclient import TestClient
 
-from app.api.deps import get_business
+from app.api.deps import get_business, get_tier
+from app.engine.limits import Tier
 from app.db import get_db
 from app.main import app
 from app.models import Business, Product, DayRecord, SaleRecord
@@ -46,6 +47,7 @@ def spa_client(db, spa_biz):
 
     app.dependency_overrides[get_db] = _db
     app.dependency_overrides[get_business] = _biz
+    app.dependency_overrides[get_tier] = lambda: Tier('free')
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c
     app.dependency_overrides.clear()
@@ -174,6 +176,7 @@ def products_client(db, biz):
 
     app.dependency_overrides[get_db] = _db
     app.dependency_overrides[get_business] = _biz
+    app.dependency_overrides[get_tier] = lambda: Tier('free')
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c
     app.dependency_overrides.clear()

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app import clock
-from app.api.deps import get_current_user, require_admin_key, sync_user_tier
+from app.api.deps import get_current_user, require_admin_key, resolve_tier
 from app.billing.provider import payment_provider
 from app.db import get_db
 from app.models import Business
@@ -34,27 +34,16 @@ def _get_or_create_subscription(user_id: str, db: Session) -> Subscription:
     return sub
 
 
-def _sync_business_tier(user_id: str, effective_tier: str, db: Session) -> None:
-    """Keep Business.settings['tier'] in step with the live subscription.
-
-    Delegates to the one implementation in deps.sync_user_tier.  There used to be
-    a second copy here with subtly different rules, which is precisely how two
-    parts of an app end up disagreeing about whether someone is premium.
-    ``effective_tier`` is accepted for call-site readability but deliberately not
-    trusted — the shared helper re-reads the subscription itself.
-    """
-    sync_user_tier(db, user_id)
-
-
 @router.get("/subscription", response_model=SubscriptionRead)
 def get_subscription(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
-    sub = _get_or_create_subscription(user_id, db)
-    effective = sub.effective_tier
-    _sync_business_tier(user_id, effective, db)
-    return sub
+    # Nothing to write back: the tier is no longer cached on the business, so a
+    # subscription change takes effect on the very next gated request without
+    # anything having to notice.  That is what removes the whole class of
+    # "premium kept working after the trial ended" bug.
+    return _get_or_create_subscription(user_id, db)
 
 
 @router.post("/subscription/checkout", response_model=CheckoutResponse)
@@ -88,7 +77,6 @@ def cancel_subscription(
     sub.updated_at = clock.now_utc()
     db.commit()
     db.refresh(sub)
-    _sync_business_tier(user_id, sub.effective_tier, db)
     return sub
 
 
@@ -115,7 +103,6 @@ async def payment_webhook(
             sub.renewal_at = renewal
             sub.updated_at = clock.now_utc()
             db.commit()
-            _sync_business_tier(user_id, "premium", db)
     elif event.get("type") == "subscription.cancelled":
         user_id = event.get("user_id", "")
         sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
@@ -123,7 +110,6 @@ async def payment_webhook(
             sub.subscription_status = "cancelled"
             sub.updated_at = clock.now_utc()
             db.commit()
-            _sync_business_tier(user_id, sub.effective_tier, db)
     return {"ok": True}
 
 

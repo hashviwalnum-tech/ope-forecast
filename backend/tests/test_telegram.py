@@ -15,7 +15,8 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.deps import get_business
+from app.api.deps import get_business, get_tier
+from app.engine.limits import Tier
 from app.main import app
 from app.models import Business, Product
 from app.models.telegram_link import TelegramLink
@@ -41,6 +42,7 @@ def authed_client(client, biz):
     def _override_biz():
         return biz
     app.dependency_overrides[get_business] = _override_biz
+    app.dependency_overrides[get_tier] = lambda: Tier('free')
     yield client
     app.dependency_overrides.pop(get_business, None)
 

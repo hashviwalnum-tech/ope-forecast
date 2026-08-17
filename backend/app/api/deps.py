@@ -9,6 +9,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.engine.limits import FREE, PREMIUM, Tier
 from app.models import Business
 
 log = logging.getLogger(__name__)
@@ -61,45 +62,50 @@ def require_admin_key(request: Request) -> None:
         raise HTTPException(status_code=403, detail="Invalid admin key")
 
 
-def sync_user_tier(db: Session, user_id: str) -> str:
-    """Resolve this user's LIVE tier and write it onto their businesses.
+def resolve_tier(db: Session, user_id: str) -> Tier:
+    """**The only way to obtain a Tier.**  Reads authoritative state, every time.
 
-    Spec §10 requires limit checks to read the live tier.  They read
-    ``Business.settings["tier"]``, which creating a business sets to "premium"
-    for the 30-day trial — and for a long time the *only* thing that ever wrote
-    it back down was the client calling ``GET /subscription``.  A user who never
-    opened the premium screen, or any API-only caller, therefore kept unlimited
-    locations, unlimited ads and events, and unlimited history forever, long
-    after their trial had ended.
+    The tier used to live in ``Business.settings["tier"]`` — a cache written when
+    a trial started and only written back down if the client happened to call
+    ``GET /subscription``.  Every entitlement leak found in testing was some code
+    path reading that cache without refreshing it: the 30-day trial that never
+    actually ended, and three Telegram bot gates that kept serving premium
+    history depth to expired accounts because that path never touched the
+    refresh at all.
 
-    Resolving it here, on the server, on every scoped request, closes that.
-    An explicit admin tier override (used for testing before billing exists) is
-    respected and never clobbered.
+    There is no cache now.  This reads the ``Subscription`` row, which is the
+    source of truth, and returns a ``Tier`` — a type the limit helpers require,
+    so no caller can reach a gate without having come through here.
+
+    One deliberate exception: an explicit admin grant
+    (``settings["tier_admin_override"]``, set only by the admin-key
+    ``PATCH /businesses/me/tier``) pins a tier for testing until billing exists.
+    That is a manual act behind the server's own key, not a stale value.
     """
     from app.models.subscription import Subscription  # local: avoids an import cycle
-    from sqlalchemy.orm.attributes import flag_modified
 
     businesses = db.query(Business).filter(Business.user_id == user_id).all()
-    if not businesses:
-        return "free"
-
-    if any((b.settings or {}).get("tier_admin_override") for b in businesses):
-        return businesses[0].tier
+    for b in businesses:
+        settings = b.settings or {}
+        if settings.get("tier_admin_override"):
+            granted = settings.get("tier")
+            if granted in (FREE, PREMIUM):
+                return Tier(granted)
 
     sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
-    effective = sub.effective_tier if sub is not None else "free"
+    return Tier(sub.effective_tier if sub is not None else FREE)
 
-    changed = False
-    for biz in businesses:
-        settings = dict(biz.settings or {})
-        if settings.get("tier") != effective:
-            settings["tier"] = effective
-            biz.settings = settings
-            flag_modified(biz, "settings")
-            changed = True
-    if changed:
-        db.commit()
-    return effective
+
+def get_tier(
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user),
+) -> Tier:
+    """FastAPI dependency form of :func:`resolve_tier`.
+
+    Endpoints that gate on entitlements declare ``tier: Tier = Depends(get_tier)``
+    and pass it explicitly to whatever needs it.
+    """
+    return resolve_tier(db, user_id)
 
 
 def get_business(
@@ -107,7 +113,6 @@ def get_business(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ) -> Business:
-    sync_user_tier(db, user_id)
     query = db.query(Business).filter(Business.user_id == user_id)
     biz_id_header = request.headers.get("X-Business-Id")
     if biz_id_header is not None:

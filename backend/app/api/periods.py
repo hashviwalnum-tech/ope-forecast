@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_business
+from app.api.deps import get_business, get_tier
 from app.db import get_db
-from app.engine.limits import check_periods
+from app.engine.limits import Tier, check_periods
 from app.models import Business, Period
 from app.schemas.period import PeriodCreate, PeriodRead, PeriodUpdate
 
@@ -23,10 +23,12 @@ def list_periods(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
 
 @router.post("", response_model=PeriodRead, status_code=201)
-def create_period(body: PeriodCreate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+def create_period(body: PeriodCreate, db: Session = Depends(get_db),
+                  biz: Business = Depends(get_business),
+                  tier: Tier = Depends(get_tier)):
     count = db.query(Period).filter_by(business_id=biz.id, type=body.type).count()
     try:
-        check_periods(biz.tier, count, body.type)
+        check_periods(tier, count, body.type)
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
     row = Period(business_id=biz.id, **body.model_dump())

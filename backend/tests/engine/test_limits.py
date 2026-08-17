@@ -4,6 +4,7 @@ Known-answer tests for engine/limits.py — tier gating logic.
 from datetime import date, timedelta
 import pytest
 from app.engine.limits import (
+    Tier,
     FREE_HISTORY_DAYS,
     FREE_EVENTS_LIMIT,
     FREE_ADS_LIMIT,
@@ -20,48 +21,48 @@ TODAY = date(2026, 5, 31)
 # ── history_cutoff ─────────────────────────────────────────────────────────────
 
 def test_history_cutoff_free_is_365_days_ago():
-    cutoff = history_cutoff("free", TODAY)
+    cutoff = history_cutoff(Tier("free"), TODAY)
     assert cutoff == TODAY - timedelta(days=FREE_HISTORY_DAYS)
 
 
 def test_history_cutoff_premium_is_none():
-    assert history_cutoff("premium", TODAY) is None
+    assert history_cutoff(Tier("premium"), TODAY) is None
 
 
 # ── check_history ──────────────────────────────────────────────────────────────
 
 def test_check_history_premium_allows_any_date():
     very_old = date(2000, 1, 1)
-    check_history("premium", very_old, TODAY)  # no exception
+    check_history(Tier("premium"), very_old, TODAY)  # no exception
 
 
 def test_check_history_free_recent_date_passes():
     recent = TODAY - timedelta(days=30)
-    check_history("free", recent, TODAY)  # no exception
+    check_history(Tier("free"), recent, TODAY)  # no exception
 
 
 def test_check_history_free_exactly_at_cutoff_passes():
     # The boundary date itself is inclusive
     cutoff = TODAY - timedelta(days=FREE_HISTORY_DAYS)
-    check_history("free", cutoff, TODAY)  # no exception
+    check_history(Tier("free"), cutoff, TODAY)  # no exception
 
 
 def test_check_history_free_one_day_before_cutoff_fails():
     one_beyond = TODAY - timedelta(days=FREE_HISTORY_DAYS + 1)
     with pytest.raises(ValueError, match="free plan"):
-        check_history("free", one_beyond, TODAY)
+        check_history(Tier("free"), one_beyond, TODAY)
 
 
 def test_check_history_free_very_old_date_fails():
     old = date(2020, 1, 1)
     with pytest.raises(ValueError):
-        check_history("free", old, TODAY)
+        check_history(Tier("free"), old, TODAY)
 
 
 def test_check_history_error_message_contains_cutoff_date():
     one_beyond = TODAY - timedelta(days=FREE_HISTORY_DAYS + 1)
     with pytest.raises(ValueError) as exc_info:
-        check_history("free", one_beyond, TODAY)
+        check_history(Tier("free"), one_beyond, TODAY)
     msg = str(exc_info.value)
     assert "premium" in msg.lower()
     assert "1 year" in msg
@@ -70,9 +71,9 @@ def test_check_history_error_message_contains_cutoff_date():
 # ── check_periods — events ─────────────────────────────────────────────────────
 
 def test_check_periods_premium_allows_any_count():
-    check_periods("premium", 0, "event")
-    check_periods("premium", 100, "event")  # no exception
-    check_periods("premium", 100, "ad")     # no exception
+    check_periods(Tier("premium"), 0, "event")
+    check_periods(Tier("premium"), 100, "event")  # no exception
+    check_periods(Tier("premium"), 100, "ad")     # no exception
 
 
 def test_free_events_limit_is_ten_or_more():
@@ -86,53 +87,53 @@ def test_free_ads_limit_expanded_from_two():
 
 
 def test_check_events_free_below_limit_passes():
-    check_periods("free", FREE_EVENTS_LIMIT - 1, "event")  # no exception
+    check_periods(Tier("free"), FREE_EVENTS_LIMIT - 1, "event")  # no exception
 
 
 def test_check_events_free_at_limit_fails():
     with pytest.raises(ValueError, match="free plan"):
-        check_periods("free", FREE_EVENTS_LIMIT, "event")
+        check_periods(Tier("free"), FREE_EVENTS_LIMIT, "event")
 
 
 def test_check_events_free_over_limit_fails():
     with pytest.raises(ValueError):
-        check_periods("free", FREE_EVENTS_LIMIT + 5, "event")
+        check_periods(Tier("free"), FREE_EVENTS_LIMIT + 5, "event")
 
 
 def test_check_events_error_mentions_premium():
     with pytest.raises(ValueError) as exc_info:
-        check_periods("free", FREE_EVENTS_LIMIT, "event")
+        check_periods(Tier("free"), FREE_EVENTS_LIMIT, "event")
     assert "premium" in str(exc_info.value).lower()
 
 
 # ── check_periods — ads ────────────────────────────────────────────────────────
 
 def test_check_ads_free_below_limit_passes():
-    check_periods("free", FREE_ADS_LIMIT - 1, "ad")  # no exception
+    check_periods(Tier("free"), FREE_ADS_LIMIT - 1, "ad")  # no exception
 
 
 def test_check_ads_free_at_limit_fails():
     with pytest.raises(ValueError, match="free plan"):
-        check_periods("free", FREE_ADS_LIMIT, "ad")
+        check_periods(Tier("free"), FREE_ADS_LIMIT, "ad")
 
 
 def test_check_ads_free_over_limit_fails():
     with pytest.raises(ValueError):
-        check_periods("free", FREE_ADS_LIMIT + 5, "ad")
+        check_periods(Tier("free"), FREE_ADS_LIMIT + 5, "ad")
 
 
 def test_check_ads_error_mentions_ads():
     with pytest.raises(ValueError) as exc_info:
-        check_periods("free", FREE_ADS_LIMIT, "ad")
+        check_periods(Tier("free"), FREE_ADS_LIMIT, "ad")
     assert "ads" in str(exc_info.value).lower()
 
 
 def test_events_and_ads_have_separate_limits():
     """Adding up to FREE_EVENTS_LIMIT events must not affect the ad limit."""
-    check_periods("free", FREE_EVENTS_LIMIT - 1, "event")  # fine
-    check_periods("free", FREE_ADS_LIMIT - 1, "ad")        # fine independently
+    check_periods(Tier("free"), FREE_EVENTS_LIMIT - 1, "event")  # fine
+    check_periods(Tier("free"), FREE_ADS_LIMIT - 1, "ad")        # fine independently
     with pytest.raises(ValueError):
-        check_periods("free", FREE_ADS_LIMIT, "ad")  # ads hit their own cap
+        check_periods(Tier("free"), FREE_ADS_LIMIT, "ad")  # ads hit their own cap
 
 
 def test_free_history_days_constant_in_range():

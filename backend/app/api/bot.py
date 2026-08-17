@@ -24,7 +24,7 @@ from app.api.nudges import (
     _send_telegram_message,
 )
 from app.db import get_db
-from app.api.deps import sync_user_tier
+from app.api.deps import resolve_tier
 from app.models import Business, Product, SaleEvent
 from app.models.telegram_link import TelegramLink
 from app.schemas.telegram import BotLogSaleRequest, BotLogSaleResponse
@@ -61,14 +61,6 @@ def _business_for_chat(chat_id: str, db: Session) -> Business:
     biz = db.get(Business, link.business_id)
     if not biz:
         raise HTTPException(status_code=404, detail="Linked business not found")
-    # Resolve the LIVE tier before handing this business to anything that gates
-    # on it.  This path loads the business directly rather than through
-    # get_business, so without this the bot served a cached tier flag — an
-    # expired trial kept premium history depth in its forecasts indefinitely,
-    # and because the bot never touches get_business, nothing on this path ever
-    # refreshed the flag either.
-    sync_user_tier(db, biz.user_id)
-    db.refresh(biz)
     return biz
 
 
@@ -83,7 +75,10 @@ def bot_get_forecast(
     """Return the 7-day customer forecast for the business linked to chat_id."""
     _verify_service_key(request)
     biz = _business_for_chat(chat_id, db)
-    return _analytics_forecast(db=db, biz=biz)
+    # The tier is resolved here, from the subscription, and passed explicitly —
+    # this path never goes through get_business, and reading a cached flag is
+    # exactly how the bot used to serve premium history depth to expired trials.
+    return _analytics_forecast(db=db, biz=biz, tier=resolve_tier(db, biz.user_id))
 
 
 # ── /bot/ordering ─────────────────────────────────────────────────────────────
@@ -97,7 +92,7 @@ def bot_get_ordering(
     """Return ordering recommendations for the business linked to chat_id."""
     _verify_service_key(request)
     biz = _business_for_chat(chat_id, db)
-    return _analytics_ordering(db=db, biz=biz)
+    return _analytics_ordering(db=db, biz=biz, tier=resolve_tier(db, biz.user_id))
 
 
 # ── /bot/log-sale ─────────────────────────────────────────────────────────────
@@ -177,9 +172,6 @@ def bot_send_all_nudges(
 
     for link in links:
         biz = db.get(Business, link.business_id)
-        if biz is not None:
-            sync_user_tier(db, biz.user_id)   # same reason as _business_for_chat
-            db.refresh(biz)
         if not biz:
             continue
 

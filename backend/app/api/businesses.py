@@ -3,7 +3,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
-from app.api.deps import get_business, get_current_user, require_admin_key, sync_user_tier
+from app.api.deps import get_business, get_current_user, get_tier, require_admin_key, resolve_tier
+from app.engine.limits import FREE, PREMIUM, Tier
 from app.db import get_db
 from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord, ServiceBookedCount
 from app import clock
@@ -21,8 +22,15 @@ class BusinessRead(BaseModel):
     id: int
     name: str
     settings: dict
+    # Resolved from the subscription at request time and set explicitly — it is
+    # NOT read off the model, which no longer has a `.tier` at all.
     tier: str
     model_config = {"from_attributes": True}
+
+
+def _read(biz: Business, tier: Tier) -> BusinessRead:
+    """Serialise a business with an explicitly resolved tier."""
+    return BusinessRead(id=biz.id, name=biz.name, settings=biz.settings or {}, tier=str(tier))
 
 
 class TierUpdate(BaseModel):
@@ -50,8 +58,9 @@ def list_businesses(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
-    sync_user_tier(db, user_id)
-    return db.query(Business).filter(Business.user_id == user_id).order_by(Business.id).all()
+    tier = resolve_tier(db, user_id)
+    rows = db.query(Business).filter(Business.user_id == user_id).order_by(Business.id).all()
+    return [_read(b, tier) for b in rows]
 
 
 @router.get("/me", response_model=BusinessRead)
@@ -59,11 +68,11 @@ def get_my_business(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
-    sync_user_tier(db, user_id)
+    tier = resolve_tier(db, user_id)
     biz = db.query(Business).filter(Business.user_id == user_id).order_by(Business.id).first()
     if not biz:
         raise HTTPException(404, "No business yet")
-    return biz
+    return _read(biz, tier)
 
 
 @router.patch("/me/settings", response_model=BusinessRead)
@@ -71,6 +80,7 @@ def update_settings(
     body: BusinessSettingsUpdate,
     db: Session = Depends(get_db),
     biz: Business = Depends(get_business),
+    tier: Tier = Depends(get_tier),
 ):
     merged = {**(biz.settings or {}), **body.model_dump(exclude_none=True)}
     # Allow clearing staffing threshold fields when the client explicitly sends null.
@@ -85,7 +95,7 @@ def update_settings(
     flag_modified(biz, "settings")
     db.commit()
     db.refresh(biz)
-    return biz
+    return _read(biz, tier)
 
 
 @router.post("", response_model=BusinessRead, status_code=201)
@@ -94,10 +104,9 @@ def create_business(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
-    sync_user_tier(db, user_id)   # limit checks must read the LIVE tier (§10)
+    tier = resolve_tier(db, user_id)   # authoritative, read now (§10)
     existing = db.query(Business).filter(Business.user_id == user_id).all()
-    is_premium = any(b.tier == "premium" for b in existing)
-    if not is_premium and len(existing) >= FREE_BUSINESS_LIMIT:
+    if not tier.is_premium and len(existing) >= FREE_BUSINESS_LIMIT:
         raise HTTPException(
             status_code=403,
             detail="Multiple locations require a premium plan. Upgrade in Settings.",
@@ -122,16 +131,14 @@ def create_business(
                 subscription_status="none",
             )
             db.add(sub)
-            # Give the new user premium features during trial
-            from sqlalchemy.orm.attributes import flag_modified
-            settings = dict(biz.settings or {})
-            settings["tier"] = "premium"
-            biz.settings = settings
-            flag_modified(biz, "settings")
             db.commit()
             db.refresh(biz)
+            # NOTE: nothing writes a tier onto the business any more.  The trial
+            # grants premium purely by existing — resolve_tier reads the
+            # subscription — so there is no cached flag left to go stale when it
+            # expires, which is what leaked before.
 
-    return biz
+    return _read(biz, resolve_tier(db, user_id))
 
 
 @router.post("/{source_id}/copy", response_model=BusinessRead, status_code=201)
@@ -150,10 +157,8 @@ def copy_business(
     if not source:
         raise HTTPException(404, "Source location not found")
 
-    sync_user_tier(db, user_id)   # limit checks must read the LIVE tier (§10)
-    all_biz = db.query(Business).filter(Business.user_id == user_id).all()
-    is_premium = any(b.tier == "premium" for b in all_biz)
-    if not is_premium:
+    tier = resolve_tier(db, user_id)   # authoritative, read now (§10)
+    if not tier.is_premium:
         raise HTTPException(
             status_code=403,
             detail="Multiple locations require a premium plan. Upgrade in Settings.",
@@ -206,7 +211,7 @@ def copy_business(
 
     db.commit()
     db.refresh(new_biz)
-    return new_biz
+    return _read(new_biz, tier)
 
 
 @router.delete("/{business_id}", status_code=204)
@@ -271,4 +276,4 @@ def set_tier(
         flag_modified(biz, "settings")
     db.commit()
     first = db.query(Business).filter(Business.user_id == user_id).order_by(Business.id).first()
-    return first
+    return _read(first, resolve_tier(db, user_id))

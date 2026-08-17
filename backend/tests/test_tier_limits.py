@@ -172,54 +172,120 @@ def test_admin_upgrade_lifts_the_location_limit_at_runtime(tier_client, sim_cloc
 
 # ── the gate audit: every path that reads a tier must resolve it live ────────
 
-def test_the_telegram_bot_does_not_serve_a_stale_tier(db, sim_clock, monkeypatch):
-    """FOUND BY AUDIT: the bot loads its business directly from the link row,
-    bypassing get_business and therefore the live-tier resolution. An expired
-    trial kept premium history depth in its forecasts indefinitely — and because
-    the bot never touches get_business, nothing on that path refreshed the flag
-    either."""
-    import os
-    from app.api.bot import _business_for_chat
+def test_the_telegram_bot_does_not_serve_a_stale_tier(db, sim_clock):
+    """FOUND BY AUDIT: the bot loads its business straight from the link row, so
+    it never went through get_business and never resolved the live tier. An
+    expired trial kept premium history depth in its forecasts indefinitely.
+
+    There is no cached tier at all now — this asserts the bot's own resolution
+    tracks the subscription.
+    """
+    from app.api.deps import resolve_tier
     from app.models import Business
-    from app.models.telegram_link import TelegramLink
-
-    os.environ.setdefault("BOT_SERVICE_KEY", "test-bot-key-abc123")
-    clock.freeze(datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc))
-
-    # A brand-new account: trial running, so premium.
-    biz = Business(name="Bot Cafe", user_id=USER, settings={})
-    db.add(biz)
-    db.commit()
-    db.refresh(biz)
     from app.models.subscription import Subscription
+
+    clock.freeze(datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc))
+    biz = Business(name="Bot Cafe", user_id=USER, settings={"tier": "premium"})
+    db.add(biz)
     db.add(Subscription(user_id=USER, tier="trial",
                         trial_started_at=clock.now_utc(),
                         trial_ends_at=clock.now_utc() + timedelta(days=TRIAL_DAYS)))
-    settings = dict(biz.settings or {})
-    settings["tier"] = "premium"          # the cached flag the trial wrote
-    biz.settings = settings
     db.commit()
 
-    assert _business_for_chat_tier(db, biz) == "premium", "in trial: premium"
+    assert resolve_tier(db, USER).is_premium, "in trial: premium"
 
-    # Long after the trial ended, with nothing having called get_business.
     clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))
-    assert _business_for_chat_tier(db, biz) == "free", (
-        "an expired trial must not keep premium through the bot"
+    assert not resolve_tier(db, USER).is_premium, (
+        "an expired trial must not keep premium — and note settings['tier'] is "
+        "still the stale string 'premium', which is exactly why nothing reads it"
     )
 
 
-def _business_for_chat_tier(db, biz):
-    """Resolve a business the way the bot does, and report the tier it would use."""
-    from app.api.bot import _business_for_chat
-    from app.models.telegram_link import TelegramLink
+def test_a_stale_tier_string_left_in_settings_is_ignored(db, sim_clock):
+    """Existing rows in production still carry settings['tier'] from before this
+    refactor. It must have no effect whatsoever."""
+    from app.api.deps import resolve_tier
+    from app.models import Business
 
-    link = db.query(TelegramLink).filter_by(business_id=biz.id).first()
-    if link is None:
-        link = TelegramLink(business_id=biz.id, chat_id="chat-1")
-        db.add(link)
-        db.commit()
-    return _business_for_chat("chat-1", db).tier
+    clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))
+    db.add(Business(name="Legacy", user_id=USER, settings={"tier": "premium"}))
+    db.commit()
+    assert not resolve_tier(db, USER).is_premium, (
+        "a leftover cached string must not grant premium"
+    )
+
+
+def test_an_explicit_admin_grant_is_still_honoured(db, sim_clock):
+    """The one deliberate exception: a manual grant behind the server's own key."""
+    from app.api.deps import resolve_tier
+    from app.models import Business
+
+    clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))
+    db.add(Business(name="Granted", user_id=USER,
+                    settings={"tier": "premium", "tier_admin_override": True}))
+    db.commit()
+    assert resolve_tier(db, USER).is_premium
+
+
+def test_the_business_model_has_no_tier_attribute():
+    """The old mistake must not even be expressible."""
+    from app.models import Business
+    assert not hasattr(Business, "tier"), (
+        "Business.tier was the stale cache every entitlement leak read from; "
+        "the tier must only come from resolve_tier"
+    )
+
+
+def test_nothing_reads_a_tier_out_of_settings():
+    """The cache is gone; make sure it does not come back.
+
+    `settings["tier"]` still exists on old rows and is still written by the
+    admin grant path, so the string is around — but nothing may *read* it as the
+    tier except `resolve_tier`, which honours it only behind an explicit admin
+    override. Parsed rather than grepped so the docstrings that explain this
+    history do not trip it.
+    """
+    import ast
+    from pathlib import Path
+
+    app_dir = Path(__file__).resolve().parents[1] / "app"
+    allowed = {"app/api/deps.py", "app/api/businesses.py"}
+
+    offenders = []
+    for path in app_dir.rglob("*.py"):
+        rel = str(path.relative_to(app_dir.parent)).replace("\\", "/")
+        if rel in allowed:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            # settings["tier"]
+            if (isinstance(node, ast.Subscript)
+                    and isinstance(node.slice, ast.Constant) and node.slice.value == "tier"):
+                offenders.append(f"{rel}:{node.lineno} subscript")
+            # anything.get("tier")
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "get" and node.args
+                    and isinstance(node.args[0], ast.Constant)
+                    and node.args[0].value == "tier"):
+                offenders.append(f"{rel}:{node.lineno} .get")
+    assert not offenders, (
+        "the tier must come from resolve_tier, never out of settings: " + str(offenders)
+    )
+
+
+def test_limit_helpers_reject_an_unresolved_tier():
+    """Passing a bare string — the old habit — must fail rather than work.
+
+    This is what makes forgetting to resolve a *type* error instead of a silent
+    entitlement leak.
+    """
+    from datetime import date as _date
+    from app.engine.limits import check_periods, history_cutoff
+
+    with pytest.raises(AttributeError):
+        history_cutoff("premium", _date(2026, 1, 1))       # type: ignore[arg-type]
+    with pytest.raises(AttributeError):
+        check_periods("premium", 99, "ad")                 # type: ignore[arg-type]
 
 
 def test_no_new_code_path_reads_a_tier_off_a_directly_loaded_business():
@@ -264,3 +330,66 @@ def test_no_new_code_path_reads_a_tier_off_a_directly_loaded_business():
         "these load a Business directly AND gate on its tier without resolving "
         f"the live tier first: {offenders}"
     )
+
+
+# ── billing-adjacent paths: a subscription change must take effect at once ───
+
+def test_paying_takes_effect_on_the_very_next_request(tier_client, sim_clock, db):
+    """Activating a subscription must lift the limits immediately, without the
+    client having to call GET /subscription first.
+
+    Under the old cached model the entitlement only appeared once something
+    happened to refresh the flag — the mirror image of the trial that never
+    ended, and the one that would have cost a paying customer their purchase.
+
+    (The webhook handler itself is a no-op until a real provider is wired up:
+    `payment_provider.verify_webhook` returns `{}` for the stub. This drives the
+    subscription row directly, which is what that handler will do.)
+    """
+    from app.models.subscription import Subscription
+
+    clock.freeze(datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc))
+    _new_account(tier_client)
+    clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))   # trial over
+
+    assert tier_client.post("/businesses", json={"name": "Nope"}).status_code == 403
+
+    sub = db.query(Subscription).filter_by(user_id=USER).first()
+    sub.tier = "premium"
+    sub.subscription_status = "active"
+    db.commit()
+
+    # No GET /subscription in between — the very next gated call must pass.
+    assert tier_client.post("/businesses", json={"name": "Second"}).status_code == 201, (
+        "a paid subscription must be honoured on the next request, with nothing "
+        "needing to refresh a cached flag first"
+    )
+
+
+def test_cancelling_removes_the_entitlement_at_once(tier_client, sim_clock, db):
+    from app.models.subscription import Subscription
+
+    clock.freeze(datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc))
+    _new_account(tier_client)
+    sub = db.query(Subscription).filter_by(user_id=USER).first()
+    sub.subscription_status = "active"
+    db.commit()
+    clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))
+    assert tier_client.post("/businesses", json={"name": "Second"}).status_code == 201
+
+    r = tier_client.post("/subscription/cancel")
+    assert r.status_code == 200, r.text
+    assert tier_client.post("/businesses", json={"name": "Third"}).status_code == 403
+
+
+def test_the_reported_tier_matches_what_the_gates_enforce(tier_client, sim_clock):
+    """The tier shown to the client and the tier the limits use are now the same
+    resolved value, so the screen can never claim premium while a gate refuses."""
+    clock.freeze(datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc))
+    _new_account(tier_client)
+    assert tier_client.get("/businesses/me").json()["tier"] == "premium"
+    assert tier_client.post("/businesses", json={"name": "B"}).status_code == 201
+
+    clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))
+    assert tier_client.get("/businesses/me").json()["tier"] == "free"
+    assert tier_client.post("/businesses", json={"name": "C"}).status_code == 403
