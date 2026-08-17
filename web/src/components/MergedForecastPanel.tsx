@@ -451,6 +451,15 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
         </ResponsiveContainer>
       )}
 
+      {/* What the range on the chart actually means. It covers ~80% of days, so
+          saying so plainly stops an owner reading the one day in five that lands
+          outside as the app simply being wrong. */}
+      {!noData && (
+        <p className="mt-3 text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+          {t('rangeMeaningNote')}
+        </p>
+      )}
+
       {/* While learning, lead with the RANGE for each day rather than the midpoint */}
       {selected === 'customers' && learning && chartData.length > 0 && (
         <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-4">

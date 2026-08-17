@@ -168,3 +168,99 @@ def test_admin_upgrade_lifts_the_location_limit_at_runtime(tier_client, sim_cloc
                            headers={"X-Admin-Key": "test-admin-key"})
     assert up.status_code == 200
     assert tier_client.post("/businesses", json={"name": "Second"}).status_code == 201
+
+
+# ── the gate audit: every path that reads a tier must resolve it live ────────
+
+def test_the_telegram_bot_does_not_serve_a_stale_tier(db, sim_clock, monkeypatch):
+    """FOUND BY AUDIT: the bot loads its business directly from the link row,
+    bypassing get_business and therefore the live-tier resolution. An expired
+    trial kept premium history depth in its forecasts indefinitely — and because
+    the bot never touches get_business, nothing on that path refreshed the flag
+    either."""
+    import os
+    from app.api.bot import _business_for_chat
+    from app.models import Business
+    from app.models.telegram_link import TelegramLink
+
+    os.environ.setdefault("BOT_SERVICE_KEY", "test-bot-key-abc123")
+    clock.freeze(datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc))
+
+    # A brand-new account: trial running, so premium.
+    biz = Business(name="Bot Cafe", user_id=USER, settings={})
+    db.add(biz)
+    db.commit()
+    db.refresh(biz)
+    from app.models.subscription import Subscription
+    db.add(Subscription(user_id=USER, tier="trial",
+                        trial_started_at=clock.now_utc(),
+                        trial_ends_at=clock.now_utc() + timedelta(days=TRIAL_DAYS)))
+    settings = dict(biz.settings or {})
+    settings["tier"] = "premium"          # the cached flag the trial wrote
+    biz.settings = settings
+    db.commit()
+
+    assert _business_for_chat_tier(db, biz) == "premium", "in trial: premium"
+
+    # Long after the trial ended, with nothing having called get_business.
+    clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))
+    assert _business_for_chat_tier(db, biz) == "free", (
+        "an expired trial must not keep premium through the bot"
+    )
+
+
+def _business_for_chat_tier(db, biz):
+    """Resolve a business the way the bot does, and report the tier it would use."""
+    from app.api.bot import _business_for_chat
+    from app.models.telegram_link import TelegramLink
+
+    link = db.query(TelegramLink).filter_by(business_id=biz.id).first()
+    if link is None:
+        link = TelegramLink(business_id=biz.id, chat_id="chat-1")
+        db.add(link)
+        db.commit()
+    return _business_for_chat("chat-1", db).tier
+
+
+def test_no_new_code_path_reads_a_tier_off_a_directly_loaded_business():
+    """Structural guard for the audit.
+
+    Every gate reads `biz.tier`, which is only trustworthy once
+    `sync_user_tier` has run for that user. Loading a Business directly with
+    `db.get(Business, ...)` skips that, so any function doing BOTH must also
+    call `sync_user_tier` — otherwise it is gating on a cached flag, which is
+    exactly how the trial-to-free transition leaked, and how the Telegram bot
+    kept serving premium history depth to expired trials.
+    """
+    import ast
+    from pathlib import Path
+
+    app_dir = Path(__file__).resolve().parents[1] / "app"
+
+    def _calls_direct_business_load(node) -> bool:
+        for n in ast.walk(node):
+            if (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                    and n.func.attr == "get" and n.args
+                    and isinstance(n.args[0], ast.Name) and n.args[0].id == "Business"):
+                return True
+        return False
+
+    def _reads_tier(node) -> bool:
+        return any(isinstance(n, ast.Attribute) and n.attr == "tier" for n in ast.walk(node))
+
+    def _syncs(node) -> bool:
+        return any(isinstance(n, ast.Name) and n.id == "sync_user_tier" for n in ast.walk(node))
+
+    offenders = []
+    for path in app_dir.rglob("*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for fn in ast.walk(tree):
+            if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            if _calls_direct_business_load(fn) and _reads_tier(fn) and not _syncs(fn):
+                offenders.append(f"{path.relative_to(app_dir.parent)}::{fn.name}")
+
+    assert not offenders, (
+        "these load a Business directly AND gate on its tier without resolving "
+        f"the live tier first: {offenders}"
+    )

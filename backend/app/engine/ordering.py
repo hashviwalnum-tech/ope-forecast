@@ -116,6 +116,67 @@ def reorder_point(
     )
 
 
+# How much cover, beyond the reorder point, a full shelf should aim to hold.
+# One extra lead-time's worth means a delivery lands with roughly a lead time of
+# stock still in hand rather than at the trigger line.
+TARGET_COVER_LEAD_TIMES = 1.0
+
+
+def order_up_to_target(
+    avg_daily_demand: float,
+    lead_time_days: int,
+    reorder_point: float,
+    current_stock: float,
+    *,
+    storage_capacity: float | None = None,
+    target_cover_lead_times: float = TARGET_COVER_LEAD_TIMES,
+) -> tuple[float, float]:
+    """(target_level, order_quantity) for an order-up-to policy.
+
+    The old rule ordered "demand over the lead time plus safety stock" — which is
+    the reorder *trigger* itself. Ordering exactly the trigger amount when you
+    have hit the trigger replenishes you back to roughly the trigger, so stock
+    hovers at or just below the line forever and never builds a working buffer.
+    Anything that knocks it further down — a busy week, a late delivery — is
+    never recovered, because every order is sized to the trigger rather than to
+    the shortfall.
+
+    An order-up-to policy fixes that by asking a different question: not "how
+    much do I usually use?" but **"how far below my target am I?"**  So a shop
+    that has slipped to 100 below target orders that 100 back, and one that is
+    already near target orders little.
+
+    target = reorder point + one lead time's demand, capped at what physically
+    fits.  Ordering is then simply ``target − current stock``, never negative.
+
+    Returns the target as well as the quantity so callers can explain the advice.
+    """
+    if lead_time_days < 1:
+        raise ValueError("lead_time_days must be >= 1")
+
+    target = reorder_point + target_cover_lead_times * max(0.0, avg_daily_demand) * lead_time_days
+    if storage_capacity is not None:
+        target = min(target, storage_capacity)
+
+    return target, max(0.0, target - current_stock)
+
+
+def reorder_point_exceeds_capacity(
+    reorder_point: float,
+    storage_capacity: float | None,
+) -> bool:
+    """True when a product can never hold enough to cover its own lead time.
+
+    If the shelf is smaller than the reorder point, stock is below the trigger
+    the moment it is anything less than completely full, so the product shows as
+    "order now" essentially forever no matter how diligently the owner orders.
+    That is a configuration problem — too small a shelf, too long a lead time, or
+    a demand estimate that has outgrown both — and the owner should be told,
+    rather than left to wonder why the alert never clears.
+    """
+    return storage_capacity is not None and reorder_point > storage_capacity
+
+
 def economic_order_quantity(
     annual_demand: float,
     order_cost: float,

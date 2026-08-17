@@ -753,3 +753,116 @@ separately by breaking `vite.config.ts` to confirm the build still covers it.
 ## Phase 5 — analysis
 
 _not started_
+
+---
+
+## Follow-up round: four design fixes
+
+### F-033 · S2 · The forecast range covered only half the days — **FIXED**
+
+The band was a fixed ±0.7σ, which measured **52.6 % empirical coverage** over the
+simulated year. The real number fell *outside* the stated range every other day.
+Whatever the label says, to a non-technical owner that reads as the app being
+wrong half the time.
+
+Getting to 80 % took three attempts, and the two that fell short are worth
+recording:
+
+| Attempt | Coverage | Why it fell short |
+|---|---:|---|
+| ±0.7σ (before) | 52.6 % | by design — a ~52 % band |
+| empirical 10–90 of each model's holdout errors | 66.7 % | holdout errors describe each model *in isolation* and measured tighter than the blend's real forward error |
+| same, but per weekday off the realised track record | 66.0 % | splitting ~120 days across 7 weekdays leaves ~17 points, and the extremes of a small sample systematically under-state the population's tails |
+| **classical prediction interval + empirical quantiles, split by weekday and promo status** | **79.3 %** | ✔ |
+
+Diagnosed by measuring rather than guessing — the band was 130 wide against a
+true 10–90 error spread of 162, and on promo days 132 against 247. Six candidate
+rules were then replayed walk-forward over the year before picking one.
+
+*What it does now:* the **classical prediction interval for a new observation**
+— `t(n−1) · s · √(1 + 1/n)` — whose t distribution and √(1+1/n) term both exist
+precisely to account for the mean and spread being *estimates* from n points.
+That is the textbook answer to "an interval containing a future observation", and
+it is what a plain ±1.28σ misses. Where there are enough residuals the empirical
+10–90 quantiles are also taken and **the wider side wins**, so a lopsided or
+fat-tailed error distribution still shows up — the reason for reading the model's
+own errors instead of padding by a constant.
+
+Residuals are matched like for like: this weekday under these conditions
+(promotion running or not), then any day under these conditions, then any day,
+and only for an account with no track record yet, the models' holdout errors.
+
+**Coverage 52.6 % → 79.3 %** (80.9 % on next-day forecasts). Typical width went
+from 83 to 172 customers, which is the honest cost of actually meaning 80 %.
+Accuracy itself is unchanged at 10.20 % / 9.15 %.
+
+A plain-language note now sits under the chart, in all 15 languages and RTL-safe:
+*"Expect to land in this range about 4 days out of 5 — it's a likely range, not a
+promise."* Mobile shows the same note, and a hardcoded English "range" label
+there went through the translation system at the same time.
+
+### F-034 · S1 · Ordering could never escape a low-stock trap — **FIXED**
+
+The suggested quantity was "demand over the lead time plus safety stock" — which
+*is* the reorder trigger. Ordering the trigger amount when you have hit the
+trigger replenishes you back to roughly the trigger, so stock hovers at the line
+for ever. A bad week or a late delivery is never recovered, because every order
+is sized to the trigger rather than to the shortfall.
+
+*Fixed* with an order-up-to policy: target = reorder point + one lead time's
+demand, capped at what physically fits; order = target − current stock. A shop
+380 below target now orders 380 back; one 20 below orders 20.
+
+Products whose **reorder point exceeds their storage capacity** are now flagged
+for review. Milkshake is the case in point: it holds 400 cups but triggers at
+475, so stock is below the trigger the moment the fridge is anything short of
+completely full, and the product shows "order now" essentially for ever no
+matter how diligently the owner orders. That is a configuration problem — too
+small a fridge, too long a lead time, or demand that has outgrown both — and the
+owner is now told rather than left wondering why the alert never clears.
+
+Twelve known-answer tests, including the Milkshake case worked through by hand
+and an explicit test that a big shortfall gets a big order while a small one gets
+a small order — the behaviour the old rule could not express.
+
+### F-035 · S1 · Three more tier gates were leaking, all in the Telegram bot — **FIXED**
+
+Full sweep written up in [`GATE_AUDIT.md`](GATE_AUDIT.md). Every place in the
+backend that gates a feature, limit or tier on user or subscription state, with
+its status.
+
+**Three leaks found**, all the same root cause: `bot.py` resolves its business
+from the Telegram link row with `db.get(Business, …)`, so it never passes through
+`get_business` and the live-tier resolution never ran. Both bot read endpoints
+feed straight into the analytics functions, which gate history depth on
+`biz.tier`. **An expired trial with a linked bot kept premium history depth in
+its forecasts indefinitely** — and worse than the original F-018 leak, because
+nothing on that path ever refreshed the cached flag either, so it could not
+self-correct.
+
+Also consolidated: `subscriptions.py` held a **second implementation** of the
+tier sync with subtly different rules. It now delegates to the one in `deps.py`.
+Two copies of "is this user premium" is exactly how two parts of an app come to
+disagree.
+
+A structural guard now parses the application's AST and fails if any function
+both loads a Business directly and reads `.tier` without calling
+`sync_user_tier` — the precise shape of these three leaks.
+
+### F-036 · S2 · Accuracy and peak hour now have a single source of truth — **FIXED**
+
+Three surfaces computed accuracy independently and disagreed (13.7 % / 11.2 % /
+a true 10.2 %), and two named different peak hours on a near-tie.
+
+* `_scored_forecasts()` is now **the** source for "how did our forecasts do":
+  the stored forecast log, scored against actuals, using the freshest forecast
+  for each past date — the one the owner was actually looking at. Both the
+  Accuracy screen and Insights read it.
+* `_peak_hours()` is **the** hourly profile, shared by the busy-hours chart and
+  Insights, with peak and quiet ranked on the same rounded figures the chart
+  displays so a near-tie cannot split them.
+
+Seven tests assert the screens agree, including that the freshest rather than the
+seven-days-ahead forecast is scored, that removing the stored log makes the
+number honestly unavailable rather than silently re-derived, and that a
+deliberate near-tie between two hours resolves the same way everywhere.

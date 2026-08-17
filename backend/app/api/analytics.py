@@ -22,7 +22,13 @@ from app.engine.accuracy import detect_drift, forecast_errors, mad, mape, mse, t
 from app.engine.booking import booking_forecast, fit_booking_regression
 from app.engine.limits import history_cutoff
 from app.engine.monthly import monthly_summary
-from app.engine.ensemble import blend, debias, model_weights, prediction_interval
+from app.engine.ensemble import (
+    MIN_ERRORS_FOR_QUANTILES,
+    blend,
+    debias,
+    model_weights,
+    prediction_interval,
+)
 from app.engine.forecasting import (
     MIN_EARLY_OBSERVATIONS,
     early_forecast,
@@ -46,7 +52,9 @@ from app.engine.ordering import (
     economic_order_quantity,
     fifo_deplete,
     projected_stock_timeline,
+    order_up_to_target,
     reorder_point,
+    reorder_point_exceeds_capacity,
     safety_stock,
     service_level_z,
     spoiled_or_at_risk,
@@ -132,6 +140,7 @@ MIN_RECORDS = 14  # ~2 weeks before forecasts are attempted
 # were mostly reacting to noise.  Twelve is the same window the bias check uses.
 _WEIGHT_WINDOW = 12
 _BIAS_WINDOW = 12    # longer window used only to judge whether a model is biased
+_BAND_HISTORY_DAYS = 120  # realised track record used to size the prediction band
 
 
 # ── stock projection helper ────────────────────────────────────────────────
@@ -934,6 +943,35 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     # low on every single one, and the ordering advice low with it.
     period_ratios, period_ratios_by_wd = _completed_period_ratios(db, biz, today)
 
+    # The band is sized from Ope's OWN realised track record — the difference
+    # between what it actually predicted and what actually happened, from the
+    # stored forecast log — rather than from the individual models' holdout
+    # errors.  Holdout errors describe each model in isolation on the data it was
+    # fitted around; they measured out noticeably tighter than the blend's real
+    # forward error, which is why the first attempt at an 80% band only achieved
+    # 66.7% coverage.  Realised residuals are the honest answer to "how far out
+    # is this app, in practice, on days like this one".
+    # Split by promo status as well as weekday: a promo day is measurably less
+    # predictable for this app (band 132 vs a true spread of 247 when they were
+    # pooled together), so it deserves its own, wider band rather than borrowing
+    # an ordinary day's.
+    _promo_dates: set[date] = set()
+    for _p in db.query(Period).filter_by(business_id=biz.id).all():
+        _d0 = _p.start_date
+        while _d0 <= _p.end_date:
+            _promo_dates.add(_d0)
+            _d0 += timedelta(days=1)
+
+    realised_by_key: dict[tuple[int, bool], list[float]] = {}
+    realised_by_promo: dict[bool, list[float]] = {True: [], False: []}
+    realised_all: list[float] = []
+    for _d, _actual, _pred in _scored_forecasts(db, biz, records, limit=_BAND_HISTORY_DAYS):
+        _err = _actual - _pred
+        _was_promo = _d in _promo_dates
+        realised_by_key.setdefault((_d.weekday(), _was_promo), []).append(_err)
+        realised_by_promo[_was_promo].append(_err)
+        realised_all.append(_err)
+
     for offset in range(1, 8):
         target_date = today + timedelta(days=offset)
         wd = target_date.weekday()
@@ -1001,6 +1039,11 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             m: debias(p_val, holdout[m].get(wd, []))
             for m, p_val in preds.items()
         }
+        # How much each model was shifted, so the prediction band can be built
+        # from the residuals that REMAIN after debiasing rather than the raw
+        # errors — otherwise the band re-applies a bias the forecast has already
+        # corrected for, and sits offset from the number on screen.
+        shifts = {m: debiased[m] - preds[m] for m in preds}
 
         weights = model_weights(list(maes.values()))
         forecast_val = blend(list(debiased.values()), weights)
@@ -1015,13 +1058,33 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         forecast_val *= uplift
 
         # Only use errors from models that were actually included in the blend,
-        # so unvalidated models' wild holdout errors don't inflate the spread.
+        # so unvalidated models' wild holdout errors don't inflate the spread —
+        # and use each model's residual AFTER its bias shift, scaled by the same
+        # promo uplift the forecast just took, so the band describes the number
+        # actually being shown.
         all_wd_errs: list[float] = []
         for model_name in preds:
-            all_wd_errs.extend(holdout[model_name].get(wd, [])[-_WEIGHT_WINDOW:])
+            shift = shifts.get(model_name, 0.0)
+            all_wd_errs.extend(
+                (e - shift) * uplift
+                for e in holdout[model_name].get(wd, [])[-_WEIGHT_WINDOW:]
+            )
 
-        if len(all_wd_errs) >= 2:
-            lo, hi = prediction_interval(forecast_val, all_wd_errs)
+        # Like for like, narrowing the comparison only while there is enough of
+        # it: this weekday under these conditions, then any day under these
+        # conditions, then any day at all, and only for an account with no track
+        # record yet, the individual models' holdout errors.
+        target_is_promo = bool(active_types)
+        band_errs = realised_by_key.get((wd, target_is_promo), [])
+        if len(band_errs) < MIN_ERRORS_FOR_QUANTILES:
+            band_errs = realised_by_promo[target_is_promo]
+        if len(band_errs) < MIN_ERRORS_FOR_QUANTILES:
+            band_errs = realised_all
+        if len(band_errs) < 2:
+            band_errs = all_wd_errs
+
+        if len(band_errs) >= 2:
+            lo, hi = prediction_interval(forecast_val, band_errs)
             lo = max(0.0, lo)  # customer counts can't be negative
         else:
             lo, hi = forecast_val, forecast_val
@@ -1059,21 +1122,34 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     return ForecastResponse(status="ok", days=days, drift_alert=drift)
 
 
-def _accuracy_from_forecast_runs(
-    db: Session, biz: Business, records: list[DayRecord]
-) -> tuple[list[float], list[float], str]:
-    """(actuals, predictions, source) from the forecasts Ope really showed.
+ACCURACY_WINDOW_DAYS = 90
 
-    For each past date, the LAST forecast made before that date is the one the
-    owner was actually looking at, so that is the one scored.  Days the owner
-    has not reviewed an outlier flag on are skipped, matching the old behaviour.
+
+def _scored_forecasts(
+    db: Session, biz: Business, records: list[DayRecord], limit: int | None = ACCURACY_WINDOW_DAYS
+) -> list[tuple[date, float, float]]:
+    """**The single source of truth for "how did our forecasts do".**
+
+    Returns (date, actual, predicted) for each past day, using the LAST forecast
+    made before that day — the one the owner was actually looking at.
+
+    Every surface that shows an accuracy figure must go through here.  Three of
+    them used to compute it independently and disagreed: the Accuracy screen
+    scored the seasonal-naive model alone (13.7 %), Insights scored the
+    seven-days-ahead forecast (11.2 %), and the truth was 10.2 %.  Each was
+    individually defensible; together they destroyed any confidence in the
+    number.  The ForecastRun table already records every prediction, so it is the
+    honest source and there is no reason for anything else to guess.
+
+    Days the owner has not yet reviewed an outlier flag on are excluded, so an
+    unreviewed spike cannot make the forecast look bad.
     """
     today = clock.today_local(biz.settings)
     by_date: dict[date, DayRecord] = {
         r.date: r for r in records if r.outlier_status != "flagged"
     }
     if not by_date:
-        return [], [], "measured"
+        return []
 
     runs = (
         db.query(ForecastRun)
@@ -1086,10 +1162,57 @@ def _accuracy_from_forecast_runs(
         if fr.target_date in by_date:
             freshest[fr.target_date] = fr        # ordered by created_at: last wins
 
-    dates = sorted(freshest)[-90:]               # the same 90-day window as before
-    actuals = [float(by_date[d].customers) for d in dates]
-    predictions = [float(freshest[d].predicted_value) for d in dates]
-    return actuals, predictions, "measured"
+    dates = sorted(freshest)
+    if limit is not None:
+        dates = dates[-limit:]
+    return [
+        (d, float(by_date[d].customers), float(freshest[d].predicted_value))
+        for d in dates
+    ]
+
+
+def _accuracy_from_forecast_runs(
+    db: Session, biz: Business, records: list[DayRecord]
+) -> tuple[list[float], list[float], str]:
+    """(actuals, predictions, source) — thin wrapper over _scored_forecasts."""
+    scored = _scored_forecasts(db, biz, records)
+    return [a for _d, a, _p in scored], [p for _d, _a, p in scored], "measured"
+
+
+def _peak_hours(db: Session, biz: Business) -> list[tuple[int, float, int]]:
+    """**The single source of truth for the hourly customer profile.**
+
+    Returns the same (hour, avg_customers, n_days) list the busy-hours chart
+    draws, so anything naming a "peak hour" names the same one.  Insights and
+    the chart used to compute this separately and could disagree — Insights once
+    announced 1–2 pm while the chart's tallest bar was 12–1 pm, because one
+    ranked on the raw average and the other on the rounded figure it displayed.
+    """
+    settings = biz.settings or {}
+    open_hours = compute_open_hours(settings)
+    tz_name: str = settings.get("timezone", "UTC")
+    events = db.query(SaleEvent).filter_by(business_id=biz.id).all()
+    if not events:
+        return []
+    raw = [
+        (lt.date(), lt.hour, e.product_id, e.quantity)
+        for e in events
+        for lt in [utc_to_local_dt(e.timestamp, tz_name)]
+    ]
+    return hourly_averages(raw, open_hours)
+
+
+def _peak_and_quiet_hour(
+    avgs: list[tuple[int, float, int]]
+) -> tuple[tuple[int, float] | None, tuple[int, float] | None]:
+    """Busiest and quietest hour from a profile, ranked on the ROUNDED figure the
+    chart displays so two screens can never name different hours on a near-tie."""
+    active = [(h, avg) for h, avg, _n in avgs if avg > 0]
+    if not active:
+        return None, None
+    peak = max(active, key=lambda x: (round(x[1]), -x[0]))
+    quiet = min(active, key=lambda x: (round(x[1]), x[0]))
+    return peak, (quiet if quiet[0] != peak[0] else None)
 
 
 
@@ -1396,11 +1519,20 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         rop = reorder_point(avg_daily, prod.lead_time_days, z, sigma_lt)
 
         eoq_val = None
-        base_qty = avg_daily * prod.lead_time_days + ss
         unit_mode = getattr(prod, "unit_mode", "whole") or "whole"
 
         proj_stock, stock_untracked = _compute_projected_stock(db, biz.id, prod, today, assume_on_time=assume_on_time)
         effective_stock = proj_stock if proj_stock is not None else prod.current_stock
+
+        # Order UP TO a target level rather than ordering the trigger amount.
+        # Sizing every order to the reorder point replenishes back to the reorder
+        # point, so stock hovers at the trigger for ever and never recovers from
+        # a bad week.
+        target_level, base_qty = order_up_to_target(
+            avg_daily, prod.lead_time_days, rop,
+            effective_stock if effective_stock is not None else 0.0,
+            storage_capacity=prod.storage_capacity,
+        )
 
         constrained_qty, cap_notes, cap_codes = apply_order_constraints(
             base_qty,
@@ -1419,7 +1551,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         # A structural warning worth saying out loud: some shops simply cannot
         # hold enough to cover a delivery, so they will hover below the reorder
         # point forever no matter how diligently they order.
-        if prod.storage_capacity is not None and rop > prod.storage_capacity:
+        if reorder_point_exceeds_capacity(rop, prod.storage_capacity):
             cap_notes.append(
                 f"Your storage holds {_round_qty(prod.storage_capacity, unit_mode):g} "
                 f"{prod.unit}, but covering a {prod.lead_time_days}-day delivery needs about "
@@ -1619,7 +1751,9 @@ def get_hourly_analytics(
             avg_service_time_minutes=avg_svc,
         )
 
-    avgs = hourly_averages(raw, open_hours)
+    # Shared with Insights via _peak_hours, so the two screens always draw the
+    # same profile and name the same busiest hour.
+    avgs = _peak_hours(db, biz)
 
     # Build a product_id → service_time_minutes lookup (None when not set)
     products_list = db.query(Product).filter_by(business_id=biz.id).all()
@@ -1959,11 +2093,17 @@ def get_product_forecast(
         rop = forecast_demand_lt + ss
 
         eoq_val: float | None = None
-        base_qty = forecast_demand_lt + ss
 
         # ── projected stock (dynamic: baseline − sales + arrivals) ────────────
         proj_stock, stock_untracked = _compute_projected_stock(
             db, biz.id, prod, today, tap_by_prod_date, assume_on_time=assume_on_time
+        )
+        _eff_for_target = proj_stock if proj_stock is not None else prod.current_stock
+        # Same order-up-to policy as /ordering, using the forecast-driven trigger.
+        target_level, base_qty = order_up_to_target(
+            avg_forecast, prod.lead_time_days, rop,
+            _eff_for_target if _eff_for_target is not None else 0.0,
+            storage_capacity=prod.storage_capacity,
         )
         effective_stock = proj_stock if proj_stock is not None else prod.current_stock
 
@@ -1982,7 +2122,7 @@ def get_product_forecast(
         )
         if order_now and suggested_qty <= 0:
             order_now = False   # see /ordering: never "order now" for zero units
-        if prod.storage_capacity is not None and rop > prod.storage_capacity:
+        if reorder_point_exceeds_capacity(rop, prod.storage_capacity):
             cap_notes.append(
                 f"Your storage holds {_round_qty(prod.storage_capacity, unit_mode):g} "
                 f"{prod.unit}, but covering a {prod.lead_time_days}-day delivery needs about "
@@ -2230,40 +2370,19 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     quietest_hour_out: InsightsHourPattern | None = None
 
     settings = biz.settings or {}
-    open_hours = compute_open_hours(settings)
-    events = (
-        db.query(SaleEvent)
-        .filter_by(business_id=biz.id)
-        .order_by(SaleEvent.timestamp)
-        .all()
-    )
-    if events:
-        # SaleEvent.timestamp is stored as naive UTC.  Bucketing it raw puts a
-        # New York shop's lunch rush in the 4pm column and applies the
-        # opening-hours filter to the wrong hours entirely — so convert to the
-        # business's own clock first, exactly as /hourly-analytics does.
-        tz_name: str = settings.get("timezone", "UTC")
-        local = [utc_to_local_dt(e.timestamp, tz_name) for e in events]
-        n_days_taps = len({lt.date() for lt in local})
-        if n_days_taps >= MIN_HOURLY_DAYS:
-            raw = [(lt.date(), lt.hour, e.product_id, e.quantity)
-                   for e, lt in zip(events, local)]
-            avgs = hourly_averages(raw, open_hours)
-            active_slots = [(h, avg, n) for h, avg, n in avgs if avg > 0]
-            if active_slots:
-                # Rank on the same ROUNDED figures the busy-hours chart displays.
-                # Ranking on the raw floats let two hours that both show "69" be
-                # named differently by the two screens, so Insights announced a
-                # peak hour of 1–2 pm while the chart's tallest bar was 12–1 pm.
-                peak = max(active_slots, key=lambda x: (round(x[1]), -x[0]))
-                quiet = min(active_slots, key=lambda x: (round(x[1]), x[0]))
-                peak_hour_out = InsightsHourPattern(
-                    hour=peak[0], label=_fmt_hour_range(peak[0]), avg_taps=round(peak[1], 1),
-                )
-                if quiet[0] != peak[0]:
-                    quietest_hour_out = InsightsHourPattern(
-                        hour=quiet[0], label=_fmt_hour_range(quiet[0]), avg_taps=round(quiet[1], 1),
-                    )
+    # One shared hourly profile — the same one the busy-hours chart draws — so
+    # the two screens can never name different peak hours.
+    avgs = _peak_hours(db, biz)
+    if avgs and max(n for _h, _a, n in avgs) >= MIN_HOURLY_DAYS:
+        peak, quiet = _peak_and_quiet_hour(avgs)
+        if peak is not None:
+            peak_hour_out = InsightsHourPattern(
+                hour=peak[0], label=_fmt_hour_range(peak[0]), avg_taps=round(peak[1], 1),
+            )
+        if quiet is not None:
+            quietest_hour_out = InsightsHourPattern(
+                hour=quiet[0], label=_fmt_hour_range(quiet[0]), avg_taps=round(quiet[1], 1),
+            )
 
     # ── Year-over-year (kept for context, not a headline) ────────────────────
     yoy_growth_pct: float | None = None
@@ -2297,33 +2416,12 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     accuracy_recent_mape: float | None = None
     accuracy_improved: bool | None = None
 
-    past_runs = (
-        db.query(ForecastRun)
-        .filter_by(business_id=biz.id)
-        .filter(ForecastRun.target_date < today)
-        .order_by(ForecastRun.target_date, ForecastRun.created_at)
-        .all()
-    )
-    actual_map: dict[date, int] = {
-        r.date: r.customers
-        for r in db.query(DayRecord).filter_by(business_id=biz.id).all()
-        if r.outlier_status not in ("excluded", "event", "flagged")
-    }
-    # Score the FRESHEST forecast for each date — the one the owner was actually
-    # looking at — not whichever row happened to come out of the database first,
-    # which was the seven-days-ahead one.  The Accuracy screen does the same, so
-    # the two can no longer quote different numbers for the same thing.
-    freshest_run: dict[date, ForecastRun] = {}
-    for fr in past_runs:
-        prev = freshest_run.get(fr.target_date)
-        if prev is None or (fr.created_at or datetime.min) >= (prev.created_at or datetime.min):
-            freshest_run[fr.target_date] = fr
-    matched: list[tuple[float, float]] = []
-    for d in sorted(freshest_run):
-        actual = actual_map.get(d)
-        if actual is None:
-            continue
-        matched.append((float(freshest_run[d].predicted_value), float(actual)))
+    # Same source of truth as the Accuracy screen — see _scored_forecasts.
+    # `limit=None` because Insights is telling a longer story ("started at ~18%,
+    # now ~8%") than the Accuracy screen's recent-90-day snapshot.
+    matched: list[tuple[float, float]] = [
+        (pred, actual) for _d, actual, pred in _scored_forecasts(db, biz, clean_records, limit=None)
+    ]
 
     if len(matched) >= 4:
         try:

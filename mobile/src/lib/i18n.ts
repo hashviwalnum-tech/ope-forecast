@@ -9,6 +9,7 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    rangeMeaningNote: "Expect to land in this range about 4 days out of 5 — it's a likely range, not a promise.",
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Still learning',
     learningNote: 'Day {n} of {needed}. These are rough ranges — they get much more accurate after about two weeks of logging.',
@@ -445,6 +446,7 @@ export const translations = {
     feedbackMessageRequired: 'Please enter a message.',
   },
   he: {
+    rangeMeaningNote: 'ברוב הימים — בערך 4 מתוך 5 — התוצאה תיפול בטווח הזה. זה טווח סביר, לא הבטחה.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'עדיין לומדים',
     learningNote: 'יום {n} מתוך {needed}. אלו טווחים גסים — הם נעשים הרבה יותר מדויקים אחרי כשבועיים של רישום.',
@@ -878,6 +880,7 @@ export const translations = {
     feedbackMessageRequired: 'אנא הכנס הודעה.',
   },
   zh: {
+    rangeMeaningNote: '大约每 5 天有 4 天会落在这个范围内——这是可能范围，不是保证。',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: '仍在学习中',
     learningNote: '第 {n} 天，共 {needed} 天。这些是粗略范围——记录约两周后会准确得多。',
@@ -1107,6 +1110,7 @@ export const translations = {
     simpleModePromptOn: '开启', simpleModePromptDismiss: '暂不',
   },
   es: {
+    rangeMeaningNote: 'Espera caer en este rango unos 4 días de cada 5: es un rango probable, no una promesa.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Todavía aprendiendo',
     learningNote: 'Día {n} de {needed}. Son rangos aproximados: se vuelven mucho más precisos tras unas dos semanas de registro.',

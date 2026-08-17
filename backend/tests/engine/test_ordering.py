@@ -400,3 +400,103 @@ def test_codes_and_notes_stay_in_step():
         shelf_life_days=2, avg_daily_demand=25.0,
     )
     assert len(notes) == len(codes) == 2
+
+
+# ── order-up-to policy (the Milkshake trap) ──────────────────────────────────
+# The old rule ordered "demand over the lead time plus safety stock", which IS
+# the reorder trigger. Ordering the trigger amount when you have hit the trigger
+# replenishes you back to the trigger, so stock hovers at the line for ever and
+# never recovers from a bad week.
+
+from app.engine.ordering import (  # noqa: E402
+    order_up_to_target,
+    reorder_point_exceeds_capacity,
+)
+
+
+def test_order_up_to_target_known_answer():
+    """Known answer: demand 100/day, 3-day lead time, reorder point 400,
+    120 in stock, no storage limit.
+
+        target = 400 + 1 x 100 x 3 = 700
+        order  = 700 - 120         = 580
+    """
+    target, qty = order_up_to_target(100.0, 3, reorder_point=400.0, current_stock=120.0)
+    assert target == pytest.approx(700.0)
+    assert qty == pytest.approx(580.0)
+
+
+def test_order_up_to_target_is_capped_by_storage():
+    """Known answer, the Milkshake case: 116 cups/day, 3-day lead time, reorder
+    point 475, but the fridge only holds 400 and there are 147 in it.
+
+        uncapped target = 475 + 116 x 3 = 823
+        capped at capacity              = 400
+        order                           = 400 - 147 = 253
+
+    The order fills the fridge instead of topping up to the trigger.
+    """
+    target, qty = order_up_to_target(
+        116.0, 3, reorder_point=475.0, current_stock=147.0, storage_capacity=400.0
+    )
+    assert target == pytest.approx(400.0)
+    assert qty == pytest.approx(253.0)
+
+
+def test_the_milkshake_trap_is_escaped_rather_than_repeated():
+    """The behaviour that mattered: under the OLD rule the order was sized to
+    the trigger regardless of how far below it you were, so a shop that had
+    slipped badly never caught up. Order-up-to sizes to the shortfall.
+    """
+    rop, cap, demand, lead = 475.0, 400.0, 116.0, 3
+
+    old_rule_qty = demand * lead + 51.0          # demand over lead time + buffer
+    assert old_rule_qty == pytest.approx(399.0)
+
+    # Deep in the hole: only 20 cups left.
+    _t, deep = order_up_to_target(demand, lead, rop, 20.0, storage_capacity=cap)
+    # Barely below target: 380 left.
+    _t, shallow = order_up_to_target(demand, lead, rop, 380.0, storage_capacity=cap)
+
+    assert deep == pytest.approx(380.0), "a big shortfall gets a big order"
+    assert shallow == pytest.approx(20.0), "a small shortfall gets a small one"
+    assert deep > shallow, (
+        "the old rule ordered the same amount either way, which is why stock "
+        "never recovered"
+    )
+
+
+def test_order_up_to_never_returns_a_negative_order():
+    _target, qty = order_up_to_target(100.0, 2, reorder_point=300.0, current_stock=900.0)
+    assert qty == 0.0
+
+
+def test_a_full_shelf_orders_nothing():
+    target, qty = order_up_to_target(
+        50.0, 2, reorder_point=200.0, current_stock=300.0, storage_capacity=300.0
+    )
+    assert target == pytest.approx(300.0)
+    assert qty == 0.0
+
+
+def test_lead_time_must_be_at_least_a_day():
+    with pytest.raises(ValueError):
+        order_up_to_target(100.0, 0, reorder_point=300.0, current_stock=10.0)
+
+
+# ── flagging products whose trigger cannot fit on the shelf ──────────────────
+
+def test_reorder_point_above_capacity_is_flagged():
+    """Milkshake: holds 400, triggers at 475. Stock is below the trigger the
+    moment the fridge is anything less than completely full, so the product
+    shows "order now" essentially for ever."""
+    assert reorder_point_exceeds_capacity(475.0, 400.0) is True
+
+
+def test_a_workable_configuration_is_not_flagged():
+    assert reorder_point_exceeds_capacity(300.0, 900.0) is False
+    assert reorder_point_exceeds_capacity(400.0, 400.0) is False
+
+
+def test_a_product_with_no_storage_limit_is_never_flagged():
+    assert reorder_point_exceeds_capacity(9999.0, None) is False

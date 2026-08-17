@@ -9,6 +9,8 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: "Expect to land in this range about 4 days out of 5 — it's a likely range, not a promise.",
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'What this save will change',
     bfHoursReplaced: 'Your hourly customer counts for this day will be replaced.',
@@ -1075,6 +1077,8 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'ברוב הימים — בערך 4 מתוך 5 — התוצאה תיפול בטווח הזה. זה טווח סביר, לא הבטחה.',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'מה השמירה הזו תשנה',
     bfHoursReplaced: 'ספירת הלקוחות לפי שעה ליום הזה תוחלף.',
@@ -2141,6 +2145,8 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: '大约每 5 天有 4 天会落在这个范围内——这是可能范围，不是保证。',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: '此次保存会更改什么',
     bfHoursReplaced: '这一天的每小时顾客数将被替换。',
@@ -2730,6 +2736,8 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'Espera caer en este rango unos 4 días de cada 5: es un rango probable, no una promesa.',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'Qué cambiará al guardar',
     bfHoursReplaced: 'Se reemplazarán tus recuentos de clientes por hora de este día.',
@@ -3372,6 +3380,8 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'पाँच में से लगभग चार दिन नतीजा इसी दायरे में रहेगा — यह संभावित दायरा है, कोई वादा नहीं।',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'इस सेव से क्या बदलेगा',
     bfHoursReplaced: 'इस दिन की घंटेवार ग्राहक संख्या बदल दी जाएगी।',
@@ -3971,6 +3981,8 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'توقّع أن تقع النتيجة ضمن هذا النطاق في نحو 4 أيام من كل 5 — إنه نطاق مرجّح، وليس وعدًا.',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'ما الذي سيتغيّر بهذا الحفظ',
     bfHoursReplaced: 'سيتم استبدال أعداد العملاء بالساعة لهذا اليوم.',
@@ -4870,6 +4882,8 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'Espere ficar neste intervalo cerca de 4 dias em 5 — é um intervalo provável, não uma promessa.',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'O que esta gravação vai alterar',
     bfHoursReplaced: 'As suas contagens de clientes por hora deste dia serão substituídas.',
@@ -5499,6 +5513,8 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'Примерно 4 дня из 5 результат попадёт в этот диапазон — это вероятный диапазон, а не гарантия.',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'Что изменит это сохранение',
     bfHoursReplaced: 'Почасовые данные о клиентах за этот день будут заменены.',
@@ -6123,6 +6139,8 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: "Environ 4 jours sur 5 se situeront dans cette fourchette — c'est une fourchette probable, pas une promesse.",
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'Ce que cet enregistrement va modifier',
     bfHoursReplaced: 'Vos comptages horaires de clients pour ce jour seront remplacés.',
@@ -7188,6 +7206,8 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'প্রতি ৫ দিনের মধ্যে প্রায় ৪ দিন ফল এই সীমার মধ্যেই থাকবে — এটি সম্ভাব্য পরিসর, প্রতিশ্রুতি নয়।',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'এই সেভ কী বদলাবে',
     bfHoursReplaced: 'এই দিনের ঘণ্টাভিত্তিক গ্রাহক সংখ্যা প্রতিস্থাপিত হবে।',
@@ -8253,6 +8273,8 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'ہر 5 میں سے تقریباً 4 دن نتیجہ اسی حد میں رہے گا — یہ ممکنہ حد ہے، وعدہ نہیں۔',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'یہ محفوظ کرنے سے کیا بدلے گا',
     bfHoursReplaced: 'اس دن کی گھنٹہ وار گاہکوں کی گنتی تبدیل کر دی جائے گی۔',
@@ -9318,6 +9340,8 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'Sekitar 4 dari 5 hari akan berada di rentang ini — ini rentang yang mungkin, bukan janji.',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'Apa yang akan berubah',
     bfHoursReplaced: 'Jumlah pelanggan per jam untuk hari ini akan diganti.',
@@ -10383,6 +10407,8 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: 'An etwa 4 von 5 Tagen liegt das Ergebnis in dieser Spanne — eine wahrscheinliche Spanne, keine Zusage.',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'Was dieses Speichern ändert',
     bfHoursReplaced: 'Ihre stündlichen Kundenzahlen für diesen Tag werden ersetzt.',
@@ -11448,6 +11474,8 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: '5日のうち約4日はこの範囲に収まります。あくまで目安の範囲で、確約ではありません。',
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'この保存で変わること',
     bfHoursReplaced: 'この日の時間帯別の客数が置き換わります。',
@@ -12513,6 +12541,8 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    // What the forecast range actually means (80% coverage)
+    rangeMeaningNote: "Her 5 günün yaklaşık 4'ünde sonuç bu aralıkta olur — olası bir aralık, garanti değil.",
     // 'What this save will change' — shown before a backfill/import
     bfChangeTitle: 'Bu kayıt neyi değiştirecek',
     bfHoursReplaced: 'Bu güne ait saatlik müşteri sayıları değiştirilecek.',

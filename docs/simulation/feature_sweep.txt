@@ -22,17 +22,17 @@ FEATURE SWEEP — one full year of history, as at 2026-08-01
    regulars             4 rows
    recurring patterns   1 rows
    periods              20 rows
-   orders               1400 rows
+   orders               1306 rows
    nudges               None
    subscription         None
 
 -- forecast --
-   2026-08-02 Sun  479.0  [390.0–568.0]  {'seasonal_naive': 0.0553, 'wma': 0.0533, 'exp_smoothing': 0.0638, 'linear_trend': 0.0712, 'year_over_year': 0.7564}
-   2026-08-03 Mon  622.0  [567.0–676.0]  {'seasonal_naive': 0.1008, 'wma': 0.2786, 'exp_smoothing': 0.3343, 'linear_trend': 0.241, 'year_over_year': 0.0453}
-   2026-08-04 Tue  575.0  [534.0–616.0]  {'seasonal_naive': 0.1129, 'wma': 0.3603, 'exp_smoothing': 0.2977, 'linear_trend': 0.1524, 'year_over_year': 0.0768}
-   2026-08-05 Wed  617.0  [540.0–693.0]  {'seasonal_naive': 0.1873, 'wma': 0.2281, 'exp_smoothing': 0.2477, 'linear_trend': 0.2933, 'year_over_year': 0.0435}
-   2026-08-06 Thu  603.0  [547.0–659.0]  {'seasonal_naive': 0.1633, 'wma': 0.2392, 'exp_smoothing': 0.2536, 'linear_trend': 0.3124, 'year_over_year': 0.0314}
-   2026-08-07 Fri  605.0  [544.0–666.0]  {'seasonal_naive': 0.1924, 'wma': 0.2157, 'exp_smoothing': 0.2467, 'linear_trend': 0.2984, 'year_over_year': 0.0468}
+   2026-08-02 Sun  479.0  [362.0–661.0]  {'seasonal_naive': 0.0553, 'wma': 0.0533, 'exp_smoothing': 0.0638, 'linear_trend': 0.0712, 'year_over_year': 0.7564}
+   2026-08-03 Mon  622.0  [544.0–736.0]  {'seasonal_naive': 0.1008, 'wma': 0.2786, 'exp_smoothing': 0.3343, 'linear_trend': 0.241, 'year_over_year': 0.0453}
+   2026-08-04 Tue  575.0  [509.0–672.0]  {'seasonal_naive': 0.1129, 'wma': 0.3603, 'exp_smoothing': 0.2977, 'linear_trend': 0.1524, 'year_over_year': 0.0768}
+   2026-08-05 Wed  617.0  [513.0–753.0]  {'seasonal_naive': 0.1873, 'wma': 0.2281, 'exp_smoothing': 0.2477, 'linear_trend': 0.2933, 'year_over_year': 0.0435}
+   2026-08-06 Thu  603.0  [533.0–701.0]  {'seasonal_naive': 0.1633, 'wma': 0.2392, 'exp_smoothing': 0.2536, 'linear_trend': 0.3124, 'year_over_year': 0.0314}
+   2026-08-07 Fri  605.0  [522.0–731.0]  {'seasonal_naive': 0.1924, 'wma': 0.2157, 'exp_smoothing': 0.2467, 'linear_trend': 0.2984, 'year_over_year': 0.0468}
 
 -- busy hours & staffing --
    For 9–10 am, schedule 11 people      63 customers/hr  wait   2.5 min  queue 2.57
@@ -46,16 +46,16 @@ FEATURE SWEEP — one full year of history, as at 2026-08-01
    peak hour agrees across both screens: 12
 
 -- ordering --
-   Classic Beef Burger      have    696.0  order below   472.0  ok            storage_capped
-   Double Beef Burger       have    742.0  order below   357.0  ok            storage_full
-   Crispy Chicken Burger    have    663.0  order below   333.0  ok            storage_full
-   Veggie Burger            have    165.0  order below   284.0  ORDER 135.0   storage_capped
-   Fries                    have   1153.0  order below   542.0  ok            storage_capped
-   Onion Rings              have    501.0  order below   254.0  ok            storage_full
-   Coleslaw                 have    55.95  order below   33.69  ok            storage_capped
-   Soft Drink               have   2889.0  order below  1389.0  ok            storage_full
-   Milkshake                have    147.0  order below   475.0  ORDER 253.0   storage_capped | storage_below_reorder_point
-   Brownie Sundae           have     46.0  order below   331.0  ORDER 304.0   storage_capped
+   Classic Beef Burger      have    457.0  order below   472.0  ORDER 348.0   
+   Double Beef Burger       have    884.0  order below   357.0  ok            
+   Crispy Chicken Burger    have    636.0  order below   333.0  ok            
+   Veggie Burger            have     53.0  order below   284.0  ORDER 247.0   
+   Fries                    have   1137.0  order below   542.0  ok            
+   Onion Rings              have    782.0  order below   254.0  ok            
+   Coleslaw                 have    54.62  order below   33.69  ok            
+   Soft Drink               have    393.0  order below  1389.0  ORDER 2107.0  
+   Milkshake                have     89.0  order below   475.0  ORDER 311.0   storage_below_reorder_point
+   Brownie Sundae           have    284.0  order below   331.0  ORDER 66.0    
    services present and never reordered: ['Birthday Party Package']
 
 -- ad & event lift --
@@ -80,7 +80,7 @@ FEATURE SWEEP — one full year of history, as at 2026-08-01
    n_months_logged: 12
    busiest_day: {'weekday': 'Monday', 'avg_customers': 535.4, 'pct_vs_mean': 5.1}
    peak_hour: {'hour': 12, 'label': '12–1 pm', 'avg_taps': 68.7}
-   forecast_accuracy_mape: 10.3
+   forecast_accuracy_mape: 10.0
    yoy_growth_pct: None
 
 -- accuracy --

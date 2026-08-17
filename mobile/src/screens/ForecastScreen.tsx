@@ -357,6 +357,13 @@ export default function ForecastScreen() {
             ))
           )
         )}
+        {/* What the range means: it covers ~80% of days, so say so rather than
+            letting the one day in five outside it read as the app being wrong. */}
+        {viewMode === 'customers' && forecast.length > 0 && (
+          <Text style={[styles.rangeMeaning, { color: c.textMuted }]}>
+            {t('rangeMeaningNote')}
+          </Text>
+        )}
 
         {/* Product view */}
         {typeof viewMode === 'number' && (
@@ -390,7 +397,7 @@ export default function ForecastScreen() {
                       ? `${day.interval_low.toFixed(1)}–${day.interval_high.toFixed(1)}`
                       : `${Math.round(day.interval_low)}–${Math.round(day.interval_high)}`}
                   </Text>
-                  <Text style={styles.rangeLabel}>range</Text>
+                  <Text style={styles.rangeLabel}>{t('range')}</Text>
                 </View>
               </View>
             ))
@@ -758,6 +765,7 @@ function makeStyles(c: Theme) {
     switcherChipText: { fontSize: 13, fontWeight: '600', color: c.textSub },
     switcherChipTextActive: { color: c.onPrimary },
 
+    rangeMeaning: { fontSize: 12, lineHeight: 17, marginTop: 8, marginBottom: 4 },
     learningBox: {
       borderWidth: 1,
       borderRadius: 14,

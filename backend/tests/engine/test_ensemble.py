@@ -120,13 +120,27 @@ def test_interval_contains_forecast():
     assert lo < 100.0 < hi
 
 
-def test_interval_known_spread():
-    # errors [10, -10]: sample std = √200 ≈ 14.142, z=1 → margin ≈ 14.142
+def test_interval_known_answer_prediction_interval():
+    """Known answer, the classical prediction interval for a new observation.
+
+    errors [10, -10]: mean 0, sample std = √200 ≈ 14.1421, n = 2 so df = 1.
+        t(0.90, 1)        = 3.077684
+        √(1 + 1/2)        = 1.224745
+        margin = 3.077684 × 14.1421 × 1.224745 ≈ 53.30
+    Wide, and honestly so — two observations say very little about the spread.
+    """
     errors = [10.0, -10.0]
-    spread = float(np.std(errors, ddof=1))
-    lo, hi = prediction_interval(100.0, errors, z=1.0)
-    assert lo == pytest.approx(100.0 - spread)
-    assert hi == pytest.approx(100.0 + spread)
+    lo, hi = prediction_interval(100.0, errors)
+    expected = 3.0776835372 * float(np.std(errors, ddof=1)) * (1.5 ** 0.5)
+    assert lo == pytest.approx(100.0 - expected, rel=1e-6)
+    assert hi == pytest.approx(100.0 + expected, rel=1e-6)
+
+
+def test_more_observations_narrow_the_interval():
+    """The same spread known from more data justifies a tighter band."""
+    few = prediction_interval(100.0, [10.0, -10.0, 10.0, -10.0])
+    many = prediction_interval(100.0, [10.0, -10.0] * 25)
+    assert (many[1] - many[0]) < (few[1] - few[0])
 
 
 def test_interval_zero_spread():
@@ -136,16 +150,78 @@ def test_interval_zero_spread():
     assert hi == pytest.approx(100.0)
 
 
-def test_interval_wider_with_larger_z():
+def test_interval_wider_for_higher_coverage():
     errors = [5.0, -3.0, 4.0, -2.0]
-    lo1, hi1 = prediction_interval(100.0, errors, z=1.0)
-    lo2, hi2 = prediction_interval(100.0, errors, z=2.0)
-    assert (hi2 - lo2) == pytest.approx(2 * (hi1 - lo1))
+    lo50, hi50 = prediction_interval(100.0, errors, coverage=0.50)
+    lo80, hi80 = prediction_interval(100.0, errors, coverage=0.80)
+    lo95, hi95 = prediction_interval(100.0, errors, coverage=0.95)
+    assert (hi50 - lo50) < (hi80 - lo80) < (hi95 - lo95)
 
 
-def test_interval_symmetric_around_forecast():
+def test_interval_default_is_eighty_percent():
+    """The default must be the 80 % band, not the old ~52 % one that read to an
+    owner as the app being wrong every other day."""
+    from app.engine.ensemble import DEFAULT_COVERAGE
+    assert DEFAULT_COVERAGE == 0.80
+    errors = [5.0, -3.0, 4.0, -2.0]
+    assert prediction_interval(100.0, errors) == prediction_interval(100.0, errors, coverage=0.80)
+
+
+def test_interval_uses_the_empirical_distribution_when_it_has_enough_data():
+    """A lopsided error distribution must produce a lopsided band — the whole
+    point of reading the model's own errors rather than padding by a constant.
+
+    These residuals sit mostly just above zero with a long tail below (the shape
+    of a forecaster that occasionally over-predicts badly), so the band should
+    reach much further down than up.
+    """
+    errors = [-60.0, -40.0, -30.0, -5.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+    lo, hi = prediction_interval(100.0, errors)
+    below, above = 100.0 - lo, hi - 100.0
+    assert below > above * 1.5, f"expected a lopsided band, got -{below:.1f}/+{above:.1f}"
+
+
+def test_interval_absorbs_a_residual_bias():
+    """If the model is still consistently low, the band shifts up with it rather
+    than sitting symmetrically around a forecast we know is off."""
+    errors = [18.0, 20.0, 22.0, 19.0, 21.0, 20.0, 23.0, 17.0, 20.0, 21.0, 19.0, 20.0]
+    lo, hi = prediction_interval(100.0, errors)
+    assert lo > 100.0, "the whole band should sit above a persistently low forecast"
+
+
+def test_empirical_coverage_is_about_eighty_percent():
+    """The measurement that matters: feed it a realistic error distribution and
+    check how often the actual would actually land inside.
+
+    Uses a fat-tailed (Student-t) error distribution rather than a clean normal,
+    because real demand errors are not tidy — a padding constant tuned on a
+    normal assumption under-covers exactly here.
+    """
+    import numpy as _np
+    rng = _np.random.default_rng(20260817)
+    errors = (rng.standard_t(df=4, size=400) * 40.0).tolist()
+
+    history, inside = errors[:200], 0
+    for actual_error in errors[200:]:
+        lo, hi = prediction_interval(500.0, history)
+        if lo <= 500.0 + actual_error <= hi:
+            inside += 1
+    coverage = inside / 200
+    assert 0.78 <= coverage <= 0.92, (
+        f"expected at least ~80% coverage (erring wide is fine), got {coverage:.1%}"
+    )
+
+
+def test_interval_symmetric_when_the_errors_are():
     lo, hi = prediction_interval(100.0, [5.0, -5.0, 3.0, -3.0])
     assert (lo + hi) / 2 == pytest.approx(100.0)
+
+
+def test_coverage_must_be_a_probability():
+    with pytest.raises(ValueError):
+        prediction_interval(100.0, [1.0, -1.0], coverage=0.0)
+    with pytest.raises(ValueError):
+        prediction_interval(100.0, [1.0, -1.0], coverage=1.0)
 
 
 def test_interval_insufficient_data():

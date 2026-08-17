@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app import clock
-from app.api.deps import get_current_user, require_admin_key
+from app.api.deps import get_current_user, require_admin_key, sync_user_tier
 from app.billing.provider import payment_provider
 from app.db import get_db
 from app.models import Business
@@ -35,19 +35,15 @@ def _get_or_create_subscription(user_id: str, db: Session) -> Subscription:
 
 
 def _sync_business_tier(user_id: str, effective_tier: str, db: Session) -> None:
-    """Keep Business.settings['tier'] in sync with effective tier (for limit checks)."""
-    from sqlalchemy.orm.attributes import flag_modified
-    businesses = db.query(Business).filter(Business.user_id == user_id).all()
-    for biz in businesses:
-        settings = dict(biz.settings or {})
-        # Don't override if admin has manually set a different tier
-        if settings.get("tier") in ("free", "premium") and settings.get("tier_admin_override"):
-            continue
-        if settings.get("tier") != effective_tier:
-            settings["tier"] = effective_tier
-            biz.settings = settings
-            flag_modified(biz, "settings")
-    db.commit()
+    """Keep Business.settings['tier'] in step with the live subscription.
+
+    Delegates to the one implementation in deps.sync_user_tier.  There used to be
+    a second copy here with subtly different rules, which is precisely how two
+    parts of an app end up disagreeing about whether someone is premium.
+    ``effective_tier`` is accepted for call-site readability but deliberately not
+    trusted — the shared helper re-reads the subscription itself.
+    """
+    sync_user_tier(db, user_id)
 
 
 @router.get("/subscription", response_model=SubscriptionRead)
