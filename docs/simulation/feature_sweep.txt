@@ -27,12 +27,12 @@ FEATURE SWEEP — one full year of history, as at 2026-08-01
    subscription         None
 
 -- forecast --
-   2026-08-02 Sun  484.0  [361.0–608.0]  {'seasonal_naive': 0.0957, 'wma': 0.0951, 'exp_smoothing': 0.1093, 'linear_trend': 0.1195, 'year_over_year': 0.5803}
-   2026-08-03 Mon  621.0  [569.0–673.0]  {'seasonal_naive': 0.1042, 'wma': 0.2534, 'exp_smoothing': 0.3278, 'linear_trend': 0.2466, 'year_over_year': 0.0679}
-   2026-08-04 Tue  577.0  [519.0–635.0]  {'seasonal_naive': 0.2048, 'wma': 0.1926, 'exp_smoothing': 0.2056, 'linear_trend': 0.2461, 'year_over_year': 0.1509}
-   2026-08-05 Wed  612.0  [516.0–709.0]  {'seasonal_naive': 0.202, 'wma': 0.2152, 'exp_smoothing': 0.2267, 'linear_trend': 0.2447, 'year_over_year': 0.1114}
-   2026-08-06 Thu  605.0  [571.0–638.0]  {'seasonal_naive': 0.1372, 'wma': 0.2911, 'exp_smoothing': 0.2386, 'linear_trend': 0.247, 'year_over_year': 0.086}
-   2026-08-07 Fri  604.0  [553.0–656.0]  {'seasonal_naive': 0.1698, 'wma': 0.2457, 'exp_smoothing': 0.2584, 'linear_trend': 0.2456, 'year_over_year': 0.0805}
+   2026-08-02 Sun  479.0  [390.0–568.0]  {'seasonal_naive': 0.0553, 'wma': 0.0533, 'exp_smoothing': 0.0638, 'linear_trend': 0.0712, 'year_over_year': 0.7564}
+   2026-08-03 Mon  622.0  [567.0–676.0]  {'seasonal_naive': 0.1008, 'wma': 0.2786, 'exp_smoothing': 0.3343, 'linear_trend': 0.241, 'year_over_year': 0.0453}
+   2026-08-04 Tue  575.0  [534.0–616.0]  {'seasonal_naive': 0.1129, 'wma': 0.3603, 'exp_smoothing': 0.2977, 'linear_trend': 0.1524, 'year_over_year': 0.0768}
+   2026-08-05 Wed  617.0  [540.0–693.0]  {'seasonal_naive': 0.1873, 'wma': 0.2281, 'exp_smoothing': 0.2477, 'linear_trend': 0.2933, 'year_over_year': 0.0435}
+   2026-08-06 Thu  603.0  [547.0–659.0]  {'seasonal_naive': 0.1633, 'wma': 0.2392, 'exp_smoothing': 0.2536, 'linear_trend': 0.3124, 'year_over_year': 0.0314}
+   2026-08-07 Fri  605.0  [544.0–666.0]  {'seasonal_naive': 0.1924, 'wma': 0.2157, 'exp_smoothing': 0.2467, 'linear_trend': 0.2984, 'year_over_year': 0.0468}
 
 -- busy hours & staffing --
    For 9–10 am, schedule 11 people      63 customers/hr  wait   2.5 min  queue 2.57
@@ -84,8 +84,8 @@ FEATURE SWEEP — one full year of history, as at 2026-08-01
    yoy_growth_pct: None
 
 -- accuracy --
-   n=90 MAD=64.77 MAPE=11.54 tracking signal=31.698
-   (tracking signal 31.698 is past ±4 — Ope should be flagging bias)
+   n=90 MAD=64.98 MAPE=11.57 tracking signal=32.073
+   (tracking signal 32.073 is past ±4 — Ope should be flagging bias)
 
 -- premium: second location --
    copied to location 2

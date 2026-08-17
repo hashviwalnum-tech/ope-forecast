@@ -1,0 +1,44 @@
+replayed 283 days where all four models could predict
+
+TRUE long-run skill (MAE over the whole year, lower is better)
+   linear_trend       65.30
+   seasonal_naive     65.45
+   exp_smoothing      65.61
+   wma                70.47
+   best-to-worst spread: 7.9%
+
+per weekday (MAE), and which model actually won that weekday
+   day          seasonal_n         wma  exp_smooth  linear_tre          winner   spread
+   Monday            65.31       58.27       55.64       62.87   exp_smoothing    17.4%
+   Tuesday           73.93       90.11       81.64       77.60  seasonal_naive    21.9%
+   Wednesday         60.30       57.00       53.64       55.49   exp_smoothing    12.4%
+   Thursday          60.11       67.01       61.16       61.47  seasonal_naive    11.5%
+   Friday            51.03       58.79       55.14       49.73    linear_trend    18.2%
+   Sunday            82.88       92.44       87.27       85.62  seasonal_naive    11.5%
+
+how much the models DISAGREE (mean |a - b| between predictions)
+   seasonal_naive   vs wma                38.48
+   seasonal_naive   vs exp_smoothing      30.47
+   seasonal_naive   vs linear_trend       26.94
+   wma              vs exp_smoothing      11.44
+   wma              vs linear_trend       27.00
+   exp_smoothing    vs linear_trend       20.00
+   (typical day is 529 customers)
+
+weights each rule would assign (using perfect hindsight on skill)
+   rule                          seasonal_n         wma  exp_smooth  linear_tre     MAPE
+   equal quarters                     0.250       0.250       0.250       0.250   13.16%
+   inverse error (as shipped)         0.259       0.223       0.258       0.260   13.13%
+   inverse SQUARED error              0.259       0.223       0.258       0.260   13.13%
+   inverse error, per weekday                                                     13.07%
+   best single model per weekday                                                   12.67%
+   only seasonal_naive                                                            12.98%
+   only wma                                                                       14.50%
+   only exp_smoothing                                                             13.51%
+   only linear_trend                                                              13.39%
+
+the app judges skill from the last 4 same-weekday holdout errors.
+how stable is that judgement?  (how often the 4-point winner is the true winner)
+   4-point window picks the true best model 42.9% of the time (chance would be 25%)
+
+written: C:\Users\hashvi\ops-forecast-clean\docs\simulation\weights_analysis.json

@@ -100,18 +100,54 @@ def test_known_answer_iqr():
     assert r.weekday_iqr == pytest.approx(25.0)
 
 
-@pytest.mark.xfail(strict=True, reason="FINDING F-007: Tukey fences are scale-free, "
-                                       "so a very steady business gets flagged on ±4% moves")
+# ── FINDING F-007 (fixed): practical significance, not just statistical ─────
+
 def test_very_steady_business_is_not_pestered():
     """A business whose Mondays run 98–103 must not be told 104 is unusual.
 
-    Tukey fences have no notion of practical significance: on a tight history the
-    IQR is ~1.5 customers, so the fence sits at 103 and an utterly ordinary 104
-    trips it.  Spec §6 explicitly forbids firing on ordinary fluctuation.
+    Tukey fences are scale-free: on a tight history the IQR is ~1.5 customers,
+    so the fence sits at 103 and an utterly ordinary 104 — four per cent above
+    normal — used to trip it.  Spec §6 explicitly forbids firing on ordinary
+    fluctuation.
     """
     obs = [100.0, 98.0, 101.0, 99.0, 103.0, 100.0, 104.0]
     wds = [0] * 7
     assert detect_outliers(obs, wds) == []
+
+
+def test_a_steady_business_is_not_pestered_by_a_modest_swing_either():
+    """8% above a very tight history is still ordinary life, not an event."""
+    obs = [100.0, 98.0, 101.0, 99.0, 103.0, 100.0, 108.0]
+    assert detect_outliers(obs, [0] * 7) == []
+
+
+def test_a_steady_business_still_hears_about_a_genuinely_strange_day():
+    """Half a normal day IS worth a prompt, however steady the history."""
+    obs = [100.0, 98.0, 101.0, 99.0, 103.0, 100.0, 48.0]
+    res = detect_outliers(obs, [0] * 7)
+    assert [r.value for r in res] == [48.0]
+    assert res[0].direction == "low"
+
+
+def test_the_significance_floor_can_only_ever_quieten_the_detector():
+    """It is an AND with the fence, so nothing that was silent becomes noisy.
+
+    That is what keeps every "must not flag" case in the spec safe by
+    construction rather than by luck.
+    """
+    from app.engine.outliers import MIN_RELATIVE_DEVIATION
+    assert 0.0 < MIN_RELATIVE_DEVIATION < 1.0
+    history = [40.0, 45.0, 48.0, 50.0, 52.0, 55.0, 60.0, 65.0]
+    for candidate in (43.0, 47.0, 58.0, 62.0):
+        flagged = [r.day_index for r in detect_outliers(history + [candidate], [0] * 9)]
+        assert 8 not in flagged, f"{candidate} is ordinary variation and must not flag"
+
+
+def test_a_closure_sized_drop_is_still_flagged():
+    """A day at half the usual level — a burst pipe, a power cut — must surface."""
+    obs = [500.0, 540.0, 470.0, 520.0, 480.0, 510.0, 250.0]
+    res = detect_outliers(obs, [0] * 7)
+    assert [r.value for r in res] == [250.0]
 
 
 def test_min_same_weekday_threshold_is_enforced():

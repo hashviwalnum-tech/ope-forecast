@@ -7,90 +7,90 @@
     {
      "date": "2026-08-02",
      "weekday": "Sunday",
-     "predicted_customers": 484.0,
-     "interval_low": 361.0,
-     "interval_high": 608.0,
+     "predicted_customers": 479.0,
+     "interval_low": 390.0,
+     "interval_high": 568.0,
      "model_weights": {
-      "seasonal_naive": 0.0957,
-      "wma": 0.0951,
-      "exp_smoothing": 0.1093,
-      "linear_trend": 0.1195,
-      "year_over_year": 0.5803
+      "seasonal_naive": 0.0553,
+      "wma": 0.0533,
+      "exp_smoothing": 0.0638,
+      "linear_trend": 0.0712,
+      "year_over_year": 0.7564
      },
      "booked_count": null
     },
     {
      "date": "2026-08-03",
      "weekday": "Monday",
-     "predicted_customers": 621.0,
-     "interval_low": 569.0,
-     "interval_high": 673.0,
+     "predicted_customers": 622.0,
+     "interval_low": 567.0,
+     "interval_high": 676.0,
      "model_weights": {
-      "seasonal_naive": 0.1042,
-      "wma": 0.2534,
-      "exp_smoothing": 0.3278,
-      "linear_trend": 0.2466,
-      "year_over_year": 0.0679
+      "seasonal_naive": 0.1008,
+      "wma": 0.2786,
+      "exp_smoothing": 0.3343,
+      "linear_trend": 0.241,
+      "year_over_year": 0.0453
      },
      "booked_count": null
     },
     {
      "date": "2026-08-04",
      "weekday": "Tuesday",
-     "predicted_customers": 577.0,
-     "interval_low": 519.0,
-     "interval_high": 635.0,
+     "predicted_customers": 575.0,
+     "interval_low": 534.0,
+     "interval_high": 616.0,
      "model_weights": {
-      "seasonal_naive": 0.2048,
-      "wma": 0.1926,
-      "exp_smoothing": 0.2056,
-      "linear_trend": 0.2461,
-      "year_over_year": 0.1509
+      "seasonal_naive": 0.1129,
+      "wma": 0.3603,
+      "exp_smoothing": 0.2977,
+      "linear_trend": 0.1524,
+      "year_over_year": 0.0768
      },
      "booked_count": null
     },
     {
      "date": "2026-08-05",
      "weekday": "Wednesday",
-     "predicted_customers": 612.0,
-     "interval_low": 516.0,
-     "interval_high": 709.0,
+     "predicted_customers": 617.0,
+     "interval_low": 540.0,
+     "interval_high": 693.0,
      "model_weights": {
-      "seasonal_naive": 0.202,
-      "wma": 0.2152,
-      "exp_smoothing": 0.2267,
-      "linear_trend": 0.2447,
-      "year_over_year": 0.1114
+      "seasonal_naive": 0.1873,
+      "wma": 0.2281,
+      "exp_smoothing": 0.2477,
+      "linear_trend": 0.2933,
+      "year_over_year": 0.0435
      },
      "booked_count": null
     },
     {
      "date": "2026-08-06",
      "weekday": "Thursday",
-     "predicted_customers": 605.0,
-     "interval_low": 571.0,
-     "interval_high": 638.0,
+     "predicted_customers": 603.0,
+     "interval_low": 547.0,
+     "interval_high": 659.0,
      "model_weights": {
-      "seasonal_naive": 0.1372,
-      "wma": 0.2911,
-      "exp_smoothing": 0.2386,
-      "linear_trend": 0.247,
-      "year_over_year": 0.086
+      "seasonal_naive": 0.1633,
+      "wma": 0.2392,
+      "exp_smoothing": 0.2536,
+      "linear_trend": 0.3124,
+      "year_over_year": 0.0314
      },
      "booked_count": null
     },
     {
      "date": "2026-08-07",
      "weekday": "Friday",
-     "predicted_customers": 604.0,
-     "interval_low": 553.0,
-     "interval_high": 656.0,
+     "predicted_customers": 605.0,
+     "interval_low": 544.0,
+     "interval_high": 666.0,
      "model_weights": {
-      "seasonal_naive": 0.1698,
-      "wma": 0.2457,
-      "exp_smoothing": 0.2584,
-      "linear_trend": 0.2456,
-      "year_over_year": 0.0805
+      "seasonal_naive": 0.1924,
+      "wma": 0.2157,
+      "exp_smoothing": 0.2467,
+      "linear_trend": 0.2984,
+      "year_over_year": 0.0468
      },
      "booked_count": null
     }
@@ -103,10 +103,10 @@
    "status": "ok",
    "measured_from": "measured",
    "n_observations": 90,
-   "mad": 64.77,
-   "mse": 7588.12,
-   "mape": 11.54,
-   "tracking_signal": 31.698,
+   "mad": 64.98,
+   "mse": 7649.69,
+   "mape": 11.57,
+   "tracking_signal": 32.073,
    "bias_warning": "Forecast is biased \u2014 model may need recalibration (|tracking signal| > 4)",
    "drift_alert": null,
    "message": null
@@ -482,7 +482,7 @@
       {
        "date": "2026-08-04",
        "weekday": "Tuesday",
-       "predicted_units": 2.0,
+       "predicted_units": 3.0,
        "interval_low": 2.0,
        "interval_high": 3.0,
        "booked_count": null
@@ -550,50 +550,50 @@
       {
        "date": "2026-08-03",
        "weekday": "Monday",
-       "predicted_units": 105.0,
-       "interval_low": 94.0,
-       "interval_high": 116.0,
+       "predicted_units": 106.0,
+       "interval_low": 95.0,
+       "interval_high": 117.0,
        "booked_count": null
       },
       {
        "date": "2026-08-04",
        "weekday": "Tuesday",
-       "predicted_units": 103.0,
-       "interval_low": 93.0,
-       "interval_high": 113.0,
+       "predicted_units": 105.0,
+       "interval_low": 96.0,
+       "interval_high": 115.0,
        "booked_count": null
       },
       {
        "date": "2026-08-05",
        "weekday": "Wednesday",
-       "predicted_units": 109.0,
-       "interval_low": 94.0,
-       "interval_high": 124.0,
+       "predicted_units": 110.0,
+       "interval_low": 95.0,
+       "interval_high": 125.0,
        "booked_count": null
       },
       {
        "date": "2026-08-06",
        "weekday": "Thursday",
-       "predicted_units": 106.0,
-       "interval_low": 98.0,
-       "interval_high": 114.0,
+       "predicted_units": 107.0,
+       "interval_low": 99.0,
+       "interval_high": 116.0,
        "booked_count": null
       },
       {
        "date": "2026-08-07",
        "weekday": "Friday",
-       "predicted_units": 104.0,
-       "interval_low": 94.0,
-       "interval_high": 114.0,
+       "predicted_units": 105.0,
+       "interval_low": 95.0,
+       "interval_high": 115.0,
        "booked_count": null
       }
      ],
      "avg_daily_demand": 92.0,
-     "forecast_demand_over_lead_time": 306.0,
+     "forecast_demand_over_lead_time": 310.0,
      "lead_time_days": 3,
      "safety_stock_units": 49.0,
-     "reorder_point": 355.0,
-     "suggested_order_qty": 355.0,
+     "reorder_point": 358.0,
+     "suggested_order_qty": 358.0,
      "current_stock": 192.5,
      "projected_stock": -1432.0,
      "stock_untracked": false,
@@ -602,7 +602,7 @@
      "eoq": null,
      "n_days_data": 256,
      "constraint_notes": [
-      "Your storage holds 350 portions, but covering a 3-day delivery needs about 355. Order smaller amounts more often, or make more room."
+      "Your storage holds 350 portions, but covering a 3-day delivery needs about 358. Order smaller amounts more often, or make more room."
      ],
      "constraint_codes": [
       {
@@ -611,7 +611,7 @@
         "capacity": 350.0,
         "unit": "portions",
         "days": 3,
-        "needed": 355.0
+        "needed": 358.0
        }
       }
      ],
@@ -630,9 +630,9 @@
       {
        "date": "2026-08-02",
        "weekday": "Sunday",
-       "predicted_units": 145.0,
+       "predicted_units": 144.0,
        "interval_low": 70.0,
-       "interval_high": 220.0,
+       "interval_high": 219.0,
        "booked_count": null
       },
       {
@@ -646,25 +646,25 @@
       {
        "date": "2026-08-04",
        "weekday": "Tuesday",
-       "predicted_units": 169.0,
-       "interval_low": 120.0,
-       "interval_high": 219.0,
+       "predicted_units": 168.0,
+       "interval_low": 119.0,
+       "interval_high": 218.0,
        "booked_count": null
       },
       {
        "date": "2026-08-05",
        "weekday": "Wednesday",
-       "predicted_units": 181.0,
+       "predicted_units": 180.0,
        "interval_low": 127.0,
-       "interval_high": 235.0,
+       "interval_high": 234.0,
        "booked_count": null
       },
       {
        "date": "2026-08-06",
        "weekday": "Thursday",
-       "predicted_units": 189.0,
-       "interval_low": 161.0,
-       "interval_high": 217.0,
+       "predicted_units": 187.0,
+       "interval_low": 160.0,
+       "interval_high": 215.0,
        "booked_count": null
       },
       {
@@ -677,11 +677,11 @@
       }
      ],
      "avg_daily_demand": 169.0,
-     "forecast_demand_over_lead_time": 351.0,
+     "forecast_demand_over_lead_time": 350.0,
      "lead_time_days": 2,
      "safety_stock_units": 130.0,
-     "reorder_point": 481.0,
-     "suggested_order_qty": 481.0,
+     "reorder_point": 479.0,
+     "suggested_order_qty": 479.0,
      "current_stock": 495.0,
      "projected_stock": -1945.0,
      "stock_untracked": false,
@@ -706,58 +706,58 @@
       {
        "date": "2026-08-02",
        "weekday": "Sunday",
-       "predicted_units": 17.96,
-       "interval_low": 3.92,
-       "interval_high": 32.01,
+       "predicted_units": 16.49,
+       "interval_low": 2.44,
+       "interval_high": 30.53,
        "booked_count": null
       },
       {
        "date": "2026-08-03",
        "weekday": "Monday",
-       "predicted_units": 21.64,
-       "interval_low": 15.66,
-       "interval_high": 27.63,
+       "predicted_units": 22.02,
+       "interval_low": 16.03,
+       "interval_high": 28.0,
        "booked_count": null
       },
       {
        "date": "2026-08-04",
        "weekday": "Tuesday",
-       "predicted_units": 21.67,
-       "interval_low": 16.76,
-       "interval_high": 26.58,
+       "predicted_units": 21.99,
+       "interval_low": 17.08,
+       "interval_high": 26.91,
        "booked_count": null
       },
       {
        "date": "2026-08-05",
        "weekday": "Wednesday",
-       "predicted_units": 23.83,
-       "interval_low": 18.03,
-       "interval_high": 29.64,
+       "predicted_units": 24.06,
+       "interval_low": 18.25,
+       "interval_high": 29.87,
        "booked_count": null
       },
       {
        "date": "2026-08-06",
        "weekday": "Thursday",
-       "predicted_units": 24.96,
-       "interval_low": 17.36,
-       "interval_high": 32.57,
+       "predicted_units": 25.23,
+       "interval_low": 17.62,
+       "interval_high": 32.83,
        "booked_count": null
       },
       {
        "date": "2026-08-07",
        "weekday": "Friday",
-       "predicted_units": 25.56,
-       "interval_low": 21.34,
-       "interval_high": 29.78,
+       "predicted_units": 26.27,
+       "interval_low": 22.05,
+       "interval_high": 30.5,
        "booked_count": null
       }
      ],
      "avg_daily_demand": 21.02,
-     "forecast_demand_over_lead_time": 22.6,
+     "forecast_demand_over_lead_time": 22.68,
      "lead_time_days": 1,
      "safety_stock_units": 12.12,
-     "reorder_point": 34.72,
-     "suggested_order_qty": 34.72,
+     "reorder_point": 34.8,
+     "suggested_order_qty": 34.8,
      "current_stock": 33.0,
      "projected_stock": -237.8,
      "stock_untracked": false,
@@ -782,31 +782,31 @@
       {
        "date": "2026-08-02",
        "weekday": "Sunday",
-       "predicted_units": 110.0,
-       "interval_low": 72.0,
-       "interval_high": 148.0,
+       "predicted_units": 108.0,
+       "interval_low": 70.0,
+       "interval_high": 146.0,
        "booked_count": null
       },
       {
        "date": "2026-08-03",
        "weekday": "Monday",
-       "predicted_units": 120.0,
-       "interval_low": 82.0,
-       "interval_high": 157.0,
+       "predicted_units": 113.0,
+       "interval_low": 75.0,
+       "interval_high": 150.0,
        "booked_count": null
       },
       {
        "date": "2026-08-04",
        "weekday": "Tuesday",
-       "predicted_units": 120.0,
-       "interval_low": 108.0,
-       "interval_high": 132.0,
+       "predicted_units": 122.0,
+       "interval_low": 110.0,
+       "interval_high": 134.0,
        "booked_count": null
       },
       {
        "date": "2026-08-05",
        "weekday": "Wednesday",
-       "predicted_units": 146.0,
+       "predicted_units": 147.0,
        "interval_low": 91.0,
        "interval_high": 202.0,
        "booked_count": null
@@ -815,7 +815,7 @@
        "date": "2026-08-06",
        "weekday": "Thursday",
        "predicted_units": 129.0,
-       "interval_low": 89.0,
+       "interval_low": 90.0,
        "interval_high": 168.0,
        "booked_count": null
       },
@@ -823,17 +823,17 @@
        "date": "2026-08-07",
        "weekday": "Friday",
        "predicted_units": 122.0,
-       "interval_low": 75.0,
-       "interval_high": 170.0,
+       "interval_low": 74.0,
+       "interval_high": 169.0,
        "booked_count": null
       }
      ],
      "avg_daily_demand": 118.0,
-     "forecast_demand_over_lead_time": 249.0,
+     "forecast_demand_over_lead_time": 247.0,
      "lead_time_days": 2,
      "safety_stock_units": 94.0,
-     "reorder_point": 343.0,
-     "suggested_order_qty": 343.0,
+     "reorder_point": 341.0,
+     "suggested_order_qty": 341.0,
      "current_stock": 275.0,
      "projected_stock": -1210.0,
      "stock_untracked": false,
@@ -858,33 +858,33 @@
       {
        "date": "2026-08-02",
        "weekday": "Sunday",
-       "predicted_units": 135.0,
-       "interval_low": 101.0,
-       "interval_high": 169.0,
+       "predicted_units": 136.0,
+       "interval_low": 102.0,
+       "interval_high": 170.0,
        "booked_count": null
       },
       {
        "date": "2026-08-03",
        "weekday": "Monday",
-       "predicted_units": 174.0,
-       "interval_low": 125.0,
-       "interval_high": 224.0,
+       "predicted_units": 180.0,
+       "interval_low": 130.0,
+       "interval_high": 229.0,
        "booked_count": null
       },
       {
        "date": "2026-08-04",
        "weekday": "Tuesday",
        "predicted_units": 140.0,
-       "interval_low": 105.0,
-       "interval_high": 174.0,
+       "interval_low": 106.0,
+       "interval_high": 175.0,
        "booked_count": null
       },
       {
        "date": "2026-08-05",
        "weekday": "Wednesday",
-       "predicted_units": 151.0,
-       "interval_low": 126.0,
-       "interval_high": 176.0,
+       "predicted_units": 156.0,
+       "interval_low": 130.0,
+       "interval_high": 181.0,
        "booked_count": null
       },
       {
@@ -905,11 +905,11 @@
       }
      ],
      "avg_daily_demand": 125.0,
-     "forecast_demand_over_lead_time": 286.0,
+     "forecast_demand_over_lead_time": 290.0,
      "lead_time_days": 2,
      "safety_stock_units": 103.0,
-     "reorder_point": 389.0,
-     "suggested_order_qty": 389.0,
+     "reorder_point": 393.0,
+     "suggested_order_qty": 393.0,
      "current_stock": 330.0,
      "projected_stock": -1362.0,
      "stock_untracked": false,
@@ -934,17 +934,17 @@
       {
        "date": "2026-08-02",
        "weekday": "Sunday",
-       "predicted_units": 204.0,
-       "interval_low": 181.0,
-       "interval_high": 227.0,
+       "predicted_units": 208.0,
+       "interval_low": 185.0,
+       "interval_high": 231.0,
        "booked_count": null
       },
       {
        "date": "2026-08-03",
        "weekday": "Monday",
-       "predicted_units": 205.0,
-       "interval_low": 177.0,
-       "interval_high": 234.0,
+       "predicted_units": 190.0,
+       "interval_low": 162.0,
+       "interval_high": 219.0,
        "booked_count": null
       },
       {
@@ -952,40 +952,40 @@
        "weekday": "Tuesday",
        "predicted_units": 226.0,
        "interval_low": 195.0,
-       "interval_high": 257.0,
+       "interval_high": 258.0,
        "booked_count": null
       },
       {
        "date": "2026-08-05",
        "weekday": "Wednesday",
        "predicted_units": 232.0,
-       "interval_low": 204.0,
+       "interval_low": 203.0,
        "interval_high": 261.0,
        "booked_count": null
       },
       {
        "date": "2026-08-06",
        "weekday": "Thursday",
-       "predicted_units": 253.0,
-       "interval_low": 216.0,
-       "interval_high": 290.0,
+       "predicted_units": 257.0,
+       "interval_low": 220.0,
+       "interval_high": 295.0,
        "booked_count": null
       },
       {
        "date": "2026-08-07",
        "weekday": "Friday",
-       "predicted_units": 231.0,
+       "predicted_units": 230.0,
        "interval_low": 179.0,
-       "interval_high": 282.0,
+       "interval_high": 281.0,
        "booked_count": null
       }
      ],
      "avg_daily_demand": 210.0,
-     "forecast_demand_over_lead_time": 450.0,
+     "forecast_demand_over_lead_time": 448.0,
      "lead_time_days": 2,
      "safety_stock_units": 111.0,
-     "reorder_point": 561.0,
-     "suggested_order_qty": 561.0,
+     "reorder_point": 558.0,
+     "suggested_order_qty": 558.0,
      "current_stock": 770.0,
      "projected_stock": -2376.0,
      "stock_untracked": false,
@@ -1010,25 +1010,25 @@
       {
        "date": "2026-08-02",
        "weekday": "Sunday",
-       "predicted_units": 113.0,
-       "interval_low": 91.0,
-       "interval_high": 135.0,
+       "predicted_units": 116.0,
+       "interval_low": 94.0,
+       "interval_high": 138.0,
        "booked_count": null
       },
       {
        "date": "2026-08-03",
        "weekday": "Monday",
-       "predicted_units": 130.0,
-       "interval_low": 104.0,
-       "interval_high": 156.0,
+       "predicted_units": 131.0,
+       "interval_low": 105.0,
+       "interval_high": 157.0,
        "booked_count": null
       },
       {
        "date": "2026-08-04",
        "weekday": "Tuesday",
-       "predicted_units": 134.0,
-       "interval_low": 81.0,
-       "interval_high": 187.0,
+       "predicted_units": 131.0,
+       "interval_low": 78.0,
+       "interval_high": 184.0,
        "booked_count": null
       },
       {
@@ -1042,26 +1042,26 @@
       {
        "date": "2026-08-06",
        "weekday": "Thursday",
-       "predicted_units": 143.0,
-       "interval_low": 115.0,
-       "interval_high": 171.0,
+       "predicted_units": 144.0,
+       "interval_low": 116.0,
+       "interval_high": 172.0,
        "booked_count": null
       },
       {
        "date": "2026-08-07",
        "weekday": "Friday",
-       "predicted_units": 129.0,
-       "interval_low": 103.0,
-       "interval_high": 155.0,
+       "predicted_units": 130.0,
+       "interval_low": 104.0,
+       "interval_high": 156.0,
        "booked_count": null
       }
      ],
      "avg_daily_demand": 117.0,
-     "forecast_demand_over_lead_time": 396.0,
+     "forecast_demand_over_lead_time": 398.0,
      "lead_time_days": 3,
      "safety_stock_units": 120.0,
-     "reorder_point": 516.0,
-     "suggested_order_qty": 516.0,
+     "reorder_point": 518.0,
+     "suggested_order_qty": 518.0,
      "current_stock": 220.0,
      "projected_stock": -1720.0,
      "stock_untracked": false,
@@ -1070,7 +1070,7 @@
      "eoq": null,
      "n_days_data": 256,
      "constraint_notes": [
-      "Your storage holds 400 cups, but covering a 3-day delivery needs about 516. Order smaller amounts more often, or make more room."
+      "Your storage holds 400 cups, but covering a 3-day delivery needs about 518. Order smaller amounts more often, or make more room."
      ],
      "constraint_codes": [
       {
@@ -1079,7 +1079,7 @@
         "capacity": 400.0,
         "unit": "cups",
         "days": 3,
-        "needed": 516.0
+        "needed": 518.0
        }
       }
      ],
@@ -1098,16 +1098,16 @@
       {
        "date": "2026-08-02",
        "weekday": "Sunday",
-       "predicted_units": 78.0,
-       "interval_low": 28.0,
-       "interval_high": 128.0,
+       "predicted_units": 70.0,
+       "interval_low": 20.0,
+       "interval_high": 120.0,
        "booked_count": null
       },
       {
        "date": "2026-08-03",
        "weekday": "Monday",
-       "predicted_units": 114.0,
-       "interval_low": 90.0,
+       "predicted_units": 113.0,
+       "interval_low": 89.0,
        "interval_high": 138.0,
        "booked_count": null
       },
@@ -1122,9 +1122,9 @@
       {
        "date": "2026-08-05",
        "weekday": "Wednesday",
-       "predicted_units": 106.0,
-       "interval_low": 65.0,
-       "interval_high": 147.0,
+       "predicted_units": 107.0,
+       "interval_low": 66.0,
+       "interval_high": 148.0,
        "booked_count": null
       },
       {
@@ -1145,11 +1145,11 @@
       }
      ],
      "avg_daily_demand": 87.0,
-     "forecast_demand_over_lead_time": 187.0,
+     "forecast_demand_over_lead_time": 184.0,
      "lead_time_days": 2,
      "safety_stock_units": 77.0,
-     "reorder_point": 264.0,
-     "suggested_order_qty": 264.0,
+     "reorder_point": 261.0,
+     "suggested_order_qty": 261.0,
      "current_stock": 275.0,
      "projected_stock": -786.0,
      "stock_untracked": false,
@@ -1174,58 +1174,58 @@
       {
        "date": "2026-08-02",
        "weekday": "Sunday",
-       "predicted_units": 283.0,
+       "predicted_units": 284.0,
        "interval_low": 195.0,
-       "interval_high": 371.0,
+       "interval_high": 372.0,
        "booked_count": null
       },
       {
        "date": "2026-08-03",
        "weekday": "Monday",
-       "predicted_units": 360.0,
-       "interval_low": 337.0,
-       "interval_high": 384.0,
+       "predicted_units": 364.0,
+       "interval_low": 341.0,
+       "interval_high": 388.0,
        "booked_count": null
       },
       {
        "date": "2026-08-04",
        "weekday": "Tuesday",
-       "predicted_units": 302.0,
-       "interval_low": 288.0,
-       "interval_high": 316.0,
+       "predicted_units": 306.0,
+       "interval_low": 292.0,
+       "interval_high": 320.0,
        "booked_count": null
       },
       {
        "date": "2026-08-05",
        "weekday": "Wednesday",
-       "predicted_units": 323.0,
-       "interval_low": 272.0,
-       "interval_high": 373.0,
+       "predicted_units": 325.0,
+       "interval_low": 275.0,
+       "interval_high": 375.0,
        "booked_count": null
       },
       {
        "date": "2026-08-06",
        "weekday": "Thursday",
-       "predicted_units": 316.0,
-       "interval_low": 276.0,
-       "interval_high": 356.0,
+       "predicted_units": 318.0,
+       "interval_low": 277.0,
+       "interval_high": 358.0,
        "booked_count": null
       },
       {
        "date": "2026-08-07",
        "weekday": "Friday",
-       "predicted_units": 334.0,
-       "interval_low": 298.0,
-       "interval_high": 370.0,
+       "predicted_units": 339.0,
+       "interval_low": 303.0,
+       "interval_high": 375.0,
        "booked_count": null
       }
      ],
      "avg_daily_demand": 294.0,
-     "forecast_demand_over_lead_time": 1279.0,
+     "forecast_demand_over_lead_time": 1291.0,
      "lead_time_days": 4,
      "safety_stock_units": 191.0,
-     "reorder_point": 1470.0,
-     "suggested_order_qty": 1470.0,
+     "reorder_point": 1482.0,
+     "suggested_order_qty": 1482.0,
      "current_stock": 1375.0,
      "projected_stock": -1842.0,
      "stock_untracked": false,
@@ -1252,29 +1252,29 @@
        "weekday": "Sunday",
        "predicted_units": 67.0,
        "interval_low": 52.0,
-       "interval_high": 82.0,
+       "interval_high": 81.0,
        "booked_count": null
       },
       {
        "date": "2026-08-03",
        "weekday": "Monday",
-       "predicted_units": 92.0,
-       "interval_low": 81.0,
-       "interval_high": 104.0,
+       "predicted_units": 96.0,
+       "interval_low": 84.0,
+       "interval_high": 108.0,
        "booked_count": null
       },
       {
        "date": "2026-08-04",
        "weekday": "Tuesday",
-       "predicted_units": 81.0,
-       "interval_low": 62.0,
+       "predicted_units": 80.0,
+       "interval_low": 61.0,
        "interval_high": 100.0,
        "booked_count": null
       },
       {
        "date": "2026-08-05",
        "weekday": "Wednesday",
-       "predicted_units": 74.0,
+       "predicted_units": 75.0,
        "interval_low": 49.0,
        "interval_high": 100.0,
        "booked_count": null
@@ -1282,26 +1282,26 @@
       {
        "date": "2026-08-06",
        "weekday": "Thursday",
-       "predicted_units": 98.0,
-       "interval_low": 75.0,
-       "interval_high": 120.0,
+       "predicted_units": 101.0,
+       "interval_low": 78.0,
+       "interval_high": 124.0,
        "booked_count": null
       },
       {
        "date": "2026-08-07",
        "weekday": "Friday",
-       "predicted_units": 76.0,
+       "predicted_units": 77.0,
        "interval_low": 66.0,
-       "interval_high": 87.0,
+       "interval_high": 88.0,
        "booked_count": null
       }
      ],
      "avg_daily_demand": 72.0,
-     "forecast_demand_over_lead_time": 244.0,
+     "forecast_demand_over_lead_time": 248.0,
      "lead_time_days": 3,
      "safety_stock_units": 65.0,
-     "reorder_point": 309.0,
-     "suggested_order_qty": 309.0,
+     "reorder_point": 313.0,
+     "suggested_order_qty": 313.0,
      "current_stock": 165.0,
      "projected_stock": -902.0,
      "stock_untracked": false,
@@ -1310,7 +1310,7 @@
      "eoq": null,
      "n_days_data": 256,
      "constraint_notes": [
-      "Your storage holds 300 burgers, but covering a 3-day delivery needs about 309. Order smaller amounts more often, or make more room."
+      "Your storage holds 300 burgers, but covering a 3-day delivery needs about 313. Order smaller amounts more often, or make more room."
      ],
      "constraint_codes": [
       {
@@ -1319,7 +1319,7 @@
         "capacity": 300.0,
         "unit": "burgers",
         "days": 3,
-        "needed": 309.0
+        "needed": 313.0
        }
       }
      ],
@@ -3276,7 +3276,7 @@
    "yoy_curr_period_label": null,
    "forecast_accuracy_mape": 10.3,
    "accuracy_early_mape": 10.3,
-   "accuracy_recent_mape": 10.3,
+   "accuracy_recent_mape": 10.4,
    "accuracy_improved": false,
    "weekday_trends": [
     {
@@ -3611,26 +3611,26 @@
     {
      "date": "2025-08-25",
      "weekday": "Monday",
-     "predicted": 543.0,
+     "predicted": 546.0,
      "actual": 352.0,
-     "interval_low": 518.0,
-     "interval_high": 567.0
+     "interval_low": 522.0,
+     "interval_high": 571.0
     },
     {
      "date": "2025-08-26",
      "weekday": "Tuesday",
-     "predicted": 489.0,
+     "predicted": 487.0,
      "actual": 516.0,
-     "interval_low": 469.0,
-     "interval_high": 509.0
+     "interval_low": 467.0,
+     "interval_high": 507.0
     },
     {
      "date": "2025-08-27",
      "weekday": "Wednesday",
-     "predicted": 513.0,
+     "predicted": 512.0,
      "actual": 525.0,
-     "interval_low": 496.0,
-     "interval_high": 531.0
+     "interval_low": 494.0,
+     "interval_high": 529.0
     },
     {
      "date": "2025-08-28",
@@ -3643,98 +3643,98 @@
     {
      "date": "2025-08-29",
      "weekday": "Friday",
-     "predicted": 513.0,
+     "predicted": 515.0,
      "actual": 500.0,
-     "interval_low": 501.0,
-     "interval_high": 525.0
+     "interval_low": 504.0,
+     "interval_high": 527.0
     },
     {
      "date": "2025-08-31",
      "weekday": "Sunday",
      "predicted": 393.0,
      "actual": 519.0,
-     "interval_low": 372.0,
+     "interval_low": 371.0,
      "interval_high": 415.0
     },
     {
      "date": "2025-09-01",
      "weekday": "Monday",
-     "predicted": 458.0,
+     "predicted": 463.0,
      "actual": 568.0,
-     "interval_low": 363.0,
-     "interval_high": 552.0
+     "interval_low": 368.0,
+     "interval_high": 557.0
     },
     {
      "date": "2025-09-02",
      "weekday": "Tuesday",
-     "predicted": 532.0,
+     "predicted": 537.0,
      "actual": 548.0,
-     "interval_low": 513.0,
-     "interval_high": 552.0
+     "interval_low": 518.0,
+     "interval_high": 556.0
     },
     {
      "date": "2025-09-03",
      "weekday": "Wednesday",
-     "predicted": 541.0,
+     "predicted": 542.0,
      "actual": 372.0,
-     "interval_low": 521.0,
+     "interval_low": 522.0,
      "interval_high": 561.0
     },
     {
      "date": "2025-09-04",
      "weekday": "Thursday",
-     "predicted": 498.0,
+     "predicted": 497.0,
      "actual": 522.0,
-     "interval_low": 476.0,
+     "interval_low": 475.0,
      "interval_high": 519.0
     },
     {
      "date": "2025-09-05",
      "weekday": "Friday",
-     "predicted": 515.0,
+     "predicted": 514.0,
      "actual": 522.0,
      "interval_low": 493.0,
-     "interval_high": 536.0
+     "interval_high": 535.0
     },
     {
      "date": "2025-09-07",
      "weekday": "Sunday",
      "predicted": 393.0,
      "actual": 404.0,
-     "interval_low": 372.0,
+     "interval_low": 371.0,
      "interval_high": 415.0
     },
     {
      "date": "2025-09-08",
      "weekday": "Monday",
-     "predicted": 458.0,
+     "predicted": 463.0,
      "actual": 509.0,
-     "interval_low": 363.0,
-     "interval_high": 552.0
+     "interval_low": 368.0,
+     "interval_high": 557.0
     },
     {
      "date": "2025-09-09",
      "weekday": "Tuesday",
-     "predicted": 561.0,
+     "predicted": 567.0,
      "actual": 474.0,
-     "interval_low": 543.0,
-     "interval_high": 580.0
+     "interval_low": 548.0,
+     "interval_high": 585.0
     },
     {
      "date": "2025-09-10",
      "weekday": "Wednesday",
-     "predicted": 453.0,
+     "predicted": 458.0,
      "actual": 505.0,
-     "interval_low": 392.0,
-     "interval_high": 514.0
+     "interval_low": 397.0,
+     "interval_high": 519.0
     },
     {
      "date": "2025-09-11",
      "weekday": "Thursday",
-     "predicted": 516.0,
+     "predicted": 520.0,
      "actual": 484.0,
-     "interval_low": 501.0,
-     "interval_high": 532.0
+     "interval_low": 504.0,
+     "interval_high": 536.0
     },
     {
      "date": "2025-09-12",
@@ -3747,66 +3747,66 @@
     {
      "date": "2025-09-14",
      "weekday": "Sunday",
-     "predicted": 394.0,
+     "predicted": 396.0,
      "actual": 362.0,
-     "interval_low": 368.0,
-     "interval_high": 421.0
+     "interval_low": 369.0,
+     "interval_high": 422.0
     },
     {
      "date": "2025-09-15",
      "weekday": "Monday",
-     "predicted": 474.0,
+     "predicted": 476.0,
      "actual": 569.0,
-     "interval_low": 388.0,
-     "interval_high": 561.0
+     "interval_low": 389.0,
+     "interval_high": 562.0
     },
     {
      "date": "2025-09-16",
      "weekday": "Tuesday",
      "predicted": 515.0,
      "actual": 491.0,
-     "interval_low": 483.0,
-     "interval_high": 546.0
+     "interval_low": 482.0,
+     "interval_high": 547.0
     },
     {
      "date": "2025-09-17",
      "weekday": "Wednesday",
-     "predicted": 453.0,
+     "predicted": 458.0,
      "actual": 604.0,
-     "interval_low": 392.0,
-     "interval_high": 514.0
+     "interval_low": 397.0,
+     "interval_high": 519.0
     },
     {
      "date": "2025-09-18",
      "weekday": "Thursday",
-     "predicted": 516.0,
+     "predicted": 520.0,
      "actual": 596.0,
-     "interval_low": 501.0,
-     "interval_high": 532.0
+     "interval_low": 504.0,
+     "interval_high": 536.0
     },
     {
      "date": "2025-09-19",
      "weekday": "Friday",
-     "predicted": 548.0,
+     "predicted": 549.0,
      "actual": 568.0,
-     "interval_low": 529.0,
+     "interval_low": 531.0,
      "interval_high": 567.0
     },
     {
      "date": "2025-09-21",
      "weekday": "Sunday",
-     "predicted": 375.0,
+     "predicted": 376.0,
      "actual": 280.0,
-     "interval_low": 352.0,
-     "interval_high": 398.0
+     "interval_low": 353.0,
+     "interval_high": 399.0
     },
     {
      "date": "2025-09-22",
      "weekday": "Monday",
-     "predicted": 506.0,
+     "predicted": 504.0,
      "actual": 532.0,
-     "interval_low": 418.0,
-     "interval_high": 594.0
+     "interval_low": 421.0,
+     "interval_high": 586.0
     },
     {
      "date": "2025-09-23",
@@ -3819,1169 +3819,1169 @@
     {
      "date": "2025-09-24",
      "weekday": "Wednesday",
-     "predicted": 474.0,
+     "predicted": 475.0,
      "actual": 481.0,
-     "interval_low": 415.0,
-     "interval_high": 532.0
+     "interval_low": 417.0,
+     "interval_high": 533.0
     },
     {
      "date": "2025-09-25",
      "weekday": "Thursday",
-     "predicted": 501.0,
+     "predicted": 500.0,
      "actual": 343.0,
-     "interval_low": 481.0,
+     "interval_low": 480.0,
      "interval_high": 520.0
     },
     {
      "date": "2025-09-26",
      "weekday": "Friday",
-     "predicted": 548.0,
+     "predicted": 549.0,
      "actual": 440.0,
-     "interval_low": 529.0,
+     "interval_low": 531.0,
      "interval_high": 567.0
     },
     {
      "date": "2025-09-29",
      "weekday": "Monday",
-     "predicted": 516.0,
+     "predicted": 514.0,
      "actual": 494.0,
-     "interval_low": 434.0,
-     "interval_high": 598.0
+     "interval_low": 440.0,
+     "interval_high": 588.0
     },
     {
      "date": "2025-09-30",
      "weekday": "Tuesday",
      "predicted": 558.0,
      "actual": 549.0,
-     "interval_low": 510.0,
-     "interval_high": 606.0
+     "interval_low": 518.0,
+     "interval_high": 597.0
     },
     {
      "date": "2025-10-01",
      "weekday": "Wednesday",
-     "predicted": 475.0,
+     "predicted": 476.0,
      "actual": 472.0,
-     "interval_low": 419.0,
-     "interval_high": 531.0
+     "interval_low": 424.0,
+     "interval_high": 528.0
     },
     {
      "date": "2025-10-02",
      "weekday": "Thursday",
-     "predicted": 437.0,
+     "predicted": 441.0,
      "actual": 495.0,
-     "interval_low": 387.0,
-     "interval_high": 487.0
+     "interval_low": 390.0,
+     "interval_high": 493.0
     },
     {
      "date": "2025-10-03",
      "weekday": "Friday",
      "predicted": 493.0,
      "actual": 472.0,
-     "interval_low": 456.0,
-     "interval_high": 529.0
+     "interval_low": 458.0,
+     "interval_high": 528.0
     },
     {
      "date": "2025-10-05",
      "weekday": "Sunday",
-     "predicted": 320.0,
+     "predicted": 323.0,
      "actual": 433.0,
-     "interval_low": 287.0,
-     "interval_high": 354.0
+     "interval_low": 289.0,
+     "interval_high": 356.0
     },
     {
      "date": "2025-10-06",
      "weekday": "Monday",
-     "predicted": 512.0,
+     "predicted": 511.0,
      "actual": 750.0,
-     "interval_low": 477.0,
-     "interval_high": 546.0
+     "interval_low": 442.0,
+     "interval_high": 579.0
     },
     {
      "date": "2025-10-07",
      "weekday": "Tuesday",
      "predicted": 558.0,
      "actual": 494.0,
-     "interval_low": 510.0,
-     "interval_high": 606.0
+     "interval_low": 518.0,
+     "interval_high": 597.0
     },
     {
      "date": "2025-10-08",
      "weekday": "Wednesday",
-     "predicted": 474.0,
+     "predicted": 475.0,
      "actual": 492.0,
-     "interval_low": 420.0,
-     "interval_high": 528.0
+     "interval_low": 427.0,
+     "interval_high": 522.0
     },
     {
      "date": "2025-10-09",
      "weekday": "Thursday",
-     "predicted": 458.0,
+     "predicted": 462.0,
      "actual": 487.0,
-     "interval_low": 399.0,
-     "interval_high": 517.0
+     "interval_low": 408.0,
+     "interval_high": 515.0
     },
     {
      "date": "2025-10-10",
      "weekday": "Friday",
-     "predicted": 482.0,
+     "predicted": 483.0,
      "actual": 517.0,
-     "interval_low": 446.0,
-     "interval_high": 517.0
+     "interval_low": 451.0,
+     "interval_high": 516.0
     },
     {
      "date": "2025-10-12",
      "weekday": "Sunday",
-     "predicted": 372.0,
+     "predicted": 373.0,
      "actual": 466.0,
-     "interval_low": 319.0,
-     "interval_high": 424.0
+     "interval_low": 326.0,
+     "interval_high": 421.0
     },
     {
      "date": "2025-10-13",
      "weekday": "Monday",
-     "predicted": 512.0,
+     "predicted": 511.0,
      "actual": 499.0,
-     "interval_low": 477.0,
-     "interval_high": 546.0
+     "interval_low": 442.0,
+     "interval_high": 579.0
     },
     {
      "date": "2025-10-14",
      "weekday": "Tuesday",
      "predicted": 535.0,
      "actual": 481.0,
-     "interval_low": 484.0,
-     "interval_high": 586.0
+     "interval_low": 494.0,
+     "interval_high": 576.0
     },
     {
      "date": "2025-10-15",
      "weekday": "Wednesday",
      "predicted": 481.0,
      "actual": 539.0,
-     "interval_low": 466.0,
-     "interval_high": 497.0
+     "interval_low": 437.0,
+     "interval_high": 526.0
     },
     {
      "date": "2025-10-16",
      "weekday": "Thursday",
-     "predicted": 467.0,
+     "predicted": 469.0,
      "actual": 523.0,
-     "interval_low": 406.0,
-     "interval_high": 528.0
+     "interval_low": 418.0,
+     "interval_high": 520.0
     },
     {
      "date": "2025-10-17",
      "weekday": "Friday",
      "predicted": 494.0,
      "actual": 538.0,
-     "interval_low": 457.0,
-     "interval_high": 530.0
+     "interval_low": 462.0,
+     "interval_high": 525.0
     },
     {
      "date": "2025-10-19",
      "weekday": "Sunday",
-     "predicted": 402.0,
+     "predicted": 401.0,
      "actual": 356.0,
-     "interval_low": 341.0,
-     "interval_high": 464.0
+     "interval_low": 350.0,
+     "interval_high": 453.0
     },
     {
      "date": "2025-10-20",
      "weekday": "Monday",
-     "predicted": 508.0,
+     "predicted": 506.0,
      "actual": 535.0,
-     "interval_low": 472.0,
-     "interval_high": 543.0
+     "interval_low": 443.0,
+     "interval_high": 570.0
     },
     {
      "date": "2025-10-21",
      "weekday": "Tuesday",
      "predicted": 517.0,
      "actual": 512.0,
-     "interval_low": 467.0,
-     "interval_high": 567.0
+     "interval_low": 476.0,
+     "interval_high": 559.0
     },
     {
      "date": "2025-10-22",
      "weekday": "Wednesday",
      "predicted": 497.0,
      "actual": 460.0,
-     "interval_low": 480.0,
-     "interval_high": 514.0
+     "interval_low": 453.0,
+     "interval_high": 541.0
     },
     {
      "date": "2025-10-23",
      "weekday": "Thursday",
-     "predicted": 484.0,
+     "predicted": 485.0,
      "actual": 475.0,
-     "interval_low": 417.0,
-     "interval_high": 550.0
+     "interval_low": 434.0,
+     "interval_high": 535.0
     },
     {
      "date": "2025-10-24",
      "weekday": "Friday",
      "predicted": 508.0,
      "actual": 529.0,
-     "interval_low": 471.0,
-     "interval_high": 546.0
+     "interval_low": 477.0,
+     "interval_high": 539.0
     },
     {
      "date": "2025-10-26",
      "weekday": "Sunday",
      "predicted": 390.0,
      "actual": 538.0,
-     "interval_low": 327.0,
-     "interval_high": 453.0
+     "interval_low": 341.0,
+     "interval_high": 439.0
     },
     {
      "date": "2025-10-27",
      "weekday": "Monday",
-     "predicted": 515.0,
+     "predicted": 513.0,
      "actual": 473.0,
-     "interval_low": 497.0,
-     "interval_high": 533.0
+     "interval_low": 453.0,
+     "interval_high": 573.0
     },
     {
      "date": "2025-10-28",
      "weekday": "Tuesday",
      "predicted": 516.0,
      "actual": 488.0,
-     "interval_low": 466.0,
-     "interval_high": 565.0
+     "interval_low": 476.0,
+     "interval_high": 555.0
     },
     {
      "date": "2025-10-29",
      "weekday": "Wednesday",
      "predicted": 487.0,
      "actual": 460.0,
-     "interval_low": 462.0,
-     "interval_high": 513.0
+     "interval_low": 445.0,
+     "interval_high": 530.0
     },
     {
      "date": "2025-10-30",
      "weekday": "Thursday",
      "predicted": 484.0,
      "actual": 546.0,
-     "interval_low": 460.0,
-     "interval_high": 507.0
+     "interval_low": 437.0,
+     "interval_high": 531.0
     },
     {
      "date": "2025-10-31",
      "weekday": "Friday",
-     "predicted": 519.0,
+     "predicted": 518.0,
      "actual": 558.0,
-     "interval_low": 500.0,
-     "interval_high": 537.0
+     "interval_low": 489.0,
+     "interval_high": 548.0
     },
     {
      "date": "2025-11-02",
      "weekday": "Sunday",
      "predicted": 390.0,
      "actual": 510.0,
-     "interval_low": 327.0,
-     "interval_high": 453.0
+     "interval_low": 341.0,
+     "interval_high": 439.0
     },
     {
      "date": "2025-11-03",
      "weekday": "Monday",
-     "predicted": 503.0,
+     "predicted": 502.0,
      "actual": 576.0,
-     "interval_low": 483.0,
-     "interval_high": 522.0
+     "interval_low": 445.0,
+     "interval_high": 559.0
     },
     {
      "date": "2025-11-04",
      "weekday": "Tuesday",
-     "predicted": 506.0,
+     "predicted": 505.0,
      "actual": 593.0,
-     "interval_low": 489.0,
-     "interval_high": 523.0
+     "interval_low": 467.0,
+     "interval_high": 543.0
     },
     {
      "date": "2025-11-05",
      "weekday": "Wednesday",
      "predicted": 480.0,
      "actual": 540.0,
-     "interval_low": 452.0,
-     "interval_high": 508.0
+     "interval_low": 439.0,
+     "interval_high": 521.0
     },
     {
      "date": "2025-11-06",
      "weekday": "Thursday",
      "predicted": 484.0,
      "actual": 571.0,
-     "interval_low": 460.0,
-     "interval_high": 507.0
+     "interval_low": 437.0,
+     "interval_high": 531.0
     },
     {
      "date": "2025-11-07",
      "weekday": "Friday",
-     "predicted": 519.0,
+     "predicted": 518.0,
      "actual": 521.0,
-     "interval_low": 500.0,
-     "interval_high": 537.0
+     "interval_low": 489.0,
+     "interval_high": 548.0
     },
     {
      "date": "2025-11-09",
      "weekday": "Sunday",
      "predicted": 390.0,
      "actual": 365.0,
-     "interval_low": 327.0,
-     "interval_high": 453.0
+     "interval_low": 341.0,
+     "interval_high": 439.0
     },
     {
      "date": "2025-11-10",
      "weekday": "Monday",
-     "predicted": 503.0,
+     "predicted": 502.0,
      "actual": 484.0,
-     "interval_low": 483.0,
-     "interval_high": 522.0
+     "interval_low": 445.0,
+     "interval_high": 559.0
     },
     {
      "date": "2025-11-11",
      "weekday": "Tuesday",
-     "predicted": 506.0,
+     "predicted": 505.0,
      "actual": 493.0,
-     "interval_low": 489.0,
-     "interval_high": 523.0
+     "interval_low": 467.0,
+     "interval_high": 543.0
     },
     {
      "date": "2025-11-12",
      "weekday": "Wednesday",
      "predicted": 480.0,
      "actual": 459.0,
-     "interval_low": 452.0,
-     "interval_high": 508.0
+     "interval_low": 439.0,
+     "interval_high": 521.0
     },
     {
      "date": "2025-11-13",
      "weekday": "Thursday",
      "predicted": 484.0,
      "actual": 503.0,
-     "interval_low": 460.0,
-     "interval_high": 507.0
+     "interval_low": 437.0,
+     "interval_high": 531.0
     },
     {
      "date": "2025-11-14",
      "weekday": "Friday",
      "predicted": 522.0,
      "actual": 487.0,
-     "interval_low": 511.0,
-     "interval_high": 532.0
+     "interval_low": 494.0,
+     "interval_high": 549.0
     },
     {
      "date": "2025-11-16",
      "weekday": "Sunday",
      "predicted": 384.0,
      "actual": 293.0,
-     "interval_low": 335.0,
-     "interval_high": 432.0
+     "interval_low": 338.0,
+     "interval_high": 431.0
     },
     {
      "date": "2025-11-17",
      "weekday": "Monday",
-     "predicted": 498.0,
+     "predicted": 497.0,
      "actual": 445.0,
-     "interval_low": 479.0,
-     "interval_high": 517.0
+     "interval_low": 443.0,
+     "interval_high": 552.0
     },
     {
      "date": "2025-11-18",
      "weekday": "Tuesday",
      "predicted": 502.0,
      "actual": 517.0,
-     "interval_low": 487.0,
-     "interval_high": 516.0
+     "interval_low": 465.0,
+     "interval_high": 538.0
     },
     {
      "date": "2025-11-19",
      "weekday": "Wednesday",
-     "predicted": 473.0,
+     "predicted": 474.0,
      "actual": 474.0,
-     "interval_low": 446.0,
-     "interval_high": 501.0
+     "interval_low": 435.0,
+     "interval_high": 513.0
     },
     {
      "date": "2025-11-20",
      "weekday": "Thursday",
-     "predicted": 488.0,
+     "predicted": 489.0,
      "actual": 503.0,
-     "interval_low": 469.0,
-     "interval_high": 508.0
+     "interval_low": 444.0,
+     "interval_high": 533.0
     },
     {
      "date": "2025-11-21",
      "weekday": "Friday",
      "predicted": 510.0,
      "actual": 507.0,
-     "interval_low": 490.0,
-     "interval_high": 530.0
+     "interval_low": 483.0,
+     "interval_high": 538.0
     },
     {
      "date": "2025-11-23",
      "weekday": "Sunday",
-     "predicted": 356.0,
+     "predicted": 358.0,
      "actual": 305.0,
-     "interval_low": 306.0,
+     "interval_low": 310.0,
      "interval_high": 406.0
     },
     {
      "date": "2025-11-24",
      "weekday": "Monday",
-     "predicted": 483.0,
+     "predicted": 484.0,
      "actual": 572.0,
-     "interval_low": 461.0,
-     "interval_high": 506.0
+     "interval_low": 431.0,
+     "interval_high": 537.0
     },
     {
      "date": "2025-11-25",
      "weekday": "Tuesday",
      "predicted": 504.0,
      "actual": 499.0,
-     "interval_low": 492.0,
-     "interval_high": 517.0
+     "interval_low": 470.0,
+     "interval_high": 539.0
     },
     {
      "date": "2025-11-26",
      "weekday": "Wednesday",
      "predicted": 473.0,
      "actual": 492.0,
-     "interval_low": 462.0,
-     "interval_high": 483.0
+     "interval_low": 436.0,
+     "interval_high": 510.0
     },
     {
      "date": "2025-11-27",
      "weekday": "Thursday",
      "predicted": 492.0,
      "actual": 493.0,
-     "interval_low": 474.0,
-     "interval_high": 511.0
+     "interval_low": 449.0,
+     "interval_high": 534.0
     },
     {
      "date": "2025-11-28",
      "weekday": "Friday",
      "predicted": 508.0,
      "actual": 497.0,
-     "interval_low": 493.0,
-     "interval_high": 522.0
+     "interval_low": 481.0,
+     "interval_high": 535.0
     },
     {
      "date": "2025-11-30",
      "weekday": "Sunday",
-     "predicted": 334.0,
+     "predicted": 336.0,
      "actual": 413.0,
-     "interval_low": 316.0,
-     "interval_high": 353.0
+     "interval_low": 290.0,
+     "interval_high": 383.0
     },
     {
      "date": "2025-12-01",
      "weekday": "Monday",
-     "predicted": 483.0,
+     "predicted": 484.0,
      "actual": 550.0,
-     "interval_low": 461.0,
-     "interval_high": 506.0
+     "interval_low": 431.0,
+     "interval_high": 537.0
     },
     {
      "date": "2025-12-02",
      "weekday": "Tuesday",
      "predicted": 502.0,
      "actual": 536.0,
-     "interval_low": 490.0,
-     "interval_high": 514.0
+     "interval_low": 468.0,
+     "interval_high": 536.0
     },
     {
      "date": "2025-12-03",
      "weekday": "Wednesday",
-     "predicted": 478.0,
+     "predicted": 479.0,
      "actual": 484.0,
-     "interval_low": 464.0,
-     "interval_high": 492.0
+     "interval_low": 442.0,
+     "interval_high": 515.0
     },
     {
      "date": "2025-12-04",
      "weekday": "Thursday",
-     "predicted": 492.0,
+     "predicted": 491.0,
      "actual": 610.0,
-     "interval_low": 483.0,
-     "interval_high": 501.0
+     "interval_low": 451.0,
+     "interval_high": 532.0
     },
     {
      "date": "2025-12-05",
      "weekday": "Friday",
      "predicted": 504.0,
      "actual": 615.0,
-     "interval_low": 493.0,
-     "interval_high": 515.0
+     "interval_low": 478.0,
+     "interval_high": 529.0
     },
     {
      "date": "2025-12-07",
      "weekday": "Sunday",
-     "predicted": 358.0,
+     "predicted": 360.0,
      "actual": 439.0,
-     "interval_low": 313.0,
-     "interval_high": 403.0
+     "interval_low": 312.0,
+     "interval_high": 408.0
     },
     {
      "date": "2025-12-08",
      "weekday": "Monday",
-     "predicted": 483.0,
+     "predicted": 484.0,
      "actual": 495.0,
-     "interval_low": 461.0,
-     "interval_high": 506.0
+     "interval_low": 431.0,
+     "interval_high": 537.0
     },
     {
      "date": "2025-12-09",
      "weekday": "Tuesday",
      "predicted": 502.0,
      "actual": 497.0,
-     "interval_low": 490.0,
-     "interval_high": 514.0
+     "interval_low": 468.0,
+     "interval_high": 536.0
     },
     {
      "date": "2025-12-10",
      "weekday": "Wednesday",
-     "predicted": 478.0,
+     "predicted": 479.0,
      "actual": 542.0,
-     "interval_low": 464.0,
-     "interval_high": 492.0
+     "interval_low": 442.0,
+     "interval_high": 515.0
     },
     {
      "date": "2025-12-11",
      "weekday": "Thursday",
-     "predicted": 524.0,
+     "predicted": 521.0,
      "actual": 477.0,
-     "interval_low": 490.0,
-     "interval_high": 558.0
+     "interval_low": 475.0,
+     "interval_high": 566.0
     },
     {
      "date": "2025-12-12",
      "weekday": "Friday",
-     "predicted": 533.0,
+     "predicted": 534.0,
      "actual": 507.0,
-     "interval_low": 493.0,
-     "interval_high": 573.0
+     "interval_low": 501.0,
+     "interval_high": 567.0
     },
     {
      "date": "2025-12-14",
      "weekday": "Sunday",
-     "predicted": 380.0,
+     "predicted": 381.0,
      "actual": 362.0,
-     "interval_low": 325.0,
-     "interval_high": 436.0
+     "interval_low": 331.0,
+     "interval_high": 431.0
     },
     {
      "date": "2025-12-15",
      "weekday": "Monday",
      "predicted": 500.0,
      "actual": 496.0,
-     "interval_low": 468.0,
-     "interval_high": 532.0
+     "interval_low": 449.0,
+     "interval_high": 551.0
     },
     {
      "date": "2025-12-16",
      "weekday": "Tuesday",
-     "predicted": 506.0,
+     "predicted": 507.0,
      "actual": 517.0,
-     "interval_low": 492.0,
-     "interval_high": 521.0
+     "interval_low": 475.0,
+     "interval_high": 539.0
     },
     {
      "date": "2025-12-17",
      "weekday": "Wednesday",
-     "predicted": 499.0,
+     "predicted": 498.0,
      "actual": 457.0,
-     "interval_low": 482.0,
-     "interval_high": 517.0
+     "interval_low": 476.0,
+     "interval_high": 521.0
     },
     {
      "date": "2025-12-18",
      "weekday": "Thursday",
-     "predicted": 511.0,
+     "predicted": 509.0,
      "actual": 530.0,
-     "interval_low": 467.0,
-     "interval_high": 555.0
+     "interval_low": 463.0,
+     "interval_high": 556.0
     },
     {
      "date": "2025-12-19",
      "weekday": "Friday",
      "predicted": 527.0,
      "actual": 578.0,
-     "interval_low": 487.0,
-     "interval_high": 566.0
+     "interval_low": 493.0,
+     "interval_high": 560.0
     },
     {
      "date": "2025-12-21",
      "weekday": "Sunday",
-     "predicted": 377.0,
+     "predicted": 378.0,
      "actual": 521.0,
-     "interval_low": 335.0,
-     "interval_high": 420.0
+     "interval_low": 329.0,
+     "interval_high": 427.0
     },
     {
      "date": "2025-12-22",
      "weekday": "Monday",
      "predicted": 500.0,
      "actual": 537.0,
-     "interval_low": 469.0,
-     "interval_high": 531.0
+     "interval_low": 467.0,
+     "interval_high": 532.0
     },
     {
      "date": "2025-12-23",
      "weekday": "Tuesday",
-     "predicted": 511.0,
+     "predicted": 510.0,
      "actual": 372.0,
-     "interval_low": 497.0,
-     "interval_high": 524.0
+     "interval_low": 480.0,
+     "interval_high": 540.0
     },
     {
      "date": "2025-12-24",
      "weekday": "Wednesday",
      "predicted": 486.0,
      "actual": 465.0,
-     "interval_low": 460.0,
-     "interval_high": 512.0
+     "interval_low": 463.0,
+     "interval_high": 509.0
     },
     {
      "date": "2025-12-25",
      "weekday": "Thursday",
-     "predicted": 515.0,
+     "predicted": 514.0,
      "actual": 509.0,
-     "interval_low": 472.0,
-     "interval_high": 559.0
+     "interval_low": 467.0,
+     "interval_high": 560.0
     },
     {
      "date": "2025-12-26",
      "weekday": "Friday",
      "predicted": 527.0,
      "actual": 516.0,
-     "interval_low": 487.0,
-     "interval_high": 566.0
+     "interval_low": 493.0,
+     "interval_high": 560.0
     },
     {
      "date": "2025-12-28",
      "weekday": "Sunday",
-     "predicted": 377.0,
+     "predicted": 378.0,
      "actual": 409.0,
-     "interval_low": 335.0,
-     "interval_high": 420.0
+     "interval_low": 329.0,
+     "interval_high": 427.0
     },
     {
      "date": "2025-12-29",
      "weekday": "Monday",
      "predicted": 500.0,
      "actual": 475.0,
-     "interval_low": 469.0,
-     "interval_high": 531.0
+     "interval_low": 467.0,
+     "interval_high": 532.0
     },
     {
      "date": "2025-12-30",
      "weekday": "Tuesday",
-     "predicted": 476.0,
+     "predicted": 477.0,
      "actual": 441.0,
-     "interval_low": 428.0,
-     "interval_high": 523.0
+     "interval_low": 436.0,
+     "interval_high": 518.0
     },
     {
      "date": "2025-12-31",
      "weekday": "Wednesday",
      "predicted": 481.0,
      "actual": 511.0,
-     "interval_low": 453.0,
-     "interval_high": 509.0
+     "interval_low": 458.0,
+     "interval_high": 504.0
     },
     {
      "date": "2026-01-01",
      "weekday": "Thursday",
-     "predicted": 513.0,
+     "predicted": 511.0,
      "actual": 561.0,
-     "interval_low": 468.0,
+     "interval_low": 465.0,
      "interval_high": 558.0
     },
     {
      "date": "2026-01-02",
      "weekday": "Friday",
-     "predicted": 524.0,
+     "predicted": 523.0,
      "actual": 546.0,
-     "interval_low": 484.0,
-     "interval_high": 564.0
+     "interval_low": 490.0,
+     "interval_high": 556.0
     },
     {
      "date": "2026-01-04",
      "weekday": "Sunday",
      "predicted": 385.0,
      "actual": 408.0,
-     "interval_low": 355.0,
-     "interval_high": 415.0
+     "interval_low": 336.0,
+     "interval_high": 434.0
     },
     {
      "date": "2026-01-05",
      "weekday": "Monday",
      "predicted": 494.0,
      "actual": 497.0,
-     "interval_low": 469.0,
-     "interval_high": 520.0
+     "interval_low": 464.0,
+     "interval_high": 525.0
     },
     {
      "date": "2026-01-06",
      "weekday": "Tuesday",
-     "predicted": 452.0,
+     "predicted": 455.0,
      "actual": 504.0,
-     "interval_low": 411.0,
-     "interval_high": 493.0
+     "interval_low": 424.0,
+     "interval_high": 485.0
     },
     {
      "date": "2026-01-07",
      "weekday": "Wednesday",
      "predicted": 481.0,
      "actual": 504.0,
-     "interval_low": 453.0,
-     "interval_high": 509.0
+     "interval_low": 458.0,
+     "interval_high": 504.0
     },
     {
      "date": "2026-01-08",
      "weekday": "Thursday",
-     "predicted": 513.0,
+     "predicted": 511.0,
      "actual": 530.0,
-     "interval_low": 468.0,
+     "interval_low": 465.0,
      "interval_high": 558.0
     },
     {
      "date": "2026-01-09",
      "weekday": "Friday",
-     "predicted": 524.0,
+     "predicted": 523.0,
      "actual": 509.0,
-     "interval_low": 484.0,
-     "interval_high": 564.0
+     "interval_low": 490.0,
+     "interval_high": 556.0
     },
     {
      "date": "2026-01-11",
      "weekday": "Sunday",
-     "predicted": 390.0,
+     "predicted": 389.0,
      "actual": 354.0,
-     "interval_low": 364.0,
-     "interval_high": 416.0
+     "interval_low": 341.0,
+     "interval_high": 438.0
     },
     {
      "date": "2026-01-12",
      "weekday": "Monday",
      "predicted": 493.0,
      "actual": 328.0,
-     "interval_low": 485.0,
-     "interval_high": 500.0
+     "interval_low": 470.0,
+     "interval_high": 516.0
     },
     {
      "date": "2026-01-13",
      "weekday": "Tuesday",
-     "predicted": 471.0,
+     "predicted": 473.0,
      "actual": 478.0,
-     "interval_low": 422.0,
-     "interval_high": 520.0
+     "interval_low": 441.0,
+     "interval_high": 505.0
     },
     {
      "date": "2026-01-14",
      "weekday": "Wednesday",
      "predicted": 485.0,
      "actual": 656.0,
-     "interval_low": 457.0,
-     "interval_high": 514.0
+     "interval_low": 462.0,
+     "interval_high": 509.0
     },
     {
      "date": "2026-01-15",
      "weekday": "Thursday",
-     "predicted": 533.0,
+     "predicted": 529.0,
      "actual": 491.0,
-     "interval_low": 512.0,
-     "interval_high": 553.0
+     "interval_low": 499.0,
+     "interval_high": 558.0
     },
     {
      "date": "2026-01-16",
      "weekday": "Friday",
      "predicted": 522.0,
      "actual": 581.0,
-     "interval_low": 481.0,
-     "interval_high": 563.0
+     "interval_low": 494.0,
+     "interval_high": 549.0
     },
     {
      "date": "2026-01-18",
      "weekday": "Sunday",
      "predicted": 381.0,
      "actual": 521.0,
-     "interval_low": 360.0,
-     "interval_high": 403.0
+     "interval_low": 337.0,
+     "interval_high": 425.0
     },
     {
      "date": "2026-01-19",
      "weekday": "Monday",
-     "predicted": 445.0,
+     "predicted": 448.0,
      "actual": 572.0,
-     "interval_low": 395.0,
-     "interval_high": 495.0
+     "interval_low": 410.0,
+     "interval_high": 486.0
     },
     {
      "date": "2026-01-20",
      "weekday": "Tuesday",
-     "predicted": 474.0,
+     "predicted": 475.0,
      "actual": 558.0,
-     "interval_low": 426.0,
-     "interval_high": 523.0
+     "interval_low": 444.0,
+     "interval_high": 507.0
     },
     {
      "date": "2026-01-21",
      "weekday": "Wednesday",
-     "predicted": 525.0,
+     "predicted": 524.0,
      "actual": 582.0,
-     "interval_low": 465.0,
-     "interval_high": 584.0
+     "interval_low": 484.0,
+     "interval_high": 564.0
     },
     {
      "date": "2026-01-22",
      "weekday": "Thursday",
-     "predicted": 518.0,
+     "predicted": 517.0,
      "actual": 596.0,
-     "interval_low": 503.0,
-     "interval_high": 533.0
+     "interval_low": 487.0,
+     "interval_high": 546.0
     },
     {
      "date": "2026-01-23",
      "weekday": "Friday",
      "predicted": 538.0,
      "actual": 362.0,
-     "interval_low": 512.0,
-     "interval_high": 564.0
+     "interval_low": 510.0,
+     "interval_high": 567.0
     },
     {
      "date": "2026-01-25",
      "weekday": "Sunday",
      "predicted": 381.0,
      "actual": 355.0,
-     "interval_low": 360.0,
-     "interval_high": 403.0
+     "interval_low": 337.0,
+     "interval_high": 425.0
     },
     {
      "date": "2026-01-26",
      "weekday": "Monday",
-     "predicted": 445.0,
+     "predicted": 448.0,
      "actual": 529.0,
-     "interval_low": 395.0,
-     "interval_high": 495.0
+     "interval_low": 410.0,
+     "interval_high": 486.0
     },
     {
      "date": "2026-01-27",
      "weekday": "Tuesday",
-     "predicted": 474.0,
+     "predicted": 475.0,
      "actual": 379.0,
-     "interval_low": 426.0,
-     "interval_high": 523.0
+     "interval_low": 444.0,
+     "interval_high": 507.0
     },
     {
      "date": "2026-01-28",
      "weekday": "Wednesday",
-     "predicted": 525.0,
+     "predicted": 524.0,
      "actual": 550.0,
-     "interval_low": 465.0,
-     "interval_high": 584.0
+     "interval_low": 484.0,
+     "interval_high": 564.0
     },
     {
      "date": "2026-01-29",
      "weekday": "Thursday",
-     "predicted": 518.0,
+     "predicted": 517.0,
      "actual": 551.0,
-     "interval_low": 503.0,
-     "interval_high": 533.0
+     "interval_low": 487.0,
+     "interval_high": 546.0
     },
     {
      "date": "2026-01-30",
      "weekday": "Friday",
      "predicted": 495.0,
      "actual": 523.0,
-     "interval_low": 433.0,
-     "interval_high": 556.0
+     "interval_low": 450.0,
+     "interval_high": 541.0
     },
     {
      "date": "2026-02-01",
      "weekday": "Sunday",
-     "predicted": 373.0,
+     "predicted": 374.0,
      "actual": 357.0,
-     "interval_low": 352.0,
-     "interval_high": 395.0
+     "interval_low": 333.0,
+     "interval_high": 414.0
     },
     {
      "date": "2026-02-02",
      "weekday": "Monday",
-     "predicted": 472.0,
+     "predicted": 473.0,
      "actual": 469.0,
-     "interval_low": 408.0,
-     "interval_high": 536.0
+     "interval_low": 431.0,
+     "interval_high": 516.0
     },
     {
      "date": "2026-02-03",
      "weekday": "Tuesday",
      "predicted": 448.0,
      "actual": 550.0,
-     "interval_low": 410.0,
-     "interval_high": 486.0
+     "interval_low": 413.0,
+     "interval_high": 484.0
     },
     {
      "date": "2026-02-04",
      "weekday": "Wednesday",
-     "predicted": 533.0,
+     "predicted": 531.0,
      "actual": 530.0,
-     "interval_low": 480.0,
-     "interval_high": 586.0
+     "interval_low": 492.0,
+     "interval_high": 571.0
     },
     {
      "date": "2026-02-05",
      "weekday": "Thursday",
      "predicted": 528.0,
      "actual": 108.0,
-     "interval_low": 509.0,
-     "interval_high": 548.0
+     "interval_low": 498.0,
+     "interval_high": 557.0
     },
     {
      "date": "2026-02-06",
      "weekday": "Friday",
      "predicted": 502.0,
      "actual": 516.0,
-     "interval_low": 437.0,
-     "interval_high": 566.0
+     "interval_low": 457.0,
+     "interval_high": 547.0
     },
     {
      "date": "2026-02-08",
      "weekday": "Sunday",
-     "predicted": 368.0,
+     "predicted": 369.0,
      "actual": 668.0,
-     "interval_low": 352.0,
-     "interval_high": 385.0
+     "interval_low": 334.0,
+     "interval_high": 404.0
     },
     {
      "date": "2026-02-09",
      "weekday": "Monday",
      "predicted": 473.0,
      "actual": 468.0,
-     "interval_low": 408.0,
-     "interval_high": 537.0
+     "interval_low": 431.0,
+     "interval_high": 516.0
     },
     {
      "date": "2026-02-10",
      "weekday": "Tuesday",
      "predicted": 479.0,
      "actual": 472.0,
-     "interval_low": 428.0,
-     "interval_high": 531.0
+     "interval_low": 437.0,
+     "interval_high": 521.0
     },
     {
      "date": "2026-02-11",
      "weekday": "Wednesday",
-     "predicted": 536.0,
+     "predicted": 535.0,
      "actual": 538.0,
-     "interval_low": 485.0,
-     "interval_high": 586.0
+     "interval_low": 496.0,
+     "interval_high": 573.0
     },
     {
      "date": "2026-02-12",
      "weekday": "Thursday",
      "predicted": 528.0,
      "actual": 477.0,
-     "interval_low": 509.0,
-     "interval_high": 548.0
+     "interval_low": 498.0,
+     "interval_high": 557.0
     },
     {
      "date": "2026-02-13",
      "weekday": "Friday",
      "predicted": 506.0,
      "actual": 664.0,
-     "interval_low": 439.0,
-     "interval_high": 572.0
+     "interval_low": 460.0,
+     "interval_high": 551.0
     },
     {
      "date": "2026-02-15",
      "weekday": "Sunday",
-     "predicted": 368.0,
+     "predicted": 369.0,
      "actual": 380.0,
-     "interval_low": 352.0,
-     "interval_high": 385.0
+     "interval_low": 334.0,
+     "interval_high": 404.0
     },
     {
      "date": "2026-02-16",
      "weekday": "Monday",
-     "predicted": 470.0,
+     "predicted": 471.0,
      "actual": 471.0,
-     "interval_low": 406.0,
-     "interval_high": 534.0
+     "interval_low": 429.0,
+     "interval_high": 512.0
     },
     {
      "date": "2026-02-17",
      "weekday": "Tuesday",
      "predicted": 477.0,
      "actual": 480.0,
-     "interval_low": 427.0,
-     "interval_high": 527.0
+     "interval_low": 435.0,
+     "interval_high": 519.0
     },
     {
      "date": "2026-02-18",
      "weekday": "Wednesday",
      "predicted": 539.0,
      "actual": 507.0,
-     "interval_low": 486.0,
-     "interval_high": 592.0
+     "interval_low": 501.0,
+     "interval_high": 576.0
     },
     {
      "date": "2026-02-19",
      "weekday": "Thursday",
      "predicted": 513.0,
      "actual": 541.0,
-     "interval_low": 488.0,
-     "interval_high": 538.0
+     "interval_low": 483.0,
+     "interval_high": 543.0
     },
     {
      "date": "2026-02-20",
      "weekday": "Friday",
      "predicted": 506.0,
      "actual": 461.0,
-     "interval_low": 439.0,
-     "interval_high": 572.0
+     "interval_low": 460.0,
+     "interval_high": 551.0
     },
     {
      "date": "2026-02-22",
      "weekday": "Sunday",
      "predicted": 371.0,
      "actual": 300.0,
-     "interval_low": 358.0,
-     "interval_high": 385.0
+     "interval_low": 337.0,
+     "interval_high": 406.0
     },
     {
      "date": "2026-02-23",
      "weekday": "Monday",
-     "predicted": 472.0,
+     "predicted": 473.0,
      "actual": 487.0,
-     "interval_low": 446.0,
-     "interval_high": 499.0
+     "interval_low": 432.0,
+     "interval_high": 514.0
     },
     {
      "date": "2026-02-24",
      "weekday": "Tuesday",
      "predicted": 477.0,
      "actual": 529.0,
-     "interval_low": 427.0,
-     "interval_high": 527.0
+     "interval_low": 435.0,
+     "interval_high": 519.0
     },
     {
      "date": "2026-02-25",
      "weekday": "Wednesday",
      "predicted": 539.0,
      "actual": 519.0,
-     "interval_low": 486.0,
-     "interval_high": 592.0
+     "interval_low": 501.0,
+     "interval_high": 576.0
     },
     {
      "date": "2026-02-26",
      "weekday": "Thursday",
-     "predicted": 522.0,
+     "predicted": 521.0,
      "actual": 544.0,
-     "interval_low": 495.0,
-     "interval_high": 548.0
+     "interval_low": 491.0,
+     "interval_high": 552.0
     },
     {
      "date": "2026-02-27",
      "weekday": "Friday",
      "predicted": 497.0,
      "actual": 484.0,
-     "interval_low": 439.0,
-     "interval_high": 555.0
+     "interval_low": 451.0,
+     "interval_high": 543.0
     },
     {
      "date": "2026-03-01",
      "weekday": "Sunday",
-     "predicted": 355.0,
+     "predicted": 356.0,
      "actual": 417.0,
-     "interval_low": 334.0,
-     "interval_high": 377.0
+     "interval_low": 319.0,
+     "interval_high": 393.0
     },
     {
      "date": "2026-03-03",
      "weekday": "Tuesday",
      "predicted": 491.0,
      "actual": 482.0,
-     "interval_low": 461.0,
-     "interval_high": 521.0
+     "interval_low": 448.0,
+     "interval_high": 534.0
     },
     {
      "date": "2026-03-04",
      "weekday": "Wednesday",
-     "predicted": 530.0,
+     "predicted": 528.0,
      "actual": 591.0,
-     "interval_low": 513.0,
-     "interval_high": 546.0
+     "interval_low": 490.0,
+     "interval_high": 566.0
     },
     {
      "date": "2026-03-05",
      "weekday": "Thursday",
      "predicted": 529.0,
      "actual": 599.0,
-     "interval_low": 504.0,
-     "interval_high": 554.0
+     "interval_low": 498.0,
+     "interval_high": 559.0
     },
     {
      "date": "2026-03-06",
      "weekday": "Friday",
      "predicted": 497.0,
      "actual": 570.0,
-     "interval_low": 475.0,
-     "interval_high": 518.0
+     "interval_low": 451.0,
+     "interval_high": 543.0
     },
     {
      "date": "2026-03-08",
      "weekday": "Sunday",
      "predicted": 370.0,
      "actual": 547.0,
-     "interval_low": 335.0,
+     "interval_low": 336.0,
      "interval_high": 405.0
     },
     {
      "date": "2026-03-09",
      "weekday": "Monday",
-     "predicted": 474.0,
+     "predicted": 476.0,
      "actual": 498.0,
-     "interval_low": 466.0,
-     "interval_high": 483.0
+     "interval_low": 434.0,
+     "interval_high": 517.0
     },
     {
      "date": "2026-03-10",
      "weekday": "Tuesday",
      "predicted": 486.0,
      "actual": 521.0,
-     "interval_low": 467.0,
-     "interval_high": 504.0
+     "interval_low": 443.0,
+     "interval_high": 528.0
     },
     {
      "date": "2026-03-11",
      "weekday": "Wednesday",
-     "predicted": 530.0,
+     "predicted": 528.0,
      "actual": 551.0,
-     "interval_low": 513.0,
-     "interval_high": 546.0
+     "interval_low": 490.0,
+     "interval_high": 566.0
     },
     {
      "date": "2026-03-12",
      "weekday": "Thursday",
      "predicted": 529.0,
      "actual": 515.0,
-     "interval_low": 504.0,
-     "interval_high": 554.0
+     "interval_low": 498.0,
+     "interval_high": 559.0
     },
     {
      "date": "2026-03-13",
      "weekday": "Friday",
      "predicted": 497.0,
      "actual": 513.0,
-     "interval_low": 475.0,
-     "interval_high": 518.0
+     "interval_low": 451.0,
+     "interval_high": 543.0
     },
     {
      "date": "2026-03-15",
      "weekday": "Sunday",
      "predicted": 370.0,
      "actual": 443.0,
-     "interval_low": 335.0,
+     "interval_low": 336.0,
      "interval_high": 405.0
     },
     {
@@ -4989,704 +4989,704 @@
      "weekday": "Monday",
      "predicted": 482.0,
      "actual": 534.0,
-     "interval_low": 472.0,
-     "interval_high": 492.0
+     "interval_low": 441.0,
+     "interval_high": 523.0
     },
     {
      "date": "2026-03-17",
      "weekday": "Tuesday",
-     "predicted": 495.0,
+     "predicted": 494.0,
      "actual": 622.0,
-     "interval_low": 477.0,
-     "interval_high": 513.0
+     "interval_low": 451.0,
+     "interval_high": 538.0
     },
     {
      "date": "2026-03-18",
      "weekday": "Wednesday",
      "predicted": 536.0,
      "actual": 544.0,
-     "interval_low": 517.0,
-     "interval_high": 555.0
+     "interval_low": 497.0,
+     "interval_high": 574.0
     },
     {
      "date": "2026-03-19",
      "weekday": "Thursday",
      "predicted": 526.0,
      "actual": 588.0,
-     "interval_low": 503.0,
-     "interval_high": 549.0
+     "interval_low": 496.0,
+     "interval_high": 557.0
     },
     {
      "date": "2026-03-20",
      "weekday": "Friday",
-     "predicted": 500.0,
+     "predicted": 501.0,
      "actual": 596.0,
-     "interval_low": 481.0,
-     "interval_high": 519.0
+     "interval_low": 455.0,
+     "interval_high": 547.0
     },
     {
      "date": "2026-03-22",
      "weekday": "Sunday",
-     "predicted": 390.0,
+     "predicted": 389.0,
      "actual": 551.0,
-     "interval_low": 348.0,
-     "interval_high": 431.0
+     "interval_low": 355.0,
+     "interval_high": 423.0
     },
     {
      "date": "2026-03-23",
      "weekday": "Monday",
-     "predicted": 494.0,
+     "predicted": 493.0,
      "actual": 594.0,
-     "interval_low": 479.0,
-     "interval_high": 510.0
+     "interval_low": 453.0,
+     "interval_high": 533.0
     },
     {
      "date": "2026-03-24",
      "weekday": "Tuesday",
-     "predicted": 495.0,
+     "predicted": 494.0,
      "actual": 383.0,
-     "interval_low": 477.0,
-     "interval_high": 513.0
+     "interval_low": 451.0,
+     "interval_high": 538.0
     },
     {
      "date": "2026-03-25",
      "weekday": "Wednesday",
      "predicted": 536.0,
      "actual": 548.0,
-     "interval_low": 517.0,
-     "interval_high": 555.0
+     "interval_low": 497.0,
+     "interval_high": 574.0
     },
     {
      "date": "2026-03-26",
      "weekday": "Thursday",
      "predicted": 526.0,
      "actual": 552.0,
-     "interval_low": 503.0,
-     "interval_high": 549.0
+     "interval_low": 496.0,
+     "interval_high": 557.0
     },
     {
      "date": "2026-03-27",
      "weekday": "Friday",
-     "predicted": 500.0,
+     "predicted": 501.0,
      "actual": 673.0,
-     "interval_low": 481.0,
-     "interval_high": 519.0
+     "interval_low": 455.0,
+     "interval_high": 547.0
     },
     {
      "date": "2026-03-29",
      "weekday": "Sunday",
-     "predicted": 390.0,
+     "predicted": 389.0,
      "actual": 431.0,
-     "interval_low": 348.0,
-     "interval_high": 431.0
+     "interval_low": 355.0,
+     "interval_high": 423.0
     },
     {
      "date": "2026-03-30",
      "weekday": "Monday",
-     "predicted": 494.0,
+     "predicted": 493.0,
      "actual": 511.0,
-     "interval_low": 479.0,
-     "interval_high": 510.0
+     "interval_low": 453.0,
+     "interval_high": 533.0
     },
     {
      "date": "2026-03-31",
      "weekday": "Tuesday",
      "predicted": 466.0,
      "actual": 439.0,
-     "interval_low": 420.0,
-     "interval_high": 512.0
+     "interval_low": 418.0,
+     "interval_high": 514.0
     },
     {
      "date": "2026-04-01",
      "weekday": "Wednesday",
-     "predicted": 542.0,
+     "predicted": 541.0,
      "actual": 516.0,
-     "interval_low": 523.0,
-     "interval_high": 561.0
+     "interval_low": 503.0,
+     "interval_high": 580.0
     },
     {
      "date": "2026-04-02",
      "weekday": "Thursday",
      "predicted": 535.0,
      "actual": 479.0,
-     "interval_low": 521.0,
-     "interval_high": 549.0
+     "interval_low": 504.0,
+     "interval_high": 565.0
     },
     {
      "date": "2026-04-03",
      "weekday": "Friday",
-     "predicted": 539.0,
+     "predicted": 536.0,
      "actual": 542.0,
      "interval_low": 478.0,
-     "interval_high": 600.0
+     "interval_high": 593.0
     },
     {
      "date": "2026-04-05",
      "weekday": "Sunday",
-     "predicted": 400.0,
+     "predicted": 399.0,
      "actual": 490.0,
-     "interval_low": 358.0,
-     "interval_high": 442.0
+     "interval_low": 366.0,
+     "interval_high": 432.0
     },
     {
      "date": "2026-04-06",
      "weekday": "Monday",
-     "predicted": 498.0,
+     "predicted": 497.0,
      "actual": 593.0,
-     "interval_low": 486.0,
-     "interval_high": 511.0
+     "interval_low": 457.0,
+     "interval_high": 537.0
     },
     {
      "date": "2026-04-07",
      "weekday": "Tuesday",
      "predicted": 460.0,
      "actual": 562.0,
-     "interval_low": 421.0,
-     "interval_high": 498.0
+     "interval_low": 420.0,
+     "interval_high": 501.0
     },
     {
      "date": "2026-04-08",
      "weekday": "Wednesday",
      "predicted": 535.0,
      "actual": 538.0,
-     "interval_low": 518.0,
-     "interval_high": 551.0
+     "interval_low": 497.0,
+     "interval_high": 573.0
     },
     {
      "date": "2026-04-09",
      "weekday": "Thursday",
      "predicted": 520.0,
      "actual": 548.0,
-     "interval_low": 495.0,
+     "interval_low": 496.0,
      "interval_high": 544.0
     },
     {
      "date": "2026-04-10",
      "weekday": "Friday",
-     "predicted": 540.0,
+     "predicted": 537.0,
      "actual": 614.0,
-     "interval_low": 486.0,
-     "interval_high": 595.0
+     "interval_low": 483.0,
+     "interval_high": 591.0
     },
     {
      "date": "2026-04-12",
      "weekday": "Sunday",
      "predicted": 422.0,
      "actual": 571.0,
-     "interval_low": 407.0,
-     "interval_high": 437.0
+     "interval_low": 388.0,
+     "interval_high": 455.0
     },
     {
      "date": "2026-04-13",
      "weekday": "Monday",
-     "predicted": 520.0,
+     "predicted": 518.0,
      "actual": 623.0,
-     "interval_low": 496.0,
-     "interval_high": 543.0
+     "interval_low": 473.0,
+     "interval_high": 562.0
     },
     {
      "date": "2026-04-14",
      "weekday": "Tuesday",
      "predicted": 484.0,
      "actual": 546.0,
-     "interval_low": 427.0,
-     "interval_high": 542.0
+     "interval_low": 439.0,
+     "interval_high": 529.0
     },
     {
      "date": "2026-04-15",
      "weekday": "Wednesday",
      "predicted": 538.0,
      "actual": 510.0,
-     "interval_low": 522.0,
-     "interval_high": 554.0
+     "interval_low": 501.0,
+     "interval_high": 574.0
     },
     {
      "date": "2026-04-16",
      "weekday": "Thursday",
      "predicted": 528.0,
      "actual": 595.0,
-     "interval_low": 503.0,
-     "interval_high": 553.0
+     "interval_low": 506.0,
+     "interval_high": 550.0
     },
     {
      "date": "2026-04-17",
      "weekday": "Friday",
-     "predicted": 540.0,
+     "predicted": 537.0,
      "actual": 534.0,
-     "interval_low": 486.0,
-     "interval_high": 595.0
+     "interval_low": 483.0,
+     "interval_high": 591.0
     },
     {
      "date": "2026-04-19",
      "weekday": "Sunday",
      "predicted": 422.0,
      "actual": 357.0,
-     "interval_low": 407.0,
-     "interval_high": 437.0
+     "interval_low": 388.0,
+     "interval_high": 455.0
     },
     {
      "date": "2026-04-20",
      "weekday": "Monday",
-     "predicted": 520.0,
+     "predicted": 518.0,
      "actual": 681.0,
-     "interval_low": 496.0,
-     "interval_high": 543.0
+     "interval_low": 473.0,
+     "interval_high": 562.0
     },
     {
      "date": "2026-04-21",
      "weekday": "Tuesday",
      "predicted": 498.0,
      "actual": 568.0,
-     "interval_low": 438.0,
-     "interval_high": 558.0
+     "interval_low": 452.0,
+     "interval_high": 543.0
     },
     {
      "date": "2026-04-22",
      "weekday": "Wednesday",
-     "predicted": 533.0,
+     "predicted": 532.0,
      "actual": 523.0,
-     "interval_low": 516.0,
-     "interval_high": 549.0
+     "interval_low": 496.0,
+     "interval_high": 569.0
     },
     {
      "date": "2026-04-23",
      "weekday": "Thursday",
      "predicted": 545.0,
      "actual": 619.0,
-     "interval_low": 512.0,
-     "interval_high": 577.0
+     "interval_low": 519.0,
+     "interval_high": 570.0
     },
     {
      "date": "2026-04-24",
      "weekday": "Friday",
-     "predicted": 537.0,
+     "predicted": 536.0,
      "actual": 552.0,
-     "interval_low": 483.0,
-     "interval_high": 591.0
+     "interval_low": 482.0,
+     "interval_high": 589.0
     },
     {
      "date": "2026-04-26",
      "weekday": "Sunday",
      "predicted": 403.0,
      "actual": 502.0,
-     "interval_low": 358.0,
-     "interval_high": 447.0
+     "interval_low": 366.0,
+     "interval_high": 439.0
     },
     {
      "date": "2026-04-27",
      "weekday": "Monday",
-     "predicted": 560.0,
+     "predicted": 558.0,
      "actual": 568.0,
-     "interval_low": 519.0,
-     "interval_high": 601.0
+     "interval_low": 504.0,
+     "interval_high": 611.0
     },
     {
      "date": "2026-04-28",
      "weekday": "Tuesday",
-     "predicted": 515.0,
+     "predicted": 514.0,
      "actual": 577.0,
-     "interval_low": 479.0,
-     "interval_high": 551.0
+     "interval_low": 467.0,
+     "interval_high": 561.0
     },
     {
      "date": "2026-04-29",
      "weekday": "Wednesday",
      "predicted": 531.0,
      "actual": 572.0,
-     "interval_low": 518.0,
-     "interval_high": 545.0
+     "interval_low": 494.0,
+     "interval_high": 568.0
     },
     {
      "date": "2026-04-30",
      "weekday": "Thursday",
      "predicted": 566.0,
      "actual": 518.0,
-     "interval_low": 528.0,
-     "interval_high": 604.0
+     "interval_low": 537.0,
+     "interval_high": 595.0
     },
     {
      "date": "2026-05-01",
      "weekday": "Friday",
-     "predicted": 539.0,
+     "predicted": 538.0,
      "actual": 503.0,
      "interval_low": 484.0,
-     "interval_high": 594.0
+     "interval_high": 591.0
     },
     {
      "date": "2026-05-03",
      "weekday": "Sunday",
-     "predicted": 426.0,
+     "predicted": 425.0,
      "actual": 344.0,
-     "interval_low": 378.0,
-     "interval_high": 474.0
+     "interval_low": 384.0,
+     "interval_high": 466.0
     },
     {
      "date": "2026-05-04",
      "weekday": "Monday",
-     "predicted": 562.0,
+     "predicted": 560.0,
      "actual": 700.0,
-     "interval_low": 514.0,
-     "interval_high": 609.0
+     "interval_low": 506.0,
+     "interval_high": 614.0
     },
     {
      "date": "2026-05-05",
      "weekday": "Tuesday",
-     "predicted": 540.0,
+     "predicted": 538.0,
      "actual": 568.0,
-     "interval_low": 524.0,
-     "interval_high": 555.0
+     "interval_low": 496.0,
+     "interval_high": 580.0
     },
     {
      "date": "2026-05-06",
      "weekday": "Wednesday",
      "predicted": 542.0,
      "actual": 705.0,
-     "interval_low": 522.0,
-     "interval_high": 562.0
+     "interval_low": 523.0,
+     "interval_high": 561.0
     },
     {
      "date": "2026-05-07",
      "weekday": "Thursday",
      "predicted": 554.0,
      "actual": 521.0,
-     "interval_low": 518.0,
-     "interval_high": 590.0
+     "interval_low": 523.0,
+     "interval_high": 585.0
     },
     {
      "date": "2026-05-08",
      "weekday": "Friday",
-     "predicted": 529.0,
+     "predicted": 527.0,
      "actual": 463.0,
-     "interval_low": 510.0,
-     "interval_high": 548.0
+     "interval_low": 473.0,
+     "interval_high": 581.0
     },
     {
      "date": "2026-05-10",
      "weekday": "Sunday",
      "predicted": 401.0,
      "actual": 397.0,
-     "interval_low": 340.0,
-     "interval_high": 463.0
+     "interval_low": 356.0,
+     "interval_high": 446.0
     },
     {
      "date": "2026-05-11",
      "weekday": "Monday",
-     "predicted": 562.0,
+     "predicted": 560.0,
      "actual": 606.0,
-     "interval_low": 514.0,
-     "interval_high": 609.0
+     "interval_low": 506.0,
+     "interval_high": 614.0
     },
     {
      "date": "2026-05-12",
      "weekday": "Tuesday",
-     "predicted": 546.0,
+     "predicted": 543.0,
      "actual": 538.0,
-     "interval_low": 530.0,
-     "interval_high": 562.0
+     "interval_low": 503.0,
+     "interval_high": 583.0
     },
     {
      "date": "2026-05-13",
      "weekday": "Wednesday",
-     "predicted": 581.0,
+     "predicted": 582.0,
      "actual": 634.0,
-     "interval_low": 526.0,
-     "interval_high": 636.0
+     "interval_low": 545.0,
+     "interval_high": 619.0
     },
     {
      "date": "2026-05-14",
      "weekday": "Thursday",
      "predicted": 547.0,
      "actual": 546.0,
-     "interval_low": 505.0,
-     "interval_high": 588.0
+     "interval_low": 516.0,
+     "interval_high": 579.0
     },
     {
      "date": "2026-05-15",
      "weekday": "Friday",
      "predicted": 514.0,
      "actual": 569.0,
-     "interval_low": 489.0,
-     "interval_high": 538.0
+     "interval_low": 460.0,
+     "interval_high": 568.0
     },
     {
      "date": "2026-05-17",
      "weekday": "Sunday",
      "predicted": 398.0,
      "actual": 457.0,
-     "interval_low": 346.0,
-     "interval_high": 450.0
+     "interval_low": 354.0,
+     "interval_high": 442.0
     },
     {
      "date": "2026-05-18",
      "weekday": "Monday",
-     "predicted": 626.0,
+     "predicted": 631.0,
      "actual": 503.0,
-     "interval_low": 570.0,
-     "interval_high": 683.0
+     "interval_low": 587.0,
+     "interval_high": 674.0
     },
     {
      "date": "2026-05-19",
      "weekday": "Tuesday",
-     "predicted": 545.0,
+     "predicted": 542.0,
      "actual": 576.0,
-     "interval_low": 520.0,
-     "interval_high": 570.0
+     "interval_low": 502.0,
+     "interval_high": 582.0
     },
     {
      "date": "2026-05-20",
      "weekday": "Wednesday",
-     "predicted": 581.0,
+     "predicted": 582.0,
      "actual": 428.0,
-     "interval_low": 526.0,
-     "interval_high": 636.0
+     "interval_low": 545.0,
+     "interval_high": 619.0
     },
     {
      "date": "2026-05-21",
      "weekday": "Thursday",
      "predicted": 546.0,
      "actual": 640.0,
-     "interval_low": 509.0,
-     "interval_high": 582.0
+     "interval_low": 515.0,
+     "interval_high": 577.0
     },
     {
      "date": "2026-05-22",
      "weekday": "Friday",
-     "predicted": 525.0,
+     "predicted": 526.0,
      "actual": 579.0,
-     "interval_low": 490.0,
-     "interval_high": 560.0
+     "interval_low": 484.0,
+     "interval_high": 568.0
     },
     {
      "date": "2026-05-24",
      "weekday": "Sunday",
-     "predicted": 416.0,
+     "predicted": 415.0,
      "actual": 342.0,
-     "interval_low": 366.0,
-     "interval_high": 465.0
+     "interval_low": 371.0,
+     "interval_high": 459.0
     },
     {
      "date": "2026-05-25",
      "weekday": "Monday",
      "predicted": 586.0,
      "actual": 612.0,
-     "interval_low": 520.0,
-     "interval_high": 653.0
+     "interval_low": 536.0,
+     "interval_high": 635.0
     },
     {
      "date": "2026-05-26",
      "weekday": "Tuesday",
-     "predicted": 557.0,
+     "predicted": 553.0,
      "actual": 652.0,
-     "interval_low": 533.0,
-     "interval_high": 580.0
+     "interval_low": 513.0,
+     "interval_high": 594.0
     },
     {
      "date": "2026-05-27",
      "weekday": "Wednesday",
-     "predicted": 545.0,
+     "predicted": 546.0,
      "actual": 839.0,
-     "interval_low": 463.0,
-     "interval_high": 628.0
+     "interval_low": 497.0,
+     "interval_high": 595.0
     },
     {
      "date": "2026-05-28",
      "weekday": "Thursday",
-     "predicted": 570.0,
+     "predicted": 571.0,
      "actual": 675.0,
-     "interval_low": 528.0,
-     "interval_high": 612.0
+     "interval_low": 537.0,
+     "interval_high": 605.0
     },
     {
      "date": "2026-05-29",
      "weekday": "Friday",
      "predicted": 538.0,
      "actual": 443.0,
-     "interval_low": 498.0,
-     "interval_high": 577.0
+     "interval_low": 495.0,
+     "interval_high": 581.0
     },
     {
      "date": "2026-05-31",
      "weekday": "Sunday",
      "predicted": 397.0,
      "actual": 400.0,
-     "interval_low": 356.0,
-     "interval_high": 438.0
+     "interval_low": 350.0,
+     "interval_high": 444.0
     },
     {
      "date": "2026-06-01",
      "weekday": "Monday",
-     "predicted": 599.0,
+     "predicted": 598.0,
      "actual": 606.0,
-     "interval_low": 534.0,
-     "interval_high": 665.0
+     "interval_low": 549.0,
+     "interval_high": 647.0
     },
     {
      "date": "2026-06-02",
      "weekday": "Tuesday",
-     "predicted": 557.0,
+     "predicted": 553.0,
      "actual": 1527.0,
-     "interval_low": 533.0,
-     "interval_high": 580.0
+     "interval_low": 513.0,
+     "interval_high": 594.0
     },
     {
      "date": "2026-06-03",
      "weekday": "Wednesday",
-     "predicted": 545.0,
+     "predicted": 546.0,
      "actual": 612.0,
-     "interval_low": 463.0,
-     "interval_high": 628.0
+     "interval_low": 497.0,
+     "interval_high": 595.0
     },
     {
      "date": "2026-06-04",
      "weekday": "Thursday",
-     "predicted": 570.0,
+     "predicted": 571.0,
      "actual": 580.0,
-     "interval_low": 528.0,
-     "interval_high": 612.0
+     "interval_low": 537.0,
+     "interval_high": 605.0
     },
     {
      "date": "2026-06-05",
      "weekday": "Friday",
-     "predicted": 517.0,
+     "predicted": 518.0,
      "actual": 612.0,
-     "interval_low": 468.0,
-     "interval_high": 567.0
+     "interval_low": 470.0,
+     "interval_high": 565.0
     },
     {
      "date": "2026-06-07",
      "weekday": "Sunday",
      "predicted": 399.0,
      "actual": 379.0,
-     "interval_low": 366.0,
-     "interval_high": 432.0
+     "interval_low": 352.0,
+     "interval_high": 446.0
     },
     {
      "date": "2026-06-08",
      "weekday": "Monday",
-     "predicted": 608.0,
+     "predicted": 605.0,
      "actual": 523.0,
-     "interval_low": 561.0,
-     "interval_high": 656.0
+     "interval_low": 557.0,
+     "interval_high": 654.0
     },
     {
      "date": "2026-06-09",
      "weekday": "Tuesday",
-     "predicted": 557.0,
+     "predicted": 553.0,
      "actual": 596.0,
-     "interval_low": 533.0,
-     "interval_high": 580.0
+     "interval_low": 513.0,
+     "interval_high": 594.0
     },
     {
      "date": "2026-06-10",
      "weekday": "Wednesday",
-     "predicted": 560.0,
+     "predicted": 561.0,
      "actual": 528.0,
-     "interval_low": 477.0,
-     "interval_high": 644.0
+     "interval_low": 511.0,
+     "interval_high": 612.0
     },
     {
      "date": "2026-06-11",
      "weekday": "Thursday",
-     "predicted": 576.0,
+     "predicted": 575.0,
      "actual": 513.0,
-     "interval_low": 539.0,
-     "interval_high": 612.0
+     "interval_low": 541.0,
+     "interval_high": 609.0
     },
     {
      "date": "2026-06-12",
      "weekday": "Friday",
-     "predicted": 541.0,
+     "predicted": 540.0,
      "actual": 566.0,
-     "interval_low": 488.0,
-     "interval_high": 593.0
+     "interval_low": 491.0,
+     "interval_high": 590.0
     },
     {
      "date": "2026-06-14",
      "weekday": "Sunday",
-     "predicted": 398.0,
+     "predicted": 399.0,
      "actual": 598.0,
-     "interval_low": 365.0,
-     "interval_high": 432.0
+     "interval_low": 355.0,
+     "interval_high": 443.0
     },
     {
      "date": "2026-06-15",
      "weekday": "Monday",
-     "predicted": 590.0,
+     "predicted": 585.0,
      "actual": 672.0,
-     "interval_low": 543.0,
-     "interval_high": 638.0
+     "interval_low": 533.0,
+     "interval_high": 637.0
     },
     {
      "date": "2026-06-16",
      "weekday": "Tuesday",
-     "predicted": 568.0,
+     "predicted": 565.0,
      "actual": 626.0,
-     "interval_low": 544.0,
-     "interval_high": 592.0
+     "interval_low": 525.0,
+     "interval_high": 606.0
     },
     {
      "date": "2026-06-17",
      "weekday": "Wednesday",
-     "predicted": 553.0,
+     "predicted": 554.0,
      "actual": 630.0,
-     "interval_low": 467.0,
-     "interval_high": 639.0
+     "interval_low": 503.0,
+     "interval_high": 604.0
     },
     {
      "date": "2026-06-18",
      "weekday": "Thursday",
      "predicted": 561.0,
      "actual": 393.0,
-     "interval_low": 519.0,
-     "interval_high": 603.0
+     "interval_low": 524.0,
+     "interval_high": 598.0
     },
     {
      "date": "2026-06-19",
      "weekday": "Friday",
-     "predicted": 548.0,
+     "predicted": 547.0,
      "actual": 532.0,
-     "interval_low": 497.0,
-     "interval_high": 599.0
+     "interval_low": 498.0,
+     "interval_high": 596.0
     },
     {
      "date": "2026-06-21",
      "weekday": "Sunday",
      "predicted": 446.0,
      "actual": 505.0,
-     "interval_low": 370.0,
-     "interval_high": 521.0
+     "interval_low": 388.0,
+     "interval_high": 503.0
     },
     {
      "date": "2026-06-22",
      "weekday": "Monday",
-     "predicted": 620.0,
+     "predicted": 619.0,
      "actual": 671.0,
-     "interval_low": 574.0,
-     "interval_high": 666.0
+     "interval_low": 565.0,
+     "interval_high": 672.0
     },
     {
      "date": "2026-06-23",
      "weekday": "Tuesday",
-     "predicted": 590.0,
+     "predicted": 589.0,
      "actual": 593.0,
-     "interval_low": 562.0,
-     "interval_high": 618.0
+     "interval_low": 548.0,
+     "interval_high": 631.0
     },
     {
      "date": "2026-06-24",
      "weekday": "Wednesday",
-     "predicted": 570.0,
+     "predicted": 571.0,
      "actual": 601.0,
-     "interval_low": 501.0,
-     "interval_high": 638.0
+     "interval_low": 518.0,
+     "interval_high": 624.0
     },
     {
      "date": "2026-06-25",
      "weekday": "Thursday",
-     "predicted": 521.0,
+     "predicted": 522.0,
      "actual": 573.0,
-     "interval_low": 451.0,
-     "interval_high": 592.0
+     "interval_low": 472.0,
+     "interval_high": 573.0
     },
     {
      "date": "2026-06-26",
@@ -5694,247 +5694,247 @@
      "predicted": 545.0,
      "actual": 774.0,
      "interval_low": 495.0,
-     "interval_high": 595.0
+     "interval_high": 594.0
     },
     {
      "date": "2026-06-28",
      "weekday": "Sunday",
-     "predicted": 464.0,
+     "predicted": 462.0,
      "actual": 348.0,
-     "interval_low": 400.0,
-     "interval_high": 528.0
+     "interval_low": 405.0,
+     "interval_high": 520.0
     },
     {
      "date": "2026-06-29",
      "weekday": "Monday",
-     "predicted": 639.0,
+     "predicted": 640.0,
      "actual": 672.0,
-     "interval_low": 590.0,
-     "interval_high": 689.0
+     "interval_low": 585.0,
+     "interval_high": 694.0
     },
     {
      "date": "2026-06-30",
      "weekday": "Tuesday",
-     "predicted": 594.0,
+     "predicted": 593.0,
      "actual": 479.0,
-     "interval_low": 570.0,
-     "interval_high": 618.0
+     "interval_low": 551.0,
+     "interval_high": 636.0
     },
     {
      "date": "2026-07-01",
      "weekday": "Wednesday",
      "predicted": 581.0,
      "actual": 558.0,
-     "interval_low": 547.0,
-     "interval_high": 616.0
+     "interval_low": 528.0,
+     "interval_high": 634.0
     },
     {
      "date": "2026-07-02",
      "weekday": "Thursday",
-     "predicted": 533.0,
+     "predicted": 534.0,
      "actual": 565.0,
-     "interval_low": 471.0,
-     "interval_high": 595.0
+     "interval_low": 483.0,
+     "interval_high": 585.0
     },
     {
      "date": "2026-07-03",
      "weekday": "Friday",
-     "predicted": 595.0,
+     "predicted": 593.0,
      "actual": 556.0,
-     "interval_low": 527.0,
-     "interval_high": 663.0
+     "interval_low": 535.0,
+     "interval_high": 651.0
     },
     {
      "date": "2026-07-05",
      "weekday": "Sunday",
      "predicted": 432.0,
      "actual": 786.0,
-     "interval_low": 348.0,
-     "interval_high": 516.0
+     "interval_low": 368.0,
+     "interval_high": 495.0
     },
     {
      "date": "2026-07-06",
      "weekday": "Monday",
      "predicted": 659.0,
      "actual": 631.0,
-     "interval_low": 608.0,
-     "interval_high": 709.0
+     "interval_low": 605.0,
+     "interval_high": 714.0
     },
     {
      "date": "2026-07-07",
      "weekday": "Tuesday",
-     "predicted": 568.0,
+     "predicted": 566.0,
      "actual": 663.0,
-     "interval_low": 517.0,
-     "interval_high": 620.0
+     "interval_low": 528.0,
+     "interval_high": 605.0
     },
     {
      "date": "2026-07-08",
      "weekday": "Wednesday",
      "predicted": 576.0,
      "actual": 597.0,
-     "interval_low": 540.0,
-     "interval_high": 612.0
+     "interval_low": 522.0,
+     "interval_high": 629.0
     },
     {
      "date": "2026-07-09",
      "weekday": "Thursday",
-     "predicted": 544.0,
+     "predicted": 545.0,
      "actual": 607.0,
-     "interval_low": 481.0,
-     "interval_high": 608.0
+     "interval_low": 495.0,
+     "interval_high": 595.0
     },
     {
      "date": "2026-07-10",
      "weekday": "Friday",
-     "predicted": 583.0,
+     "predicted": 582.0,
      "actual": 518.0,
-     "interval_low": 505.0,
-     "interval_high": 662.0
+     "interval_low": 522.0,
+     "interval_high": 641.0
     },
     {
      "date": "2026-07-12",
      "weekday": "Sunday",
-     "predicted": 509.0,
+     "predicted": 505.0,
      "actual": 487.0,
-     "interval_low": 385.0,
-     "interval_high": 634.0
+     "interval_low": 414.0,
+     "interval_high": 597.0
     },
     {
      "date": "2026-07-13",
      "weekday": "Monday",
      "predicted": 654.0,
      "actual": 634.0,
-     "interval_low": 617.0,
-     "interval_high": 691.0
+     "interval_low": 598.0,
+     "interval_high": 709.0
     },
     {
      "date": "2026-07-14",
      "weekday": "Tuesday",
-     "predicted": 606.0,
+     "predicted": 607.0,
      "actual": 575.0,
-     "interval_low": 547.0,
-     "interval_high": 666.0
+     "interval_low": 568.0,
+     "interval_high": 646.0
     },
     {
      "date": "2026-07-15",
      "weekday": "Wednesday",
-     "predicted": 583.0,
+     "predicted": 582.0,
      "actual": 502.0,
-     "interval_low": 552.0,
-     "interval_high": 614.0
+     "interval_low": 529.0,
+     "interval_high": 636.0
     },
     {
      "date": "2026-07-16",
      "weekday": "Thursday",
      "predicted": 561.0,
      "actual": 608.0,
-     "interval_low": 492.0,
-     "interval_high": 630.0
+     "interval_low": 510.0,
+     "interval_high": 613.0
     },
     {
      "date": "2026-07-17",
      "weekday": "Friday",
      "predicted": 566.0,
      "actual": 618.0,
-     "interval_low": 478.0,
-     "interval_high": 654.0
+     "interval_low": 504.0,
+     "interval_high": 628.0
     },
     {
      "date": "2026-07-19",
      "weekday": "Sunday",
-     "predicted": 469.0,
+     "predicted": 458.0,
      "actual": 648.0,
-     "interval_low": 344.0,
-     "interval_high": 594.0
+     "interval_low": 368.0,
+     "interval_high": 548.0
     },
     {
      "date": "2026-07-20",
      "weekday": "Monday",
-     "predicted": 633.0,
+     "predicted": 639.0,
      "actual": 680.0,
-     "interval_low": 588.0,
-     "interval_high": 677.0
+     "interval_low": 586.0,
+     "interval_high": 691.0
     },
     {
      "date": "2026-07-21",
      "weekday": "Tuesday",
-     "predicted": 580.0,
+     "predicted": 588.0,
      "actual": 701.0,
-     "interval_low": 522.0,
-     "interval_high": 638.0
+     "interval_low": 549.0,
+     "interval_high": 627.0
     },
     {
      "date": "2026-07-22",
      "weekday": "Wednesday",
-     "predicted": 547.0,
+     "predicted": 539.0,
      "actual": 708.0,
-     "interval_low": 511.0,
-     "interval_high": 584.0
+     "interval_low": 483.0,
+     "interval_high": 595.0
     },
     {
      "date": "2026-07-23",
      "weekday": "Thursday",
-     "predicted": 566.0,
+     "predicted": 570.0,
      "actual": 665.0,
-     "interval_low": 543.0,
-     "interval_high": 590.0
+     "interval_low": 518.0,
+     "interval_high": 623.0
     },
     {
      "date": "2026-07-24",
      "weekday": "Friday",
-     "predicted": 563.0,
+     "predicted": 571.0,
      "actual": 628.0,
-     "interval_low": 477.0,
-     "interval_high": 649.0
+     "interval_low": 508.0,
+     "interval_high": 635.0
     },
     {
      "date": "2026-07-26",
      "weekday": "Sunday",
-     "predicted": 485.0,
+     "predicted": 479.0,
      "actual": 507.0,
-     "interval_low": 360.0,
-     "interval_high": 610.0
+     "interval_low": 389.0,
+     "interval_high": 569.0
     },
     {
      "date": "2026-07-27",
      "weekday": "Monday",
-     "predicted": 634.0,
+     "predicted": 639.0,
      "actual": 570.0,
-     "interval_low": 590.0,
-     "interval_high": 678.0
+     "interval_low": 586.0,
+     "interval_high": 692.0
     },
     {
      "date": "2026-07-28",
      "weekday": "Tuesday",
-     "predicted": 582.0,
+     "predicted": 589.0,
      "actual": 540.0,
-     "interval_low": 524.0,
-     "interval_high": 641.0
+     "interval_low": 550.0,
+     "interval_high": 628.0
     },
     {
      "date": "2026-07-29",
      "weekday": "Wednesday",
-     "predicted": 550.0,
+     "predicted": 543.0,
      "actual": 807.0,
-     "interval_low": 513.0,
-     "interval_high": 586.0
+     "interval_low": 487.0,
+     "interval_high": 598.0
     },
     {
      "date": "2026-07-30",
      "weekday": "Thursday",
-     "predicted": 593.0,
+     "predicted": 591.0,
      "actual": 634.0,
-     "interval_low": 561.0,
-     "interval_high": 626.0
+     "interval_low": 536.0,
+     "interval_high": 647.0
     },
     {
      "date": "2026-07-31",
      "weekday": "Friday",
      "predicted": 585.0,
      "actual": 632.0,
-     "interval_low": 530.0,
-     "interval_high": 640.0
+     "interval_low": 522.0,
+     "interval_high": 649.0
     }
    ]
   },
@@ -5949,7 +5949,7 @@
     "date": "2025-08-01",
     "customers": 468,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -5979,7 +5979,7 @@
     "date": "2025-08-05",
     "customers": 437,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -5989,7 +5989,7 @@
     "date": "2025-08-06",
     "customers": 460,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -5999,7 +5999,7 @@
     "date": "2025-08-07",
     "customers": 589,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -6089,7 +6089,7 @@
     "date": "2025-08-18",
     "customers": 570,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -6209,7 +6209,7 @@
     "date": "2025-09-01",
     "customers": 568,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -6219,7 +6219,7 @@
     "date": "2025-09-02",
     "customers": 548,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -6359,7 +6359,7 @@
     "date": "2025-09-18",
     "customers": 596,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -6429,7 +6429,7 @@
     "date": "2025-09-26",
     "customers": 440,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -6749,7 +6749,7 @@
     "date": "2025-11-04",
     "customers": 593,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -7009,7 +7009,7 @@
     "date": "2025-12-04",
     "customers": 610,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -7019,7 +7019,7 @@
     "date": "2025-12-05",
     "customers": 615,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -7139,7 +7139,7 @@
     "date": "2025-12-19",
     "customers": 578,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -7229,7 +7229,7 @@
     "date": "2025-12-30",
     "customers": 441,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },
@@ -8369,7 +8369,7 @@
     "date": "2026-05-13",
     "customers": 634,
     "notes": null,
-    "outlier_status": "keep",
+    "outlier_status": null,
     "warning": null,
     "prev_customers": null
    },

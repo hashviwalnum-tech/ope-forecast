@@ -13,11 +13,30 @@ MONDAY, SATURDAY = 0, 5
 # model_weights
 # ---------------------------------------------------------------------------
 
-def test_weights_inverse_proportional():
-    # errors [0.1, 0.2]: 1/0.1=10, 1/0.2=5, total=15 → [2/3, 1/3]
+def test_weights_inverse_variance_proportional():
+    """Bates-Granger: weights go as 1/error^2, so the better model dominates.
+
+    errors [0.1, 0.2]: 1/0.01 = 100, 1/0.04 = 25, total 125 -> [0.8, 0.2].
+    Plain 1/error would have given [2/3, 1/3] — a model with twice the error
+    still keeping a third of the vote.
+    """
     w = model_weights([0.1, 0.2])
+    assert w[0] == pytest.approx(0.8, rel=1e-9)
+    assert w[1] == pytest.approx(0.2, rel=1e-9)
+
+
+def test_sharpness_is_adjustable_and_one_reproduces_plain_inverse_error():
+    w = model_weights([0.1, 0.2], sharpness=1.0)
     assert w[0] == pytest.approx(2 / 3, rel=1e-9)
-    assert w[1] == pytest.approx(1 / 3, rel=1e-9)
+
+
+def test_a_small_skill_difference_still_moves_the_weights_meaningfully():
+    """The failure this replaced: four models within 8% of each other used to
+    come out as a plain average to three decimal places, so the worst model
+    kept nearly a quarter of the say."""
+    w = model_weights([65.3, 65.45, 65.61, 70.47])
+    assert max(w) - min(w) > 0.02, "weighting must react to a real skill gap"
+    assert w[3] == min(w), "the clearly worst model must get the smallest share"
 
 
 def test_weights_sum_to_one():

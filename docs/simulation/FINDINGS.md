@@ -464,6 +464,105 @@ refusals with the upsell message. The simulated owner now does what the limit is
 designed to prompt: upgrades and retries. That is the limit working end to end
 over a year of real usage, not just in a unit test.
 
+## Investigations
+
+### F-026 · S2 · The "self-correcting weights" were correcting almost nothing — **FIXED**
+
+The ensemble weights sat at 0.258 / 0.252 / 0.246 / 0.237 across the year — a
+plain four-way average to three decimals. Two explanations were possible and
+they call for opposite responses, so I replayed the app's own four models over
+the observed series, walking forward and only ever using earlier data
+(`tests/simulation/analyse_weights.py`). **Both turned out to be true.**
+
+**The models genuinely are close in skill.** Over 283 days their true MAE was
+65.3 (linear trend), 65.5 (seasonal naive), 65.6 (exponential smoothing) and
+70.5 (weighted moving average) — a best-to-worst spread of just **7.9 %**. They
+are four ways of averaging the same same-weekday history, so they mostly agree:
+the two closest disagree by only 11 customers a day on a 529-customer day.
+
+**But there is real per-weekday signal, and the weighting was not using it.**
+
+| weekday | best model | spread best→worst |
+|---|---|---:|
+| Monday | exponential smoothing | 17.4 % |
+| Tuesday | seasonal naive | 21.9 % |
+| Wednesday | exponential smoothing | 12.4 % |
+| Thursday | seasonal naive | 11.5 % |
+| Friday | linear trend | 18.2 % |
+| Sunday | seasonal naive | 11.5 % |
+
+Different models win different weekdays by 11–22 %, exactly as spec §2 claims.
+Two things were stopping the app from acting on it:
+
+1. **Inverse-error weighting cannot express a strong preference.** `w ∝ 1/err`
+   means models 8 % apart in skill get weights 8 % apart. Even handed the true
+   full-year skill, it produced 0.255 / 0.236 / 0.254 / 0.255 — the clearly
+   worst model still collecting nearly a quarter of the vote.
+2. **Four holdout points is not enough to tell the models apart.** A 4-point
+   window picked the model that was truly best on that weekday only **42.9 %**
+   of the time (chance is 25 %). The weights were largely reacting to noise.
+
+Net effect, measured: the re-weighting was worth **0.02 percentage points**
+against literally splitting the vote evenly (13.142 % vs 13.163 % on the raw
+four-model blend). The headline feature was doing nothing.
+
+**Verdict: a real defect, not "working as intended".** Not a correctness bug —
+the mechanism does what the code says — but it fails its own stated purpose.
+
+**Fix**, both parts justified independently of this data:
+* `model_weights` now uses `w ∝ (1/err)²`. That is the standard Bates–Granger
+  result: the variance-minimising combination weights are proportional to the
+  inverse of each model's error *variance*, and MAE scales with σ. It is the
+  textbook rule, not a number tuned to fit. Errors of 0.1 and 0.2 now give
+  0.80 / 0.20 instead of 0.67 / 0.33.
+* The weighting window goes from 4 same-weekday errors to 12 — the same window
+  the bias check already uses, and justified by the 42.9 % measurement above.
+
+Replayed walk-forward with no hindsight, blend error falls **monotonically**
+across a 4×6 grid of window and sharpness with no turning point, which is what
+distinguishes a genuine effect from a lucky corner.
+
+**One uncomfortable number, stated plainly:** on this business, seasonal-naive
+*alone* scored 12.98 % against the four-model blend's 13.14 %. Blending four
+similar models was, until this fix, slightly *worse* than using the single best
+one — because the weakest model kept a quarter of the vote. Even perfect
+hindsight model-selection per weekday would only have reached 12.67 %. See the
+recommendations in `REPORT.md`: the ensemble is worth far less on this business
+than its prominence suggests.
+
+### F-007 · S2 · Outlier detection pestered a very steady business — **FIXED**
+
+Previously left as a deliberately-failing test; now fixed properly.
+
+Measured directly: the detector fired on a **4 % deviation** for a steady shop
+(Mondays 98–103, flagged 104) while correctly ignoring a **16 %** deviation for
+a variable one. That is backwards, and it is the same complaint that produced
+the original "43 flagged against a ~54 average" report.
+
+*Root cause:* Tukey fences are **scale-free**. They ask "is this unusual for
+this shop?" and never "is it unusual enough to care?". On a tight history the
+IQR is about 1.5 customers, so 1.5×IQR puts the fence three customers above
+normal and ordinary life trips it.
+
+*Fix:* a flag now requires **both** conditions — outside the Tukey fence
+(unusual for this shop) **and** at least 25 % away from that weekday's median
+(unusual enough to act on). This is the standard statistical-versus-practical
+significance distinction, and because it is an AND with the existing fence it
+can only ever make the detector quieter, so every "must not flag" case in the
+spec stays satisfied by construction rather than by luck. Spec §12's own worked
+example calls a day ~20 % below the weekday mean "normal variation", which sets
+the floor's lower bound.
+
+Verified: 104-vs-100 (4 %) and 108-vs-100 (8 %) no longer flag; 48-vs-100 (52 %),
+250-vs-505 (50 %) and 1500-vs-54 still do. Five tests replace the single xfail,
+including one asserting the floor can only quieten the detector.
+
+**Deliberate trade-off, recorded:** for an extremely steady business a 15 %
+swing is genuinely strange but will not prompt. Ope errs toward not pestering,
+which is the priority spec §6 sets.
+
+---
+
 ## Phase 4 — UI pass
 
 _not started_

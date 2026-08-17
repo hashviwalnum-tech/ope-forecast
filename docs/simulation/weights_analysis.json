@@ -1,0 +1,60 @@
+{
+ "n_days": 283,
+ "true_mae_overall": {
+  "seasonal_naive": 65.446,
+  "wma": 70.468,
+  "exp_smoothing": 65.612,
+  "linear_trend": 65.295
+ },
+ "best_to_worst_spread_pct": 7.92,
+ "true_mae_per_weekday": {
+  "Monday": {
+   "seasonal_naive": 65.312,
+   "wma": 58.274,
+   "exp_smoothing": 55.643,
+   "linear_trend": 62.865
+  },
+  "Tuesday": {
+   "seasonal_naive": 73.927,
+   "wma": 90.106,
+   "exp_smoothing": 81.643,
+   "linear_trend": 77.596
+  },
+  "Wednesday": {
+   "seasonal_naive": 60.305,
+   "wma": 57.0,
+   "exp_smoothing": 53.642,
+   "linear_trend": 55.492
+  },
+  "Thursday": {
+   "seasonal_naive": 60.113,
+   "wma": 67.008,
+   "exp_smoothing": 61.158,
+   "linear_trend": 61.468
+  },
+  "Friday": {
+   "seasonal_naive": 51.035,
+   "wma": 58.794,
+   "exp_smoothing": 55.138,
+   "linear_trend": 49.734
+  },
+  "Sunday": {
+   "seasonal_naive": 82.882,
+   "wma": 92.441,
+   "exp_smoothing": 87.266,
+   "linear_trend": 85.618
+  }
+ },
+ "mape_equal_weights": 13.163,
+ "mape_inverse_error": 13.131,
+ "mape_inverse_squared": 13.131,
+ "mape_per_weekday_inverse": 13.07,
+ "mape_best_single_per_weekday": 12.665,
+ "mape_single_model": {
+  "seasonal_naive": 12.975,
+  "wma": 14.504,
+  "exp_smoothing": 13.508,
+  "linear_trend": 13.391
+ },
+ "four_point_window_picks_true_best_pct": 42.86
+}

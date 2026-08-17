@@ -17,6 +17,26 @@ import numpy as np
 # Minimum same-weekday observations before we're willing to flag anything.
 MIN_SAME_WEEKDAY = 6
 
+# A day must ALSO be at least this far from the weekday's usual level before it
+# is worth interrupting the owner about.
+#
+# Tukey fences are scale-free: they ask "is this unusual for this shop?" and
+# never "is it unusual enough to care?".  For a very steady business that is a
+# real problem — one whose Mondays run 98 to 103 has an IQR of about 1.5, so the
+# fence sits at 103 and an utterly ordinary Monday of 104, four per cent above
+# normal, trips it.  Measured directly: the detector fired on a 4% deviation for
+# a steady shop while correctly ignoring a 16% deviation for a variable one.
+# Spec §6 forbids firing on ordinary fluctuation, and §12's own worked example
+# calls a day roughly 20% below the weekday mean "normal variation".
+#
+# So a flag now needs BOTH: outside the Tukey fence (unusual for this shop) AND
+# at least a quarter away from the weekday's median (unusual enough to act on).
+# This can only ever make the detector quieter, never noisier, so every
+# "must not flag" case in the spec stays satisfied by construction.  The
+# deliberate trade-off: for an extremely steady business a 15% swing is genuinely
+# strange but will not prompt — Ope errs toward not pestering.
+MIN_RELATIVE_DEVIATION = 0.25
+
 
 @dataclass
 class OutlierResult:
@@ -73,7 +93,15 @@ def detect_outliers(
             upper = q3 + 1.5 * iqr
 
             value = observations[i]
-            if value < lower or value > upper:
+            outside_fence = value < lower or value > upper
+            # Practical significance: statistically unusual is not the same as
+            # worth a prompt.  See MIN_RELATIVE_DEVIATION above.
+            far_enough = (
+                abs(value - median) >= abs(median) * MIN_RELATIVE_DEVIATION
+                if median != 0
+                else value != 0
+            )
+            if outside_fence and far_enough:
                 results.append(OutlierResult(
                     day_index=i,
                     weekday=wd,

@@ -9,11 +9,11 @@
   "overall": {
    "ope": {
     "n": 285,
-    "MAD": 53.35,
-    "MSE": 5624.7,
-    "MAPE": 10.21,
-    "bias": 14.71,
-    "tracking_signal": 78.57
+    "MAD": 53.31,
+    "MSE": 5645.3,
+    "MAPE": 10.2,
+    "bias": 14.74,
+    "tracking_signal": 78.78
    },
    "noise_floor": {
     "n": 285,
@@ -44,11 +44,11 @@
    "to_day_60": {
     "ope": {
      "n": 26,
-     "MAD": 61.35,
-     "MSE": 6227.2,
-     "MAPE": 13.43,
-     "bias": 2.81,
-     "tracking_signal": 1.19
+     "MAD": 61.15,
+     "MSE": 6200.5,
+     "MAPE": 13.42,
+     "bias": 1.54,
+     "tracking_signal": 0.65
     },
     "noise_floor": {
      "n": 26,
@@ -78,11 +78,11 @@
    "to_day_90": {
     "ope": {
      "n": 52,
-     "MAD": 55.62,
-     "MSE": 5615.4,
-     "MAPE": 11.52,
-     "bias": 12.58,
-     "tracking_signal": 11.76
+     "MAD": 55.23,
+     "MSE": 5573.0,
+     "MAPE": 11.45,
+     "bias": 11.73,
+     "tracking_signal": 11.04
     },
     "noise_floor": {
      "n": 52,
@@ -112,11 +112,11 @@
    "to_day_180": {
     "ope": {
      "n": 129,
-     "MAD": 48.57,
-     "MSE": 4431.8,
-     "MAPE": 10.24,
-     "bias": 3.7,
-     "tracking_signal": 9.82
+     "MAD": 48.14,
+     "MSE": 4390.2,
+     "MAPE": 10.16,
+     "bias": 3.33,
+     "tracking_signal": 8.93
     },
     "noise_floor": {
      "n": 129,
@@ -146,11 +146,11 @@
    "to_day_365": {
     "ope": {
      "n": 285,
-     "MAD": 53.35,
-     "MSE": 5624.7,
-     "MAPE": 10.21,
-     "bias": 14.71,
-     "tracking_signal": 78.57
+     "MAD": 53.31,
+     "MSE": 5645.3,
+     "MAPE": 10.2,
+     "bias": 14.74,
+     "tracking_signal": 78.78
     },
     "noise_floor": {
      "n": 285,
@@ -182,11 +182,11 @@
    "Monday": {
     "ope": {
      "n": 47,
-     "MAD": 52.57,
-     "MSE": 5384.3,
-     "MAPE": 9.47,
-     "bias": 11.85,
-     "tracking_signal": 10.59
+     "MAD": 52.6,
+     "MSE": 5415.1,
+     "MAPE": 9.46,
+     "bias": 11.7,
+     "tracking_signal": 10.46
     },
     "noise_floor": {
      "n": 47,
@@ -217,11 +217,11 @@
    "Tuesday": {
     "ope": {
      "n": 47,
-     "MAD": 47.57,
-     "MSE": 3716.8,
-     "MAPE": 9.26,
-     "bias": 5.45,
-     "tracking_signal": 5.38
+     "MAD": 47.79,
+     "MSE": 3775.6,
+     "MAPE": 9.29,
+     "bias": 5.28,
+     "tracking_signal": 5.19
     },
     "noise_floor": {
      "n": 47,
@@ -252,11 +252,11 @@
    "Wednesday": {
     "ope": {
      "n": 48,
-     "MAD": 54.71,
-     "MSE": 6397.8,
-     "MAPE": 9.58,
-     "bias": 16.75,
-     "tracking_signal": 14.7
+     "MAD": 54.73,
+     "MSE": 6480.4,
+     "MAPE": 9.57,
+     "bias": 16.98,
+     "tracking_signal": 14.89
     },
     "noise_floor": {
      "n": 48,
@@ -287,11 +287,11 @@
    "Thursday": {
     "ope": {
      "n": 47,
-     "MAD": 43.94,
-     "MSE": 3169.4,
-     "MAPE": 8.52,
-     "bias": 7.04,
-     "tracking_signal": 7.53
+     "MAD": 43.57,
+     "MSE": 3124.6,
+     "MAPE": 8.45,
+     "bias": 7.02,
+     "tracking_signal": 7.57
     },
     "noise_floor": {
      "n": 47,
@@ -322,11 +322,11 @@
    "Friday": {
     "ope": {
      "n": 49,
-     "MAD": 47.9,
-     "MSE": 4746.7,
-     "MAPE": 8.74,
-     "bias": 11.49,
-     "tracking_signal": 11.75
+     "MAD": 47.71,
+     "MSE": 4716.1,
+     "MAPE": 8.71,
+     "bias": 11.59,
+     "tracking_signal": 11.9
     },
     "noise_floor": {
      "n": 49,
@@ -357,11 +357,11 @@
    "Sunday": {
     "ope": {
      "n": 47,
-     "MAD": 73.64,
-     "MSE": 10353.9,
+     "MAD": 73.68,
+     "MSE": 10381.9,
      "MAPE": 15.79,
-     "bias": 35.77,
-     "tracking_signal": 22.83
+     "bias": 35.94,
+     "tracking_signal": 22.92
     },
     "noise_floor": {
      "n": 47,
@@ -393,11 +393,11 @@
   "promo_days": {
    "ope": {
     "n": 55,
-    "MAD": 77.84,
-    "MSE": 11490.8,
-    "MAPE": 12.49,
-    "bias": 50.45,
-    "tracking_signal": 35.65
+    "MAD": 78.05,
+    "MSE": 11582.0,
+    "MAPE": 12.51,
+    "bias": 50.82,
+    "tracking_signal": 35.81
    },
    "noise_floor": {
     "n": 55,
@@ -427,11 +427,11 @@
   "normal_days": {
    "ope": {
     "n": 230,
-    "MAD": 47.5,
-    "MSE": 4221.9,
-    "MAPE": 9.67,
-    "bias": 6.16,
-    "tracking_signal": 29.83
+    "MAD": 47.4,
+    "MSE": 4225.7,
+    "MAPE": 9.64,
+    "bias": 6.11,
+    "tracking_signal": 29.64
    },
    "noise_floor": {
     "n": 230,
@@ -459,17 +459,17 @@
    }
   },
   "interval": {
-   "coverage_pct": 48.1,
-   "median_width_customers": 71.0,
-   "median_width_pct_of_forecast": 13.5
+   "coverage_pct": 52.6,
+   "median_width_customers": 83.0,
+   "median_width_pct_of_forecast": 16.5
   },
   "mean_model_weights": {
-   "exp_smoothing": 0.258,
-   "seasonal_naive": 0.252,
-   "wma": 0.246,
-   "linear_trend": 0.237,
+   "seasonal_naive": 0.268,
+   "exp_smoothing": 0.26,
+   "wma": 0.244,
+   "linear_trend": 0.219,
    "promo_uplift": 0.131,
-   "year_over_year": 0.008
+   "year_over_year": 0.009
   }
  },
  "next_day": {
@@ -482,11 +482,11 @@
   "overall": {
    "ope": {
     "n": 236,
-    "MAD": 49.64,
-    "MSE": 4728.1,
-    "MAPE": 9.16,
-    "bias": 10.77,
-    "tracking_signal": 51.21
+    "MAD": 49.58,
+    "MSE": 4747.8,
+    "MAPE": 9.15,
+    "bias": 10.76,
+    "tracking_signal": 51.23
    },
    "noise_floor": {
     "n": 236,
@@ -517,11 +517,11 @@
    "to_day_60": {
     "ope": {
      "n": 21,
-     "MAD": 62.33,
-     "MSE": 6446.5,
-     "MAPE": 13.09,
-     "bias": 4.05,
-     "tracking_signal": 1.36
+     "MAD": 62.05,
+     "MSE": 6402.1,
+     "MAPE": 13.05,
+     "bias": 2.52,
+     "tracking_signal": 0.85
     },
     "noise_floor": {
      "n": 21,
@@ -551,11 +551,11 @@
    "to_day_90": {
     "ope": {
      "n": 43,
-     "MAD": 51.28,
-     "MSE": 5112.7,
-     "MAPE": 10.19,
-     "bias": 8.3,
-     "tracking_signal": 6.96
+     "MAD": 50.91,
+     "MSE": 5077.9,
+     "MAPE": 10.13,
+     "bias": 7.37,
+     "tracking_signal": 6.23
     },
     "noise_floor": {
      "n": 43,
@@ -585,11 +585,11 @@
    "to_day_180": {
     "ope": {
      "n": 107,
-     "MAD": 45.74,
-     "MSE": 4186.1,
-     "MAPE": 9.24,
-     "bias": -0.09,
-     "tracking_signal": -0.22
+     "MAD": 45.31,
+     "MSE": 4148.9,
+     "MAPE": 9.16,
+     "bias": -0.41,
+     "tracking_signal": -0.97
     },
     "noise_floor": {
      "n": 107,
@@ -619,11 +619,11 @@
    "to_day_365": {
     "ope": {
      "n": 236,
-     "MAD": 49.64,
-     "MSE": 4728.1,
-     "MAPE": 9.16,
-     "bias": 10.77,
-     "tracking_signal": 51.21
+     "MAD": 49.58,
+     "MSE": 4747.8,
+     "MAPE": 9.15,
+     "bias": 10.76,
+     "tracking_signal": 51.23
     },
     "noise_floor": {
      "n": 236,
@@ -655,11 +655,11 @@
    "Monday": {
     "ope": {
      "n": 46,
-     "MAD": 53.24,
-     "MSE": 5490.8,
+     "MAD": 53.3,
+     "MSE": 5524.1,
      "MAPE": 9.58,
-     "bias": 12.59,
-     "tracking_signal": 10.88
+     "bias": 12.39,
+     "tracking_signal": 10.69
     },
     "noise_floor": {
      "n": 46,
@@ -690,11 +690,11 @@
    "Tuesday": {
     "ope": {
      "n": 46,
-     "MAD": 48.41,
-     "MSE": 3795.8,
-     "MAPE": 9.42,
-     "bias": 5.76,
-     "tracking_signal": 5.47
+     "MAD": 48.63,
+     "MSE": 3855.9,
+     "MAPE": 9.45,
+     "bias": 5.59,
+     "tracking_signal": 5.28
     },
     "noise_floor": {
      "n": 46,
@@ -725,11 +725,11 @@
    "Wednesday": {
     "ope": {
      "n": 48,
-     "MAD": 54.71,
-     "MSE": 6397.8,
-     "MAPE": 9.58,
-     "bias": 16.75,
-     "tracking_signal": 14.7
+     "MAD": 54.73,
+     "MSE": 6480.4,
+     "MAPE": 9.57,
+     "bias": 16.98,
+     "tracking_signal": 14.89
     },
     "noise_floor": {
      "n": 48,
@@ -760,11 +760,11 @@
    "Thursday": {
     "ope": {
      "n": 47,
-     "MAD": 43.94,
-     "MSE": 3169.4,
-     "MAPE": 8.52,
-     "bias": 7.04,
-     "tracking_signal": 7.53
+     "MAD": 43.57,
+     "MSE": 3124.6,
+     "MAPE": 8.45,
+     "bias": 7.02,
+     "tracking_signal": 7.57
     },
     "noise_floor": {
      "n": 47,
@@ -795,11 +795,11 @@
    "Friday": {
     "ope": {
      "n": 49,
-     "MAD": 47.9,
-     "MSE": 4746.7,
-     "MAPE": 8.74,
-     "bias": 11.49,
-     "tracking_signal": 11.75
+     "MAD": 47.71,
+     "MSE": 4716.1,
+     "MAPE": 8.71,
+     "bias": 11.59,
+     "tracking_signal": 11.9
     },
     "noise_floor": {
      "n": 49,
@@ -831,11 +831,11 @@
   "promo_days": {
    "ope": {
     "n": 43,
-    "MAD": 61.93,
-    "MSE": 6508.0,
+    "MAD": 62.02,
+    "MSE": 6556.2,
     "MAPE": 9.89,
-    "bias": 26.91,
-    "tracking_signal": 18.68
+    "bias": 27.19,
+    "tracking_signal": 18.85
    },
    "noise_floor": {
     "n": 43,
@@ -865,11 +865,11 @@
   "normal_days": {
    "ope": {
     "n": 193,
-    "MAD": 46.9,
-    "MSE": 4331.5,
-    "MAPE": 9.0,
-    "bias": 7.18,
-    "tracking_signal": 29.53
+    "MAD": 46.81,
+    "MSE": 4344.9,
+    "MAPE": 8.98,
+    "bias": 7.1,
+    "tracking_signal": 29.29
    },
    "noise_floor": {
     "n": 193,
@@ -897,17 +897,17 @@
    }
   },
   "interval": {
-   "coverage_pct": 49.2,
-   "median_width_customers": 69.5,
-   "median_width_pct_of_forecast": 12.7
+   "coverage_pct": 55.1,
+   "median_width_customers": 82.0,
+   "median_width_pct_of_forecast": 15.6
   },
   "mean_model_weights": {
-   "exp_smoothing": 0.261,
-   "seasonal_naive": 0.248,
-   "wma": 0.246,
-   "linear_trend": 0.24,
+   "exp_smoothing": 0.267,
+   "seasonal_naive": 0.262,
+   "wma": 0.245,
+   "linear_trend": 0.223,
    "promo_uplift": 0.131,
-   "year_over_year": 0.004
+   "year_over_year": 0.003
   }
  }
 }

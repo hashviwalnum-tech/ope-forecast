@@ -126,7 +126,11 @@ _MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 _SERVICE_LEVEL = 0.95
 
 MIN_RECORDS = 14  # ~2 weeks before forecasts are attempted
-_WEIGHT_WINDOW = 4   # recent same-weekday errors used for ensemble weighting
+# Same-weekday holdout errors used to judge each model.  Four was far too few:
+# replaying the simulated year, a 4-point window picked the model that was truly
+# best on that weekday only 42.9% of the time (chance is 25%), so the weights
+# were mostly reacting to noise.  Twelve is the same window the bias check uses.
+_WEIGHT_WINDOW = 12
 _BIAS_WINDOW = 12    # longer window used only to judge whether a model is biased
 
 
