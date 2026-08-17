@@ -1,5 +1,7 @@
 """Known-answer tests for engine.live_sales.hourly_averages."""
-from datetime import date
+from datetime import date, timedelta
+
+import pytest
 
 from app.engine.live_sales import hourly_averages
 
@@ -278,3 +280,43 @@ def test_arrivals_by_day_hour_known_answer():
     assert customer_arrivals_by_day_hour(events) == {
         (D1, 9): 3.0, (D1, 10): 4.0, (D2, 9): 5.0
     }
+
+
+# ── FINDING F-025: mixed logging habits must not collapse the service time ───
+# Most owners tap products for a while and then switch to end-of-day totals.
+# Dividing the work measured on the tapping days by the customers counted on ALL
+# days collapses the per-customer service time toward zero — which produced
+# "schedule 1 person" for a 69-customer hour, at 0.53 minutes per customer
+# instead of 8.
+
+def test_service_time_uses_only_the_days_that_have_product_detail():
+    """D1 has product detail; D2 and D3 are customer counts only.
+
+    The answer must be D1's 9 minutes per customer, not 9 minutes spread over
+    three days of customers (which would give 3).
+    """
+    events = [
+        (D1, 12, None, 1.0), (D1, 12, 1, 1.0), (D1, 12, 2, 1.0), (D1, 12, 3, 1.0),
+        (D2, 12, None, 1.0),
+        (D3, 12, None, 1.0),
+    ]
+    svc = {1: 6.0, 2: 2.0, 3: 1.0}
+    assert service_minutes_per_customer(events, svc, 5.0)[12] == pytest.approx(9.0)
+
+
+def test_a_realistic_mixed_year_keeps_a_sane_service_time():
+    """Three tapped days out of a hundred must still give ~8 minutes, not ~0.2."""
+    from datetime import date as _d
+    events = []
+    for i in range(100):
+        day = _d(2024, 1, 1) + timedelta(days=i)
+        events.append((day, 12, None, 60.0))          # 60 customers every day
+        if i < 3:                                     # only three days of detail
+            events.append((day, 12, 1, 60.0))         # each buying one 8-min item
+    got = service_minutes_per_customer(events, {1: 8.0}, 3.5)[12]
+    assert got == pytest.approx(8.0), f"expected ~8 minutes per customer, got {got}"
+
+
+def test_no_product_detail_anywhere_falls_back_to_the_business_average():
+    events = [(D1, 9, None, 40.0), (D2, 9, None, 50.0)]
+    assert service_minutes_per_customer(events, {}, 3.5) == {9: 3.5}

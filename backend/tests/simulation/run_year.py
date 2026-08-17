@@ -53,6 +53,8 @@ def run(start_index: int, end_index: int, resume: bool, verbose: bool) -> dict:
         own.s.product_ids = saved["product_ids"]
         own.s.actuals = saved["actuals"]
         own.s.forecasts = saved["forecasts"]
+        own.s.product_forecasts = saved.get("product_forecasts", [])
+        own.s.product_actuals = saved.get("product_actuals", {})
         own.s.promos_created = saved["promos_created"]
         ope.use_business(saved["business_id"], tz="America/New_York")
         print(f"resumed: business {saved['business_id']}, "
@@ -82,6 +84,7 @@ def run(start_index: int, end_index: int, resume: bool, verbose: bool) -> dict:
             continue
 
         own.s.actuals[day.isoformat()] = o.customers
+        own.s.product_actuals[day.isoformat()] = dict(o.units)
 
         delay = LATE_LOGGED_DAYS.get(day, 0)
         if delay:
@@ -121,6 +124,8 @@ def run(start_index: int, end_index: int, resume: bool, verbose: bool) -> dict:
         "product_ids": own.s.product_ids,
         "actuals": own.s.actuals,
         "forecasts": own.s.forecasts,
+        "product_forecasts": own.s.product_forecasts,
+        "product_actuals": own.s.product_actuals,
         "promos_created": own.s.promos_created,
         "issues": [x.as_dict() for x in own.s.issues],
         "last_index": end_index,

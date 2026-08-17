@@ -154,6 +154,9 @@ export interface ForecastResponse {
 
 export interface AccuracyResponse {
   status: string
+  // 'measured' = scored against the forecasts Ope really showed
+  // 'estimated' = not enough stored forecasts yet
+  measured_from?: string
   n_observations: number
   mad?: number
   mse?: number

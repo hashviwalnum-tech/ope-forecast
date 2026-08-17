@@ -1034,6 +1034,40 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     return ForecastResponse(status="ok", days=days, drift_alert=drift)
 
 
+def _accuracy_from_forecast_runs(
+    db: Session, biz: Business, records: list[DayRecord]
+) -> tuple[list[float], list[float], str]:
+    """(actuals, predictions, source) from the forecasts Ope really showed.
+
+    For each past date, the LAST forecast made before that date is the one the
+    owner was actually looking at, so that is the one scored.  Days the owner
+    has not reviewed an outlier flag on are skipped, matching the old behaviour.
+    """
+    today = clock.today_local(biz.settings)
+    by_date: dict[date, DayRecord] = {
+        r.date: r for r in records if r.outlier_status != "flagged"
+    }
+    if not by_date:
+        return [], [], "measured"
+
+    runs = (
+        db.query(ForecastRun)
+        .filter(ForecastRun.business_id == biz.id, ForecastRun.target_date < today)
+        .order_by(ForecastRun.target_date, ForecastRun.created_at)
+        .all()
+    )
+    freshest: dict[date, ForecastRun] = {}
+    for fr in runs:
+        if fr.target_date in by_date:
+            freshest[fr.target_date] = fr        # ordered by created_at: last wins
+
+    dates = sorted(freshest)[-90:]               # the same 90-day window as before
+    actuals = [float(by_date[d].customers) for d in dates]
+    predictions = [float(freshest[d].predicted_value) for d in dates]
+    return actuals, predictions, "measured"
+
+
+
 # ── /accuracy ─────────────────────────────────────────────────────────────
 
 @router.get("/accuracy", response_model=AccuracyResponse)
@@ -1051,19 +1085,30 @@ def get_accuracy(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     obs = _effective_obs(records)
     wds = [r.date.weekday() for r in records]
 
-    n_eval = min(90, len(obs) - 7)
-    actuals: list[float] = []
-    predictions: list[float] = []
+    # Score the forecasts Ope ACTUALLY SHOWED, from the stored ForecastRuns.
+    # This screen used to evaluate the seasonal-naive model on its own, which is
+    # one of four voices in the blend — so it reported the wrong thing, and
+    # reported it worse than the truth (13.7% against a real 10.2% over the
+    # simulated year).  Every prediction is already recorded; use it.
+    actuals, predictions, source = _accuracy_from_forecast_runs(db, biz, records)
 
-    for i in range(len(obs) - n_eval, len(obs)):
-        if records[i].outlier_status == "flagged":
-            continue  # don't score the forecast against unreviewed outlier days
-        try:
-            pred = seasonal_naive_forecast(obs[:i], wds[:i], wds[i])
-            actuals.append(obs[i])
-            predictions.append(pred)
-        except ValueError:
-            pass
+    if len(actuals) < 4:
+        # Not enough of the owner's own history has been forecast yet (a new
+        # account, or one that has not opened the app much).  Fall back to a
+        # leave-one-out estimate over the same-weekday history so the screen
+        # still says something honest.
+        source = "estimated"
+        actuals, predictions = [], []
+        n_eval = min(90, len(obs) - 7)
+        for i in range(len(obs) - n_eval, len(obs)):
+            if records[i].outlier_status == "flagged":
+                continue  # don't score against unreviewed outlier days
+            try:
+                pred = seasonal_naive_forecast(obs[:i], wds[:i], wds[i])
+                actuals.append(obs[i])
+                predictions.append(pred)
+            except ValueError:
+                pass
 
     if len(actuals) < 4:
         return AccuracyResponse(
@@ -1096,6 +1141,7 @@ def get_accuracy(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         tracking_signal=round(ts, 3),
         bias_warning=bias_warning,
         drift_alert=drift,
+        measured_from=source,
     )
 
 
@@ -2174,8 +2220,12 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             avgs = hourly_averages(raw, open_hours)
             active_slots = [(h, avg, n) for h, avg, n in avgs if avg > 0]
             if active_slots:
-                peak = max(active_slots, key=lambda x: x[1])
-                quiet = min(active_slots, key=lambda x: x[1])
+                # Rank on the same ROUNDED figures the busy-hours chart displays.
+                # Ranking on the raw floats let two hours that both show "69" be
+                # named differently by the two screens, so Insights announced a
+                # peak hour of 1–2 pm while the chart's tallest bar was 12–1 pm.
+                peak = max(active_slots, key=lambda x: (round(x[1]), -x[0]))
+                quiet = min(active_slots, key=lambda x: (round(x[1]), x[0]))
                 peak_hour_out = InsightsHourPattern(
                     hour=peak[0], label=_fmt_hour_range(peak[0]), avg_taps=round(peak[1], 1),
                 )
@@ -2220,7 +2270,7 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         db.query(ForecastRun)
         .filter_by(business_id=biz.id)
         .filter(ForecastRun.target_date < today)
-        .order_by(ForecastRun.target_date)
+        .order_by(ForecastRun.target_date, ForecastRun.created_at)
         .all()
     )
     actual_map: dict[date, int] = {
@@ -2228,16 +2278,21 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         for r in db.query(DayRecord).filter_by(business_id=biz.id).all()
         if r.outlier_status not in ("excluded", "event", "flagged")
     }
-    matched: list[tuple[float, float]] = []
-    seen_d: set[date] = set()
+    # Score the FRESHEST forecast for each date — the one the owner was actually
+    # looking at — not whichever row happened to come out of the database first,
+    # which was the seven-days-ahead one.  The Accuracy screen does the same, so
+    # the two can no longer quote different numbers for the same thing.
+    freshest_run: dict[date, ForecastRun] = {}
     for fr in past_runs:
-        if fr.target_date in seen_d:
-            continue
-        seen_d.add(fr.target_date)
-        actual = actual_map.get(fr.target_date)
+        prev = freshest_run.get(fr.target_date)
+        if prev is None or (fr.created_at or datetime.min) >= (prev.created_at or datetime.min):
+            freshest_run[fr.target_date] = fr
+    matched: list[tuple[float, float]] = []
+    for d in sorted(freshest_run):
+        actual = actual_map.get(d)
         if actual is None:
             continue
-        matched.append((float(fr.predicted_value), float(actual)))
+        matched.append((float(freshest_run[d].predicted_value), float(actual)))
 
     if len(matched) >= 4:
         try:

@@ -53,6 +53,8 @@ class OwnerState:
     product_ids: dict[str, int] = field(default_factory=dict)     # menu key → product id
     forecasts: list[dict] = field(default_factory=list)           # every prediction Ope made
     actuals: dict[str, int] = field(default_factory=dict)         # iso date → customers
+    product_forecasts: list[dict] = field(default_factory=list)   # per-product predictions
+    product_actuals: dict[str, dict[str, float]] = field(default_factory=dict)
     issues: list[Issue] = field(default_factory=list)
     promos_created: dict[str, int] = field(default_factory=dict)  # label → period id
     pending_log: list[tuple[str, DayOutcome]] = field(default_factory=list)  # late-logged days
@@ -235,6 +237,24 @@ class SimulatedOwner:
                 "hi": d["interval_high"],
                 "weights": d.get("model_weights") or {},
             })
+        # Per-product predictions, recorded the same way so product accuracy can
+        # be scored against what really sold (mission brief §9.2).
+        pf = self._safe(day, "product forecast", self.ope.get, "/product-forecast")
+        if pf and pf.get("status") == "ok":
+            key_by_id = {v: k for k, v in self.s.product_ids.items()}
+            for item in pf.get("products", []):
+                if item.get("status") != "ok":
+                    continue
+                pkey = key_by_id.get(item["product_id"])
+                for d in item.get("days", []):
+                    self.s.product_forecasts.append({
+                        "made_on": day.isoformat(),
+                        "target": d["date"],
+                        "horizon": (date.fromisoformat(d["date"]) - day).days,
+                        "product": pkey,
+                        "predicted": d["predicted_units"],
+                    })
+
         if f.get("drift_alert"):
             self.s.issues.append(Issue(day.isoformat(), "drift alert (informational)",
                                        str(f["drift_alert"])))
@@ -339,6 +359,8 @@ class SimulatedOwner:
             "business_id": self.s.business_id,
             "product_ids": self.s.product_ids,
             "actuals": self.s.actuals,
+            "product_forecasts": self.s.product_forecasts,
+            "product_actuals": self.s.product_actuals,
             "forecasts": self.s.forecasts,
             "issues": [i.as_dict() for i in self.s.issues],
             "promos_created": self.s.promos_created,

@@ -47,6 +47,9 @@ class ForecastResponse(BaseModel):
 
 class AccuracyResponse(BaseModel):
     status: str
+    # 'measured'  = scored against the forecasts Ope really showed
+    # 'estimated' = not enough stored forecasts yet; leave-one-out estimate
+    measured_from: Optional[str] = None
     n_observations: int
     mad: Optional[float] = None
     mse: Optional[float] = None

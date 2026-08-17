@@ -1,0 +1,101 @@
+C:\Users\hashvi\AppData\Local\Programs\Python\Python312\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+==========================================================================
+FEATURE SWEEP — one full year of history, as at 2026-08-01
+==========================================================================
+
+-- every screen answers --
+   forecast             ok
+   accuracy             ok
+   ordering             ok
+   product forecast     ok
+   weekday averages     ok
+   hourly analytics     ok
+   hourly by weekday    ok
+   monthly summary      ok
+   insights             ok
+   lift                 ok
+   forecast history     ok
+   outliers             ok
+   day records          311 rows
+   products             11 rows
+   regulars             4 rows
+   recurring patterns   1 rows
+   periods              20 rows
+   orders               1400 rows
+   nudges               None
+   subscription         None
+
+-- forecast --
+   2026-08-02 Sun  484.0  [361.0–608.0]  {'seasonal_naive': 0.0957, 'wma': 0.0951, 'exp_smoothing': 0.1093, 'linear_trend': 0.1195, 'year_over_year': 0.5803}
+   2026-08-03 Mon  621.0  [569.0–673.0]  {'seasonal_naive': 0.1042, 'wma': 0.2534, 'exp_smoothing': 0.3278, 'linear_trend': 0.2466, 'year_over_year': 0.0679}
+   2026-08-04 Tue  577.0  [519.0–635.0]  {'seasonal_naive': 0.2048, 'wma': 0.1926, 'exp_smoothing': 0.2056, 'linear_trend': 0.2461, 'year_over_year': 0.1509}
+   2026-08-05 Wed  612.0  [516.0–709.0]  {'seasonal_naive': 0.202, 'wma': 0.2152, 'exp_smoothing': 0.2267, 'linear_trend': 0.2447, 'year_over_year': 0.1114}
+   2026-08-06 Thu  605.0  [571.0–638.0]  {'seasonal_naive': 0.1372, 'wma': 0.2911, 'exp_smoothing': 0.2386, 'linear_trend': 0.247, 'year_over_year': 0.086}
+   2026-08-07 Fri  604.0  [553.0–656.0]  {'seasonal_naive': 0.1698, 'wma': 0.2457, 'exp_smoothing': 0.2584, 'linear_trend': 0.2456, 'year_over_year': 0.0805}
+
+-- busy hours & staffing --
+   For 9–10 am, schedule 11 people      63 customers/hr  wait   2.5 min  queue 2.57
+   For 10–11 am, schedule 11 people     63 customers/hr  wait   4.7 min  queue 4.91
+   For 11 am–12 pm, schedule 11 people   63 customers/hr  wait   4.0 min  queue 4.18
+   For 12–1 pm, schedule 12 people      69 customers/hr  wait   3.3 min  queue 3.73
+   For 1–2 pm, schedule 12 people       69 customers/hr  wait   3.2 min  queue 3.69
+   For 2–3 pm, schedule 12 people       69 customers/hr  wait   2.6 min  queue 2.96
+   For 3–4 pm, schedule 12 people       69 customers/hr  wait   2.5 min  queue 2.92
+   For 4–5 pm, schedule 11 people       62 customers/hr  wait   3.8 min  queue 3.95
+   peak hour agrees across both screens: 12
+
+-- ordering --
+   Classic Beef Burger      have    696.0  order below   472.0  ok            storage_capped
+   Double Beef Burger       have    742.0  order below   357.0  ok            storage_full
+   Crispy Chicken Burger    have    663.0  order below   333.0  ok            storage_full
+   Veggie Burger            have    165.0  order below   284.0  ORDER 135.0   storage_capped
+   Fries                    have   1153.0  order below   542.0  ok            storage_capped
+   Onion Rings              have    501.0  order below   254.0  ok            storage_full
+   Coleslaw                 have    55.95  order below   33.69  ok            storage_capped
+   Soft Drink               have   2889.0  order below  1389.0  ok            storage_full
+   Milkshake                have    147.0  order below   475.0  ORDER 253.0   storage_capped | storage_below_reorder_point
+   Brownie Sundae           have     46.0  order below   331.0  ORDER 304.0   storage_capped
+   services present and never reordered: ['Birthday Party Package']
+
+-- ad & event lift --
+   20 promotions measured
+   Opening-week flyers          ad     lift     7.7%  (+117 customers)
+   Labor Day cookout            event  lift    10.0%  (+99 customers)
+   Instagram burger push        ad     lift    37.4%  (+202 customers)
+   Street fair                  event  lift     4.5%  (+24 customers)
+   Milkshake Monday radio       ad     lift   142.1%  (+178 customers)
+   Sunday family deal           ad     lift    22.3%  (+98 customers)
+   overlapping pair both measured: [('Halloween week', 5.9), ('Halloween combo ad', 66.3)]
+   Sunday-only ad measured: 22.3%
+
+-- regulars & lifetime value --
+   Dana from the salon      visits   83  CLV       5772  this year       906  all time      1637
+   Marcus (site foreman)    visits  189  CLV      16224  this year      2868  all time      5152
+   Priya (studio)           visits  119  CLV       9828  this year      1486  all time      2564
+   The Ortiz family         visits   37  CLV      11544  this year      1785  all time      2977
+
+-- insights --
+   n_days_logged: 311
+   n_months_logged: 12
+   busiest_day: {'weekday': 'Monday', 'avg_customers': 535.4, 'pct_vs_mean': 5.1}
+   peak_hour: {'hour': 12, 'label': '12–1 pm', 'avg_taps': 68.7}
+   forecast_accuracy_mape: 10.3
+   yoy_growth_pct: None
+
+-- accuracy --
+   n=90 MAD=64.77 MAPE=11.54 tracking signal=31.698
+   (tracking signal 31.698 is past ±4 — Ope should be flagging bias)
+
+-- premium: second location --
+   copied to location 2
+   11 products copied, types preserved
+   no history copied (correct)
+
+-- data isolation between accounts --
+   a second account sees nothing belonging to the first
+   forcing X-Business-Id: 1 as another user -> 404 (no leak)
+
+==========================================================================
+FINDINGS: 0
+==========================================================================

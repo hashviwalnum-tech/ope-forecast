@@ -254,11 +254,31 @@ def service_minutes_per_customer(
     detail — or none of the products carrying a service time — fall back to the
     business default, which is exactly what a business that only taps customer
     arrivals should get.
+
+    The work total and the customer total MUST be measured over the same days.
+    Most owners record product detail on only some days — they tap for a week,
+    then switch to end-of-day totals — and dividing the work from those few days
+    by the customers from all of them collapses the answer toward zero.  That
+    produced "schedule 1 person" for a 69-customer hour: a 0.53-minute service
+    time instead of 8 minutes, because a year of customer counts was divided
+    into three weeks' worth of product detail.
     """
+    detailed_days = {
+        day for day, hour, pid, _qty in events
+        if pid is not None and (open_hours is None or hour in open_hours)
+    }
+    if not detailed_days:
+        # No product detail anywhere — the business's own average is the answer.
+        arrivals = customer_arrivals_by_day_hour(events, open_hours)
+        return {hour: default_service_time_minutes for (_d, hour) in arrivals}
+
     arrivals = customer_arrivals_by_day_hour(events, open_hours)
     customers_by_hour: dict[int, float] = defaultdict(float)
-    for (_day, hour), n in arrivals.items():
+    detailed_customers: dict[int, float] = defaultdict(float)
+    for (day, hour), n in arrivals.items():
         customers_by_hour[hour] += n
+        if day in detailed_days:
+            detailed_customers[hour] += n
 
     work_by_hour: dict[int, float] = defaultdict(float)
     for day, hour, pid, qty in events:
@@ -270,7 +290,8 @@ def service_minutes_per_customer(
         work_by_hour[hour] += qty * (svc if svc is not None else default_service_time_minutes)
 
     out: dict[int, float] = {}
-    for hour, customers in customers_by_hour.items():
+    for hour in customers_by_hour:
         work = work_by_hour.get(hour, 0.0)
-        out[hour] = work / customers if (work > 0 and customers > 0) else default_service_time_minutes
+        base = detailed_customers.get(hour, 0.0)
+        out[hour] = work / base if (work > 0 and base > 0) else default_service_time_minutes
     return out
