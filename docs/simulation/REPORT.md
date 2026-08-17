@@ -225,7 +225,7 @@ Every surface, on a business with a full year of history. Details in
 ## 5. Every bug found
 
 Full detail, root cause and fix for each is in
-[`FINDINGS.md`](FINDINGS.md). Summary — **31 findings, 30 fixed**:
+[`FINDINGS.md`](FINDINGS.md). Summary — **32 findings, 31 fixed**:
 
 **Severity 1 — wrong numbers shown to the owner (13):** staffing inflated 3.5×
 by counting items as customers · per-item service time used as per-customer ·
@@ -250,7 +250,7 @@ following the browser's language, not the app's.
 **Severity 3 (6):** deprecated `utcnow` · closed weekdays reported as "0.0
 customers on average" · two screens naming different peak hours on a near-tie ·
 "Saving…" shown while loading · 5 tests already failing on `main` before this
-started · `npx tsc --noEmit` silently not type-checking the web project.
+started · `npx tsc --noEmit` silently type-checking nothing at all.
 
 **Unfixed (1):** F-006 — `backfill-hourly` deletes every sale event for the day,
 including product taps, so an owner who tapped products and later backfilled
@@ -349,8 +349,11 @@ the growth-as-seasonality claim, the hidden trading days — are invisible on a
 two-week-old account and unavoidable on a one-year-old one. The existing test
 suite is good and caught none of them.
 
-**8. Fix the tooling gap.** `npx tsc --noEmit` exits 0 without checking the web
-source. If any workflow treats that as a gate, it is not gating.
+**8. The tooling gap is fixed, but check for others like it.** `npx tsc --noEmit`
+was exiting 0 without checking anything at all — a solution-style `tsconfig.json`
+type-checks zero files outside build mode. A green check that verifies nothing is
+more dangerous than no check, because people trust it. It is worth asking of every
+gate in this project: if I deliberately break something, does it actually go red?
 
 ---
 

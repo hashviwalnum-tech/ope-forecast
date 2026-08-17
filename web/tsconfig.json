@@ -1,7 +1,19 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+  // This used to be a solution-style config (`"files": []` plus `references`),
+  // which type-checks NOTHING when you run plain `tsc`: references are only
+  // followed by `tsc -b`, so `npx tsc --noEmit` compiled zero files and exited
+  // 0. That is worse than having no check — it reports clean on code that does
+  // not compile, and it once passed a file `npm run build` immediately failed
+  // on with eight errors.
+  //
+  // So the default project is now the app itself. `npx tsc --noEmit` checks
+  // src/ with exactly the settings tsconfig.app.json defines, and `npm run
+  // build` runs `tsc -b` over this project AND tsconfig.node.json, so the Vite
+  // config keeps its own separate node-typed settings and nothing is
+  // type-checked more loosely than before.
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo"
+  },
+  "include": ["src"]
 }

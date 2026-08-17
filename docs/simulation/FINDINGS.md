@@ -677,11 +677,28 @@ owner picked in the app.
 The demand-forecast card showed *Saving…* during a read, telling a nervous
 owner the app was writing something when it was only fetching.
 
-### Note for future work: `npx tsc --noEmit` does not check this project
-`web/` uses TypeScript project references, so a bare `npx tsc --noEmit` exits 0
-without type-checking `src/`. The real check is `npm run build`, which runs
-`tsc -b` — it caught eight errors in a file `tsc --noEmit` had just reported
-clean. Anything relying on `tsc --noEmit` as a gate is not actually gated.
+### F-032 · S3 · `npx tsc --noEmit` type-checked nothing and exited 0 — **FIXED**
+`web/tsconfig.json` was solution-style: `"files": []` plus `references`.
+References are only followed by `tsc -b`, so plain `tsc` compiled **zero files**
+and reported success. That is worse than having no check at all — it reports
+clean on code that does not compile. It passed `RegularsPanel.tsx` while
+`npm run build` immediately failed on the same file with eight errors.
+
+*Fix:* the default project is now the app itself — `tsconfig.json` extends
+`tsconfig.app.json` and includes `src`, so `npx tsc --noEmit` checks the
+application source with exactly the settings that were always intended. The
+build script becomes `tsc -b tsconfig.json tsconfig.node.json`, so
+`vite.config.ts` keeps its own separate node-typed project and **nothing is
+checked more loosely than before**.
+
+Note on what does *not* work here: keeping `references` alongside an `include`
+fails, because outside build mode tsc treats referenced projects as prebuilt
+declarations (TS6305) and demands `composite: true` (TS6306/TS6310), which these
+deliberately `noEmit` projects cannot have.
+
+Verified by introducing a deliberate type error and confirming both commands now
+report it identically, then removing it and confirming both are clean; and
+separately by breaking `vite.config.ts` to confirm the build still covers it.
 
 ## Phase 5 — analysis
 
