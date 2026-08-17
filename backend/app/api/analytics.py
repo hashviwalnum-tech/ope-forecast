@@ -54,6 +54,7 @@ from app.engine.ordering import (
     will_stock_run_out,
 )
 from app.engine.outliers import detect_outliers
+from app.engine.promo_uplift import uplift_for_day
 from app.engine.product_forecast import build_product_demand_series, round_qty
 from app.engine.queueing import (
     effective_service_time,
@@ -545,6 +546,81 @@ def _holdout_errors(
     return result
 
 
+def _completed_period_ratios(
+    db: Session, biz: Business, today: date
+) -> dict[str, list[float]]:
+    """actual ÷ baseline for each of this business's FINISHED promotions, by type.
+
+    This is deliberately the same measurement the Lift screen shows the owner —
+    what really happened over the period against what the model says a normal
+    stretch of those weekdays would have produced.  Feeding the forecast from
+    the same number means the two can never disagree.
+
+    Only periods that have ended are used (a promotion still running has not
+    finished proving itself), and only ones with enough surrounding history to
+    build a baseline at all.
+    """
+    ratios: dict[str, list[float]] = {}
+    periods = db.query(Period).filter_by(business_id=biz.id).all()
+    finished = [p for p in periods if p.end_date < today]
+    if not finished:
+        return ratios
+
+    all_records = (
+        db.query(DayRecord).filter_by(business_id=biz.id).order_by(DayRecord.date).all()
+    )
+    open_days = _open_days(biz)
+    blocked: set[date] = set()
+    for p in periods:
+        d = p.start_date
+        while d <= p.end_date:
+            blocked.add(d)
+            d += timedelta(days=1)
+
+    # Training set = every clean day OUTSIDE any tagged period.
+    train = [
+        r for r in all_records
+        if r.date not in blocked
+        and r.outlier_status not in ("excluded", "event")
+        and (open_days is None or r.date.weekday() in open_days)
+    ]
+    if len(train) < MIN_RECORDS:
+        return ratios
+    train_obs = _effective_obs(train)
+    train_wds = [r.date.weekday() for r in train]
+
+    for p in finished:
+        during = [
+            r for r in all_records
+            if p.start_date <= r.date <= p.end_date
+            and r.outlier_status not in ("excluded",)
+            and (open_days is None or r.date.weekday() in open_days)
+        ]
+        if not during:
+            continue
+        actual = sum(float(r.customers) for r in during)
+        baseline = 0.0
+        ok = True
+        for r in during:
+            try:
+                baseline += seasonal_naive_forecast(train_obs, train_wds, r.date.weekday())
+            except ValueError:
+                ok = False
+                break
+        if not ok or baseline <= 0:
+            continue
+        ratios.setdefault(p.type, []).append(actual / baseline)
+    return ratios
+
+
+def _active_period_types(db: Session, biz: Business, target: date) -> list[str]:
+    """Which promo types the owner has tagged as running on a given date."""
+    return sorted({
+        p.type for p in db.query(Period).filter_by(business_id=biz.id).all()
+        if p.start_date <= target <= p.end_date
+    })
+
+
 def _compute_holdout_mape(obs: list[float], wds: list[int]) -> float | None:
     """Holdout MAPE: leave-one-out on the last ≤90 observations.
 
@@ -801,6 +877,12 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     open_days = _open_days(biz)
     days: list[ForecastDay] = []
 
+    # The owner has already told us which days have an ad or event on them.
+    # Tagged days are (rightly) kept out of the training baseline, so without
+    # this the forecast for a promo day is the forecast for an ordinary day —
+    # low on every single one, and the ordering advice low with it.
+    period_ratios = _completed_period_ratios(db, biz, today)
+
     for offset in range(1, 8):
         target_date = today + timedelta(days=offset)
         wd = target_date.weekday()
@@ -862,6 +944,13 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         weights = model_weights(list(maes.values()))
         forecast_val = blend(list(preds.values()), weights)
 
+        # Scale up (or down) for a promotion the owner has already tagged on this
+        # date, by however much their OWN past promotions of that type actually
+        # moved the needle.  1.0 — no change — when they have never run one.
+        active_types = _active_period_types(db, biz, target_date)
+        uplift = uplift_for_day(period_ratios, active_types)
+        forecast_val *= uplift
+
         # Only use errors from models that were actually included in the blend,
         # so unvalidated models' wild holdout errors don't inflate the spread.
         all_wd_errs: list[float] = []
@@ -875,6 +964,8 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             lo, hi = forecast_val, forecast_val
 
         weights_out = {m: round(w, 4) for m, w in zip(preds.keys(), weights)}
+        if uplift != 1.0:
+            weights_out["promo_uplift"] = round(uplift, 4)
 
         pred_int = round(forecast_val)
         lo_int = max(0, round(lo))

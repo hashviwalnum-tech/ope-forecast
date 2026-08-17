@@ -246,6 +246,83 @@ class SimulatedOwner:
             self._safe(day, "resolve flag", self.ope.patch,
                        f"/day-records/{o['day_record_id']}/outlier", json={"action": action})
 
+    # ── ordering ─────────────────────────────────────────────────────────────
+
+    REGULARS = [
+        ("Marcus (site foreman)", 4.0, 26.0, {0, 1, 2, 3, 4}),
+        ("Dana from the salon",   2.0, 18.5, {1, 3}),
+        ("The Ortiz family",      1.0, 74.0, {6}),
+        ("Priya (studio)",        3.0, 21.0, {0, 2, 4}),
+    ]
+
+    def place_orders(self, day: date) -> None:
+        """The owner checks what needs ordering and taps "I ordered this"."""
+        self.ope.at_local(day, CLOSING_HOUR, 30)
+        o = self._safe(day, "ordering", self.ope.get, "/ordering")
+        if not o or o.get("status") != "ok":
+            return
+        for row in o.get("products", []):
+            if not row.get("order_now"):
+                continue
+            qty = row.get("suggested_order_qty") or 0
+            if qty <= 0:
+                self.note(day, "ordering",
+                          f"{row['name']}: told to order now but suggested quantity is {qty}")
+                continue
+            r = self.ope.try_("POST", "/orders", json={
+                "product_id": row["product_id"],
+                "ordered_date": day.isoformat(),
+                "quantity": qty,
+            })
+            if r.status_code not in (201, 409):
+                self.note(day, "place order",
+                          f"{row['name']} qty {qty}: {r.status_code} {self._body(r)}")
+
+    def ensure_regulars(self, day: date) -> None:
+        """Create the regulars once, the first time this is called."""
+        if getattr(self, "_regulars_made", None):
+            return
+        self._regulars_made = {}
+        for name, freq, spend, _days in self.REGULARS:
+            r = self._safe(day, "create regular", self.ope.post, "/regulars", json={
+                "name": name, "visit_frequency_per_week": freq,
+                "avg_spend": spend, "expected_lifespan_years": 3.0,
+                "first_visit_date": day.isoformat(),
+            })
+            if r:
+                self._regulars_made[name] = r["id"]
+
+    def record_regular_visits(self, day: date, rng) -> None:
+        """Regulars come in on their usual days — logged during open hours."""
+        made = getattr(self, "_regulars_made", None)
+        if not made:
+            return
+        self.ope.at_local(day, 13, 0)          # mid-service, as it really happens
+        for name, _freq, spend, days in self.REGULARS:
+            if day.weekday() not in days or name not in made:
+                continue
+            if rng.random() > 0.78:            # they miss the odd visit
+                continue
+            amount = round(spend * rng.uniform(0.7, 1.4), 2)
+            r = self.ope.try_("POST", f"/regulars/{made[name]}/visit",
+                              json={"amount_paid": amount})
+            if r.status_code not in (200, 201):
+                self.note(day, "record regular",
+                          f"{name}: {r.status_code} {self._body(r)}")
+
+    def declare_recurring_pattern(self, day: date) -> None:
+        """The owner teaches Ope about the Friday-lunch office order."""
+        if getattr(self, "_pattern_made", False):
+            return
+        self._pattern_made = True
+        self._safe(day, "recurring pattern", self.ope.post, "/recurring-patterns", json={
+            "label": "Friday office lunch orders",
+            "weekdays": [4],
+            "hour_start": 12,
+            "hour_end": 14,
+            "effect": "higher",
+        })
+
     # ── persistence ──────────────────────────────────────────────────────────
 
     def dump(self, name: str) -> Path:

@@ -226,7 +226,112 @@ available from day 2. Suite: **599 passed, 1 xfailed**; `tsc` clean; web builds.
 
 ## Phase 2 — days 15–90
 
-_not started_
+The owner switches to what a 500-cover restaurant actually does: hourly counts
+from the register, then the day's totals and per-product units after closing.
+Every forecast Ope made was written down with the date it was made, and scored
+afterwards against the noise floor and the two naive baselines.
+
+### The headline number
+
+At day 90, over 52 scored days (past the 4-week warm-up, the two marked flukes
+excluded), scoring the freshest forecast Ope was showing for each date:
+
+| | MAPE | MAD | bias |
+|---|---:|---:|---:|
+| **Ope** | **11.09 %** | 53.7 | **+15.7** |
+| noise floor (best possible) | 7.45 % | 35.2 | +5.5 |
+| baseline (a) last week, same weekday | 15.63 % | 75.3 | +0.7 |
+| baseline (b) trailing 4-week weekday mean | 11.73 % | 55.8 | +3.5 |
+
+Ope beats both baselines — but **only just** beats the trailing-4-week mean
+(11.09 % vs 11.73 %), and sits 3.6 points above the floor. It is also
+**biased low by 15.7 customers a day**, where the floor's bias is +5.5.
+
+### F-017 · S1 · The forecast ignored ads and events the owner had already tagged — **FIXED**
+
+The bias has one dominant cause, and it is a big one.
+
+| | n | MAPE | bias |
+|---|---:|---:|---:|
+| normal days | 44 | 10.01 % | **+0.2** |
+| promo days | 8 | 18.63 % | **+112.0** |
+
+On normal days Ope is essentially unbiased. On days the owner had tagged as an
+ad or event it was low by **112 customers on every single one** (MAD equals the
+bias exactly — it never once over-predicted), with a tracking signal of 8.0
+against the ±4 alarm threshold.
+
+*Root cause:* tagged days are excluded from the training baseline — correct, so
+the models learn what a normal day looks like. But nothing ever added the uplift
+back when forecasting a **future** day the owner had already told us a promotion
+was running on. The owner types in "Halloween week, 30 Oct–5 Nov" and Ope
+forecasts those days as if nothing were happening. The ordering advice is
+derived from the same forecast, so the shop is told to **order too little on
+precisely the days it will be busiest** — the worst possible time to run out.
+
+*Fix:* new pure module `app/engine/promo_uplift.py`. The uplift is learned from
+the business's **own completed promotions** — the same actual-÷-baseline ratio
+the Lift screen already shows the owner, so the two can never disagree. It is
+shrunk toward 1.0 with weight `(Σratios + 1)/(n + 1)`, so the first promotion a
+business ever runs is treated as weak evidence rather than gospel; ratios are
+clamped to 0.5–2.0 so one freak period cannot dominate; **with no promo history
+the uplift is exactly 1.0 and the forecast is untouched.** An ad overlapping an
+event takes the *larger* of the two uplifts, never their product. Twelve
+known-answer tests.
+
+**Honest caveat:** at day 90 there were only a handful of *finished* promotions
+to learn from, so the improvement by then is small (promo MAPE 18.63 % → 17.07 %).
+That is the design working as intended — it earns its influence — but it means
+the feature is only properly tested over the full year. Re-measured in Phase 3.
+
+### F-018 · S1 · Every free-tier limit stopped applying once the trial ended — **FIXED**
+`app/api/deps.py`, `app/api/businesses.py`.
+
+Creating a business starts a 30-day trial and writes
+`settings["tier"] = "premium"`. Every server-side limit check reads that flag.
+The **only** thing that ever wrote it back down was the client calling
+`GET /subscription`.
+
+So a user who never opened the premium screen — or any API-only caller, such as
+the Telegram bot — kept **unlimited locations, unlimited ads, unlimited events
+and unlimited history, permanently**, long after their trial expired. Spec §10
+requires "limit checks read live tier"; they read a cached copy refreshed only
+at the client's discretion. Written up as seven failing tests before the fix:
+all four limits were confirmed unenforced, and `GET /businesses/me` still
+reported `tier: "premium"` a month after expiry.
+
+*Fix:* `sync_user_tier()` resolves the tier from the Subscription and writes it
+onto the user's businesses, called on every scoped request (`get_business`) and
+on the three endpoints that check limits without it (`create_business`,
+`copy_business`, the business list). The admin tier override now records
+`tier_admin_override` so a deliberate manual grant is not reverted by the sync.
+Nine tests now cover: trial grants premium; expiry revokes it **without the
+client asking**; ad, event and history caps all bind; ads and events have
+separate allowances; and upgrading lifts the location limit at runtime.
+
+### F-016 · S2 · Copying a location turned services into stocked goods — **FIXED** (was "not yet verified")
+`copy_business` wrote a fixed field list omitting `product_type`, `is_favorite`
+and the service→consumable links. A spa's "60-minute Massage" copied to a second
+branch arrived as a **`stocked` product with no lead time** — an invalid product
+the new branch would then be prompted to reorder — and the oil it draws down was
+silently forgotten, so the new branch tracked no stock for it. Fixed, with five
+tests covering type, all product settings, consumable links pointing at the new
+location's products, stock/history NOT being copied, and free accounts blocked.
+
+### Observations (not bugs, but worth deciding about)
+
+* **The self-correcting weights barely correct anything.** Averaged over the
+  scored days the ensemble sat at seasonal-naive 0.28, exponential smoothing
+  0.26, weighted-moving-average 0.26, linear trend 0.20 — very nearly a plain
+  four-way average. Inverse-MAE weighting can only differentiate models whose
+  errors differ, and on this business all four are close. The mechanism is
+  sound; the marketing claim that Ope "learns which method works for you" is
+  doing more work than the maths is.
+* **The prediction band behaves exactly as designed, which may still surprise
+  owners.** The actual landed inside the band 50.0 % of the time, with a typical
+  width of 71 customers (14.6 % of the forecast). That is the deliberate
+  "probable range, not possible range" choice in spec §6 — but it does mean the
+  real number falls outside the stated range every other day.
 
 ## Phase 3 — days 91–365
 

@@ -107,6 +107,7 @@ export default function ForecastScreen() {
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [forecast, setForecast] = useState<ForecastDay[]>([])
+  const [learning, setLearning] = useState<{ logged: number; needed: number } | null>(null)
   const [ordering, setOrdering] = useState<OrderingResponse | null>(null)
   const [hourly, setHourly] = useState<WeekdayHourlyResponse | null>(null)
   const [productForecasts, setProductForecasts] = useState<ProductForecastItem[]>([])
@@ -133,7 +134,13 @@ export default function ForecastScreen() {
         api.analytics.productForecast(),
       ])
       if (forecastRes.status === 'fulfilled') {
-        setForecast(forecastRes.value.status === 'ok' ? forecastRes.value.days : [])
+        const fr = forecastRes.value
+        // 'learning' is the honest first-fortnight forecast: real days, wide bands.
+        const usable = fr.status === 'ok' || fr.status === 'learning'
+        setForecast(usable ? fr.days : [])
+        setLearning(fr.status === 'learning'
+          ? { logged: fr.days_logged ?? 0, needed: fr.days_needed ?? 14 }
+          : null)
       }
       if (orderingRes.status === 'fulfilled') {
         setOrdering(orderingRes.value)
@@ -306,6 +313,16 @@ export default function ForecastScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
+        )}
+
+        {/* Still-learning notice — the first fortnight shows ranges, not confident numbers */}
+        {viewMode === 'customers' && learning !== null && (
+          <View style={[styles.learningBox, { backgroundColor: c.card, borderColor: c.border }]}>
+            <Text style={[styles.learningTitle, { color: c.text }]}>{t('learningTitle')}</Text>
+            <Text style={[styles.learningNote, { color: c.textSub }]}>
+              {t('learningNote', { n: learning.logged, needed: learning.needed })}
+            </Text>
+          </View>
         )}
 
         {/* Customers view */}
@@ -741,6 +758,15 @@ function makeStyles(c: Theme) {
     switcherChipText: { fontSize: 13, fontWeight: '600', color: c.textSub },
     switcherChipTextActive: { color: c.onPrimary },
 
+    learningBox: {
+      borderWidth: 1,
+      borderRadius: 14,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      marginBottom: 12,
+    },
+    learningTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
+    learningNote: { fontSize: 13, lineHeight: 18 },
     // Week forecast rows
     forecastRow: {
       backgroundColor: c.card, borderRadius: 14, padding: 14, marginBottom: 8,

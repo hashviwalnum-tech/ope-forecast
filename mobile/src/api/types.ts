@@ -29,9 +29,12 @@ export interface ForecastDay {
 }
 
 export interface ForecastResponse {
+  // 'ok' | 'learning' (early, deliberately wide range) | 'not_enough_data'
   status: string
   message?: string
   days: ForecastDay[]
+  days_logged?: number   // only while status === 'learning'
+  days_needed?: number
 }
 
 export interface AccuracyResponse {

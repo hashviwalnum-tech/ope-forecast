@@ -27,3 +27,7 @@ backend/gen_seed_*.py
 
 # Simulation test database (never committed — throwaway local SQLite)
 backend/sim/
+
+# Simulation run artifacts (regenerable; the summarised results are committed)
+docs/simulation/year_state.json
+docs/simulation/year_run.log

@@ -61,11 +61,53 @@ def require_admin_key(request: Request) -> None:
         raise HTTPException(status_code=403, detail="Invalid admin key")
 
 
+def sync_user_tier(db: Session, user_id: str) -> str:
+    """Resolve this user's LIVE tier and write it onto their businesses.
+
+    Spec §10 requires limit checks to read the live tier.  They read
+    ``Business.settings["tier"]``, which creating a business sets to "premium"
+    for the 30-day trial — and for a long time the *only* thing that ever wrote
+    it back down was the client calling ``GET /subscription``.  A user who never
+    opened the premium screen, or any API-only caller, therefore kept unlimited
+    locations, unlimited ads and events, and unlimited history forever, long
+    after their trial had ended.
+
+    Resolving it here, on the server, on every scoped request, closes that.
+    An explicit admin tier override (used for testing before billing exists) is
+    respected and never clobbered.
+    """
+    from app.models.subscription import Subscription  # local: avoids an import cycle
+    from sqlalchemy.orm.attributes import flag_modified
+
+    businesses = db.query(Business).filter(Business.user_id == user_id).all()
+    if not businesses:
+        return "free"
+
+    if any((b.settings or {}).get("tier_admin_override") for b in businesses):
+        return businesses[0].tier
+
+    sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
+    effective = sub.effective_tier if sub is not None else "free"
+
+    changed = False
+    for biz in businesses:
+        settings = dict(biz.settings or {})
+        if settings.get("tier") != effective:
+            settings["tier"] = effective
+            biz.settings = settings
+            flag_modified(biz, "settings")
+            changed = True
+    if changed:
+        db.commit()
+    return effective
+
+
 def get_business(
     request: Request,
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ) -> Business:
+    sync_user_tier(db, user_id)
     query = db.query(Business).filter(Business.user_id == user_id)
     biz_id_header = request.headers.get("X-Business-Id")
     if biz_id_header is not None:

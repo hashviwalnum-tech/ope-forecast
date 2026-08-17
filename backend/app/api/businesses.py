@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
-from app.api.deps import get_business, get_current_user, require_admin_key
+from app.api.deps import get_business, get_current_user, require_admin_key, sync_user_tier
 from app.db import get_db
 from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord, ServiceBookedCount
 from app import clock
@@ -50,6 +50,7 @@ def list_businesses(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
+    sync_user_tier(db, user_id)
     return db.query(Business).filter(Business.user_id == user_id).order_by(Business.id).all()
 
 
@@ -58,6 +59,7 @@ def get_my_business(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
+    sync_user_tier(db, user_id)
     biz = db.query(Business).filter(Business.user_id == user_id).order_by(Business.id).first()
     if not biz:
         raise HTTPException(404, "No business yet")
@@ -92,6 +94,7 @@ def create_business(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
 ):
+    sync_user_tier(db, user_id)   # limit checks must read the LIVE tier (§10)
     existing = db.query(Business).filter(Business.user_id == user_id).all()
     is_premium = any(b.tier == "premium" for b in existing)
     if not is_premium and len(existing) >= FREE_BUSINESS_LIMIT:
@@ -147,6 +150,7 @@ def copy_business(
     if not source:
         raise HTTPException(404, "Source location not found")
 
+    sync_user_tier(db, user_id)   # limit checks must read the LIVE tier (§10)
     all_biz = db.query(Business).filter(Business.user_id == user_id).all()
     is_premium = any(b.tier == "premium" for b in all_biz)
     if not is_premium:
@@ -161,19 +165,44 @@ def copy_business(
     db.flush()
 
     source_products = db.query(Product).filter(Product.business_id == source_id).all()
+    id_map: dict[int, int] = {}
     for p in source_products:
-        db.add(Product(
+        copy = Product(
             business_id=new_biz.id,
             name=p.name,
             unit=p.unit,
+            # product_type MUST be copied: without it a service (a massage, a
+            # party package) landed at the new location as a 'stocked' good with
+            # no lead time — an invalid product the new location would then be
+            # told to reorder.
+            product_type=p.product_type or "stocked",
             unit_mode=p.unit_mode or "whole",
+            is_favorite=p.is_favorite,
             price=p.price,
             lead_time_days=p.lead_time_days,
             current_stock=None,          # per-location data — not copied
             service_time_minutes=p.service_time_minutes,
             storage_capacity=p.storage_capacity,
             shelf_life_days=p.shelf_life_days,
-        ))
+        )
+        db.add(copy)
+        db.flush()
+        id_map[p.id] = copy.id
+
+    # A service's supplies are part of its configuration, not its data, so they
+    # come along too — otherwise the copied location silently stops drawing down
+    # stock when that service is performed.
+    from app.models.service_consumable import ServiceConsumable
+    for link in db.query(ServiceConsumable).filter(
+        ServiceConsumable.service_product_id.in_(id_map.keys() or [-1])
+    ).all():
+        if link.service_product_id in id_map and link.consumable_product_id in id_map:
+            db.add(ServiceConsumable(
+                business_id=new_biz.id,
+                service_product_id=id_map[link.service_product_id],
+                consumable_product_id=id_map[link.consumable_product_id],
+                qty_per_performance=link.qty_per_performance,
+            ))
 
     db.commit()
     db.refresh(new_biz)
@@ -235,6 +264,9 @@ def set_tier(
     for biz in all_biz:
         settings = dict(biz.settings or {})
         settings["tier"] = body.tier
+        # Mark it as a deliberate override so the live-tier sync leaves it alone
+        # (this is the manual grant path used for testing until billing lands).
+        settings["tier_admin_override"] = True
         biz.settings = settings
         flag_modified(biz, "settings")
     db.commit()

@@ -42,7 +42,11 @@ export default function DashboardScreen() {
       setBusiness(biz)
 
       const forecastData = await api.analytics.forecast()
-      setForecast(forecastData.status === 'ok' ? forecastData.days : [])
+      setForecast(
+        forecastData.status === 'ok' || forecastData.status === 'learning'
+          ? forecastData.days
+          : []
+      )
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load data.')
     } finally {

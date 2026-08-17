@@ -9,6 +9,9 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Still learning',
+    learningNote: 'Day {n} of {needed}. These are rough ranges — they get much more accurate after about two weeks of logging.',
     // Tab / screen titles
     log: 'Log',
     forecast: 'Forecast',
@@ -442,6 +445,9 @@ export const translations = {
     feedbackMessageRequired: 'Please enter a message.',
   },
   he: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'עדיין לומדים',
+    learningNote: 'יום {n} מתוך {needed}. אלו טווחים גסים — הם נעשים הרבה יותר מדויקים אחרי כשבועיים של רישום.',
     // Tab / screen titles
     log: 'יומן',
     forecast: 'תחזית',
@@ -872,6 +878,9 @@ export const translations = {
     feedbackMessageRequired: 'אנא הכנס הודעה.',
   },
   zh: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: '仍在学习中',
+    learningNote: '第 {n} 天，共 {needed} 天。这些是粗略范围——记录约两周后会准确得多。',
     log: '日志', forecast: '预测', analytics: '分析', manage: '管理', settings: '设置',
     retry: '重试', cancel: '取消', save: '保存', edit: '编辑', delete: '删除',
     close: '关闭', loading: '正在加载…',
@@ -1098,6 +1107,9 @@ export const translations = {
     simpleModePromptOn: '开启', simpleModePromptDismiss: '暂不',
   },
   es: {
+    // Early 'still learning' forecast (first two weeks)
+    learningTitle: 'Todavía aprendiendo',
+    learningNote: 'Día {n} de {needed}. Son rangos aproximados: se vuelven mucho más precisos tras unas dos semanas de registro.',
     log: 'Registro', forecast: 'Previsión', analytics: 'Análisis', manage: 'Gestionar', settings: 'Ajustes',
     retry: 'Reintentar', cancel: 'Cancelar', save: 'Guardar', edit: 'Editar', delete: 'Eliminar',
     close: 'Cerrar', loading: 'Cargando…',
