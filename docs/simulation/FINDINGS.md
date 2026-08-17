@@ -457,6 +457,31 @@ languages**; the web panel prefers the codes and falls back to the prose. Five
 tests, including one asserting that every English note has a structured twin so a
 translated client can never silently drop a warning the English one shows.
 
+### F-025 · S1 · Staffing collapsed to "schedule 1 person" on mixed logging habits — **FIXED**
+`app/engine/live_sales.py: service_minutes_per_customer`. **A defect in my own
+earlier F-010 fix**, caught by the feature sweep over the finished year.
+
+The sweep showed *"For 1–2 pm, schedule 1 person"* for an hour with **69
+customers**, at a 0.5-minute wait. One person cannot serve 69 covers an hour.
+
+*Root cause:* the fix divided the work measured on the days that HAVE product
+detail by the customers counted on **all** days. That is fine when an owner
+always logs products, but most do not — the simulated owner tapped products for
+about three weeks and then switched to end-of-day totals, which is exactly what
+a busy restaurant does. So a year of customer counts was divided into three
+weeks' worth of product detail: **0.53 minutes per customer instead of 8**.
+
+*Fix:* the work total and the customer total now come from the same set of days,
+falling back to the business's configured average when there is no product
+detail at all. Staffing returned to a sane 11–13 people at 2.5–4.7 minute waits.
+Three tests, including one that replays a realistic mixed year (three tapped
+days out of a hundred) and asserts the answer stays near 8 minutes rather than
+collapsing toward zero.
+
+**Worth noting as a lesson:** this bug was introduced *by a fix*, passed its own
+unit tests, and was only caught because the sweep looked at the numbers on a
+realistic year rather than a synthetic fixture.
+
 ### The free-tier limit fix biting in a realistic year
 With F-018 fixed, the simulated account's trial expires after 30 days and the
 **free ad allowance genuinely runs out mid-year** — the run log records five
@@ -565,7 +590,98 @@ which is the priority spec §6 sets.
 
 ## Phase 4 — UI pass
 
-_not started_
+Drove the real web app in a browser against the finished simulated year, in
+light and dark mode and in English and Hebrew (RTL). There is **no Playwright or
+axe suite in this repo** — `web/package.json` has no test runner at all — so
+this was a manual visual and data-consistency pass, not an automated one.
+
+**What was right.** Dark mode and Hebrew RTL both render correctly throughout,
+including the Recharts axes (Hebrew weekday abbreviations), the series chips,
+the ordering cards and the tinted ad slots. The layout mirrors properly. Product
+names stay in the language the owner typed them in, which is correct. The
+staffing figures on screen matched the API exactly, the busy-hours peak agreed
+across both screens, and the "Heads up" stock nudge named exactly the three
+products the ordering endpoint had flagged. Regulars show CLV plus this-month /
+this-year / all-time revenue and a per-regular revenue chart — the spec's
+complaint that "there is nowhere that actually shows a regular's profitability"
+is resolved.
+
+### F-027 · S1 · The ordering card listed a whole year of deliveries as "in transit" — **FIXED**
+
+The single worst thing in the UI pass. After a year the home screen carried
+about **120 "In transit" rows per product**, each with its own *Mark arrived*
+button, for orders delivered months ago. The page was roughly **55,000
+characters** long. No owner could use that screen.
+
+*Root cause:* orders are created `pending`, and `_compute_projected_stock` has
+always honoured the business's "always assume orders arrive on time" setting —
+but the **stored status never changed and nothing else consulted the setting**.
+So the stock projection said "arrived" while the order list said "in transit",
+about the same rows, on the same screen.
+
+*Fix:* `GET /orders` now returns `effective_status`, which resolves a pending
+order whose delivery date has passed to `arrived` when that setting is on (the
+stored value is left untouched). The card shows only deliveries genuinely still
+coming, newest first, capped at four with a "+N more on the way" line so it can
+never become a wall again. Page went from ~55,000 characters to **3,871**.
+Three tests cover the setting on, off, and an explicitly-confirmed arrival.
+
+### F-028 · S1 · Growth was being reported as seasonality — **FIXED**
+
+The Insights "coming up" section confidently announced **three consecutive
+months as "typically a slower month"**, each 20–25 % down. The simulated
+restaurant has **no monthly seasonality whatsoever** — it had simply grown about
+23 % over the year.
+
+*Root cause:* it compared last year's month against the owner's **current**
+pace. For any growing business every prior-year month is below today's pace, so
+every future month gets labelled slower. Three in a row is the tell.
+
+Spec §1.6 requires these insights to be "true, data-driven, no fabrication", and
+this was a confident, plausible-sounding, false claim.
+
+*Fix:* compare that month against the level the business was running at **around
+that time** (a ±5-month window), which cancels the trend and leaves only the
+seasonal shape. The message now states the expected pace for *this* year rather
+than quoting last year's raw figure as a prediction. On the simulated year it
+now correctly says **nothing at all**; a synthetic business with a genuine 30 %
+October dip *on top of* the same growth is still caught, and is told to expect a
+figure above last October's because it has grown since. Six tests.
+
+### F-029 · S2 · Monthly Trends hid 55 real trading days — **FIXED**
+
+It reported **"256 days logged"** where the owner had logged **311**, and showed
+those 55 days as gaps in a chart captioned *"Every day you've logged, in order.
+Gaps are days with no entry."*
+
+*Root cause:* the trends endpoint reused `_clean_records`, the **forecasting
+baseline**, which strips every day inside a tagged ad or event. That is right
+for training a model and wrong for a history view — it drew the monthly trend
+line for a business that had never run a promotion, and understated the busiest
+months.
+
+*Fix:* a separate `_history_records` for history and trends: every logged day at
+its real value, still honouring the owner's own fluke exclusions and their
+closed weekdays, still never zero-filling a missing day. Now reports 309 (311
+minus the two days the owner explicitly marked as flukes).
+
+### F-030 · S2 · Dates and money ignored the language picker — **FIXED**
+
+`Intl.NumberFormat(undefined, …)` and `toLocaleDateString(undefined, …)` follow
+the **browser's** locale. An owner who had switched Ope to English still read
+Hebrew dates and Hebrew-marked currency on the regulars screen, and an English
+speaker on a Hebrew browser would see the same. Both now take the language the
+owner picked in the app.
+
+### F-031 · S3 · "Saving…" shown while loading — **FIXED**
+The demand-forecast card showed *Saving…* during a read, telling a nervous
+owner the app was writing something when it was only fetching.
+
+### Note for future work: `npx tsc --noEmit` does not check this project
+`web/` uses TypeScript project references, so a bare `npx tsc --noEmit` exits 0
+without type-checking `src/`. The real check is `npm run build`, which runs
+`tsc -b` — it caught eight errors in a file `tsc --noEmit` had just reported
+clean. Anything relying on `tsc --noEmit` as a gate is not actually gated.
 
 ## Phase 5 — analysis
 
