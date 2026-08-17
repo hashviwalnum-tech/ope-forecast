@@ -255,7 +255,13 @@ started · `npx tsc --noEmit` silently type-checking nothing at all.
 **Unfixed (1):** F-006 — `backfill-hourly` deletes every sale event for the day,
 including product taps, so an owner who tapped products and later backfilled
 corrected hourly counts from their register loses that day's product breakdown.
-Found by reading; **not reproduced end-to-end**, so I have not touched it.
+**Now reproduced:** 36 burgers and 22.5 portions of fries vanished silently while
+the customer count was corrected as intended. Reachable from the *Add Past Day*
+form and the CSV importer, so a CSV with hourly columns wipes the product detail
+of every day it covers. Left unfixed because the fix is a product decision, not a
+correction — narrowing the delete stops the data loss but leaves stale product
+rows behind on a genuine re-import, and choosing between silent deletion and
+silent staleness is the owner's call. **It should be settled before beta.**
 
 ---
 

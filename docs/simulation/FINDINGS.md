@@ -65,12 +65,44 @@ uneditable four hours before the shop closes, silently breaking the documented
 `app/api/analytics.py:827`. Works, but deprecated since Python 3.12 and will
 warn/break on a future runtime. Should be `datetime.now(timezone.utc)`.
 
-### F-006 · S2 · Hourly backfill destroys same-day product taps
+### F-006 · S2 · Hourly backfill destroys same-day product taps — **REPRODUCED, still unfixed**
 `app/api/sale_events.py:81-85` — `backfill_hourly` deletes **every** SaleEvent in
 the day's window, then re-inserts one customer-count row per hour with
 `product_id=None`. An owner who tapped products during the day and later
 backfilled corrected hourly customer counts from their register loses the entire
-product breakdown for that day. Not verified end-to-end yet; flagged from reading.
+product breakdown for that day.
+
+**Now reproduced end to end** (it was flagged from reading during Phase 0 and
+verified afterwards). Tapping 45 customers, 36 burgers and 22.5 portions of fries
+on one day, then submitting corrected hourly counts for that same day:
+
+```
+after tapping        : {'Burger': 36.0, 'Fries': 22.5} | customer taps: 45
+after backfill-hourly: {}                              | customer taps: 48
+```
+
+The customer count is corrected as intended; **the entire product breakdown is
+silently gone.** No warning, no confirmation, nothing in the response to say
+anything was removed.
+
+**Reachable from two UI paths**, not just the API: the *Add Past Day* form
+(`BackfillForm.tsx:152`) and the CSV importer (`CsvImport.tsx:299`) — so a CSV
+with hourly columns wipes the product detail of every day it covers.
+
+**Why it is still unfixed:** it is the only finding whose fix is a genuine
+product decision rather than a correction. The endpoint's "replace everything for
+this day" behaviour is what makes re-submitting a corrected import safe and
+idempotent, which is deliberate and valuable. Narrowing the delete to only
+customer-count rows (`product_id IS NULL`) fixes the data loss, but then
+re-importing a day whose product figures also changed leaves the old product rows
+behind — trading silent deletion for silent staleness. Choosing between those is
+the owner's call about how import should behave, not a bug fix.
+
+**Ship assessment: this one should be fixed before beta.** It silently destroys
+data the owner deliberately entered, on a path the app actively encourages
+(tap during the day, tidy up from the register later), and the mitigation is
+narrow (`DELETE … WHERE product_id IS NULL`) plus telling the owner what is about
+to be replaced.
 
 ### F-007 · S2 · Outlier detection pesters a very steady business — **open**
 `app/engine/outliers.py`.
