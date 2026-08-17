@@ -331,7 +331,7 @@ function AppInner() {
         <button
           className="flex items-center gap-3 shrink-0 cursor-pointer"
           onClick={() => setTab('home')}
-          aria-label="Go to home"
+          aria-label={t('a11yGoHome')}
         >
           <img src={logo} alt="Ope logo" className="logo-img h-11 w-auto" />
           <div className="leading-tight">
@@ -494,7 +494,7 @@ function AppInner() {
             value={lang}
             onChange={e => setLang(e.target.value as Lang)}
             className="text-xs rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-1.5 py-1 cursor-pointer focus:outline-none focus:ring-1 focus:ring-teal-400"
-            aria-label="Language"
+            aria-label={t('a11yLanguage')}
           >
             {(Object.entries(LANG_LABELS) as [Lang, string][]).map(([code, label]) => (
               <option key={code} value={code}>{label}</option>

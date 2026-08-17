@@ -360,7 +360,7 @@ export default function RegularsPanel() {
               <input
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="e.g. Sarah"
+                placeholder={`${t('egPrefix')} ${t('egRegularName')}`}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
                            bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                            focus:outline-none focus:ring-2 focus:ring-teal-300"
@@ -452,7 +452,7 @@ export default function RegularsPanel() {
                 <input
                   value={form.notes ?? ''}
                   onChange={e => setForm(f => ({ ...f, notes: e.target.value || undefined }))}
-                  placeholder="e.g. loves the latte, allergic to nuts"
+                  placeholder={`${t('egPrefix')} ${t('egRegularNotes')}`}
                   className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
                              bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                              focus:outline-none focus:ring-2 focus:ring-teal-300"

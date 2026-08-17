@@ -263,23 +263,23 @@ function OrderFraming() {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label>{t('toolboxOrderMore')}</Label>
-          <Input value={orderMore} onChange={setOrderMore} placeholder="e.g. 80" type="number" />
+          <Input value={orderMore} onChange={setOrderMore} placeholder={`${t('egPrefix')} 80`} type="number" />
         </div>
         <div>
           <Label>{t('toolboxOrderLess')}</Label>
-          <Input value={orderLess} onChange={setOrderLess} placeholder="e.g. 50" type="number" />
+          <Input value={orderLess} onChange={setOrderLess} placeholder={`${t('egPrefix')} 50`} type="number" />
         </div>
         <div>
           <Label>{t('toolboxSellPrice')}</Label>
-          <Input value={sellPrice} onChange={setSellPrice} placeholder="e.g. 5.00" type="number" prefix="€" />
+          <Input value={sellPrice} onChange={setSellPrice} placeholder={`${t('egPrefix')} 5.00`} type="number" prefix="€" />
         </div>
         <div>
           <Label>{t('toolboxCostPrice')}</Label>
-          <Input value={costPrice} onChange={setCostPrice} placeholder="e.g. 2.50" type="number" prefix="€" />
+          <Input value={costPrice} onChange={setCostPrice} placeholder={`${t('egPrefix')} 2.50`} type="number" prefix="€" />
         </div>
         <div className="col-span-2">
           <Label>{t('toolboxExpectedSales')}</Label>
-          <Input value={expectedDemand} onChange={setExpectedDemand} placeholder="e.g. 65" type="number" />
+          <Input value={expectedDemand} onChange={setExpectedDemand} placeholder={`${t('egPrefix')} 65`} type="number" />
         </div>
       </div>
 
@@ -434,7 +434,7 @@ function BudgetOptimizer() {
 
       <div>
         <Label>{t('toolboxMyBudget')}</Label>
-        <Input value={budget} onChange={setBudget} placeholder="e.g. 500" type="number" prefix="€" />
+        <Input value={budget} onChange={setBudget} placeholder={`${t('egPrefix')} 500`} type="number" prefix="€" />
       </div>
 
       <div className="space-y-3">

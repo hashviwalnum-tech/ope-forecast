@@ -107,7 +107,7 @@ export default function BookedCountsPanel() {
               type="number" min="0" step="1"
               value={count}
               onChange={e => setCount(e.target.value)}
-              placeholder="e.g. 14"
+              placeholder={`${t('egPrefix')} 14`}
               className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
                          bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                          focus:outline-none focus:ring-2 focus:ring-teal-300"

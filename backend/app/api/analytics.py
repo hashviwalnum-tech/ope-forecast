@@ -126,6 +126,8 @@ _MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 _SERVICE_LEVEL = 0.95
 
 MIN_RECORDS = 14  # ~2 weeks before forecasts are attempted
+_WEIGHT_WINDOW = 4   # recent same-weekday errors used for ensemble weighting
+_BIAS_WINDOW = 12    # longer window used only to judge whether a model is biased
 
 
 # ── stock projection helper ────────────────────────────────────────────────
@@ -890,7 +892,12 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             svc_sum_by_date[r.date] = svc_sum_by_date.get(r.date, 0) + r.booked_count
         booked_by_date.update(svc_sum_by_date)
 
-    holdout = _holdout_errors(obs, wds, dates, n_per_weekday=4, booked_by_date=booked_by_date or None)
+    # A longer holdout window than the ensemble weights use.  The MAE weighting
+    # only needs the most recent behaviour, but telling a genuine systematic lag
+    # apart from noise needs more evidence: with four points the "bias" is mostly
+    # noise, and correcting it measurably hurt accuracy (10.14% -> 10.60% MAPE).
+    holdout = _holdout_errors(obs, wds, dates, n_per_weekday=_BIAS_WINDOW,
+                              booked_by_date=booked_by_date or None)
 
     today = clock.today_local(biz.settings)
     open_days = _open_days(biz)
@@ -916,7 +923,7 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             errs = holdout["seasonal_naive"].get(wd, [])
             if errs:
                 preds["seasonal_naive"] = _sn
-                maes["seasonal_naive"] = mad([abs(e) for e in errs])
+                maes["seasonal_naive"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
         except ValueError:
             pass
 
@@ -925,14 +932,14 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             errs = holdout["wma"].get(wd, [])
             if errs:
                 preds["wma"] = p
-                maes["wma"] = mad([abs(e) for e in errs])
+                maes["wma"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
         p = _exp_for_weekday(obs, wds, wd)
         if p is not None:
             errs = holdout["exp_smoothing"].get(wd, [])
             if errs:
                 preds["exp_smoothing"] = p
-                maes["exp_smoothing"] = mad([abs(e) for e in errs])
+                maes["exp_smoothing"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
         p = _linear_trend_for_weekday(obs, wds, wd)
         if p is not None:
@@ -940,14 +947,14 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             if errs:
                 same_wd = [v for v, w in zip(obs, wds) if w == wd]
                 preds["linear_trend"] = _cap_linear_trend(p, same_wd)
-                maes["linear_trend"] = mad([abs(e) for e in errs])
+                maes["linear_trend"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
         p = year_over_year_forecast(dates, obs, target_date)
         if p is not None:
             errs = holdout["year_over_year"].get(wd, [])
             if errs:
                 preds["year_over_year"] = p
-                maes["year_over_year"] = mad([abs(e) for e in errs])
+                maes["year_over_year"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
         if booked_by_date:
             p = _booking_forecast_for_date(dates, obs, booked_by_date, target_date)
@@ -955,7 +962,7 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
                 errs = holdout["booking"].get(wd, [])
                 if errs:
                     preds["booking"] = p
-                    maes["booking"] = mad([abs(e) for e in errs])
+                    maes["booking"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
         if not preds:
             continue
@@ -986,7 +993,7 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         # so unvalidated models' wild holdout errors don't inflate the spread.
         all_wd_errs: list[float] = []
         for model_name in preds:
-            all_wd_errs.extend(holdout[model_name].get(wd, []))
+            all_wd_errs.extend(holdout[model_name].get(wd, [])[-_WEIGHT_WINDOW:])
 
         if len(all_wd_errs) >= 2:
             lo, hi = prediction_interval(forecast_val, all_wd_errs)
@@ -1773,7 +1780,7 @@ def get_product_forecast(
                 errs = holdout["seasonal_naive"].get(wd, [])
                 if errs:
                     preds["seasonal_naive"] = _sn
-                    maes["seasonal_naive"] = mad([abs(e) for e in errs])
+                    maes["seasonal_naive"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
             except ValueError:
                 pass
 
@@ -1782,14 +1789,14 @@ def get_product_forecast(
                 errs = holdout["wma"].get(wd, [])
                 if errs:
                     preds["wma"] = p
-                    maes["wma"] = mad([abs(e) for e in errs])
+                    maes["wma"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
             p = _exp_for_weekday(demands, prod_wds, wd)
             if p is not None:
                 errs = holdout["exp_smoothing"].get(wd, [])
                 if errs:
                     preds["exp_smoothing"] = p
-                    maes["exp_smoothing"] = mad([abs(e) for e in errs])
+                    maes["exp_smoothing"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
             p = _linear_trend_for_weekday(demands, prod_wds, wd)
             if p is not None:
@@ -1797,14 +1804,14 @@ def get_product_forecast(
                 if errs:
                     same_wd = [v for v, w in zip(demands, prod_wds) if w == wd]
                     preds["linear_trend"] = _cap_linear_trend(p, same_wd)
-                    maes["linear_trend"] = mad([abs(e) for e in errs])
+                    maes["linear_trend"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
             p = year_over_year_forecast(dates, demands, target)
             if p is not None:
                 errs = holdout["year_over_year"].get(wd, [])
                 if errs:
                     preds["year_over_year"] = p
-                    maes["year_over_year"] = mad([abs(e) for e in errs])
+                    maes["year_over_year"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
             if booked_by_date:
                 p = _booking_forecast_for_date(dates, demands, booked_by_date, target)
@@ -1812,7 +1819,7 @@ def get_product_forecast(
                     errs = holdout["booking"].get(wd, [])
                     if errs:
                         preds["booking"] = p
-                        maes["booking"] = mad([abs(e) for e in errs])
+                        maes["booking"] = mad([abs(e) for e in errs[-_WEIGHT_WINDOW:]])
 
             if not preds:
                 continue
@@ -1822,7 +1829,7 @@ def get_product_forecast(
 
             all_wd_errs: list[float] = []
             for model_name in preds:
-                all_wd_errs.extend(holdout[model_name].get(wd, []))
+                all_wd_errs.extend(holdout[model_name].get(wd, [])[-_WEIGHT_WINDOW:])
 
             lo, hi = prediction_interval(fval, all_wd_errs) if len(all_wd_errs) >= 2 else (fval, fval)
 

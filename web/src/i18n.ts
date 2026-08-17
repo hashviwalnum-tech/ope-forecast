@@ -9,6 +9,17 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    egPatternLabel: 'Sunday school trips',
+    egRegularName: 'Sarah',
+    egRegularNotes: 'loves the latte, allergic to nuts',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'Actual',
+    chartPredicted: 'Predicted',
+    a11yGoHome: 'Go to home',
+    a11yLanguage: 'Language',
+    a11yDelete: 'Delete',
+    csvAutoSumTooltip: 'Added up from the hourly columns',
+    egPrefix: 'e.g.',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: "Capped at {qty} — that's all your storage will hold.",
     ocStorageFull: "There's no room for more right now — your storage is full. Sell some of what you have before reordering.",
@@ -1057,6 +1068,17 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    egPatternLabel: 'טיולי בית ספר בימי ראשון',
+    egRegularName: 'שרה',
+    egRegularNotes: 'אוהבת לאטה, אלרגית לאגוזים',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'בפועל',
+    chartPredicted: 'תחזית',
+    a11yGoHome: 'לדף הבית',
+    a11yLanguage: 'שפה',
+    a11yDelete: 'מחיקה',
+    csvAutoSumTooltip: 'חושב מסכום עמודות השעות',
+    egPrefix: 'לדוגמה',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: 'מוגבל ל-{qty} — זה כל מה שהאחסון שלך מכיל.',
     ocStorageFull: 'אין מקום ליותר כרגע — האחסון מלא. מכרו חלק ממה שיש לפני הזמנה נוספת.',
@@ -2105,6 +2127,17 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    egPatternLabel: '周日学校团体',
+    egRegularName: '小美',
+    egRegularNotes: '喜欢拿铁，对坚果过敏',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: '实际',
+    chartPredicted: '预测',
+    a11yGoHome: '回到首页',
+    a11yLanguage: '语言',
+    a11yDelete: '删除',
+    csvAutoSumTooltip: '由每小时数据自动汇总',
+    egPrefix: '例如',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: '上限 {qty} — 这是您仓储的极限。',
     ocStorageFull: '目前放不下更多了——仓储已满。先卖掉一些再补货。',
@@ -2676,6 +2709,17 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    egPatternLabel: 'Excursiones escolares los domingos',
+    egRegularName: 'Sara',
+    egRegularNotes: 'le encanta el café con leche, alérgica a los frutos secos',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'Real',
+    chartPredicted: 'Previsto',
+    a11yGoHome: 'Ir al inicio',
+    a11yLanguage: 'Idioma',
+    a11yDelete: 'Eliminar',
+    csvAutoSumTooltip: 'Sumado a partir de las columnas por hora',
+    egPrefix: 'p. ej.',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: 'Limitado a {qty}: es todo lo que cabe en tu almacén.',
     ocStorageFull: 'Ahora mismo no hay sitio para más: tu almacén está lleno. Vende algo de lo que tienes antes de volver a pedir.',
@@ -3300,6 +3344,17 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    egPatternLabel: 'रविवार को स्कूल यात्राएँ',
+    egRegularName: 'सारा',
+    egRegularNotes: 'लाटे बहुत पसंद, नट्स से एलर्जी',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'वास्तविक',
+    chartPredicted: 'अनुमानित',
+    a11yGoHome: 'होम पर जाएँ',
+    a11yLanguage: 'भाषा',
+    a11yDelete: 'हटाएँ',
+    csvAutoSumTooltip: 'घंटेवार कॉलम से जोड़ा गया',
+    egPrefix: 'जैसे',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: '{qty} तक सीमित — आपके भंडारण में इतना ही आता है।',
     ocStorageFull: 'अभी और रखने की जगह नहीं है — भंडारण भरा है। दोबारा ऑर्डर करने से पहले कुछ बेच लें।',
@@ -3881,6 +3936,17 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    egPatternLabel: 'رحلات مدرسية أيام الأحد',
+    egRegularName: 'سارة',
+    egRegularNotes: 'تحب اللاتيه، لديها حساسية من المكسرات',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'الفعلي',
+    chartPredicted: 'المتوقع',
+    a11yGoHome: 'الذهاب إلى الصفحة الرئيسية',
+    a11yLanguage: 'اللغة',
+    a11yDelete: 'حذف',
+    csvAutoSumTooltip: 'مجموع من أعمدة الساعات',
+    egPrefix: 'مثال',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: 'محدود بـ {qty} — هذا كل ما يتسع له مخزنك.',
     ocStorageFull: 'لا مكان للمزيد الآن — المخزن ممتلئ. بِع بعض ما لديك قبل إعادة الطلب.',
@@ -4762,6 +4828,17 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    egPatternLabel: 'Visitas escolares ao domingo',
+    egRegularName: 'Sara',
+    egRegularNotes: 'adora o galão, alérgica a frutos secos',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'Real',
+    chartPredicted: 'Previsto',
+    a11yGoHome: 'Ir para o início',
+    a11yLanguage: 'Idioma',
+    a11yDelete: 'Eliminar',
+    csvAutoSumTooltip: 'Somado a partir das colunas por hora',
+    egPrefix: 'ex.',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: 'Limitado a {qty} — é tudo o que o seu armazém comporta.',
     ocStorageFull: 'Neste momento não há espaço para mais — o armazém está cheio. Venda parte do que tem antes de voltar a encomendar.',
@@ -5373,6 +5450,17 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    egPatternLabel: 'Школьные экскурсии по воскресеньям',
+    egRegularName: 'Сара',
+    egRegularNotes: 'любит латте, аллергия на орехи',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'Факт',
+    chartPredicted: 'Прогноз',
+    a11yGoHome: 'На главную',
+    a11yLanguage: 'Язык',
+    a11yDelete: 'Удалить',
+    csvAutoSumTooltip: 'Посчитано по почасовым столбцам',
+    egPrefix: 'напр.',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: 'Ограничено {qty} — больше на складе не поместится.',
     ocStorageFull: 'Сейчас места больше нет — склад заполнен. Продайте часть запаса, прежде чем заказывать снова.',
@@ -5979,6 +6067,17 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    egPatternLabel: 'Sorties scolaires le dimanche',
+    egRegularName: 'Sarah',
+    egRegularNotes: 'adore le latte, allergique aux fruits à coque',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'Réel',
+    chartPredicted: 'Prévu',
+    a11yGoHome: "Aller à l'accueil",
+    a11yLanguage: 'Langue',
+    a11yDelete: 'Supprimer',
+    csvAutoSumTooltip: 'Calculé à partir des colonnes horaires',
+    egPrefix: 'p. ex.',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: "Limité à {qty} — c'est tout ce que votre stockage peut contenir.",
     ocStorageFull: 'Pas de place pour plus en ce moment — votre stockage est plein. Vendez une partie avant de recommander.',
@@ -7026,6 +7125,17 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    egPatternLabel: 'রবিবারে স্কুলের ভ্রমণ',
+    egRegularName: 'সারা',
+    egRegularNotes: 'লাটে খুব পছন্দ, বাদামে অ্যালার্জি',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'প্রকৃত',
+    chartPredicted: 'পূর্বাভাস',
+    a11yGoHome: 'হোমে যান',
+    a11yLanguage: 'ভাষা',
+    a11yDelete: 'মুছুন',
+    csvAutoSumTooltip: 'ঘণ্টাভিত্তিক কলাম থেকে যোগ করা',
+    egPrefix: 'যেমন',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: '{qty}-এ সীমাবদ্ধ — আপনার সংরক্ষণে এতটুকুই ধরে।',
     ocStorageFull: 'এখন আর জায়গা নেই — সংরক্ষণ ভরা। আবার অর্ডার করার আগে কিছু বিক্রি করুন।',
@@ -8073,6 +8183,17 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    egPatternLabel: 'اتوار کو اسکول کے دورے',
+    egRegularName: 'سارہ',
+    egRegularNotes: 'لاٹے پسند ہے، گری دار میوے سے الرجی',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'حقیقی',
+    chartPredicted: 'پیش گوئی',
+    a11yGoHome: 'ہوم پر جائیں',
+    a11yLanguage: 'زبان',
+    a11yDelete: 'حذف کریں',
+    csvAutoSumTooltip: 'گھنٹہ وار کالموں سے جوڑا گیا',
+    egPrefix: 'مثلاً',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: '{qty} تک محدود — آپ کے ذخیرے میں اتنا ہی سما سکتا ہے۔',
     ocStorageFull: 'ابھی مزید کی گنجائش نہیں — ذخیرہ بھرا ہوا ہے۔ دوبارہ آرڈر سے پہلے کچھ فروخت کریں۔',
@@ -9120,6 +9241,17 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    egPatternLabel: 'Kunjungan sekolah tiap Minggu',
+    egRegularName: 'Sarah',
+    egRegularNotes: 'suka latte, alergi kacang',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'Aktual',
+    chartPredicted: 'Perkiraan',
+    a11yGoHome: 'Ke beranda',
+    a11yLanguage: 'Bahasa',
+    a11yDelete: 'Hapus',
+    csvAutoSumTooltip: 'Dijumlahkan dari kolom per jam',
+    egPrefix: 'mis.',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: 'Dibatasi {qty} — hanya sebanyak itu yang muat di penyimpanan Anda.',
     ocStorageFull: 'Belum ada ruang untuk tambahan — penyimpanan penuh. Jual sebagian dulu sebelum memesan lagi.',
@@ -10167,6 +10299,17 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    egPatternLabel: 'Schulausflüge am Sonntag',
+    egRegularName: 'Sarah',
+    egRegularNotes: 'liebt Latte, Nussallergie',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'Tatsächlich',
+    chartPredicted: 'Prognose',
+    a11yGoHome: 'Zur Startseite',
+    a11yLanguage: 'Sprache',
+    a11yDelete: 'Löschen',
+    csvAutoSumTooltip: 'Aus den Stundenspalten summiert',
+    egPrefix: 'z. B.',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: 'Begrenzt auf {qty} — mehr passt nicht in Ihr Lager.',
     ocStorageFull: 'Im Moment ist kein Platz mehr — Ihr Lager ist voll. Verkaufen Sie erst etwas, bevor Sie nachbestellen.',
@@ -11214,6 +11357,17 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    egPatternLabel: '日曜の学校団体',
+    egRegularName: 'さくら',
+    egRegularNotes: 'ラテが好き、ナッツアレルギー',
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: '実績',
+    chartPredicted: '予測',
+    a11yGoHome: 'ホームへ',
+    a11yLanguage: '言語',
+    a11yDelete: '削除',
+    csvAutoSumTooltip: '時間別の列から自動集計',
+    egPrefix: '例：',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: '{qty} が上限です — 保管スペースの限界です。',
     ocStorageFull: '今は追加で置く場所がありません — 保管がいっぱいです。少し売ってから再発注してください。',
@@ -12261,6 +12415,17 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    egPatternLabel: 'Pazar günleri okul gezileri',
+    egRegularName: 'Sarah',
+    egRegularNotes: "latte'yi çok sever, fındık alerjisi var",
+    // Chart series names, accessibility labels, shared prefixes
+    chartActual: 'Gerçekleşen',
+    chartPredicted: 'Tahmin',
+    a11yGoHome: 'Ana sayfaya git',
+    a11yLanguage: 'Dil',
+    a11yDelete: 'Sil',
+    csvAutoSumTooltip: 'Saatlik sütunlardan toplandı',
+    egPrefix: 'örn.',
     // Ordering constraint notes (structured codes from the backend)
     ocStorageCapped: '{qty} ile sınırlı — deponuza ancak bu kadarı sığıyor.',
     ocStorageFull: 'Şu anda daha fazlası için yer yok — deponuz dolu. Yeniden sipariş vermeden önce bir kısmını satın.',

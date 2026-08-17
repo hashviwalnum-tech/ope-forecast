@@ -317,7 +317,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
               onChange={e => { setLang(e.target.value as Lang) }}
               onClick={stopProp}
               className="text-[10px] rounded border border-teal-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-1 py-0.5 cursor-pointer focus:outline-none"
-              aria-label="Language"
+              aria-label={t('a11yLanguage')}
             >
               {(Object.entries(LANG_LABELS) as [Lang, string][]).map(([code, label]) => (
                 <option key={code} value={code}>{label}</option>

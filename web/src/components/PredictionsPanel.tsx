@@ -160,9 +160,9 @@ export default function PredictionsPanel() {
               />
               <Legend wrapperStyle={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }} />
               <Line type="monotone" dataKey="actual" stroke="#3a7470" strokeWidth={2}
-                dot={{ r: 3, fill: '#3a7470' }} name="Actual" />
+                dot={{ r: 3, fill: '#3a7470' }} name={t('chartActual')} />
               <Line type="monotone" dataKey="predicted" stroke="#6ba3a0" strokeWidth={2}
-                strokeDasharray="5 4" dot={false} name="Predicted" />
+                strokeDasharray="5 4" dot={false} name={t('chartPredicted')} />
             </ComposedChart>
           </ResponsiveContainer>
         ) : (

@@ -112,7 +112,7 @@ function ConsumablePicker({
               type="number"
               min="0.01"
               step="any"
-              placeholder="e.g. 20"
+              placeholder={`${t('egPrefix')} 20`}
               value={newQty}
               onChange={e => { setNewQty(e.target.value); setSaveErr(null) }}
               className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
@@ -457,7 +457,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
               type="number"
               min="0"
               step="any"
-              placeholder="e.g. 4.50"
+              placeholder={`${t('egPrefix')} 4.50`}
               value={form.price}
               onChange={e => set('price', e.target.value)}
               className="w-full px-4 py-3 text-base border border-slate-200 dark:border-slate-600 rounded-xl
@@ -477,7 +477,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                   type="number"
                   min="0"
                   step="any"
-                  placeholder="e.g. 40"
+                  placeholder={`${t('egPrefix')} 40`}
                   value={form.current_stock}
                   onChange={e => set('current_stock', e.target.value)}
                   className="w-full px-4 py-3 text-base border border-slate-200 dark:border-slate-600 rounded-xl
@@ -494,7 +494,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                   type="number"
                   min="0.1"
                   step="any"
-                  placeholder="e.g. 200"
+                  placeholder={`${t('egPrefix')} 200`}
                   value={form.storage_capacity}
                   onChange={e => set('storage_capacity', e.target.value)}
                   className="w-full px-4 py-3 text-base border border-slate-200 dark:border-slate-600 rounded-xl
@@ -511,7 +511,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                   type="number"
                   min="1"
                   step="1"
-                  placeholder="e.g. 3"
+                  placeholder={`${t('egPrefix')} 3`}
                   value={form.shelf_life_days}
                   onChange={e => set('shelf_life_days', e.target.value)}
                   className="w-full px-4 py-3 text-base border border-slate-200 dark:border-slate-600 rounded-xl

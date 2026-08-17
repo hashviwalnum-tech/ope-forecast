@@ -119,7 +119,7 @@ export default function RecurringPatternsPanel() {
             <input
               value={form.label}
               onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
-              placeholder="e.g. School trip Sundays"
+              placeholder={`${t('egPrefix')} ${t('egPatternLabel')}`}
               className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
                          bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                          focus:outline-none focus:ring-2 focus:ring-teal-300"
@@ -170,7 +170,7 @@ export default function RecurringPatternsPanel() {
                 type="number" min="0" max="23"
                 value={form.hour_start ?? ''}
                 onChange={e => setForm(f => ({ ...f, hour_start: e.target.value ? parseInt(e.target.value) : undefined }))}
-                placeholder="e.g. 9"
+                placeholder={`${t('egPrefix')} 9`}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
                            bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                            focus:outline-none focus:ring-2 focus:ring-teal-300"
@@ -185,7 +185,7 @@ export default function RecurringPatternsPanel() {
                 type="number" min="0" max="23"
                 value={form.hour_end ?? ''}
                 onChange={e => setForm(f => ({ ...f, hour_end: e.target.value ? parseInt(e.target.value) : undefined }))}
-                placeholder="e.g. 11"
+                placeholder={`${t('egPrefix')} 11`}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
                            bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                            focus:outline-none focus:ring-2 focus:ring-teal-300"

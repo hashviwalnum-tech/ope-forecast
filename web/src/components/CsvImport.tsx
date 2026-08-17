@@ -462,7 +462,7 @@ export default function CsvImport({ onImported }: Props) {
                     <td className="py-1.5 px-3 font-semibold">
                       {row.customers}
                       {row.hourlyAutoSummed && (
-                        <span className="ml-1 text-teal-600 text-xs" title="Auto-computed from hourly columns">★</span>
+                        <span className="ml-1 text-teal-600 text-xs" title={t('csvAutoSumTooltip')}>★</span>
                       )}
                     </td>
                     {productList

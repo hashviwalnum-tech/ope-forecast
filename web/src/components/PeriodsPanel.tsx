@@ -205,7 +205,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             type="number"
             min="0"
             step="any"
-            placeholder="e.g. 200"
+            placeholder={`${t('egPrefix')} 200`}
             value={form.cost}
             onChange={e => set('cost', e.target.value)}
             className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg

@@ -249,7 +249,7 @@ export default function DayList({ refreshKey }: Props) {
                     <button
                       onClick={() => handleDelete(day.id)}
                       className="text-slate-300 hover:text-red-500 text-xs"
-                      aria-label="Delete"
+                      aria-label={t('a11yDelete')}
                     >
                       ✕
                     </button>
