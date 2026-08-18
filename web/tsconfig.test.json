@@ -1,0 +1,32 @@
+{
+  // Tests run under Node (`npm test` → `node --test`), not in the browser, so
+  // they need Node's types — which the app project deliberately does not have,
+  // to stop browser code reaching for Node APIs.
+  //
+  // They are still type-checked: `npm run build` runs `tsc -b` over this
+  // project too, so a test that does not compile fails the build rather than
+  // sitting broken until someone runs it.
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src/**/*.test.ts"]
+}

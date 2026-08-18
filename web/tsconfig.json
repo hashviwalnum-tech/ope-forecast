@@ -11,9 +11,13 @@
   // build` runs `tsc -b` over this project AND tsconfig.node.json, so the Vite
   // config keeps its own separate node-typed settings and nothing is
   // type-checked more loosely than before.
+  //
+  // Test files are excluded here and checked by tsconfig.test.json instead —
+  // they run under Node and need Node's types, which browser code must not have.
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
 }

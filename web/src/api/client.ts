@@ -99,21 +99,43 @@ async function authHeaders(): Promise<Record<string, string>> {
   return headers
 }
 
+/**
+ * A failed request, carrying the HTTP status alongside the message.
+ *
+ * Callers that need to tell one failure from another — CSV import has to
+ * distinguish "this day is already recorded" (409, expected and harmless)
+ * from "the server broke" (500) — cannot do it from the message text alone.
+ * Extends Error, so anything that just reads `.message` is unaffected.
+ */
+export class ApiError extends Error {
+  readonly status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
+/** True when `err` is a failed request that came back with `status`. */
+export function isApiError(err: unknown, status?: number): err is ApiError {
+  return err instanceof ApiError && (status === undefined || err.status === status)
+}
+
 // Extract a readable message from a failed response.
 // FastAPI wraps errors as {"detail": "..."} — pull that out so the UI
 // shows the plain-language message rather than raw JSON.
-async function extractError(res: Response): Promise<string> {
+async function extractError(res: Response): Promise<ApiError> {
   const text = await res.text()
   try {
     const json = JSON.parse(text)
-    if (typeof json.detail === 'string') return json.detail
+    if (typeof json.detail === 'string') return new ApiError(res.status, json.detail)
   } catch { /* fall through */ }
-  return text
+  return new ApiError(res.status, text)
 }
 
 async function GET<T>(path: string): Promise<T> {
   const res = await fetchWithRetry(`${BASE}${path}`, { headers: await authHeaders() })
-  if (!res.ok) throw new Error(await extractError(res))
+  if (!res.ok) throw await extractError(res)
   return res.json()
 }
 
@@ -121,7 +143,7 @@ async function POST<T>(path: string, body: unknown): Promise<T> {
   const res = await fetchWithRetry(`${BASE}${path}`, {
     method: 'POST', headers: await authHeaders(), body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await extractError(res))
+  if (!res.ok) throw await extractError(res)
   return res.json()
 }
 
@@ -129,20 +151,20 @@ async function PUT<T>(path: string, body: unknown): Promise<T> {
   const res = await fetchWithRetry(`${BASE}${path}`, {
     method: 'PUT', headers: await authHeaders(), body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await extractError(res))
+  if (!res.ok) throw await extractError(res)
   return res.json()
 }
 
 async function DELETE(path: string): Promise<void> {
   const res = await fetchWithRetry(`${BASE}${path}`, { method: 'DELETE', headers: await authHeaders() })
-  if (!res.ok) throw new Error(await extractError(res))
+  if (!res.ok) throw await extractError(res)
 }
 
 async function PATCH<T>(path: string, body: unknown): Promise<T> {
   const res = await fetchWithRetry(`${BASE}${path}`, {
     method: 'PATCH', headers: await authHeaders(), body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error(await extractError(res))
+  if (!res.ok) throw await extractError(res)
   return res.json()
 }
 

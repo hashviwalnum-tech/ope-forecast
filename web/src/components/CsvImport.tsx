@@ -1,79 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { dayRecords, products as productsApi, sales as salesApi, saleEvents } from '../api/client'
+import { dayRecords, isApiError, products as productsApi, sales as salesApi, saleEvents } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { HourlyBackfillSlot, ProductRead } from '../api/types'
-
-// ── Date parsing ────────────────────────────────────────────────────────────
-
-interface ParsedDate {
-  iso: string        // YYYY-MM-DD sent to API
-  display: string    // human-readable shown in preview
-  ambiguous: boolean // true when DD/MM vs MM/DD can't be determined
-}
-
-function toISO(y: number, m: number, d: number): string {
-  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-}
-
-function displayDate(d: Date): string {
-  return d.toLocaleDateString('en-GB', {
-    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-  })
-}
-
-function parseDate(raw: string): ParsedDate | null {
-  const s = raw.trim()
-
-  // YYYY-MM-DD — canonical, never ambiguous
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    const d = new Date(s + 'T00:00:00')
-    if (isNaN(d.getTime())) return null
-    return { iso: s, display: displayDate(d), ambiguous: false }
-  }
-
-  // D/M/YYYY  DD/MM/YYYY  MM/DD/YYYY  (separator can be / - .)
-  const m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/)
-  if (m) {
-    const a = parseInt(m[1], 10)
-    const b = parseInt(m[2], 10)
-    const y = parseInt(m[3], 10)
-    let day: number, month: number, ambiguous = false
-
-    if (a > 12 && b <= 12) {        // a can only be day → DD/MM
-      day = a; month = b
-    } else if (b > 12 && a <= 12) { // b can only be day → MM/DD
-      month = a; day = b
-    } else {                        // both ≤ 12 → assume DD/MM, flag it
-      day = a; month = b; ambiguous = true
-    }
-
-    if (month < 1 || month > 12 || day < 1 || day > 31) return null
-    const date = new Date(y, month - 1, day)
-    // Guard against JS rolling over (e.g. 31 Feb → 3 Mar)
-    if (isNaN(date.getTime()) || date.getMonth() !== month - 1 || date.getDate() !== day) return null
-    return { iso: toISO(y, month, day), display: displayDate(date), ambiguous }
-  }
-
-  return null
-}
-
-// ── CSV parsing ─────────────────────────────────────────────────────────────
-// Skip leading comment lines (starting with #) when locating the header row,
-// so the hourly template's first-line note doesn't swallow the real headers.
-
-function parseCSV(text: string): { headers: string[]; rows: string[][] } {
-  const lines = text.trim().split('\n').filter(l => l.trim())
-  if (!lines.length) return { headers: [], rows: [] }
-
-  // Find the first non-comment line — that's the headers row
-  const headerIdx = lines.findIndex(l => !l.trim().startsWith('#'))
-  if (headerIdx === -1) return { headers: [], rows: [] }
-
-  return {
-    headers: lines[headerIdx].split(',').map(h => h.trim()),
-    rows:    lines.slice(headerIdx + 1).map(l => l.split(',').map(v => v.trim())),
-  }
-}
+import { type CsvIssue, dedupeByDate, parseCSV, parseDate } from '../lib/csvParse'
 
 interface CsvRow {
   date: string
@@ -86,17 +15,48 @@ interface CsvRow {
   hourlyAutoSummed: boolean               // true when customers was derived from hourly sum
 }
 
+/**
+ * What actually happened, told apart rather than lumped into "skipped".
+ *
+ * Before this, any failure counted as skipped — so a day that was already in
+ * the app (a harmless, expected 409 when re-importing an overlapping file)
+ * read exactly like a server error, and a row that created the day but failed
+ * on its product sales was reported as "skipped" while the day existed. The
+ * owner would then retry, hit the duplicate error forever, and never learn
+ * that some days had gone in with no product detail.
+ */
+interface ImportResult {
+  ok: number
+  /** Days already recorded in the app — left untouched, nothing lost. */
+  alreadyHad: string[]
+  /** The day went in but its products or hours did not — needs attention. */
+  partial: string[]
+  /** Nothing was written for these. */
+  failed: string[]
+  /**
+   * Days stored with a different customer total than the file gave.
+   *
+   * This happens when sales were already tapped for that date: the app treats
+   * the hour-by-hour taps as the better record and keeps the larger number
+   * (spec §9). That is correct — but the preview cannot know about it, because
+   * it only ever sees the file. Rather than let the preview quietly be wrong,
+   * the stored number is compared to what was sent and any difference is
+   * reported here.
+   */
+  adjusted: { date: string; from: number; to: number }[]
+}
+
 interface Props { onImported: () => void }
 
 export default function CsvImport({ onImported }: Props) {
   const { t } = useLanguage()
   const [productList, setProductList] = useState<ProductRead[]>([])
   const [preview, setPreview]         = useState<CsvRow[]>([])
-  const [parseErrors, setParseErrors] = useState<string[]>([])
+  const [parseErrors, setParseErrors] = useState<CsvIssue[]>([])
   const [fileName, setFileName]       = useState('')
   const [importing, setImporting]     = useState(false)
   const [progress, setProgress]       = useState<{ done: number; total: number } | null>(null)
-  const [result, setResult]           = useState<{ ok: number; skipped: number; failedDates: string[] } | null>(null)
+  const [result, setResult]           = useState<ImportResult | null>(null)
   // Product column confirmation: detected columns wait for explicit user sign-off
   const [detectedProductCols, setDetectedProductCols] = useState<ProductRead[]>([])
   const [confirmedProductIds, setConfirmedProductIds] = useState<Set<number>>(new Set())
@@ -138,7 +98,7 @@ export default function CsvImport({ onImported }: Props) {
     rows: string[][],
     productCols: { idx: number; product: ProductRead }[],
     hourlyCols: { idx: number; hour: number }[],
-    existingErrors: string[],
+    existingErrors: CsvIssue[],
   ) {
     const errors = [...existingErrors]
     const parsed: CsvRow[] = []
@@ -151,7 +111,7 @@ export default function CsvImport({ onImported }: Props) {
 
       const dateParsed = parseDate(rawDate)
       if (!dateParsed) {
-        errors.push(`Row ${line}: can't read date "${rawDate}" — use YYYY-MM-DD, DD/MM/YYYY, or MM/DD/YYYY`)
+        errors.push({ code: 'csvIssueBadDate', params: { line: String(line), value: rawDate } })
         return
       }
 
@@ -186,7 +146,7 @@ export default function CsvImport({ onImported }: Props) {
       }
 
       if (isNaN(customers) || customers < 0) {
-        errors.push(`Row ${line}: invalid customer count "${row[1]}"`)
+        errors.push({ code: 'csvIssueBadCustomers', params: { line: String(line), value: row[1] ?? '' } })
         return
       }
 
@@ -202,8 +162,14 @@ export default function CsvImport({ onImported }: Props) {
       })
     })
 
-    setParseErrors(errors)
-    setPreview(parsed)
+    // Resolve any date the file lists twice BEFORE sending anything. The
+    // importer posts four rows at a time, so two rows for the same date used
+    // to go out together and whichever landed first won — the stored number
+    // depended on network timing. Last row wins, and the owner is told.
+    const deduped = dedupeByDate(parsed)
+
+    setParseErrors([...errors, ...deduped.issues])
+    setPreview(deduped.rows)
   }
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -220,8 +186,10 @@ export default function CsvImport({ onImported }: Props) {
 
     const reader = new FileReader()
     reader.onload = evt => {
-      const { headers, rows } = parseCSV((evt.target?.result ?? '') as string)
-      const detectionErrors: string[] = []
+      const { headers, rows, issues } = parseCSV((evt.target?.result ?? '') as string)
+      // Structural problems the parser found (encoding, ragged rows, an
+      // unusual delimiter) travel with the column problems found below.
+      const detectionErrors: CsvIssue[] = [...issues]
 
       const productCols: { idx: number; product: ProductRead }[] = []
       const hourlyCols: { idx: number; hour: number }[] = []
@@ -239,7 +207,7 @@ export default function CsvImport({ onImported }: Props) {
         if (prod) {
           productCols.push({ idx: i, product: prod })
         } else {
-          detectionErrors.push(`Column "${h}" doesn't match any of your products — it will be skipped.`)
+          detectionErrors.push({ code: 'csvIssueUnknownColumn', params: { name: h } })
         }
       }
 
@@ -281,19 +249,41 @@ export default function CsvImport({ onImported }: Props) {
     setProgress({ done: 0, total: preview.length })
 
     let ok = 0
-    let skipped = 0
-    const failedDates: string[] = []
+    const alreadyHad: string[] = []
+    const partial: string[] = []
+    const failed: string[] = []
+    const adjusted: ImportResult['adjusted'] = []
 
     const BATCH = 4
     for (let i = 0; i < preview.length; i += BATCH) {
       const batch = preview.slice(i, i + BATCH)
       await Promise.all(batch.map(async row => {
+        // Step 1 — the day itself. A 409 means the app already has this date,
+        // which is what happens on an overlapping re-import. Nothing is
+        // written and nothing is lost, so it is not a failure.
+        let dayId: number
         try {
           const day = await dayRecords.create({ date: row.date, customers: row.customers })
+          dayId = day.id
+          // Trust what came back, not what was sent.
+          if (day.customers !== row.customers) {
+            adjusted.push({ date: row.dateDisplay, from: row.customers, to: day.customers })
+          }
+        } catch (err) {
+          if (isApiError(err, 409)) alreadyHad.push(row.dateDisplay)
+          else failed.push(row.dateDisplay)
+          return
+        }
+
+        // Step 2 — products and hours. The day now EXISTS, so a failure here
+        // leaves it stored without its detail. That has to be reported as
+        // partly-imported, never as "skipped" — the old code called it skipped,
+        // which sent the owner off to retry a date that could only 409.
+        try {
           await Promise.all([
             ...Object.entries(row.productUnits).map(([name, units]) => {
               const prod = productList.find(p => p.name === name)
-              return prod ? salesApi.create({ day_record_id: day.id, product_id: prod.id, units_sold: units }) : Promise.resolve()
+              return prod ? salesApi.create({ day_record_id: dayId, product_id: prod.id, units_sold: units }) : Promise.resolve()
             }),
             row.hourlyCustomers.length > 0
               ? saleEvents.backfillHourly(row.date, row.hourlyCustomers)
@@ -301,8 +291,7 @@ export default function CsvImport({ onImported }: Props) {
           ])
           ok++
         } catch {
-          skipped++
-          failedDates.push(row.dateDisplay)
+          partial.push(row.dateDisplay)
         }
       }))
       setProgress({ done: Math.min(i + BATCH, preview.length), total: preview.length })
@@ -310,14 +299,14 @@ export default function CsvImport({ onImported }: Props) {
 
     setImporting(false)
     setProgress(null)
-    setResult({ ok, skipped, failedDates })
+    setResult({ ok, alreadyHad, partial, failed, adjusted })
     setPreview([])
     setFileName('')
     setProductColsConfirmed(false)
     setDetectedProductCols([])
     setPendingRawRows(null)
     if (fileRef.current) fileRef.current.value = ''
-    if (ok > 0) onImported()
+    if (ok > 0 || partial.length > 0) onImported()
   }
 
   const hasAmbiguous = preview.some(r => r.dateAmbiguous)
@@ -364,10 +353,16 @@ export default function CsvImport({ onImported }: Props) {
         }
       </div>
 
-      {/* Parse errors / warnings */}
+      {/* Parse errors / warnings — every message goes through t() so it is
+          translated and lays out correctly right-to-left. */}
       {parseErrors.length > 0 && (
         <ul className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
-          {parseErrors.map((msg, i) => <li key={i}>⚠ {msg}</li>)}
+          {parseErrors.map((issue, i) => (
+            <li key={i} className="flex gap-2">
+              <span aria-hidden="true">⚠</span>
+              <span>{t(issue.code, issue.params)}</span>
+            </li>
+          ))}
         </ul>
       )}
 
@@ -521,26 +516,58 @@ export default function CsvImport({ onImported }: Props) {
         </div>
       )}
 
-      {/* Result */}
-      {result && (
-        <div className={`text-sm rounded-lg px-4 py-3 border ${
-          result.skipped === 0
-            ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
-            : 'text-amber-700 bg-amber-50 border-amber-200'
-        }`}>
-          <p className="font-medium">
-            {result.skipped === 0
-              ? t('csvImportSuccess', { ok: String(result.ok), s: result.ok !== 1 ? 's' : '' })
-              : t('csvImportPartial', { ok: String(result.ok), s: result.ok !== 1 ? 's' : '', skipped: String(result.skipped) })
-            }
-          </p>
-          {result.failedDates.length > 0 && (
-            <p className="mt-1 text-xs">
-              {t('csvImportSkipped', { dates: result.failedDates.join(', ') })}
+      {/* Result — each outcome named for what it actually was. A day the app
+          already had is not a failure; a day whose products didn't save is
+          not a skip. Lumping them together is what sent owners retrying
+          imports that could never succeed. */}
+      {result && (() => {
+        const trouble = result.partial.length + result.failed.length
+        return (
+          <div className={`text-sm rounded-lg px-4 py-3 border space-y-1 ${
+            trouble === 0
+              ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+              : 'text-amber-700 bg-amber-50 border-amber-200'
+          }`}>
+            <p className="font-medium">
+              {t('csvImportSuccess', { ok: String(result.ok), s: result.ok !== 1 ? 's' : '' })}
             </p>
-          )}
-        </div>
-      )}
+            {result.alreadyHad.length > 0 && (
+              <p className="text-xs">
+                {t('csvImportAlreadyHad', {
+                  n: String(result.alreadyHad.length),
+                  dates: result.alreadyHad.join(', '),
+                })}
+              </p>
+            )}
+            {result.partial.length > 0 && (
+              <p className="text-xs font-medium">
+                {t('csvImportPartialDays', {
+                  n: String(result.partial.length),
+                  dates: result.partial.join(', '),
+                })}
+              </p>
+            )}
+            {result.failed.length > 0 && (
+              <p className="text-xs">
+                {t('csvImportFailedDays', {
+                  n: String(result.failed.length),
+                  dates: result.failed.join(', '),
+                })}
+              </p>
+            )}
+            {result.adjusted.length > 0 && (
+              <p className="text-xs">
+                {t('csvImportAdjusted', {
+                  n: String(result.adjusted.length),
+                  detail: result.adjusted
+                    .map(a => `${a.date}: ${a.from} → ${a.to}`)
+                    .join(', '),
+                })}
+              </p>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }
