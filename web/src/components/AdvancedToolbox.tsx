@@ -1,5 +1,10 @@
 import { useRef, useState } from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
+import { currencySymbol, formatMoney, formatSignedMoney } from '../lib/money'
+import {
+  findInvertedOptions, frameOrder, num, planBudget, scoreOption,
+  type BudgetItem as BudgetSpec, type Option,
+} from '../lib/planningTools'
 
 // ── shared primitives ─────────────────────────────────────────────────────────
 
@@ -94,11 +99,6 @@ interface Decision {
 
 const emptyDecision = (): Decision => ({ name: '', best: '', worst: '', likely: '' })
 
-function num(s: string): number {
-  const n = parseFloat(s.replace(/[^\d.-]/g, ''))
-  return isNaN(n) ? 0 : n
-}
-
 function DecisionPlanner() {
   const { t } = useLanguage()
   const [decisions, setDecisions] = useState<Decision[]>([
@@ -115,12 +115,20 @@ function DecisionPlanner() {
 
   const filled = decisions.filter(d => d.best !== '' && d.worst !== '' && d.likely !== '')
 
-  const results = filled.map(d => {
-    const b = num(d.best), w = num(d.worst), l = num(d.likely)
-    const ev = 0.25 * w + 0.50 * l + 0.25 * b
-    const h = (alpha / 100) * b + (1 - alpha / 100) * w
-    return { name: d.name || '?', ev, maximin: w, maximax: b, hurwicz: h }
-  })
+  const options: Option[] = filled.map(d => ({
+    name: d.name || '?',
+    best: num(d.best),
+    likely: num(d.likely),
+    worst: num(d.worst),
+  }))
+
+  // "Playing safe" reads the worst-case field. If the owner filled best and
+  // worst the wrong way round, the tool would confidently recommend the option
+  // with the highest BEST case as the safest one — the opposite of the advice
+  // they asked for. Say so instead of answering.
+  const inverted = findInvertedOptions(options)
+
+  const results = options.map(o => scoreOption(o, alpha / 100))
 
   const safest  = results.length > 0 ? results.reduce((a, b) => a.maximin > b.maximin ? a : b) : null
   const average = results.length > 0 ? results.reduce((a, b) => a.ev       > b.ev       ? a : b) : null
@@ -175,7 +183,14 @@ function DecisionPlanner() {
         )}
       </div>
 
-      {filled.length >= 2 && (
+      {inverted.length > 0 && (
+        <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20
+                      border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 leading-relaxed">
+          {t('toolboxInvertedWarning', { names: inverted.join(', ') })}
+        </p>
+      )}
+
+      {filled.length >= 2 && inverted.length === 0 && (
         <button
           onClick={() => setCalculated(true)}
           className="w-full py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
@@ -185,7 +200,7 @@ function DecisionPlanner() {
         </button>
       )}
 
-      {calculated && results.length >= 2 && (
+      {calculated && inverted.length === 0 && results.length >= 2 && (
         <div className="space-y-4 pt-2">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <ResultBadge label={t('toolboxPlayingSafe')} value={t('toolboxGoWith', { name: safest?.name ?? '?' })} highlight={true} />
@@ -231,7 +246,8 @@ function DecisionPlanner() {
 // ── Tool 2: "How does this ordering decision feel?" (Gain vs. loss framing) ───
 
 function OrderFraming() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const cur = currencySymbol(lang)
   const [orderMore, setOrderMore]         = useState('')
   const [orderLess, setOrderLess]         = useState('')
   const [sellPrice, setSellPrice]         = useState('')
@@ -249,12 +265,10 @@ function OrderFraming() {
 
   const ready = qMore > 0 && qLess > 0 && sell > 0 && cost > 0 && demand > 0 && margin > 0
 
-  // "Order more" scenarios
-  const moreGain  = Math.min(qMore, demand) * margin                         // sold what we ordered
-  const moreLoss  = Math.min(qMore, demand) * margin - Math.max(0, qMore - demand) * cost  // unsold units wasted
-  // "Order less" scenarios
-  const lessGain  = Math.min(qLess, demand) * margin                          // sold all
-  const lessMissed = Math.max(0, demand - qLess) * margin                     // missed sales
+  const f = frameOrder({
+    orderMore: qMore, orderLess: qLess,
+    sellPrice: sell, costPrice: cost, expectedDemand: demand,
+  })
 
   return (
     <div className="space-y-5">
@@ -271,11 +285,11 @@ function OrderFraming() {
         </div>
         <div>
           <Label>{t('toolboxSellPrice')}</Label>
-          <Input value={sellPrice} onChange={setSellPrice} placeholder={`${t('egPrefix')} 5.00`} type="number" prefix="€" />
+          <Input value={sellPrice} onChange={setSellPrice} placeholder={`${t('egPrefix')} 5.00`} type="number" prefix={cur} />
         </div>
         <div>
           <Label>{t('toolboxCostPrice')}</Label>
-          <Input value={costPrice} onChange={setCostPrice} placeholder={`${t('egPrefix')} 2.50`} type="number" prefix="€" />
+          <Input value={costPrice} onChange={setCostPrice} placeholder={`${t('egPrefix')} 2.50`} type="number" prefix={cur} />
         </div>
         <div className="col-span-2">
           <Label>{t('toolboxExpectedSales')}</Label>
@@ -325,7 +339,7 @@ function OrderFraming() {
                   {t('toolboxOrderDemandStrong', { qty: String(qMore) })}
                 </p>
                 <p className="text-2xl font-bold text-emerald-700 tabular-nums">
-                  +€{moreGain.toFixed(2)}
+                  {formatSignedMoney(f.moreUpside, lang)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitAllUnits', { qty: String(qMore) })}</p>
               </div>
@@ -334,35 +348,46 @@ function OrderFraming() {
                   {t('toolboxOrderDemandStrong', { qty: String(qLess) })}
                 </p>
                 <p className="text-2xl font-bold text-emerald-700 tabular-nums">
-                  +€{lessGain.toFixed(2)}
+                  {formatSignedMoney(f.lessUpside, lang)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitFillOrder', { qty: String(qLess) })}</p>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-rose-50 border border-rose-100 p-4">
-                <p className="text-xs font-semibold text-rose-700 mb-1">
+              {/* Over-ordering eats into profit, but often does NOT wipe it out.
+                  Printing a still-positive figure bare inside a red panel read
+                  as a loss, so the number is signed and the panel follows the
+                  sign — red only when it really is a loss. */}
+              <div className={`rounded-xl p-4 border ${f.moreDownside < 0
+                ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800'
+                : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'}`}>
+                <p className={`text-xs font-semibold mb-1 ${f.moreDownside < 0
+                  ? 'text-rose-700 dark:text-rose-300' : 'text-amber-700 dark:text-amber-300'}`}>
                   {t('toolboxOrderDemandWeak', { qty: String(qMore) })}
                 </p>
-                <p className="text-2xl font-bold text-rose-700 tabular-nums">
-                  €{moreLoss.toFixed(2)}
+                <p className={`text-2xl font-bold tabular-nums ${f.moreDownside < 0
+                  ? 'text-rose-700 dark:text-rose-300' : 'text-amber-700 dark:text-amber-300'}`}>
+                  {formatSignedMoney(f.moreDownside, lang)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {qMore > demand
-                    ? t('toolboxUnsoldWaste', { extra: String(qMore - demand) })
+                  {f.moreUnsold > 0
+                    ? t('toolboxUnsoldWaste', { extra: String(f.moreUnsold) })
                     : t('toolboxDemandExceeds')}
                 </p>
+                {f.moreDownside > 0 && f.moreUnsold > 0 && (
+                  <p className="text-xs text-slate-500 mt-1">{t('toolboxStillProfitNote')}</p>
+                )}
               </div>
-              <div className="rounded-xl bg-rose-50 border border-rose-100 p-4">
-                <p className="text-xs font-semibold text-rose-700 mb-1">
+              <div className="rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 p-4">
+                <p className="text-xs font-semibold text-rose-700 dark:text-rose-300 mb-1">
                   {t('toolboxOrderDemandStrong', { qty: String(qLess) })}
                 </p>
-                <p className="text-2xl font-bold text-rose-700 tabular-nums">
-                  -€{lessMissed.toFixed(2)}
+                <p className="text-2xl font-bold text-rose-700 dark:text-rose-300 tabular-nums">
+                  {formatSignedMoney(-f.lessMissed, lang)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {t('toolboxMissedProfit', { n: String(Math.max(0, demand - qLess)) })}
+                  {t('toolboxMissedProfit', { n: String(f.lessShort) })}
                 </p>
               </div>
             </div>
@@ -387,13 +412,14 @@ interface BudgetItem {
 }
 
 function BudgetOptimizer() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const cur = currencySymbol(lang)
   const [budget, setBudget] = useState('')
   const [items, setItems] = useState<BudgetItem[]>([
     { name: '', cost: '', profit: '', maxQty: '' },
     { name: '', cost: '', profit: '', maxQty: '' },
   ])
-  const [result, setResult] = useState<{ name: string; qty: number; spend: number; earn: number }[] | null>(null)
+  const [result, setResult] = useState<ReturnType<typeof planBudget> | null>(null)
 
   function updateItem(i: number, field: keyof BudgetItem, val: string) {
     setItems(prev => prev.map((it, idx) => idx === i ? { ...it, [field]: val } : it))
@@ -401,32 +427,20 @@ function BudgetOptimizer() {
   }
 
   function optimize() {
-    const filled = items.filter(it => it.name && num(it.cost) > 0 && num(it.profit) > 0 && num(it.maxQty) > 0)
-    if (filled.length === 0) return
-
+    const spec: BudgetSpec[] = items
+      .filter(it => it.name)
+      .map(it => ({
+        name: it.name,
+        cost: num(it.cost),
+        profit: num(it.profit),
+        maxQty: num(it.maxQty),
+      }))
+    if (!spec.length) return
     const hasBudget = budget !== '' && num(budget) > 0
-    let remaining = hasBudget ? num(budget) : Infinity
-
-    // Greedy fractional knapsack: sort by profit-per-cost ratio descending
-    const sorted = [...filled].sort((a, b) =>
-      (num(b.profit) / num(b.cost)) - (num(a.profit) / num(a.cost))
-    )
-
-    const allocation: typeof result = []
-    for (const item of sorted) {
-      const c = num(item.cost), p = num(item.profit), max = Math.floor(num(item.maxQty))
-      const afford = hasBudget ? Math.min(max, Math.floor(remaining / c)) : max
-      if (afford > 0) {
-        allocation.push({ name: item.name, qty: afford, spend: afford * c, earn: afford * p })
-        remaining -= afford * c
-      }
-    }
-    setResult(allocation)
+    setResult(planBudget(hasBudget ? num(budget) : null, spec))
   }
 
   const filledCount = items.filter(it => it.name && num(it.cost) > 0 && num(it.profit) > 0 && num(it.maxQty) > 0).length
-  const totalSpend  = result?.reduce((s, r) => s + r.spend, 0) ?? 0
-  const totalEarn   = result?.reduce((s, r) => s + r.earn, 0) ?? 0
 
   return (
     <div className="space-y-5">
@@ -434,7 +448,7 @@ function BudgetOptimizer() {
 
       <div>
         <Label>{t('toolboxMyBudget')}</Label>
-        <Input value={budget} onChange={setBudget} placeholder={`${t('egPrefix')} 500`} type="number" prefix="€" />
+        <Input value={budget} onChange={setBudget} placeholder={`${t('egPrefix')} 500`} type="number" prefix={cur} />
       </div>
 
       <div className="space-y-3">
@@ -447,11 +461,11 @@ function BudgetOptimizer() {
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <Label>{t('toolboxCostPerUnit')}</Label>
-                <Input value={item.cost}   onChange={v => updateItem(i, 'cost', v)}   prefix="€" type="number" placeholder="1.50" />
+                <Input value={item.cost}   onChange={v => updateItem(i, 'cost', v)}   prefix={cur} type="number" placeholder="1.50" />
               </div>
               <div>
                 <Label>{t('toolboxProfitPerUnit')}</Label>
-                <Input value={item.profit} onChange={v => updateItem(i, 'profit', v)} prefix="€" type="number" placeholder="2.00" />
+                <Input value={item.profit} onChange={v => updateItem(i, 'profit', v)} prefix={cur} type="number" placeholder="2.00" />
               </div>
               <div>
                 <Label>{t('toolboxMaxUnits')}</Label>
@@ -493,41 +507,43 @@ function BudgetOptimizer() {
         </button>
       )}
 
-      {result && result.length > 0 && (
+      {result && result.allocation.length > 0 && (
         <div className="space-y-3">
           <p className="text-sm font-semibold text-slate-700">
             {budget
-              ? t('toolboxWithBudget', { currency: '€', budget: num(budget).toFixed(0) })
+              ? t('toolboxWithBudget', { currency: cur, budget: num(budget).toFixed(0) })
               : t('toolboxWithoutBudget')}
           </p>
-          {result.map((r, i) => (
+          {result.allocation.map((r, i) => (
             <div key={i} className="flex items-center justify-between rounded-xl bg-teal-50/60
                                     border border-teal-100 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold text-slate-800">{r.name}</p>
-                <p className="text-xs text-slate-500">{t('toolboxItemCosts', { currency: '€', amount: r.spend.toFixed(2) })}</p>
+                <p className="text-xs text-slate-500">{t('toolboxItemCosts', { currency: cur, amount: r.spend.toFixed(2) })}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold text-teal-700">{t('toolboxItemUnits', { qty: String(r.qty) })}</p>
-                <p className="text-xs text-emerald-600">{t('toolboxItemProfit', { currency: '€', profit: r.earn.toFixed(2) })}</p>
+                <p className="text-xs text-emerald-600">{t('toolboxItemProfit', { currency: cur, profit: r.earn.toFixed(2) })}</p>
               </div>
             </div>
           ))}
           <div className="flex justify-between rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 px-4 py-3">
             <div>
               <p className="text-xs text-slate-500">{t('toolboxTotalSpend')}</p>
-              <p className="text-sm font-semibold text-slate-700 tabular-nums">€{totalSpend.toFixed(2)}</p>
+              <p className="text-sm font-semibold text-slate-700 tabular-nums">{formatMoney(result.totalSpend, lang)}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-500">{t('toolboxTotalProfit')}</p>
-              <p className="text-sm font-bold text-emerald-600 tabular-nums">+€{totalEarn.toFixed(2)}</p>
+              <p className="text-sm font-bold text-emerald-600 tabular-nums">{formatSignedMoney(result.totalEarn, lang)}</p>
             </div>
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed">{t('toolboxRatioNote')}</p>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            {result.approximate ? t('toolboxApproximateNote') : t('toolboxRatioNote')}
+          </p>
         </div>
       )}
 
-      {result && result.length === 0 && (
+      {result && result.allocation.length === 0 && (
         <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 rounded-xl px-4 py-3">
           {t('toolboxNoBudgetFit')}
         </p>
@@ -548,26 +564,31 @@ interface CheckItem {
 
 function Checklist() {
   const { t } = useLanguage()
-  const nextId = useRef(1)
 
+  // The initialiser used to advance `nextId` as it built the list, which
+  // mutates a ref during render — under StrictMode it runs twice, so the
+  // counter ran ahead of the list it was numbering. Build the list purely,
+  // then derive the counter from it.
   const [items, setItems] = useState<CheckItem[]>(() => {
     try {
       const saved = localStorage.getItem(CHECKLIST_KEY)
       if (saved) {
         const parsed: CheckItem[] = JSON.parse(saved)
-        if (parsed.length > 0) {
-          nextId.current = Math.max(...parsed.map(i => i.id)) + 1
-        }
-        return parsed
+        if (Array.isArray(parsed)) return parsed
       }
     } catch { /* ignore */ }
-    // default starter list (use English keys so saved items stay consistent across language switches)
+    // Starter list, written in the owner's language. It used to be hardcoded
+    // English on the grounds that saved items should not change when the
+    // language is switched — true, but the fix is to translate ONCE at
+    // creation and store the result, not to show a Hebrew or Japanese owner
+    // three English tasks the first time they open the tool.
     return [
-      { id: nextId.current++, text: 'Check this week\'s ordering recommendations', done: false },
-      { id: nextId.current++, text: 'Log yesterday\'s sales', done: false },
-      { id: nextId.current++, text: 'Review any new outlier alerts', done: false },
+      { id: 1, text: t('toolboxStarterOrdering'), done: false },
+      { id: 2, text: t('toolboxStarterLogSales'), done: false },
+      { id: 3, text: t('toolboxStarterOutliers'), done: false },
     ]
   })
+  const nextId = useRef(items.length ? Math.max(...items.map(i => i.id)) + 1 : 1)
   const [newText, setNewText] = useState('')
 
   function save(updated: CheckItem[]) {

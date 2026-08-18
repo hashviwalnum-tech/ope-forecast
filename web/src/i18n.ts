@@ -9,6 +9,12 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    toolboxApproximateNote: 'This is a very close plan rather than a proven best one — your budget is large enough that Ope worked in rounder amounts so it could answer straight away.',
+    toolboxInvertedWarning: 'Check {names}: the best case should be the highest of the three numbers and the worst case the lowest. Entered this way round, the answers would come out backwards.',
+    toolboxStarterLogSales: 'Log yesterday\'s sales',
+    toolboxStarterOrdering: 'Check this week\'s ordering recommendations',
+    toolboxStarterOutliers: 'Review any new unusual-day alerts',
+    toolboxStillProfitNote: 'You would still come out ahead here — just less far ahead than you could have.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: "Expect to land in this range about 4 days out of 5 — it's a likely range, not a promise.",
     // 'What this save will change' — shown before a backfill/import
@@ -1088,6 +1094,12 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    toolboxApproximateNote: 'זו תוכנית קרובה מאוד ולא בהכרח הטובה ביותר — התקציב שלך גדול מספיק ש-Ope עבד בסכומים מעוגלים כדי לענות מיד.',
+    toolboxInvertedWarning: 'בדוק את {names}: המקרה הטוב ביותר צריך להיות המספר הגבוה מבין השלושה והמקרה הגרוע ביותר הנמוך. כפי שהוזן, התשובות ייצאו הפוכות.',
+    toolboxStarterLogSales: 'רשום את המכירות של אתמול',
+    toolboxStarterOrdering: 'בדוק את המלצות ההזמנה של השבוע',
+    toolboxStarterOutliers: 'עבור על התראות הימים החריגים החדשות',
+    toolboxStillProfitNote: 'עדיין תצא ברווח כאן — פשוט פחות ממה שיכולת.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'ברוב הימים — בערך 4 מתוך 5 — התוצאה תיפול בטווח הזה. זה טווח סביר, לא הבטחה.',
     // 'What this save will change' — shown before a backfill/import
@@ -2167,6 +2179,12 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    toolboxApproximateNote: '这是一个非常接近的方案，而非已证明的最优方案 — 您的预算较大，Ope 采用了取整金额以便立即给出答案。',
+    toolboxInvertedWarning: '请检查 {names}：最好情况应是三个数字中最高的，最坏情况应是最低的。按目前的填法，结果会完全相反。',
+    toolboxStarterLogSales: '记录昨天的销售',
+    toolboxStarterOrdering: '查看本周的订货建议',
+    toolboxStarterOutliers: '查看新的异常日提醒',
+    toolboxStillProfitNote: '这种情况下您仍然是赚的 — 只是没有赚到本可以赚的那么多。',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: '大约每 5 天有 4 天会落在这个范围内——这是可能范围，不是保证。',
     // 'What this save will change' — shown before a backfill/import
@@ -2769,6 +2787,12 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    toolboxApproximateNote: 'Este es un plan muy cercano, no uno demostradamente óptimo — tu presupuesto es lo bastante grande como para que Ope trabajara con cantidades redondeadas y responder al momento.',
+    toolboxInvertedWarning: 'Revisa {names}: el mejor caso debe ser el número más alto de los tres y el peor caso el más bajo. Tal como está, las respuestas saldrían al revés.',
+    toolboxStarterLogSales: 'Registrar las ventas de ayer',
+    toolboxStarterOrdering: 'Revisar las recomendaciones de pedido de esta semana',
+    toolboxStarterOutliers: 'Revisar los avisos de días inusuales',
+    toolboxStillProfitNote: 'Aun así saldrías ganando — solo que menos de lo que podrías.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'Espera caer en este rango unos 4 días de cada 5: es un rango probable, no una promesa.',
     // 'What this save will change' — shown before a backfill/import
@@ -3424,6 +3448,12 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    toolboxApproximateNote: 'यह बहुत क़रीब की योजना है, प्रमाणित सर्वोत्तम नहीं — आपका बजट इतना बड़ा है कि Ope ने तुरंत उत्तर देने के लिए गोल रकम में गणना की।',
+    toolboxInvertedWarning: '{names} जाँचें: सबसे अच्छा मामला तीनों में सबसे बड़ा और सबसे बुरा मामला सबसे छोटा होना चाहिए। इस तरह भरने पर उत्तर उल्टे आएंगे।',
+    toolboxStarterLogSales: 'कल की बिक्री दर्ज करें',
+    toolboxStarterOrdering: 'इस सप्ताह की ऑर्डर सिफ़ारिशें देखें',
+    toolboxStarterOutliers: 'असामान्य दिनों की नई चेतावनियाँ देखें',
+    toolboxStillProfitNote: 'यहाँ भी आपको फ़ायदा ही होगा — बस उतना नहीं जितना हो सकता था।',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'पाँच में से लगभग चार दिन नतीजा इसी दायरे में रहेगा — यह संभावित दायरा है, कोई वादा नहीं।',
     // 'What this save will change' — shown before a backfill/import
@@ -4036,6 +4066,12 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    toolboxApproximateNote: 'هذه خطة قريبة جدًا وليست الأفضل المُثبتة — ميزانيتك كبيرة بما يكفي لأن يعمل Ope بمبالغ مقرّبة كي يجيب فورًا.',
+    toolboxInvertedWarning: 'راجع {names}: يجب أن تكون أفضل حالة هي أعلى الأرقام الثلاثة وأسوأ حالة هي أدناها. بالطريقة المُدخلة حاليًا ستأتي النتائج معكوسة.',
+    toolboxStarterLogSales: 'سجّل مبيعات الأمس',
+    toolboxStarterOrdering: 'راجع توصيات الطلب لهذا الأسبوع',
+    toolboxStarterOutliers: 'راجع تنبيهات الأيام غير المعتادة الجديدة',
+    toolboxStillProfitNote: 'ستظل رابحًا هنا — لكن أقل مما كان ممكنًا.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'توقّع أن تقع النتيجة ضمن هذا النطاق في نحو 4 أيام من كل 5 — إنه نطاق مرجّح، وليس وعدًا.',
     // 'What this save will change' — shown before a backfill/import
@@ -4948,6 +4984,12 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    toolboxApproximateNote: 'Este é um plano muito próximo, não um comprovadamente ótimo — seu orçamento é grande o bastante para que o Ope trabalhasse com valores arredondados e respondesse na hora.',
+    toolboxInvertedWarning: 'Confira {names}: o melhor caso deve ser o maior dos três números e o pior caso o menor. Do jeito que está, as respostas sairiam invertidas.',
+    toolboxStarterLogSales: 'Registrar as vendas de ontem',
+    toolboxStarterOrdering: 'Conferir as recomendações de pedido desta semana',
+    toolboxStarterOutliers: 'Revisar os avisos de dias fora do comum',
+    toolboxStillProfitNote: 'Você ainda sairia ganhando aqui — só que menos do que poderia.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'Espere ficar neste intervalo cerca de 4 dias em 5 — é um intervalo provável, não uma promessa.',
     // 'What this save will change' — shown before a backfill/import
@@ -5590,6 +5632,12 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    toolboxApproximateNote: 'Это очень близкий план, а не доказанно наилучший: бюджет достаточно велик, поэтому Ope считал округлёнными суммами, чтобы ответить сразу.',
+    toolboxInvertedWarning: 'Проверьте {names}: лучший случай должен быть наибольшим из трёх чисел, а худший — наименьшим. При нынешнем заполнении ответы получатся противоположными.',
+    toolboxStarterLogSales: 'Записать вчерашние продажи',
+    toolboxStarterOrdering: 'Посмотреть рекомендации по заказу на эту неделю',
+    toolboxStarterOutliers: 'Просмотреть новые оповещения о необычных днях',
+    toolboxStillProfitNote: 'Вы всё равно останетесь в плюсе — просто меньшем, чем могли бы.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'Примерно 4 дня из 5 результат попадёт в этот диапазон — это вероятный диапазон, а не гарантия.',
     // 'What this save will change' — shown before a backfill/import
@@ -6227,6 +6275,12 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    toolboxApproximateNote: 'Il s\'agit d\'un plan très proche, pas d\'un optimum démontré : votre budget est assez élevé pour qu\'Ope travaille en montants arrondis afin de répondre immédiatement.',
+    toolboxInvertedWarning: 'Vérifiez {names} : le meilleur cas doit être le plus grand des trois nombres et le pire cas le plus petit. Saisis dans ce sens, les résultats sortiraient à l\'envers.',
+    toolboxStarterLogSales: 'Saisir les ventes d\'hier',
+    toolboxStarterOrdering: 'Vérifier les recommandations de commande de la semaine',
+    toolboxStarterOutliers: 'Passer en revue les alertes de journées inhabituelles',
+    toolboxStillProfitNote: 'Vous seriez tout de même gagnant ici — simplement moins que vous auriez pu l\'être.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: "Environ 4 jours sur 5 se situeront dans cette fourchette — c'est une fourchette probable, pas une promesse.",
     // 'What this save will change' — shown before a backfill/import
@@ -7305,6 +7359,12 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    toolboxApproximateNote: 'এটি খুব কাছাকাছি একটি পরিকল্পনা, প্রমাণিত সেরা নয় — আপনার বাজেট যথেষ্ট বড় বলে Ope সঙ্গে সঙ্গে উত্তর দিতে গোল অঙ্কে হিসাব করেছে।',
+    toolboxInvertedWarning: '{names} দেখুন: সেরা অবস্থা তিনটির মধ্যে সবচেয়ে বড় এবং সবচেয়ে খারাপ অবস্থা সবচেয়ে ছোট হওয়া উচিত। এভাবে দিলে উত্তরগুলো উল্টো আসবে।',
+    toolboxStarterLogSales: 'গতকালের বিক্রি নথিভুক্ত করুন',
+    toolboxStarterOrdering: 'এই সপ্তাহের অর্ডার সুপারিশগুলো দেখুন',
+    toolboxStarterOutliers: 'অস্বাভাবিক দিনের নতুন সতর্কতাগুলো দেখুন',
+    toolboxStillProfitNote: 'এখানেও আপনি লাভেই থাকবেন — শুধু যতটা হতে পারত ততটা নয়।',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'প্রতি ৫ দিনের মধ্যে প্রায় ৪ দিন ফল এই সীমার মধ্যেই থাকবে — এটি সম্ভাব্য পরিসর, প্রতিশ্রুতি নয়।',
     // 'What this save will change' — shown before a backfill/import
@@ -8383,6 +8443,12 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    toolboxApproximateNote: 'یہ بہت قریبی منصوبہ ہے، ثابت شدہ بہترین نہیں — آپ کا بجٹ اتنا بڑا ہے کہ Ope نے فوراً جواب دینے کے لیے گول رقوم میں حساب کیا۔',
+    toolboxInvertedWarning: '{names} دیکھیں: بہترین صورت تینوں میں سب سے بڑی اور بدترین صورت سب سے چھوٹی ہونی چاہیے۔ اس طرح بھرنے پر جوابات الٹے آئیں گے۔',
+    toolboxStarterLogSales: 'کل کی فروخت درج کریں',
+    toolboxStarterOrdering: 'اس ہفتے کی آرڈر تجاویز دیکھیں',
+    toolboxStarterOutliers: 'غیر معمولی دنوں کی نئی اطلاعات دیکھیں',
+    toolboxStillProfitNote: 'یہاں بھی آپ فائدے میں ہی رہیں گے — بس اتنا نہیں جتنا ہو سکتا تھا۔',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'ہر 5 میں سے تقریباً 4 دن نتیجہ اسی حد میں رہے گا — یہ ممکنہ حد ہے، وعدہ نہیں۔',
     // 'What this save will change' — shown before a backfill/import
@@ -9461,6 +9527,12 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    toolboxApproximateNote: 'Ini rencana yang sangat mendekati, bukan yang terbukti terbaik — anggaran Anda cukup besar sehingga Ope menghitung dengan angka bulat agar bisa langsung menjawab.',
+    toolboxInvertedWarning: 'Periksa {names}: kasus terbaik harus angka tertinggi dari ketiganya dan kasus terburuk yang terendah. Dengan pengisian seperti ini, jawabannya akan terbalik.',
+    toolboxStarterLogSales: 'Catat penjualan kemarin',
+    toolboxStarterOrdering: 'Periksa rekomendasi pemesanan minggu ini',
+    toolboxStarterOutliers: 'Tinjau peringatan hari tak biasa yang baru',
+    toolboxStillProfitNote: 'Anda tetap untung di sini — hanya tidak sebesar yang seharusnya bisa.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'Sekitar 4 dari 5 hari akan berada di rentang ini — ini rentang yang mungkin, bukan janji.',
     // 'What this save will change' — shown before a backfill/import
@@ -10539,6 +10611,12 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    toolboxApproximateNote: 'Das ist ein sehr naher, kein nachweislich bester Plan — Ihr Budget ist groß genug, dass Ope mit gerundeten Beträgen gerechnet hat, um sofort zu antworten.',
+    toolboxInvertedWarning: 'Prüfen Sie {names}: Der beste Fall sollte die höchste der drei Zahlen sein und der schlechteste die niedrigste. So eingetragen kämen die Antworten verkehrt herum heraus.',
+    toolboxStarterLogSales: 'Gestrige Verkäufe erfassen',
+    toolboxStarterOrdering: 'Bestellempfehlungen dieser Woche prüfen',
+    toolboxStarterOutliers: 'Neue Hinweise zu ungewöhnlichen Tagen ansehen',
+    toolboxStillProfitNote: 'Sie stünden hier immer noch im Plus — nur weniger, als möglich gewesen wäre.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: 'An etwa 4 von 5 Tagen liegt das Ergebnis in dieser Spanne — eine wahrscheinliche Spanne, keine Zusage.',
     // 'What this save will change' — shown before a backfill/import
@@ -11617,6 +11695,12 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    toolboxApproximateNote: 'これは最適と証明された案ではなく、非常に近い案です。予算が大きいため、Ope はすぐに答えられるよう丸めた金額で計算しました。',
+    toolboxInvertedWarning: '{names} をご確認ください。最良のケースは 3 つの数値のうち最も大きく、最悪のケースは最も小さい必要があります。今の入力では答えが逆になります。',
+    toolboxStarterLogSales: '昨日の売上を記録する',
+    toolboxStarterOrdering: '今週の発注のおすすめを確認する',
+    toolboxStarterOutliers: 'いつもと違う日の新しいお知らせを確認する',
+    toolboxStillProfitNote: 'この場合でも黒字にはなります — ただし本来より少なくなります。',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: '5日のうち約4日はこの範囲に収まります。あくまで目安の範囲で、確約ではありません。',
     // 'What this save will change' — shown before a backfill/import
@@ -12695,6 +12779,12 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    toolboxApproximateNote: 'Bu, kanıtlanmış en iyi plan değil çok yakın bir plan — bütçeniz yeterince büyük olduğu için Ope hemen yanıt verebilmek adına yuvarlak tutarlarla hesapladı.',
+    toolboxInvertedWarning: '{names} kontrol edin: en iyi durum üç sayının en yükseği, en kötü durum ise en düşüğü olmalı. Bu şekilde girildiğinde cevaplar ters çıkar.',
+    toolboxStarterLogSales: 'Dünkü satışları kaydet',
+    toolboxStarterOrdering: 'Bu haftanın sipariş önerilerini kontrol et',
+    toolboxStarterOutliers: 'Olağan dışı günlerle ilgili yeni uyarıları gözden geçir',
+    toolboxStillProfitNote: 'Burada yine de kârda olursunuz — sadece olabileceğinizden az.',
     // What the forecast range actually means (80% coverage)
     rangeMeaningNote: "Her 5 günün yaklaşık 4'ünde sonuç bu aralıkta olur — olası bir aralık, garanti değil.",
     // 'What this save will change' — shown before a backfill/import
