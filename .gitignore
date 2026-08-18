@@ -34,3 +34,8 @@ docs/simulation/year_run.log
 docs/simulation/run_*.log
 docs/simulation/year_state_*.json
 docs/simulation/score_*.txt
+
+# Local env for the mobile build (mirrors web/.env). The EXPO_PUBLIC_ values are
+# public by design — they ship inside the app bundle — but the file still has no
+# business in git.
+mobile/.env
