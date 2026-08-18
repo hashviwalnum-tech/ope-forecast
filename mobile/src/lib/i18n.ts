@@ -9,6 +9,8 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    tourManageCurrencyTitle: 'Your currency',
+    tourManageCurrencyBody: 'In Settings, pick the currency your business works in. Every amount Ope shows you uses it — prices, what your regulars spend, what an ad cost.',
     currencyLabel: 'Currency',
     currencySettingsDesc: 'Every amount in Ope — prices, what your regulars spend, what an ad cost — is shown in this currency.',
     currencyChoosePlaceholder: 'Choose a currency…',
@@ -451,6 +453,8 @@ export const translations = {
     feedbackMessageRequired: 'Please enter a message.',
   },
   he: {
+    tourManageCurrencyTitle: 'המטבע שלך',
+    tourManageCurrencyBody: 'בהגדרות, בחר את המטבע שבו העסק שלך עובד. כל סכום ש-Ope מציג לך משתמש בו — מחירים, כמה הלקוחות הקבועים מוציאים, כמה עלתה פרסומת.',
     currencyLabel: 'מטבע',
     currencySettingsDesc: 'כל סכום ב-Ope — מחירים, כמה הלקוחות הקבועים מוציאים, כמה עלתה פרסומת — מוצג במטבע הזה.',
     currencyChoosePlaceholder: 'בחר מטבע…',
@@ -890,6 +894,8 @@ export const translations = {
     feedbackMessageRequired: 'אנא הכנס הודעה.',
   },
   zh: {
+    tourManageCurrencyTitle: '您的货币',
+    tourManageCurrencyBody: '在“设置”中选择您的生意使用的货币。Ope 显示的每一笔金额都会使用它 — 价格、常客消费、广告花费。',
     currencyLabel: '货币',
     currencySettingsDesc: 'Ope 中的所有金额 — 价格、常客消费、广告花费 — 都以此货币显示。',
     currencyChoosePlaceholder: '选择货币…',
@@ -1125,6 +1131,8 @@ export const translations = {
     simpleModePromptOn: '开启', simpleModePromptDismiss: '暂不',
   },
   es: {
+    tourManageCurrencyTitle: 'Tu moneda',
+    tourManageCurrencyBody: 'En Ajustes, elige la moneda en la que trabaja tu negocio. Todos los importes que te muestra Ope la usan — precios, lo que gastan tus clientes habituales, lo que costó un anuncio.',
     currencyLabel: 'Moneda',
     currencySettingsDesc: 'Todos los importes en Ope — precios, lo que gastan tus clientes habituales, lo que costó un anuncio — se muestran en esta moneda.',
     currencyChoosePlaceholder: 'Elige una moneda…',

@@ -83,9 +83,11 @@ const SECTIONS: TourSection[] = [
     steps: [
       { titleKey: 'tourSettingsGearTitle',       bodyKey: 'tourSettingsGearBody',       navigateTo: 'home',     target: '[data-tour="settings-gear"]' },
       { titleKey: 'tourSettingsScheduleTitle',   bodyKey: 'tourSettingsScheduleBody',   navigateTo: 'settings', target: '[data-tour="settings-schedule"]' },
+      { titleKey: 'tourSettingsCurrencyTitle',   bodyKey: 'tourSettingsCurrencyBody',   navigateTo: 'settings', target: '[data-tour="settings-currency"]' },
       { titleKey: 'tourSettingsStaffingTitle',   bodyKey: 'tourSettingsStaffingBody',   navigateTo: 'settings', target: '[data-tour="settings-staffing"]' },
       { titleKey: 'tourSettingsStockNudgesTitle', bodyKey: 'tourSettingsStockNudgesBody', navigateTo: 'settings', target: '[data-tour="settings-stock"]' },
       { titleKey: 'tourSettingsNudgesTitle',      bodyKey: 'tourSettingsNudgesBody',      navigateTo: 'settings', target: '[data-tour="settings-nudges"]' },
+      { titleKey: 'tourSettingsAppointmentsTitle', bodyKey: 'tourSettingsAppointmentsBody', navigateTo: 'settings', target: '[data-tour="settings-appointments"]' },
       { titleKey: 'tourSettingsAppearanceTitle',  bodyKey: 'tourSettingsAppearanceBody',  navigateTo: 'settings', target: '[data-tour="settings-appearance"]', interactive: true },
       { titleKey: 'tourSettingsPlanTitle',       bodyKey: 'tourSettingsPlanBody',       navigateTo: 'settings', target: '[data-tour="settings-plan"]' },
       { titleKey: 'tourSettingsTelegramTitle',   bodyKey: 'tourSettingsTelegramBody',   navigateTo: 'settings', target: '[data-tour="settings-telegram"]' },
