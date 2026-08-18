@@ -9,6 +9,7 @@ import PredictionsPanel from './PredictionsPanel'
 import TapSellPanel from './TapSellPanel'
 import TrendsView from './TrendsView'
 import { businesses as businessesApi, dayRecords as dayRecordsApi, products as productsApi, regulars as regularsApi, saleEvents } from '../api/client'
+import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { RegularRead } from '../api/types'
 import type { TranslationKey } from '../i18n'
@@ -48,6 +49,7 @@ export function saveLayout(cards: CardConfig[]) {
 
 function RecordRegularPanel({ onDone }: { onDone: () => void }) {
   const { t } = useLanguage()
+  const { symbol, step, amount } = useCurrency()
   const [rows, setRows]             = useState<RegularRead[]>([])
   const [loading, setLoading]       = useState(true)
   const [recording, setRecording]   = useState<number | null>(null)
@@ -105,7 +107,7 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200 flex-1 min-w-0">{r.name}</span>
             {r.today_amount != null && (
               <span className="text-xs text-teal-600 dark:text-teal-400 font-medium shrink-0">
-                {t('todayLoggedLabel', { amount: String(r.today_amount.toFixed(2)) })}
+                {t('todayLoggedLabel', { amount: amount(r.today_amount) })}
               </span>
             )}
           </div>
@@ -114,11 +116,14 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
               {r.today_amount != null ? t('updateTodaysTotalLabel') : t('recordVisitAmountLabel')}
             </span>
             <div className="flex items-center gap-1">
-              <span className="text-xs text-slate-400 dark:text-slate-500">$</span>
+              {/* The mark and the step both follow the business's currency:
+                  a fixed 0.5 step is meaningless for a currency with no
+                  subunit, and "$" was simply wrong for most owners. */}
+              <span className="text-xs text-slate-400 dark:text-slate-500">{symbol}</span>
               <input
                 type="number"
                 min="0"
-                step="0.5"
+                step={step}
                 value={amounts[r.id] ?? r.avg_spend}
                 onChange={e => setAmounts(a => ({ ...a, [r.id]: e.target.value }))}
                 className="w-20 text-sm px-2 py-1.5 border border-slate-200 dark:border-slate-600

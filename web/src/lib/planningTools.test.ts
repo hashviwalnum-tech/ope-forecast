@@ -20,11 +20,18 @@ const close = (a: number, b: number, msg?: string) =>
 // ── reading numbers out of text fields ─────────────────────────────────────
 
 test('currency symbols and spaces are ignored, negatives are kept', () => {
-  close(num('€1,50'.replace(',', '.')), 1.5)
+  close(num('€1.50'), 1.5)
   close(num('  42 '), 42)
   close(num('-50'), -50)          // a worst case can be a loss
   close(num(''), 0)
   close(num('abc'), 0)
+})
+
+test('a pasted comma decimal is not silently multiplied by a hundred', () => {
+  // The old version stripped the comma, so "12,50" became 1250 in a price field.
+  close(num('12,50'), 12.5)
+  close(num('0,5'), 0.5)
+  close(num('€12,50'), 12.5)
 })
 
 // ── decision under uncertainty ─────────────────────────────────────────────

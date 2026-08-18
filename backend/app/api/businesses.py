@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.api.deps import get_business, get_current_user, get_tier, require_admin_key, resolve_tier
+from app.engine import currency as currency_engine
 from app.engine.limits import FREE, PREMIUM, Tier
 from app.db import get_db
 from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord, ServiceBookedCount
@@ -51,6 +52,25 @@ class BusinessSettingsUpdate(BaseModel):
     nudges_enabled: bool | None = None             # enable/disable all proactive nudges (Telegram + in-app)
     nudge_frequency_hours: int | None = Field(None, ge=1, le=168)  # min hours between Telegram nudges
     appointment_based: bool | None = None           # owner takes appointments — blend booked counts into the forecast
+    currency: str | None = None                     # ISO 4217 code, e.g. "ILS" — every money figure is shown in this
+
+    @field_validator("currency")
+    @classmethod
+    def _known_currency(cls, v: str | None) -> str | None:
+        """Store only codes the app can actually format.
+
+        Rejected rather than silently defaulted: a business saving "SHEKEL" and
+        being shown dollars without a word is exactly the kind of quiet wrongness
+        that makes an owner distrust every other number on the screen.
+        """
+        if v is None:
+            return None
+        code = currency_engine.normalise(v)
+        if not currency_engine.is_supported(code):
+            raise ValueError(
+                f"{v!r} is not a currency Ope knows. Pick one from GET /currencies."
+            )
+        return code
 
 
 @router.get("", response_model=list[BusinessRead])

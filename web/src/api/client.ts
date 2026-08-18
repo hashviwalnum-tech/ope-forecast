@@ -4,6 +4,7 @@ import type {
   BookedCountRead,
   BusinessRead,
   CheckoutResponse,
+  CurrencyListResponse,
   SubscriptionRead,
   TelegramLinkCodeResponse,
   TelegramLinkStatus,
@@ -168,6 +169,12 @@ async function PATCH<T>(path: string, body: unknown): Promise<T> {
   return res.json()
 }
 
+/** The ISO 4217 list the currency pickers are built from. Static and public,
+ *  so it needs no auth and can be fetched before a business exists. */
+export const currencies = {
+  list: () => GET<CurrencyListResponse>('/currencies'),
+}
+
 export const businesses = {
   list:   ()             => GET<BusinessRead[]>('/businesses'),
   me:     ()             => GET<BusinessRead>('/businesses/me'),
@@ -186,6 +193,8 @@ export const businesses = {
     nudges_enabled?: boolean
     nudge_frequency_hours?: number
     appointment_based?: boolean
+    /** ISO 4217 code, e.g. "ILS". Rejected by the API if it is not a real one. */
+    currency?: string
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
   setTier: (tier: 'free' | 'premium') => PATCH<BusinessRead>('/businesses/me/tier', { tier }),
   delete: (id: number) => DELETE(`/businesses/${id}`),

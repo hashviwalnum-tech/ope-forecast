@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { ProductRead } from '../../api/types'
+import { useCurrency } from '../../contexts/CurrencyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import type { Theme } from '../../lib/theme'
 
@@ -30,6 +31,7 @@ const EMPTY_FORM = {
 }
 
 export default function ProductsModal({ onClose }: Props) {
+  const { symbol, parseNumber } = useCurrency()
   const c = useTheme()
   const styles = useMemo(() => makeStyles(c), [c])
 
@@ -107,7 +109,9 @@ export default function ProductsModal({ onClose }: Props) {
         unit: form.unit.trim(),
         unit_mode: form.unitMode,
         lead_time_days: lt,
-        ...(form.price ? { price: parseFloat(form.price) } : {}),
+        // Read in the owner's language: parseFloat only understands a dot,
+        // so "3,50" typed on a comma-decimal keyboard became 350.
+        ...(form.price ? { price: parseNumber(form.price) ?? undefined } : {}),
         ...(form.stock ? { current_stock: parseFloat(form.stock) } : {}),
         ...(form.serviceTime ? { service_time_minutes: parseFloat(form.serviceTime) } : {}),
         ...(form.capacity ? { storage_capacity: parseFloat(form.capacity) } : {}),
@@ -263,7 +267,7 @@ export default function ProductsModal({ onClose }: Props) {
 
               {showOptional && (
                 <>
-                  <Text style={styles.fieldLabel}>Price (optional)</Text>
+                  <Text style={styles.fieldLabel}>Price ({symbol}) (optional)</Text>
                   <TextInput
                     style={styles.input}
                     value={form.price}

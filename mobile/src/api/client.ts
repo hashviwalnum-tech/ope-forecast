@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase'
 import type {
   AccuracyResponse,
   BusinessRead,
+  CurrencyListResponse,
   SubscriptionRead,
   DayRecordCreate,
   DayRecordRead,
@@ -139,6 +140,11 @@ async function DEL(path: string): Promise<void> {
   if (!res.ok) throw new Error(await extractError(res))
 }
 
+/** The ISO 4217 list the currency picker is built from. Static and public. */
+export const currencies = {
+  list: () => GET<CurrencyListResponse>('/currencies'),
+}
+
 export const businesses = {
   list: () => GET<BusinessRead[]>('/businesses'),
   create: (name: string) => POST<BusinessRead>('/businesses', { name }),
@@ -153,6 +159,8 @@ export const businesses = {
     stock_management_enabled?: boolean
     assume_orders_arrive_on_time?: boolean
     nudges_enabled?: boolean
+    /** ISO 4217 code, e.g. "ILS". Rejected by the API if it is not a real one. */
+    currency?: string
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
   setTier: (tier: 'free' | 'premium') =>
     PATCH<BusinessRead>('/businesses/me/tier', { tier }),

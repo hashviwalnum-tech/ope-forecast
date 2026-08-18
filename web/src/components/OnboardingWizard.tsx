@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { businesses } from '../api/client'
+import CurrencyPicker from './CurrencyPicker'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { TranslationKey } from '../i18n'
 
@@ -39,6 +40,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
   const [openDays, setOpenDays] = useState<number[]>([])
   const [openHour, setOpenHour] = useState(9)
   const [closeHour, setCloseHour] = useState(22)
+  const [currency, setCurrency] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -51,6 +53,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
       if (Array.isArray(s.opening_days)) setOpenDays(s.opening_days as number[])
       if (typeof s.opening_hour === 'number') setOpenHour(s.opening_hour)
       if (typeof s.closing_hour === 'number') setCloseHour(s.closing_hour)
+      if (typeof s.currency === 'string') setCurrency(s.currency)
     }).catch(() => {})
   }, [])
 
@@ -66,7 +69,14 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
     setSaving(true)
     setSaveError(null)
     try {
-      await businesses.updateSettings({ opening_days: openDays, opening_hour: openHour, closing_hour: closeHour })
+      await businesses.updateSettings({
+        opening_days: openDays,
+        opening_hour: openHour,
+        closing_hour: closeHour,
+        // Only sent once the owner has confirmed one. Left unset, the app
+        // falls back for display but never records a currency they did not pick.
+        ...(currency ? { currency } : {}),
+      })
       setStep(2)
     } catch {
       setSaveError(t('settingsSaveError'))
@@ -168,6 +178,27 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
                 {HOURS.map(h => <option key={h} value={h}>{hourLabel(h, amLabel, pmLabel)}</option>)}
               </select>
             </div>
+          </div>
+
+          {/* Currency sits with the other basics rather than becoming a fourth
+              step: it is pre-filled from the browser's region, so for most
+              owners it is a glance rather than a decision. */}
+          <div className="mt-6 mb-6">
+            <label
+              htmlFor="onboarding-currency"
+              className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2"
+            >
+              {t('currencyLabel')}
+            </label>
+            <CurrencyPicker
+              id="onboarding-currency"
+              value={currency}
+              onChange={setCurrency}
+              suggestOnLoad
+            />
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 leading-relaxed">
+              {t('currencyOnboardingHelp')}
+            </p>
           </div>
 
           {saveError && <p className="text-sm text-rose-600 dark:text-rose-400 mb-4">{saveError}</p>}

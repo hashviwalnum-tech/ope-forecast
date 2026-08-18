@@ -14,6 +14,7 @@ import { BusinessProvider } from './src/contexts/BusinessContext'
 import { LanguageProvider } from './src/contexts/LanguageContext'
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext'
 import { SettingsProvider } from './src/contexts/SettingsContext'
+import { CurrencyProvider } from './src/contexts/CurrencyContext'
 
 function AppRoot() {
   const c = useTheme()
@@ -45,9 +46,12 @@ function AppRoot() {
       <StatusBar style="auto" />
       {session ? (
         <BusinessProvider>
-          <SettingsProvider>
-            <AppNavigator />
-          </SettingsProvider>
+          {/* Inside BusinessProvider: the currency comes from the business. */}
+          <CurrencyProvider>
+            <SettingsProvider>
+              <AppNavigator />
+            </SettingsProvider>
+          </CurrencyProvider>
         </BusinessProvider>
       ) : (
         <LoginScreen />

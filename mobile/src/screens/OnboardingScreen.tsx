@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../api/client'
 import type { BusinessRead } from '../api/types'
+import CurrencyPicker from '../components/CurrencyPicker'
 import { useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { Theme } from '../lib/theme'
@@ -37,6 +38,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [currency, setCurrency] = useState('')
 
   // Step 1: business name
   const [name, setName] = useState('')
@@ -94,6 +96,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
         opening_days: openDays,
         opening_hour: openHour,
         closing_hour: closeHour,
+        // Only sent once confirmed — never store a currency the owner did not pick.
+        ...(currency ? { currency } : {}),
       })
     } catch {
       // Hours save failed — continue anyway, user can fix in Settings
@@ -267,6 +271,14 @@ export default function OnboardingScreen({ onComplete }: Props) {
               <Text style={[styles.errorText, { color: c.danger }]}>{hoursError}</Text>
             )}
 
+            {/* Currency — pre-filled from the device, so for most owners this
+                is a glance rather than a decision. */}
+            <Text style={[styles.fieldLabel, { color: c.text }]}>{t('currencyLabel')}</Text>
+            <CurrencyPicker value={currency} onChange={setCurrency} suggestOnLoad />
+            <Text style={[styles.fieldHint, { color: c.textMuted }]}>
+              {t('currencyOnboardingHelp')}
+            </Text>
+
             {/* Forecast note */}
             <View style={[styles.noteBanner, { backgroundColor: c.primaryBg }]}>
               <Ionicons name="bulb-outline" size={16} color={c.primaryDark} />
@@ -389,6 +401,7 @@ function makeStyles(c: Theme) {
       flexDirection: 'row', gap: 8, alignItems: 'flex-start',
     },
     noteText: { flex: 1, fontSize: 13, lineHeight: 19 },
+    fieldHint: { fontSize: 12, lineHeight: 17, marginTop: 6, marginBottom: 4 },
 
     primaryBtn: {
       borderRadius: 14, paddingVertical: 15,

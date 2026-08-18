@@ -9,6 +9,11 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    currencyLabel: 'Currency',
+    currencySettingsDesc: 'Every amount in Ope — prices, what your regulars spend, what an ad cost — is shown in this currency.',
+    currencyChoosePlaceholder: 'Choose a currency…',
+    currencyLoadFailed: 'Could not load the list of currencies. Check your connection and open this screen again.',
+    currencyOnboardingHelp: 'We have guessed this from your device — change it if it is not right. You can change it later in settings at any time.',
     rangeMeaningNote: "Expect to land in this range about 4 days out of 5 — it's a likely range, not a promise.",
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Still learning',
@@ -446,6 +451,11 @@ export const translations = {
     feedbackMessageRequired: 'Please enter a message.',
   },
   he: {
+    currencyLabel: 'מטבע',
+    currencySettingsDesc: 'כל סכום ב-Ope — מחירים, כמה הלקוחות הקבועים מוציאים, כמה עלתה פרסומת — מוצג במטבע הזה.',
+    currencyChoosePlaceholder: 'בחר מטבע…',
+    currencyLoadFailed: 'לא הצלחנו לטעון את רשימת המטבעות. בדוק את החיבור ופתח את המסך שוב.',
+    currencyOnboardingHelp: 'ניחשנו לפי המכשיר שלך — שנה אם זה לא נכון. תמיד אפשר לשנות מאוחר יותר בהגדרות.',
     rangeMeaningNote: 'ברוב הימים — בערך 4 מתוך 5 — התוצאה תיפול בטווח הזה. זה טווח סביר, לא הבטחה.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'עדיין לומדים',
@@ -880,6 +890,11 @@ export const translations = {
     feedbackMessageRequired: 'אנא הכנס הודעה.',
   },
   zh: {
+    currencyLabel: '货币',
+    currencySettingsDesc: 'Ope 中的所有金额 — 价格、常客消费、广告花费 — 都以此货币显示。',
+    currencyChoosePlaceholder: '选择货币…',
+    currencyLoadFailed: '无法加载货币列表。请检查网络连接后重新打开此页面。',
+    currencyOnboardingHelp: '我们根据您的设备做了推测 — 如不正确请更改。您随时可以在设置中修改。',
     rangeMeaningNote: '大约每 5 天有 4 天会落在这个范围内——这是可能范围，不是保证。',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: '仍在学习中',
@@ -1110,6 +1125,11 @@ export const translations = {
     simpleModePromptOn: '开启', simpleModePromptDismiss: '暂不',
   },
   es: {
+    currencyLabel: 'Moneda',
+    currencySettingsDesc: 'Todos los importes en Ope — precios, lo que gastan tus clientes habituales, lo que costó un anuncio — se muestran en esta moneda.',
+    currencyChoosePlaceholder: 'Elige una moneda…',
+    currencyLoadFailed: 'No se pudo cargar la lista de monedas. Comprueba tu conexión y vuelve a abrir esta pantalla.',
+    currencyOnboardingHelp: 'Lo hemos deducido de tu dispositivo — cámbialo si no es correcto. Siempre puedes cambiarlo después en ajustes.',
     rangeMeaningNote: 'Espera caer en este rango unos 4 días de cada 5: es un rango probable, no una promesa.',
     // Early 'still learning' forecast (first two weeks)
     learningTitle: 'Todavía aprendiendo',

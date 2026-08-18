@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import CurrencyPicker from './CurrencyPicker'
 import { businesses, nudges as nudgesApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
@@ -24,6 +25,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
   const [thresholdType,   setThresholdType]   = useState<'wait' | 'queue' | 'none'>('none')
   const [maxWaitMinutes,  setMaxWaitMinutes]  = useState<number>(5)
   const [maxQueueLength,  setMaxQueueLength]  = useState<number>(3)
+  const [currency,        setCurrency]        = useState('')
   const [saving,          setSaving]          = useState(false)
   const [feedback,        setFeedback]        = useState<{ ok: boolean; msg: string } | null>(null)
 
@@ -73,6 +75,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       if (typeof s.nudge_frequency_hours === 'number') {
         setNudgeFreqHours(s.nudge_frequency_hours)
       }
+      if (typeof s.currency === 'string') setCurrency(s.currency)
       setCurrentTier(biz.tier ?? 'free')
     }).catch(() => {})
   }, [])
@@ -122,6 +125,8 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         nudges_enabled: nudgesEnabled,
         nudge_frequency_hours: nudgeFreqHours,
         appointment_based: appointmentBased,
+        // Only sent once chosen — never store a currency the owner did not pick.
+        ...(currency ? { currency } : {}),
       })
       setFeedback({ ok: true, msg: t('settingsSavedOk') })
     } catch {
@@ -201,6 +206,20 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       </div>
 
       </div>{/* end settings-schedule */}
+
+      {/* Currency — every money figure in Ope is shown in this */}
+      <div data-tour="settings-currency">
+        <label
+          htmlFor="settings-currency"
+          className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+        >
+          {t('currencyLabel')}
+        </label>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">
+          {t('currencySettingsDesc')}
+        </p>
+        <CurrencyPicker id="settings-currency" value={currency} onChange={setCurrency} />
+      </div>
 
       {/* Average service time + staffing — grouped for tour targeting */}
       <div data-tour="settings-staffing">

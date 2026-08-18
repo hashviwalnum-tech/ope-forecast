@@ -23,6 +23,7 @@ import RegularsPanel from './components/RegularsPanel'
 import ProductStatusPanel from './components/ProductStatusPanel'
 import PremiumPage from './components/PremiumPage'
 import { useAuth } from './contexts/AuthContext'
+import { CurrencyProvider } from './contexts/CurrencyContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
 import { LANG_LABELS, type Lang } from './i18n'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
@@ -320,6 +321,12 @@ function AppInner() {
   // ── Main app ──────────────────────────────────────────────────────────────
 
   return (
+    /* Every money figure below is shown in THIS business's currency. It has to
+       wrap the whole tree rather than be passed down, because money appears on
+       the regulars screen, the products form, the events panel and the planning
+       toolbox — and an owner with two locations in different currencies must
+       see each one's own. */
+    <CurrencyProvider currency={activeBusiness.settings?.currency as string | undefined}>
     <div className="min-h-screen bg-teal-50 dark:bg-slate-900" dir={dir}>
 
       {/* ── Header ──────────────────────────────────────────────────── */}
@@ -665,6 +672,7 @@ function AppInner() {
       )}
 
     </div>
+    </CurrencyProvider>
   )
 }
 

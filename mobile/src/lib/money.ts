@@ -18,6 +18,15 @@
 //
 // The LANGUAGE comes from the owner's choice in Ope, not `navigator.language`:
 // an owner who switched Ope to English was still reading Hebrew-marked numbers.
+//
+// MOBILE COPY. Kept in step with web/src/lib/money.ts by hand — the two apps
+// have no shared package yet (spec §4 leaves that as "where practical").
+//
+// Every function here already falls back rather than throwing, which matters
+// more on a phone than in a browser: React Native's Hermes engine ships a
+// reduced Intl, and on some Android builds `style: 'currency'` or a given
+// locale may be unavailable. When that happens these degrade to a readable
+// "USD 12.50" instead of blanking the screen.
 
 /** Used only when a business has not chosen yet. Never assumed to be right. */
 export const FALLBACK_CURRENCY = 'USD'

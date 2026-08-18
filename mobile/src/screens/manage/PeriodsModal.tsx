@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { PeriodCreate, PeriodRead, ProductRead } from '../../api/types'
+import { useCurrency } from '../../contexts/CurrencyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Theme } from '../../lib/theme'
@@ -33,6 +34,7 @@ function isValidDate(s: string): boolean {
 }
 
 export default function PeriodsModal({ onClose }: Props) {
+  const { symbol, parseNumber } = useCurrency()
   const c = useTheme()
   const { t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
@@ -91,7 +93,7 @@ export default function PeriodsModal({ onClose }: Props) {
     if (!isValidDate(endDate)) { setSaveError('Enter a valid end date (YYYY-MM-DD).'); return }
     if (endDate < startDate) { setSaveError('End date must be on or after start date.'); return }
 
-    const costNum = cost.trim() ? parseFloat(cost) : undefined
+    const costNum = cost.trim() ? (parseNumber(cost) ?? NaN) : undefined
     if (costNum !== undefined && (isNaN(costNum) || costNum < 0)) {
       setSaveError('Cost must be a positive number.'); return
     }
@@ -244,7 +246,7 @@ export default function PeriodsModal({ onClose }: Props) {
                 autoCorrect={false}
               />
 
-              <Text style={styles.fieldLabel}>{t('costOptional')}</Text>
+              <Text style={styles.fieldLabel}>{t('costOptional')} ({symbol})</Text>
               <TextInput
                 style={styles.input}
                 value={cost}

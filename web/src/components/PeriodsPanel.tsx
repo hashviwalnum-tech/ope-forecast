@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { analytics, periods as periodsApi, products as productsApi } from '../api/client'
+import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { LiftResponse, PeriodLift, PeriodRead, ProductRead } from '../api/types'
 
@@ -40,6 +41,7 @@ function TypeBadge({ type }: { type: string }) {
 
 function LiftCard({ lift }: { lift: PeriodLift }) {
   const { t } = useLanguage()
+  const { amount } = useCurrency()
   const positive = lift.total_lift_customers >= 0
   const liftColor = positive ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'
   const liftBg    = positive
@@ -72,9 +74,7 @@ function LiftCard({ lift }: { lift: PeriodLift }) {
         {lift.lift_per_cost != null && (
           <Stat
             label={t('periodExtraPerUnit')}
-            value={lift.lift_per_cost >= 0
-              ? `+${lift.lift_per_cost.toFixed(2)}`
-              : lift.lift_per_cost.toFixed(2)}
+            value={`${lift.lift_per_cost >= 0 ? '+' : '−'}${amount(Math.abs(lift.lift_per_cost))}`}
           />
         )}
       </div>
@@ -110,6 +110,7 @@ const EMPTY: FormState = { label: '', type: 'event', start_date: '', end_date: '
 
 function CreateForm({ onCreated }: { onCreated: () => void }) {
   const { t } = useLanguage()
+  const { step, symbol } = useCurrency()
   const [form, setForm] = useState<FormState>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -199,12 +200,12 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
         {/* Cost */}
         <div>
           <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            {t('periodsCostLabel')} <span className="text-slate-400 dark:text-slate-500 font-normal">{t('periodsCostNote')}</span>
+            {t('periodsCostLabel')} <span className="text-slate-400 dark:text-slate-500 font-normal">({symbol}) {t('periodsCostNote')}</span>
           </label>
           <input
             type="number"
             min="0"
-            step="any"
+            step={step}
             placeholder={`${t('egPrefix')} 200`}
             value={form.cost}
             onChange={e => set('cost', e.target.value)}

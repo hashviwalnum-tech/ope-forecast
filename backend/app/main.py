@@ -31,6 +31,7 @@ from app.api import feedback as feedback_api
 from app.api import nudges as nudges_api
 from app.api import dev_catchup as dev_catchup_api
 from app.api import subscriptions as subscriptions_api
+from app.api import currencies as currencies_api
 
 
 def _migrate_sqlite_products(eng) -> None:
@@ -266,6 +267,7 @@ app.include_router(nudges_api.router)
 app.include_router(dev_catchup_api.router)
 app.include_router(subscriptions_api.router)
 app.include_router(booked_counts.router)
+app.include_router(currencies_api.router)
 
 
 @app.get("/health", tags=["Health"])

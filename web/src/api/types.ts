@@ -100,6 +100,20 @@ export interface RegularUpdate {
   first_visit_date?: string | null
 }
 
+export interface CurrencyRead {
+  code: string
+  /** English name; clients localise from the code where the runtime can. */
+  name: string
+  /** Decimal places this currency uses: JPY 0, USD 2, KWD 3. */
+  minor_units: number
+}
+
+export interface CurrencyListResponse {
+  currencies: CurrencyRead[]
+  /** Suggested when the locale gives nothing — never applied on its own. */
+  default: string
+}
+
 export interface BusinessRead {
   id: number
   name: string

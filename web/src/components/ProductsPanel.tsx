@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { products as productsApi } from '../api/client'
+import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { ProductRead, ServiceConsumableCreate, ServiceConsumableRead } from '../api/types'
 
@@ -250,6 +251,7 @@ const EMPTY_ADD: AddForm = {
 
 function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]; onCreated: () => void }) {
   const { t } = useLanguage()
+  const { symbol, step } = useCurrency()
   const [form, setForm]       = useState<AddForm>(EMPTY_ADD)
   const [showMore, setShowMore] = useState(false)
   const [saving, setSaving]   = useState(false)
@@ -451,12 +453,12 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
           <div>
             <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-              {t('sellingPrice')}
+              {t('sellingPrice')} <span className="text-slate-400 dark:text-slate-500 font-normal">({symbol})</span>
             </label>
             <input
               type="number"
               min="0"
-              step="any"
+              step={step}
               placeholder={`${t('egPrefix')} 4.50`}
               value={form.price}
               onChange={e => set('price', e.target.value)}
@@ -611,6 +613,7 @@ function EditProductForm({
   onCancel: () => void
 }) {
   const { t } = useLanguage()
+  const { symbol, step } = useCurrency()
   const [form, setForm]     = useState<EditForm>(productToEditForm(product))
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState<string | null>(null)
@@ -742,11 +745,13 @@ function EditProductForm({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('sellingPrice')}</label>
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+            {t('sellingPrice')} <span className="text-slate-400 dark:text-slate-500 font-normal">({symbol})</span>
+          </label>
           <input
             type="number"
             min="0"
-            step="any"
+            step={step}
             placeholder="—"
             value={form.price}
             onChange={e => set('price', e.target.value)}

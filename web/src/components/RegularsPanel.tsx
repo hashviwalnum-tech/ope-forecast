@@ -5,19 +5,18 @@ import {
 } from 'recharts'
 import { regulars as api } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useCurrency } from '../contexts/CurrencyContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { MonthlyVisits, RegularCreate, RegularProfitabilityRead, RegularRead, RegularUpdate } from '../api/types'
 
-// Format in the language the owner PICKED in Ope, not the one their browser
-// happens to be set to.  Passing `undefined` follows the browser, so an owner
-// who had switched Ope to English still read Hebrew dates and Hebrew-marked
-// currency on the regulars screen — and vice versa.
-const fmtMoney = (v: number, lang: string) =>
-  new Intl.NumberFormat(lang, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
-
-function fmtCLV(clv: number, lang: string) {
-  return new Intl.NumberFormat(lang, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(clv)
-}
+// Dates are formatted in the language the owner PICKED in Ope, not the one
+// their browser happens to be set to.  Passing `undefined` follows the browser,
+// so an owner who had switched Ope to English still read Hebrew dates.
+//
+// Money is NOT formatted here any more.  These used to be module-level helpers
+// hardcoded to US dollars with the decimal places forced to zero, which was
+// wrong twice over: the currency belongs to the business, and the number of
+// decimal places belongs to the currency.  Both now come from useCurrency().
 
 function fmtDate(d: string | null, lang: string) {
   if (!d) return null
@@ -32,6 +31,7 @@ function liveClv(avgSpend: number, freq: number, years: number) {
 
 function ProfitabilityChart({ regularId }: { regularId: number }) {
   const { t, lang } = useLanguage()
+  const { money } = useCurrency()
   const { isDark } = useTheme()
   const [data, setData] = useState<RegularProfitabilityRead | null>(null)
   const [loading, setLoading] = useState(true)
@@ -63,8 +63,9 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
   const gridStroke = isDark ? '#334155' : '#e2e8f0'
   const barColors = ['#4e8b87', '#3a7470', '#2c5f5c']
 
-  const fmt = (v: number) =>
-    new Intl.NumberFormat(lang, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
+  // Whole units only on a chart axis — but the currency, and whether it even
+  // HAS decimal places, come from the business's setting.
+  const fmt = (v: number) => money(v)
 
   // Churn chart data — only include months that have at least one visit, OR the last 6 months to show trend
   const monthNames = [
@@ -190,6 +191,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
 
 export default function RegularsPanel() {
   const { t, lang } = useLanguage()
+  const { money, symbol, step } = useCurrency()
   const [rows, setRows]         = useState<RegularRead[]>([])
   const [loading, setLoading]   = useState(true)
   const [adding, setAdding]     = useState(false)
@@ -389,7 +391,7 @@ export default function RegularsPanel() {
           <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 px-4 py-3">
             <p className="text-xs text-teal-600 dark:text-teal-400 font-medium">
               {t('clvEstimateText', { years: String(form.expected_lifespan_years ?? 3) })}
-              <span className="text-teal-800 dark:text-teal-200 font-bold ml-1">{fmtCLV(clvPreview, lang)}</span>
+              <span className="text-teal-800 dark:text-teal-200 font-bold ml-1">{money(clvPreview)}</span>
             </p>
             <p className="text-[11px] text-teal-500 dark:text-teal-500 mt-0.5">
               {t('clvFormulaText', {
@@ -517,7 +519,7 @@ export default function RegularsPanel() {
                     <span className="font-semibold text-slate-800 dark:text-slate-100">{r.name}</span>
                     <span className="text-xs bg-teal-50 dark:bg-teal-900/40 text-teal-600 dark:text-teal-300 border border-teal-100 dark:border-teal-800
                                      rounded-full px-2 py-0.5 font-medium">
-                      CLV {fmtCLV(r.clv, lang)}
+                      CLV {money(r.clv)}
                     </span>
                   </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -556,19 +558,19 @@ export default function RegularsPanel() {
                   <div>
                     <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityThisMonth')}</span>
                     <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
-                      {fmtMoney(profMap[r.id].this_month, lang)}
+                      {money(profMap[r.id].this_month)}
                     </span>
                   </div>
                   <div>
                     <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityThisYear')}</span>
                     <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
-                      {fmtMoney(profMap[r.id].this_year, lang)}
+                      {money(profMap[r.id].this_year)}
                     </span>
                   </div>
                   <div>
                     <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityAllTime')}</span>
                     <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
-                      {fmtMoney(profMap[r.id].all_time, lang)}
+                      {money(profMap[r.id].all_time)}
                     </span>
                   </div>
                 </div>
@@ -580,11 +582,11 @@ export default function RegularsPanel() {
                   {r.today_amount != null ? t('updateTodaysTotalLabel') : t('recordVisitAmountLabel')}
                 </span>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-400 dark:text-slate-500">$</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{symbol}</span>
                   <input
                     type="number"
                     min="0"
-                    step="0.5"
+                    step={step}
                     value={visitAmounts[r.id] ?? (r.today_amount ?? r.avg_spend)}
                     onChange={e => setVisitAmounts(a => ({ ...a, [r.id]: e.target.value }))}
                     className="w-20 text-sm px-2 py-1 border border-slate-200 dark:border-slate-600 rounded-lg

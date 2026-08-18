@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
-import { currencySymbol, formatMoney, formatSignedMoney } from '../lib/money'
+import { useCurrency } from '../contexts/CurrencyContext'
 import {
   findInvertedOptions, frameOrder, num, planBudget, scoreOption,
   type BudgetItem as BudgetSpec, type Option,
@@ -246,8 +246,8 @@ function DecisionPlanner() {
 // ── Tool 2: "How does this ordering decision feel?" (Gain vs. loss framing) ───
 
 function OrderFraming() {
-  const { t, lang } = useLanguage()
-  const cur = currencySymbol(lang)
+  const { t } = useLanguage()
+  const { symbol: cur, signedMoney } = useCurrency()
   const [orderMore, setOrderMore]         = useState('')
   const [orderLess, setOrderLess]         = useState('')
   const [sellPrice, setSellPrice]         = useState('')
@@ -339,7 +339,7 @@ function OrderFraming() {
                   {t('toolboxOrderDemandStrong', { qty: String(qMore) })}
                 </p>
                 <p className="text-2xl font-bold text-emerald-700 tabular-nums">
-                  {formatSignedMoney(f.moreUpside, lang)}
+                  {signedMoney(f.moreUpside)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitAllUnits', { qty: String(qMore) })}</p>
               </div>
@@ -348,7 +348,7 @@ function OrderFraming() {
                   {t('toolboxOrderDemandStrong', { qty: String(qLess) })}
                 </p>
                 <p className="text-2xl font-bold text-emerald-700 tabular-nums">
-                  {formatSignedMoney(f.lessUpside, lang)}
+                  {signedMoney(f.lessUpside)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitFillOrder', { qty: String(qLess) })}</p>
               </div>
@@ -368,7 +368,7 @@ function OrderFraming() {
                 </p>
                 <p className={`text-2xl font-bold tabular-nums ${f.moreDownside < 0
                   ? 'text-rose-700 dark:text-rose-300' : 'text-amber-700 dark:text-amber-300'}`}>
-                  {formatSignedMoney(f.moreDownside, lang)}
+                  {signedMoney(f.moreDownside)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
                   {f.moreUnsold > 0
@@ -384,7 +384,7 @@ function OrderFraming() {
                   {t('toolboxOrderDemandStrong', { qty: String(qLess) })}
                 </p>
                 <p className="text-2xl font-bold text-rose-700 dark:text-rose-300 tabular-nums">
-                  {formatSignedMoney(-f.lessMissed, lang)}
+                  {signedMoney(-f.lessMissed)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
                   {t('toolboxMissedProfit', { n: String(f.lessShort) })}
@@ -412,8 +412,8 @@ interface BudgetItem {
 }
 
 function BudgetOptimizer() {
-  const { t, lang } = useLanguage()
-  const cur = currencySymbol(lang)
+  const { t } = useLanguage()
+  const { symbol: cur, money, signedMoney } = useCurrency()
   const [budget, setBudget] = useState('')
   const [items, setItems] = useState<BudgetItem[]>([
     { name: '', cost: '', profit: '', maxQty: '' },
@@ -530,11 +530,11 @@ function BudgetOptimizer() {
           <div className="flex justify-between rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 px-4 py-3">
             <div>
               <p className="text-xs text-slate-500">{t('toolboxTotalSpend')}</p>
-              <p className="text-sm font-semibold text-slate-700 tabular-nums">{formatMoney(result.totalSpend, lang)}</p>
+              <p className="text-sm font-semibold text-slate-700 tabular-nums">{money(result.totalSpend)}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-500">{t('toolboxTotalProfit')}</p>
-              <p className="text-sm font-bold text-emerald-600 tabular-nums">{formatSignedMoney(result.totalEarn, lang)}</p>
+              <p className="text-sm font-bold text-emerald-600 tabular-nums">{signedMoney(result.totalEarn)}</p>
             </div>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">

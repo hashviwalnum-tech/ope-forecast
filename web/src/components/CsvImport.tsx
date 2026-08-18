@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { dayRecords, isApiError, products as productsApi, sales as salesApi, saleEvents } from '../api/client'
+import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { HourlyBackfillSlot, ProductRead } from '../api/types'
 import { type CsvIssue, dedupeByDate, parseCSV, parseDate } from '../lib/csvParse'
@@ -50,6 +51,10 @@ interface Props { onImported: () => void }
 
 export default function CsvImport({ onImported }: Props) {
   const { t } = useLanguage()
+  // Numbers in the file are read in the owner's language. A spreadsheet in a
+  // comma-decimal locale writes "0,5", and parseFloat turns that into 0 —
+  // silently importing a different number than the file contains.
+  const { parseNumber } = useCurrency()
   const [productList, setProductList] = useState<ProductRead[]>([])
   const [preview, setPreview]         = useState<CsvRow[]>([])
   const [parseErrors, setParseErrors] = useState<CsvIssue[]>([])
@@ -107,7 +112,8 @@ export default function CsvImport({ onImported }: Props) {
       if (row[0]?.trim().startsWith('#')) return
       const line = ri + 2
       const rawDate = row[0] ?? ''
-      const custRaw = parseInt(row[1] ?? '')
+      const custParsed = parseNumber(row[1] ?? '')
+      const custRaw = custParsed === null ? NaN : Math.round(custParsed)
 
       const dateParsed = parseDate(rawDate)
       if (!dateParsed) {
@@ -117,14 +123,14 @@ export default function CsvImport({ onImported }: Props) {
 
       const productUnits: Record<string, number> = {}
       for (const { idx, product } of productCols) {
-        const v = parseFloat(row[idx] ?? '')
-        if (!isNaN(v) && v > 0) productUnits[product.name] = v
+        const v = parseNumber(row[idx] ?? '')
+        if (v !== null && v > 0) productUnits[product.name] = v
       }
 
       const hourlyCustomers: HourlyBackfillSlot[] = []
       for (const { idx, hour } of hourlyCols) {
-        const v = parseInt(row[idx] ?? '', 10)
-        if (!isNaN(v) && v > 0) hourlyCustomers.push({ hour, customers: v })
+        const v = parseNumber(row[idx] ?? '')
+        if (v !== null && v > 0) hourlyCustomers.push({ hour, customers: Math.round(v) })
       }
 
       const hourlySum = hourlyCustomers.reduce((s, h) => s + h.customers, 0)

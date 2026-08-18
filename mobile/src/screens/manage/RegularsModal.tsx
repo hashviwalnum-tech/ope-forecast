@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { RegularProfitabilityRead, RegularRead } from '../../api/types'
+import { useCurrency } from '../../contexts/CurrencyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import type { Theme } from '../../lib/theme'
 
@@ -32,6 +33,9 @@ const MONTH_NAMES = [
 
 export default function RegularsModal({ onClose }: Props) {
   const c = useTheme()
+  // Bound to the business's currency: this screen used to hardcode a dollar
+  // sign and two decimal places in six places.
+  const { money } = useCurrency()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [regulars, setRegulars] = useState<RegularRead[]>([])
@@ -379,7 +383,7 @@ export default function RegularsModal({ onClose }: Props) {
                       <View style={styles.regularInfo}>
                         <Text style={styles.regularName}>{reg.name}</Text>
                         <Text style={styles.regularMeta}>
-                          CLV: ${reg.clv.toFixed(2)} · {reg.visit_count} visit{reg.visit_count !== 1 ? 's' : ''} · ~${reg.avg_spend.toFixed(2)}/visit
+                          CLV: {money(reg.clv)} · {reg.visit_count} visit{reg.visit_count !== 1 ? 's' : ''} · ~{money(reg.avg_spend)}/visit
                         </Text>
                         <Text style={styles.regularMeta}>
                           {reg.visit_frequency_per_week}×/wk
@@ -388,7 +392,7 @@ export default function RegularsModal({ onClose }: Props) {
                         </Text>
                         {reg.today_amount != null && (
                           <Text style={styles.todayBadge}>
-                            Today: ${reg.today_amount.toFixed(2)}
+                            Today: {money(reg.today_amount)}
                           </Text>
                         )}
                       </View>
@@ -441,19 +445,19 @@ export default function RegularsModal({ onClose }: Props) {
                             <View style={styles.profGrid}>
                               <View style={styles.profTile}>
                                 <Text style={styles.profTileVal}>
-                                  ${prof.this_month.toFixed(2)}
+                                  {money(prof.this_month)}
                                 </Text>
                                 <Text style={styles.profTileLabel}>this month</Text>
                               </View>
                               <View style={styles.profTile}>
                                 <Text style={styles.profTileVal}>
-                                  ${prof.this_year.toFixed(2)}
+                                  {money(prof.this_year)}
                                 </Text>
                                 <Text style={styles.profTileLabel}>this year</Text>
                               </View>
                               <View style={styles.profTile}>
                                 <Text style={styles.profTileVal}>
-                                  ${prof.all_time.toFixed(2)}
+                                  {money(prof.all_time)}
                                 </Text>
                                 <Text style={styles.profTileLabel}>all time</Text>
                               </View>
@@ -473,7 +477,7 @@ export default function RegularsModal({ onClose }: Props) {
                                       {mv.visits} visit{mv.visits !== 1 ? 's' : ''}
                                     </Text>
                                     <Text style={styles.mvSpend}>
-                                      ${mv.total_spend.toFixed(2)}
+                                      {money(mv.total_spend)}
                                     </Text>
                                   </View>
                                 ))}

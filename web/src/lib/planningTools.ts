@@ -8,9 +8,25 @@
 // business history — which is why they live here rather than in the backend
 // forecasting engine.
 
-/** Read a number out of a text field, tolerating currency symbols and spaces. */
+/**
+ * Read a number out of one of the toolbox's `type="number"` fields.
+ *
+ * The browser normalises those to a dot-decimal string whatever the owner's
+ * locale, so this stays a plain dot parser. It does handle a comma decimal,
+ * because a PASTED value skips that normalisation — and the old version
+ * stripped the comma out, turning "12,50" into 1250. A hundredfold error in a
+ * price field, silently.
+ *
+ * Free text and CSV cells are a different problem and go through
+ * `parseLocaleNumber` in lib/money.ts, which knows the owner's conventions.
+ */
 export function num(s: string): number {
-  const n = parseFloat(s.replace(/[^\d.-]/g, ''))
+  const raw = s.trim()
+  // A comma with no dot alongside it can only be a decimal mark here.
+  const normalised = raw.includes(',') && !raw.includes('.')
+    ? raw.replace(',', '.')
+    : raw
+  const n = parseFloat(normalised.replace(/[^\d.-]/g, ''))
   return isNaN(n) ? 0 : n
 }
 

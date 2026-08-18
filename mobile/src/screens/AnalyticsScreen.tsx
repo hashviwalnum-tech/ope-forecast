@@ -21,6 +21,7 @@ import type {
 } from '../api/types'
 import { useBusiness } from '../contexts/BusinessContext'
 import { useTheme } from '../contexts/ThemeContext'
+import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { TranslationKey } from '../lib/i18n'
 import type { Theme } from '../lib/theme'
@@ -76,9 +77,9 @@ function fmt12(hour: number): string {
   return `${hour - 12}pm`
 }
 
-function fmtCurrency(n: number): string {
-  return `$${n.toFixed(2)}`
-}
+// Money is formatted inside the component now, not here: this hardcoded a
+// dollar sign and two decimal places, so an Israeli owner saw "$120.00" and a
+// Japanese one "¥1200.00" — a precision the yen does not have.
 
 const MONTH_NAMES = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -89,6 +90,8 @@ export default function AnalyticsScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
   const { t, lang } = useLanguage()
+  // `money` is bound to the business's currency and the owner's language.
+  const { money: fmtCurrency } = useCurrency()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [insights, setInsights] = useState<InsightsResponse | null>(null)

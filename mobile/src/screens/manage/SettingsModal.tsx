@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { BusinessRead } from '../../api/types'
+import CurrencyPicker from '../../components/CurrencyPicker'
 import { useTheme, useAppTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { LANG_LABELS, type Lang } from '../../lib/i18n'
@@ -66,6 +67,9 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
     typeof s.timezone === 'string' ? s.timezone : ''
   )
 
+  const [currency, setCurrency] = useState(
+    typeof s.currency === 'string' ? s.currency : ''
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -82,6 +86,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
     setAssumeOnTime(fresh.assume_orders_arrive_on_time === true)
     setNudgesEnabled(fresh.nudges_enabled !== false)
     setTimezone(typeof fresh.timezone === 'string' ? fresh.timezone : '')
+    setCurrency(typeof fresh.currency === 'string' ? fresh.currency : '')
   }, [business])
 
   const toggleDay = (idx: number) => {
@@ -127,6 +132,8 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
         stock_management_enabled: stockEnabled,
         assume_orders_arrive_on_time: assumeOnTime,
         nudges_enabled: nudgesEnabled,
+        // Only sent once chosen — never store a currency the owner did not pick.
+        ...(currency.trim() ? { currency: currency.trim().toUpperCase() } : {}),
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -307,6 +314,13 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
             />
             <Text style={[styles.fieldHint, { color: c.textMuted }]}>
               IANA timezone name used to match your tap timestamps to opening hours. Leave blank to use UTC.
+            </Text>
+
+            {/* ── Currency ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('currencyLabel')}</Text>
+            <CurrencyPicker value={currency} onChange={setCurrency} />
+            <Text style={[styles.fieldHint, { color: c.textMuted }]}>
+              {t('currencySettingsDesc')}
             </Text>
 
             {/* ── Service time ── */}

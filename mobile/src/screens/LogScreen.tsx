@@ -18,6 +18,7 @@ import * as api from '../api/client'
 import type { OutlierFlag, ProductRead, RegularRead, TodaySummaryResponse } from '../api/types'
 import { useBusiness } from '../contexts/BusinessContext'
 import { useTheme } from '../contexts/ThemeContext'
+import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { Theme } from '../lib/theme'
 import AppHeader from '../components/AppHeader'
@@ -30,6 +31,7 @@ export default function LogScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
   const { t, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
+  const { symbol, amount } = useCurrency()
   const navigation = useNavigation()
   const { width: screenWidth } = useWindowDimensions()
   const productBtnWidth = Math.floor((screenWidth - 32 - 10) / 2)
@@ -493,7 +495,7 @@ export default function LogScreen() {
                       <Text style={[styles.regularRowName, { color: c.text }]}>{reg.name}</Text>
                       {reg.today_amount != null && (
                         <Text style={[styles.regularRowToday, { color: c.primaryDark }]}>
-                          {t('todayAmount', { currency: '$', amount: reg.today_amount.toFixed(2) })}
+                          {t('todayAmount', { currency: symbol, amount: amount(reg.today_amount) })}
                         </Text>
                       )}
                     </View>
