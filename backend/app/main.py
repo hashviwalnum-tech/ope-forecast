@@ -160,9 +160,61 @@ def _migrate_sqlite_subscriptions(eng) -> None:
         conn.commit()
 
 
+def _enforce_rls(eng) -> None:
+    """Enable row-level security on every table the app knows about.
+
+    The tier cache taught the same lesson twice: a rule that has to be
+    *remembered* eventually gets forgotten. RLS was switched on for the original
+    tables and then missed on every table added since — eight of them, including
+    `subscriptions` (which the entitlement system reads from) and
+    `telegram_links` (which holds the one-time code binding a Telegram chat to a
+    business). Anyone holding the anon key, which ships inside every web bundle
+    and every mobile build, could read and write them.
+
+    `create_all` above will happily create a brand-new table with no RLS, so the
+    gap reopens the moment a model is added. Doing it here, right after, means a
+    new table is protected by existing rather than by someone remembering.
+
+    No policies are created, which is the tightest correct setting: nothing talks
+    to PostgREST — the web app, mobile app and Telegram bot all go through this
+    backend, which connects as the Postgres role and bypasses RLS. Deliberately
+    NOT `FORCE`, which would apply RLS to the table owner and cut this backend
+    off from its own data.
+
+    Postgres only; a no-op on SQLite, and never fatal — a permissions problem
+    should be logged loudly, not take the API down.
+    """
+    if eng.dialect.name != "postgresql":
+        return
+    from sqlalchemy import text
+
+    enabled, failed = [], []
+    with eng.connect() as conn:
+        for table in Base.metadata.sorted_tables:
+            try:
+                conn.execute(text(
+                    f'ALTER TABLE IF EXISTS public."{table.name}" ENABLE ROW LEVEL SECURITY'
+                ))
+                conn.commit()
+                enabled.append(table.name)
+            except Exception as exc:      # noqa: BLE001 - never fatal
+                conn.rollback()
+                failed.append((table.name, str(exc)[:120]))
+    if enabled:
+        logging.getLogger(__name__).info(
+            "RLS ensured on %d tables: %s", len(enabled), ", ".join(sorted(enabled))
+        )
+    for name, err in failed:
+        logging.getLogger(__name__).error(
+            "COULD NOT ENABLE RLS ON %s — it may be readable with the public "
+            "anon key. %s", name, err
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(engine)
+    _enforce_rls(engine)   # must follow create_all — see the note above
     _migrate_sqlite_products(engine)
     _migrate_sqlite_products_v2(engine)
     _migrate_sqlite_products_v3(engine)
