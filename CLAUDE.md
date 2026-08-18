@@ -46,7 +46,28 @@ Phase 1 = MVP, **no login / no billing / single local user**. Prove the forecast
 - **A change is NOT done until it is committed AND pushed to GitHub (`git push origin main`).** After every change meant for the live site, run the push yourself, confirm local and remote are in sync, and state in your summary whether the change is now live and which URL to test. Never end a task with unpushed commits. URLs to test: frontend → `https://ope-forecast-bngx.vercel.app`, backend health → `https://ope-forecast.onrender.com/health`.
 
 ## Commands
-(To be filled in once scaffolded.)
-- Backend dev server: `uvicorn app.main:app --reload` (from `backend/`)
-- Backend tests: `pytest` (from `backend/`)
-- Web dev server: `npm run dev` (from `web/`)
+
+**Backend** (from `backend/`)
+- Dev server: `uvicorn app.main:app --reload`
+- Tests: `pytest` — this includes the engine known-answer tests and the
+  `tests/engine/parity/` checks, which shell out to `node`. Those skip cleanly
+  if node is missing; everything else still runs.
+- Probe live RLS: `python -m tests.deployment.probe_rls` — asks the deployed
+  Supabase project, using the published anon key, whether any table is
+  reachable. Run it after adding a table.
+
+**Web** (from `web/`)
+- Dev server: `npm run dev`
+- Tests: `npm test` — `node --test` over `src/**/*.test.ts`. Node strips the
+  TypeScript itself, so there is no test framework and no extra dependency.
+- Type-check: `npx tsc --noEmit` (checks `src/`; `npm run build` also covers
+  the Vite config and the test files via their own tsconfigs)
+- Build: `npm run build`
+- Lint: `npm run lint` — **not clean**, and was not before this work: ~40
+  pre-existing problems, mostly `react-refresh/only-export-components` on
+  files that export a hook beside a component. Compare the count before and
+  after a change rather than expecting zero.
+
+**Mobile** (from `mobile/`)
+- Type-check: `npx tsc --noEmit`
+- Run on a device: `npx expo start`, then scan the QR code with Expo Go
