@@ -5,6 +5,12 @@ import type {
   BusinessRead,
   CheckoutResponse,
   CurrencyListResponse,
+  DecisionResponse,
+  FramingRequest,
+  FramingResponse,
+  PlanningBudgetItem,
+  PlanningOption,
+  BudgetResponse,
   SubscriptionRead,
   TelegramLinkCodeResponse,
   TelegramLinkStatus,
@@ -173,6 +179,17 @@ async function PATCH<T>(path: string, body: unknown): Promise<T> {
  *  so it needs no auth and can be fetched before a business exists. */
 export const currencies = {
   list: () => GET<CurrencyListResponse>('/currencies'),
+}
+
+/** The advanced planning toolbox. The maths runs in the backend engine so
+ *  mobile inherits it rather than reimplementing four sets of decision rules. */
+export const planning = {
+  decision: (options: PlanningOption[], optimism: number) =>
+    POST<DecisionResponse>('/planning/decision', { options, optimism }),
+  framing: (body: FramingRequest) =>
+    POST<FramingResponse>('/planning/framing', body),
+  budget: (budget: number | null, items: PlanningBudgetItem[]) =>
+    POST<BudgetResponse>('/planning/budget', { budget, items }),
 }
 
 export const businesses = {

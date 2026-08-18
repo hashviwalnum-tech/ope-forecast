@@ -22,7 +22,7 @@ import {
   amountStep, currencySymbol, formatAmount, formatMoney, formatSignedMoney,
   minorUnits, parseLocaleNumber,
 } from './money.ts'
-import { frameOrder, num, planBudget } from './planningTools.ts'
+import { num } from './planningTools.ts'
 
 /** Every formatter a screen can reach, in the order a screen would use them. */
 const ALL_FORMATTERS = [formatMoney, formatSignedMoney] as const
@@ -68,23 +68,26 @@ test('two businesses on one machine each see their own currency', () => {
 
 // ── the planning toolbox ───────────────────────────────────────────────────
 
-test('the toolbox reports figures the caller then formats in the business currency', () => {
-  // The toolbox maths is currency-free by design: it returns plain numbers and
-  // the component formats them. This pins that it stays that way — a number
-  // with a currency baked in could not be shown correctly to anyone else.
-  const f = frameOrder({
-    orderMore: 80, orderLess: 50, sellPrice: 5, costPrice: 2.5, expectedDemand: 65,
-  })
-  for (const v of Object.values(f)) assert.equal(typeof v, 'number')
+test('the toolbox formats backend figures in the business currency', () => {
+  // The toolbox maths now runs in backend/app/engine/planning.py and comes
+  // back as plain numbers — deliberately currency-free, because a figure with
+  // a currency baked in could not be shown correctly to anyone else. What the
+  // client does with them is format, and that follows the business setting.
+  const fromApi = { total_earn: 100, more_downside: -175 }
+  assert.ok(formatMoney(fromApi.total_earn, 'ILS', 'he').includes('₪'))
+  assert.ok(!formatMoney(fromApi.total_earn, 'JPY', 'ja').includes('.'))
+  assert.ok(formatSignedMoney(fromApi.more_downside, 'USD', 'en').startsWith('−'))
+})
 
-  const plan = planBudget(100, [
-    { name: 'A', cost: 60, profit: 65, maxQty: 1 },
-    { name: 'B', cost: 50, profit: 50, maxQty: 2 },
-  ])
-  assert.equal(typeof plan.totalEarn, 'number')
-  // …and the same figure renders in whichever currency the business uses.
-  assert.ok(formatMoney(plan.totalEarn, 'ILS', 'he').includes('₪'))
-  assert.ok(!formatMoney(plan.totalEarn, 'JPY', 'ja').includes('.'))
+test('no planning maths is left in the client', () => {
+  // The whole point of the move: mobile inherits the engine instead of
+  // reimplementing it. A calculation creeping back into the browser would
+  // start that drift again.
+  const src = readFileSync(join(import.meta.dirname, 'planningTools.ts'), 'utf8')
+  for (const gone of ['scoreOption', 'findInvertedOptions', 'frameOrder', 'planBudget']) {
+    assert.ok(!new RegExp(`export function ${gone}\b`).test(src),
+      `${gone} is back in the browser — it belongs in the engine`)
+  }
 })
 
 test('the toolbox reads a pasted amount in either decimal convention', () => {

@@ -9,6 +9,8 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    toolboxOffline: 'Could not work that out just now — Ope could not be reached. Check your connection; your numbers are still here.',
+    toolboxWorking: 'Working it out…',
     tourSettingsAppointmentsTitle: 'Do you take bookings?',
     tourSettingsAppointmentsBody: 'If customers book ahead — a barber, a spa, a clinic — turn this on. Ope will then use how many appointments are already booked alongside its usual forecast, which makes quiet and busy days much easier to see coming.',
     tourSettingsCurrencyTitle: 'Your currency',
@@ -1103,6 +1105,8 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    toolboxOffline: 'לא הצלחנו לחשב את זה כרגע — אין חיבור ל-Ope. בדוק את החיבור; המספרים שלך נשמרו.',
+    toolboxWorking: 'מחשב…',
     tourSettingsAppointmentsTitle: 'אתם מקבלים הזמנות מראש?',
     tourSettingsAppointmentsBody: 'אם לקוחות קובעים תור מראש — מספרה, ספא, מרפאה — הפעילו את זה. Ope ישתמש במספר התורים שכבר נקבעו לצד התחזית הרגילה, וכך הרבה יותר קל לראות מראש ימים שקטים ועמוסים.',
     tourSettingsCurrencyTitle: 'המטבע שלך',
@@ -2197,6 +2201,8 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    toolboxOffline: '暂时无法计算 — 无法连接到 Ope。请检查网络连接；您输入的数字仍在。',
+    toolboxWorking: '正在计算…',
     tourSettingsAppointmentsTitle: '您接受预约吗？',
     tourSettingsAppointmentsBody: '如果客户会提前预约 — 理发店、水疗、诊所 — 请打开此项。Ope 会在常规预测之外，结合已预约的数量，让您更容易提前看出清闲和繁忙的日子。',
     tourSettingsCurrencyTitle: '您的货币',
@@ -2814,6 +2820,8 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    toolboxOffline: 'No se pudo calcular ahora mismo — no se pudo contactar con Ope. Comprueba tu conexión; tus números siguen aquí.',
+    toolboxWorking: 'Calculando…',
     tourSettingsAppointmentsTitle: '¿Aceptas reservas?',
     tourSettingsAppointmentsBody: 'Si tus clientes reservan con antelación — una barbería, un spa, una clínica — activa esto. Ope usará cuántas citas ya hay reservadas junto con su previsión habitual, y así verás venir mucho mejor los días tranquilos y los de mucho trabajo.',
     tourSettingsCurrencyTitle: 'Tu moneda',
@@ -3484,6 +3492,8 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    toolboxOffline: 'अभी हिसाब नहीं लगाया जा सका — Ope से संपर्क नहीं हुआ। अपना कनेक्शन जाँचें; आपके अंक सुरक्षित हैं।',
+    toolboxWorking: 'हिसाब लगाया जा रहा है…',
     tourSettingsAppointmentsTitle: 'क्या आप बुकिंग लेते हैं?',
     tourSettingsAppointmentsBody: 'अगर ग्राहक पहले से समय लेते हैं — सैलून, स्पा, क्लिनिक — तो इसे चालू करें। Ope अपनी सामान्य भविष्यवाणी के साथ पहले से बुक अपॉइंटमेंट की संख्या भी इस्तेमाल करेगा, जिससे शांत और व्यस्त दिन पहले से देखना बहुत आसान हो जाता है।',
     tourSettingsCurrencyTitle: 'आपकी मुद्रा',
@@ -4111,6 +4121,8 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    toolboxOffline: 'تعذّر الحساب الآن — لم نتمكّن من الوصول إلى Ope. تحقّق من اتصالك؛ أرقامك ما زالت موجودة.',
+    toolboxWorking: 'جارٍ الحساب…',
     tourSettingsAppointmentsTitle: 'هل تستقبل حجوزات؟',
     tourSettingsAppointmentsBody: 'إذا كان الزبائن يحجزون مسبقًا — حلاق، منتجع صحي، عيادة — فعّل هذا. سيستخدم Ope عدد المواعيد المحجوزة بالفعل إلى جانب توقعه المعتاد، ممّا يجعل رؤية الأيام الهادئة والمزدحمة مقدّمًا أسهل بكثير.',
     tourSettingsCurrencyTitle: 'عملتك',
@@ -5038,6 +5050,8 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    toolboxOffline: 'Não deu para calcular agora — não foi possível falar com o Ope. Verifique sua conexão; seus números continuam aqui.',
+    toolboxWorking: 'Calculando…',
     tourSettingsAppointmentsTitle: 'Você aceita agendamentos?',
     tourSettingsAppointmentsBody: 'Se os clientes marcam com antecedência — uma barbearia, um spa, uma clínica — ative isto. O Ope passa a usar quantos horários já estão marcados junto com a previsão habitual, o que torna muito mais fácil enxergar os dias parados e os cheios.',
     tourSettingsCurrencyTitle: 'Sua moeda',
@@ -5695,6 +5709,8 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    toolboxOffline: 'Сейчас не удалось посчитать — нет связи с Ope. Проверьте соединение; ваши числа сохранены.',
+    toolboxWorking: 'Считаем…',
     tourSettingsAppointmentsTitle: 'Вы принимаете записи?',
     tourSettingsAppointmentsBody: 'Если клиенты записываются заранее — парикмахерская, спа, клиника — включите это. Ope будет учитывать количество уже записанных клиентов вместе с обычным прогнозом, и спокойные и загруженные дни станет гораздо легче предвидеть.',
     tourSettingsCurrencyTitle: 'Ваша валюта',
@@ -6347,6 +6363,8 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    toolboxOffline: 'Impossible de calculer pour le moment — Ope est injoignable. Vérifiez votre connexion ; vos chiffres sont toujours là.',
+    toolboxWorking: 'Calcul en cours…',
     tourSettingsAppointmentsTitle: 'Prenez-vous des rendez-vous ?',
     tourSettingsAppointmentsBody: 'Si vos clients réservent à l\'avance — un coiffeur, un spa, un cabinet — activez ceci. Ope utilisera alors le nombre de rendez-vous déjà pris en plus de sa prévision habituelle, ce qui rend les journées calmes et chargées bien plus faciles à anticiper.',
     tourSettingsCurrencyTitle: 'Votre devise',
@@ -7440,6 +7458,8 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    toolboxOffline: 'এখন হিসাব করা গেল না — Ope-এর সঙ্গে যোগাযোগ হয়নি। সংযোগ পরীক্ষা করুন; আপনার সংখ্যাগুলো রয়ে গেছে।',
+    toolboxWorking: 'হিসাব করা হচ্ছে…',
     tourSettingsAppointmentsTitle: 'আপনি কি আগে থেকে বুকিং নেন?',
     tourSettingsAppointmentsBody: 'ক্রেতারা আগে থেকে সময় নিলে — সেলুন, স্পা, ক্লিনিক — এটি চালু করুন। Ope তখন তার স্বাভাবিক পূর্বাভাসের পাশাপাশি কতগুলো অ্যাপয়েন্টমেন্ট ইতিমধ্যে বুক হয়েছে সেটিও ব্যবহার করবে, ফলে ফাঁকা ও ব্যস্ত দিন আগেভাগে বোঝা অনেক সহজ হয়।',
     tourSettingsCurrencyTitle: 'আপনার মুদ্রা',
@@ -8533,6 +8553,8 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    toolboxOffline: 'ابھی حساب نہیں لگ سکا — Ope سے رابطہ نہیں ہو سکا۔ اپنا کنکشن دیکھیں؛ آپ کے اعداد محفوظ ہیں۔',
+    toolboxWorking: 'حساب لگایا جا رہا ہے…',
     tourSettingsAppointmentsTitle: 'کیا آپ پیشگی بکنگ لیتے ہیں؟',
     tourSettingsAppointmentsBody: 'اگر گاہک پہلے سے وقت لیتے ہیں — حجام، سپا، کلینک — تو یہ آن کریں۔ Ope اپنی معمول کی پیش گوئی کے ساتھ پہلے سے بک شدہ اپائنٹمنٹس کی تعداد بھی استعمال کرے گا، جس سے خالی اور مصروف دن پہلے سے دیکھنا بہت آسان ہو جاتا ہے۔',
     tourSettingsCurrencyTitle: 'آپ کی کرنسی',
@@ -9626,6 +9648,8 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    toolboxOffline: 'Belum bisa dihitung sekarang — Ope tidak dapat dihubungi. Periksa koneksi Anda; angka Anda masih tersimpan.',
+    toolboxWorking: 'Sedang menghitung…',
     tourSettingsAppointmentsTitle: 'Apakah Anda menerima pemesanan?',
     tourSettingsAppointmentsBody: 'Jika pelanggan memesan lebih dulu — tukang cukur, spa, klinik — nyalakan ini. Ope akan memakai berapa janji temu yang sudah dipesan bersama prakiraan biasanya, sehingga hari sepi dan hari sibuk jauh lebih mudah terlihat dari jauh hari.',
     tourSettingsCurrencyTitle: 'Mata uang Anda',
@@ -10719,6 +10743,8 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    toolboxOffline: 'Das ließ sich gerade nicht berechnen — Ope war nicht erreichbar. Prüfen Sie Ihre Verbindung; Ihre Zahlen sind noch da.',
+    toolboxWorking: 'Wird berechnet…',
     tourSettingsAppointmentsTitle: 'Nehmen Sie Termine an?',
     tourSettingsAppointmentsBody: 'Wenn Kunden vorab buchen — Friseur, Spa, Praxis — schalten Sie das ein. Ope nutzt dann die Zahl der bereits gebuchten Termine zusätzlich zur üblichen Prognose, wodurch ruhige und volle Tage viel früher erkennbar werden.',
     tourSettingsCurrencyTitle: 'Ihre Währung',
@@ -11812,6 +11838,8 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    toolboxOffline: 'いま計算できませんでした — Ope に接続できません。接続をご確認ください。入力した数値はそのまま残っています。',
+    toolboxWorking: '計算しています…',
     tourSettingsAppointmentsTitle: '予約を受けていますか？',
     tourSettingsAppointmentsBody: 'お客様が事前に予約される場合 — 理容室、スパ、クリニックなど — これをオンにしてください。Ope は通常の予測に加えて、すでに入っている予約数も使うようになり、空いている日と混む日がずっと見通しやすくなります。',
     tourSettingsCurrencyTitle: '通貨の設定',
@@ -12905,6 +12933,8 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    toolboxOffline: 'Şu anda hesaplanamadı — Ope\'ye ulaşılamadı. Bağlantınızı kontrol edin; girdiğiniz sayılar duruyor.',
+    toolboxWorking: 'Hesaplanıyor…',
     tourSettingsAppointmentsTitle: 'Randevu alıyor musunuz?',
     tourSettingsAppointmentsBody: 'Müşteriler önceden randevu alıyorsa — kuaför, spa, klinik — bunu açın. Ope, her zamanki tahmininin yanında halihazırda alınmış randevu sayısını da kullanır; böylece sakin ve yoğun günleri çok daha önceden görürsünüz.',
     tourSettingsCurrencyTitle: 'Para biriminiz',

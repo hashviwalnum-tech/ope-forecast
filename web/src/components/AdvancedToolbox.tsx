@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useCurrency } from '../contexts/CurrencyContext'
-import {
-  findInvertedOptions, frameOrder, num, planBudget, scoreOption,
-  type BudgetItem as BudgetSpec, type Option,
-} from '../lib/planningTools'
+import { planning } from '../api/client'
+import { num } from '../lib/planningTools'
+import type {
+  BudgetResponse, DecisionResponse, FramingResponse,
+  PlanningBudgetItem, PlanningOption,
+} from '../api/types'
 
 // ── shared primitives ─────────────────────────────────────────────────────────
 
@@ -88,6 +90,49 @@ function ResultBadge({
   )
 }
 
+/**
+ * Run `send` shortly after `input` stops changing.
+ *
+ * The maths moved to the backend, so what used to be a free local recompute is
+ * now a request. These tools recalculated live as the owner typed or dragged
+ * the optimism slider, and that is worth keeping — a short pause turns a drag
+ * into one call instead of thirty, while still feeling immediate.
+ */
+function useDebouncedResult<TIn, TOut>(
+  input: TIn | null,
+  send: (input: TIn) => Promise<TOut>,
+  delayMs = 250,
+): { result: TOut | null; failed: boolean } {
+  const [answer, setAnswer] = useState<{ result: TOut | null; failed: boolean }>(
+    { result: null, failed: false },
+  )
+  // Only the newest request may write the answer: a slow earlier one must not
+  // land on top of a newer one.
+  const seq = useRef(0)
+
+  const key = input === null ? null : JSON.stringify(input)
+
+  useEffect(() => {
+    if (key === null) return
+    const mine = ++seq.current
+    const timer = setTimeout(() => {
+      send(input as TIn)
+        .then(r => { if (seq.current === mine) setAnswer({ result: r, failed: false }) })
+        .catch(() => { if (seq.current === mine) setAnswer({ result: null, failed: true }) })
+    }, delayMs)
+    return () => clearTimeout(timer)
+    // `key` is the serialised input: it changes exactly when the numbers do,
+    // which is what should trigger a new request.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, delayMs])
+
+  // Derived, not stored: with no input there is nothing to answer, whatever a
+  // previous input produced. Keeping the last answer while a new request is in
+  // flight is deliberate — it is what stopped the winners flickering to "?"
+  // every time the optimism slider moved.
+  return key === null ? { result: null, failed: false } : answer
+}
+
 // ── Tool 1: "Which option is better?" (Decision planner) ─────────────────────
 
 interface Decision {
@@ -115,25 +160,33 @@ function DecisionPlanner() {
 
   const filled = decisions.filter(d => d.best !== '' && d.worst !== '' && d.likely !== '')
 
-  const options: Option[] = filled.map(d => ({
+  const options: PlanningOption[] = filled.map(d => ({
     name: d.name || '?',
     best: num(d.best),
     likely: num(d.likely),
     worst: num(d.worst),
   }))
 
+  // Scored by the backend engine — see backend/app/engine/planning.py. Nothing
+  // here decides anything; this component only asks and displays.
+  const { result, failed } = useDebouncedResult<
+    { options: PlanningOption[]; optimism: number }, DecisionResponse
+  >(
+    options.length > 0 ? { options, optimism: alpha / 100 } : null,
+    ({ options: o, optimism }) => planning.decision(o, optimism),
+  )
+
   // "Playing safe" reads the worst-case field. If the owner filled best and
   // worst the wrong way round, the tool would confidently recommend the option
   // with the highest BEST case as the safest one — the opposite of the advice
-  // they asked for. Say so instead of answering.
-  const inverted = findInvertedOptions(options)
+  // they asked for. The engine flags those; say so instead of answering.
+  const inverted = result?.inverted ?? []
+  const results = result?.scores ?? []
 
-  const results = options.map(o => scoreOption(o, alpha / 100))
-
-  const safest  = results.length > 0 ? results.reduce((a, b) => a.maximin > b.maximin ? a : b) : null
-  const average = results.length > 0 ? results.reduce((a, b) => a.ev       > b.ev       ? a : b) : null
-  const boldest = results.length > 0 ? results.reduce((a, b) => a.maximax  > b.maximax  ? a : b) : null
-  const hurwicz = results.length > 0 ? results.reduce((a, b) => a.hurwicz  > b.hurwicz  ? a : b) : null
+  const safest  = result?.safest ?? null
+  const average = result?.on_average ?? null
+  const boldest = result?.boldest ?? null
+  const hurwicz = result?.at_confidence ?? null
 
   return (
     <div className="space-y-5">
@@ -190,7 +243,14 @@ function DecisionPlanner() {
         </p>
       )}
 
-      {filled.length >= 2 && inverted.length === 0 && (
+      {failed && (
+        <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20
+                      border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
+          {t('toolboxOffline')}
+        </p>
+      )}
+
+      {filled.length >= 2 && inverted.length === 0 && results.length >= 2 && (
         <button
           onClick={() => setCalculated(true)}
           className="w-full py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
@@ -203,9 +263,9 @@ function DecisionPlanner() {
       {calculated && inverted.length === 0 && results.length >= 2 && (
         <div className="space-y-4 pt-2">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <ResultBadge label={t('toolboxPlayingSafe')} value={t('toolboxGoWith', { name: safest?.name ?? '?' })} highlight={true} />
-            <ResultBadge label={t('toolboxOnAverage')}   value={t('toolboxGoWith', { name: average?.name ?? '?' })} highlight={true} />
-            <ResultBadge label={t('toolboxFeelingBold')} value={t('toolboxGoWith', { name: boldest?.name ?? '?' })} highlight={true} />
+            <ResultBadge label={t('toolboxPlayingSafe')} value={t('toolboxGoWith', { name: safest ?? '?' })} highlight={true} />
+            <ResultBadge label={t('toolboxOnAverage')}   value={t('toolboxGoWith', { name: average ?? '?' })} highlight={true} />
+            <ResultBadge label={t('toolboxFeelingBold')} value={t('toolboxGoWith', { name: boldest ?? '?' })} highlight={true} />
           </div>
 
           <div className="rounded-xl bg-teal-50/60 border border-teal-100 p-4">
@@ -221,7 +281,7 @@ function DecisionPlanner() {
               className="w-full accent-teal-600"
             />
             <p className="text-xs text-slate-500 mt-2">
-              {t('toolboxAtConfidence', { name: hurwicz?.name ?? '?' })}
+              {t('toolboxAtConfidence', { name: hurwicz ?? '?' })}
             </p>
           </div>
 
@@ -265,10 +325,17 @@ function OrderFraming() {
 
   const ready = qMore > 0 && qLess > 0 && sell > 0 && cost > 0 && demand > 0 && margin > 0
 
-  const f = frameOrder({
-    orderMore: qMore, orderLess: qLess,
-    sellPrice: sell, costPrice: cost, expectedDemand: demand,
-  })
+  // Framed by the backend engine — see backend/app/engine/planning.py.
+  const { result: f, failed } = useDebouncedResult<
+    { order_more: number; order_less: number; sell_price: number;
+      cost_price: number; expected_demand: number }, FramingResponse
+  >(
+    ready
+      ? { order_more: qMore, order_less: qLess, sell_price: sell,
+          cost_price: cost, expected_demand: demand }
+      : null,
+    body => planning.framing(body),
+  )
 
   return (
     <div className="space-y-5">
@@ -297,7 +364,14 @@ function OrderFraming() {
         </div>
       </div>
 
-      {ready && (
+      {failed && (
+        <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20
+                      border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
+          {t('toolboxOffline')}
+        </p>
+      )}
+
+      {ready && f && (
         <button
           onClick={() => setShown(true)}
           className="w-full py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
@@ -307,7 +381,7 @@ function OrderFraming() {
         </button>
       )}
 
-      {shown && ready && (
+      {shown && ready && f && (
         <div className="space-y-4">
           <div className="flex gap-2">
             <button
@@ -339,7 +413,7 @@ function OrderFraming() {
                   {t('toolboxOrderDemandStrong', { qty: String(qMore) })}
                 </p>
                 <p className="text-2xl font-bold text-emerald-700 tabular-nums">
-                  {signedMoney(f.moreUpside)}
+                  {signedMoney(f.more_upside)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitAllUnits', { qty: String(qMore) })}</p>
               </div>
@@ -348,7 +422,7 @@ function OrderFraming() {
                   {t('toolboxOrderDemandStrong', { qty: String(qLess) })}
                 </p>
                 <p className="text-2xl font-bold text-emerald-700 tabular-nums">
-                  {signedMoney(f.lessUpside)}
+                  {signedMoney(f.less_upside)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitFillOrder', { qty: String(qLess) })}</p>
               </div>
@@ -359,23 +433,23 @@ function OrderFraming() {
                   Printing a still-positive figure bare inside a red panel read
                   as a loss, so the number is signed and the panel follows the
                   sign — red only when it really is a loss. */}
-              <div className={`rounded-xl p-4 border ${f.moreDownside < 0
+              <div className={`rounded-xl p-4 border ${f.more_downside < 0
                 ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800'
                 : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'}`}>
-                <p className={`text-xs font-semibold mb-1 ${f.moreDownside < 0
+                <p className={`text-xs font-semibold mb-1 ${f.more_downside < 0
                   ? 'text-rose-700 dark:text-rose-300' : 'text-amber-700 dark:text-amber-300'}`}>
                   {t('toolboxOrderDemandWeak', { qty: String(qMore) })}
                 </p>
-                <p className={`text-2xl font-bold tabular-nums ${f.moreDownside < 0
+                <p className={`text-2xl font-bold tabular-nums ${f.more_downside < 0
                   ? 'text-rose-700 dark:text-rose-300' : 'text-amber-700 dark:text-amber-300'}`}>
-                  {signedMoney(f.moreDownside)}
+                  {signedMoney(f.more_downside)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {f.moreUnsold > 0
-                    ? t('toolboxUnsoldWaste', { extra: String(f.moreUnsold) })
+                  {f.more_unsold > 0
+                    ? t('toolboxUnsoldWaste', { extra: String(f.more_unsold) })
                     : t('toolboxDemandExceeds')}
                 </p>
-                {f.moreDownside > 0 && f.moreUnsold > 0 && (
+                {f.more_downside > 0 && f.more_unsold > 0 && (
                   <p className="text-xs text-slate-500 mt-1">{t('toolboxStillProfitNote')}</p>
                 )}
               </div>
@@ -384,10 +458,10 @@ function OrderFraming() {
                   {t('toolboxOrderDemandStrong', { qty: String(qLess) })}
                 </p>
                 <p className="text-2xl font-bold text-rose-700 dark:text-rose-300 tabular-nums">
-                  {signedMoney(-f.lessMissed)}
+                  {signedMoney(-f.less_missed)}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {t('toolboxMissedProfit', { n: String(f.lessShort) })}
+                  {t('toolboxMissedProfit', { n: String(f.less_short) })}
                 </p>
               </div>
             </div>
@@ -419,25 +493,39 @@ function BudgetOptimizer() {
     { name: '', cost: '', profit: '', maxQty: '' },
     { name: '', cost: '', profit: '', maxQty: '' },
   ])
-  const [result, setResult] = useState<ReturnType<typeof planBudget> | null>(null)
+  const [result, setResult] = useState<BudgetResponse | null>(null)
+  const [working, setWorking] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   function updateItem(i: number, field: keyof BudgetItem, val: string) {
     setItems(prev => prev.map((it, idx) => idx === i ? { ...it, [field]: val } : it))
     setResult(null)
+    setFailed(false)
   }
 
-  function optimize() {
-    const spec: BudgetSpec[] = items
+  // Solved by the backend engine — see backend/app/engine/planning.py. This
+  // one is already button-driven, so it asks directly rather than on a timer.
+  async function optimize() {
+    const spec: PlanningBudgetItem[] = items
       .filter(it => it.name)
       .map(it => ({
         name: it.name,
         cost: num(it.cost),
         profit: num(it.profit),
-        maxQty: num(it.maxQty),
+        max_qty: num(it.maxQty),
       }))
     if (!spec.length) return
     const hasBudget = budget !== '' && num(budget) > 0
-    setResult(planBudget(hasBudget ? num(budget) : null, spec))
+    setWorking(true)
+    setFailed(false)
+    try {
+      setResult(await planning.budget(hasBudget ? num(budget) : null, spec))
+    } catch {
+      setResult(null)
+      setFailed(true)
+    } finally {
+      setWorking(false)
+    }
   }
 
   const filledCount = items.filter(it => it.name && num(it.cost) > 0 && num(it.profit) > 0 && num(it.maxQty) > 0).length
@@ -497,13 +585,21 @@ function BudgetOptimizer() {
         )}
       </div>
 
+      {failed && (
+        <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20
+                      border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
+          {t('toolboxOffline')}
+        </p>
+      )}
+
       {filledCount >= 1 && (
         <button
-          onClick={optimize}
+          onClick={() => void optimize()}
+          disabled={working}
           className="w-full py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
                      hover:bg-teal-700 transition-colors"
         >
-          {t('toolboxWhatOrder')}
+          {working ? t('toolboxWorking') : t('toolboxWhatOrder')}
         </button>
       )}
 
@@ -530,11 +626,11 @@ function BudgetOptimizer() {
           <div className="flex justify-between rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 px-4 py-3">
             <div>
               <p className="text-xs text-slate-500">{t('toolboxTotalSpend')}</p>
-              <p className="text-sm font-semibold text-slate-700 tabular-nums">{money(result.totalSpend)}</p>
+              <p className="text-sm font-semibold text-slate-700 tabular-nums">{money(result.total_spend)}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-500">{t('toolboxTotalProfit')}</p>
-              <p className="text-sm font-bold text-emerald-600 tabular-nums">{signedMoney(result.totalEarn)}</p>
+              <p className="text-sm font-bold text-emerald-600 tabular-nums">{signedMoney(result.total_earn)}</p>
             </div>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">

@@ -100,6 +100,75 @@ export interface RegularUpdate {
   first_visit_date?: string | null
 }
 
+// ── Planning toolbox (spec §7.5) ───────────────────────────────────────────
+// The maths lives in backend/app/engine/planning.py, not here — see CLAUDE.md
+// on why no calculation belongs in a client.
+
+export interface PlanningOption {
+  name: string
+  best: number
+  likely: number
+  worst: number
+}
+
+export interface PlanningOptionScores {
+  name: string
+  ev: number
+  maximin: number
+  maximax: number
+  hurwicz: number
+}
+
+export interface DecisionResponse {
+  scores: PlanningOptionScores[]
+  /** Options whose estimates are out of order — do not present the winners. */
+  inverted: string[]
+  safest: string | null
+  on_average: string | null
+  boldest: string | null
+  at_confidence: string | null
+}
+
+export interface FramingRequest {
+  order_more: number
+  order_less: number
+  sell_price: number
+  cost_price: number
+  expected_demand: number
+}
+
+export interface FramingResponse {
+  margin: number
+  more_upside: number
+  less_upside: number
+  more_downside: number
+  more_unsold: number
+  less_missed: number
+  less_short: number
+}
+
+export interface PlanningBudgetItem {
+  name: string
+  cost: number
+  profit: number
+  max_qty: number
+}
+
+export interface BudgetAllocation {
+  name: string
+  qty: number
+  spend: number
+  earn: number
+}
+
+export interface BudgetResponse {
+  allocation: BudgetAllocation[]
+  total_spend: number
+  total_earn: number
+  /** True when the answer is a good guess rather than the provably best one. */
+  approximate: boolean
+}
+
 export interface CurrencyRead {
   code: string
   /** English name; clients localise from the code where the runtime can. */
