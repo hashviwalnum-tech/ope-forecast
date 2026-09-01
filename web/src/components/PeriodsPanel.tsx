@@ -56,7 +56,7 @@ function LiftCard({ lift }: { lift: PeriodLift }) {
             <TypeBadge type={lift.type} />
             <span className="font-semibold text-slate-800 dark:text-slate-100">{lift.label}</span>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{fmtRange(lift.start_date, lift.end_date, t as (k: typeof MONTH_KEYS[number]) => string)}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">{fmtRange(lift.start_date, lift.end_date, t as (k: typeof MONTH_KEYS[number]) => string)}</p>
         </div>
         <div className={`text-right ${liftColor}`}>
           <p className="text-2xl font-bold tabular-nums leading-none">
@@ -79,7 +79,7 @@ function LiftCard({ lift }: { lift: PeriodLift }) {
         )}
       </div>
 
-      <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+      <p className="mt-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
         {t('periodExpectedNote', { type: lift.type })}
       </p>
     </div>
@@ -89,7 +89,7 @@ function LiftCard({ lift }: { lift: PeriodLift }) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-teal-25/70 dark:bg-slate-800/60 rounded-lg px-3 py-2">
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{label}</p>
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">{label}</p>
       <p className="text-base font-bold text-slate-800 dark:text-slate-100 tabular-nums">{value}</p>
     </div>
   )
@@ -168,7 +168,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             placeholder={t('periodNamePlaceholder')}
             value={form.label}
             onChange={e => set('label', e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+            className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                        focus:outline-none focus:ring-2 focus:ring-teal-400
                        bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
           />
@@ -183,12 +183,12 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
                 key={tp}
                 type="button"
                 onClick={() => set('type', tp)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                className={`flex-1 min-h-11 rounded-xl text-sm font-medium border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 ${
                   form.type === tp
                     ? tp === 'event'
                       ? 'bg-violet-100 dark:bg-violet-900/40 border-violet-300 dark:border-violet-700 text-violet-800 dark:text-violet-300'
                       : 'bg-sky-100 dark:bg-sky-900/40 border-sky-300 dark:border-sky-700 text-sky-800 dark:text-sky-300'
-                    : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                    : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 {tp === 'event' ? t('periodsEventLabel') : t('periodsAdLabel')}
@@ -200,7 +200,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
         {/* Cost */}
         <div>
           <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            {t('periodsCostLabel')} <span className="text-slate-400 dark:text-slate-500 font-normal">({symbol}) {t('periodsCostNote')}</span>
+            {t('periodsCostLabel')} <span className="text-slate-600 dark:text-slate-400 font-normal">({symbol}) {t('periodsCostNote')}</span>
           </label>
           <input
             type="number"
@@ -209,7 +209,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             placeholder={`${t('egPrefix')} 200`}
             value={form.cost}
             onChange={e => set('cost', e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+            className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                        focus:outline-none focus:ring-2 focus:ring-teal-400
                        bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
           />
@@ -223,7 +223,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
           <select
             value={form.target_product_id ?? ''}
             onChange={e => setForm(f => ({ ...f, target_product_id: e.target.value ? parseInt(e.target.value) : null }))}
-            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+            className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                        focus:outline-none focus:ring-2 focus:ring-teal-400
                        bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
           >
@@ -232,7 +232,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{t('periodsTargetNote')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('periodsTargetNote')}</p>
         </div>
 
         {/* Dates */}
@@ -245,7 +245,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
               set('start_date', e.target.value)
               if (form.end_date && e.target.value > form.end_date) set('end_date', e.target.value)
             }}
-            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+            className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                        focus:outline-none focus:ring-2 focus:ring-teal-400
                        bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
           />
@@ -258,7 +258,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
             min={form.start_date || undefined}
             value={form.end_date}
             onChange={e => set('end_date', e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+            className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                        focus:outline-none focus:ring-2 focus:ring-teal-400
                        bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100"
           />
@@ -307,10 +307,10 @@ function PeriodRow({ period, onDeleted }: { period: PeriodRead; onDeleted: () =>
         <TypeBadge type={period.type} />
         <div className="min-w-0">
           <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{period.label}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             {fmtRange(period.start_date, period.end_date, t as (k: typeof MONTH_KEYS[number]) => string)}
             {period.cost != null && (
-              <span className="ml-2 text-slate-400 dark:text-slate-500">
+              <span className="ml-2 text-slate-600 dark:text-slate-400">
                 {t('periodCost', { cost: String(period.cost) })}
               </span>
             )}
@@ -320,10 +320,10 @@ function PeriodRow({ period, onDeleted }: { period: PeriodRead; onDeleted: () =>
       <button
         onClick={handleDelete}
         disabled={deleting}
-        className={`shrink-0 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+        className={`shrink-0 px-4 min-h-11 rounded-xl text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 ${
           confirming
-            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50'
-            : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+            ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-900/50'
+            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600'
         }`}
       >
         {deleting ? '…' : confirming ? t('periodConfirmDelete') : t('periodDelete')}
@@ -365,7 +365,7 @@ export default function PeriodsPanel() {
       {/* ── create form ── */}
       <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
         <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">{t('periodsSomethingSpecial')}</h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-5">
           {t('periodsTagDesc')}
         </p>
         <CreateForm onCreated={refreshLift} />
@@ -376,7 +376,7 @@ export default function PeriodsPanel() {
         <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 px-6 py-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-3">
             {t('periodsSavedTitle')}
-            <span className="ml-2 text-sm font-normal text-slate-400 dark:text-slate-500">({periodList.length})</span>
+            <span className="ml-2 text-sm font-normal text-slate-600 dark:text-slate-400">({periodList.length})</span>
           </h2>
           <div>
             {periodList.map(p => (
@@ -391,14 +391,14 @@ export default function PeriodsPanel() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">{t('periodsDifference')}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
               {t('periodsDiffDesc')}
             </p>
           </div>
           <button
             onClick={refreshLift}
             disabled={loadingLift}
-            className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300
+            className="px-4 min-h-11 text-xs font-medium text-slate-600 dark:text-slate-300
                        bg-slate-100 dark:bg-slate-700 rounded-lg
                        hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50 transition-colors"
           >
@@ -408,13 +408,13 @@ export default function PeriodsPanel() {
 
         {!liftData || liftData.status === 'no_periods' ? (
           <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
-            <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed max-w-xs mx-auto">
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
               {t('periodsNoneTagged')}
             </p>
           </div>
         ) : liftData.periods.length === 0 ? (
           <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
-            <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed max-w-xs mx-auto">
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
               {liftData.message ?? t('periodsNotEnough')}
             </p>
           </div>

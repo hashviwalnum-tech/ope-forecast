@@ -85,13 +85,13 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
       setRecording(null) }
   }
 
-  if (loading) return <p className="text-sm text-slate-400 p-2">{t('savingLabel')}</p>
+  if (loading) return <p className="text-sm text-slate-600 p-2 dark:text-slate-300">{t('savingLabel')}</p>
 
   if (rows.length === 0) {
     return (
-      <div className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
+      <div className="text-sm text-slate-600 dark:text-slate-400 text-center py-4">
         <p>{t('noRegularsYet')}</p>
-        <p className="text-xs mt-1 text-slate-400">
+        <p className="text-xs mt-1 text-slate-600 dark:text-slate-300">
           {t('goToRegulars')}
         </p>
       </div>
@@ -107,20 +107,20 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200 flex-1 min-w-0">{r.name}</span>
             {r.today_amount != null && (
-              <span className="text-xs text-teal-600 dark:text-teal-400 font-medium shrink-0">
+              <span className="text-xs text-teal-600 dark:text-teal-300 font-medium shrink-0">
                 {t('todayLoggedLabel', { amount: amount(r.today_amount) })}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+            <span className="text-xs text-slate-600 dark:text-slate-400 shrink-0">
               {r.today_amount != null ? t('updateTodaysTotalLabel') : t('recordVisitAmountLabel')}
             </span>
             <div className="flex items-center gap-1">
               {/* The mark and the step both follow the business's currency:
                   a fixed 0.5 step is meaningless for a currency with no
                   subunit, and "$" was simply wrong for most owners. */}
-              <span className="text-xs text-slate-400 dark:text-slate-500">{symbol}</span>
+              <span className="text-xs text-slate-600 dark:text-slate-400">{symbol}</span>
               <input
                 type="number"
                 min="0"
@@ -144,7 +144,7 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
           </div>
         </div>
       ))}
-      <p className="text-xs text-slate-400 dark:text-slate-500 pt-1">
+      <p className="text-xs text-slate-600 dark:text-slate-400 pt-1">
         {t('amountDefaultsSpend')}
       </p>
     </div>
@@ -298,7 +298,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
       case 'hours':
         return (
           <section key="hours" data-tour="busy-hours">
-            <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
+            <h2 className="text-base font-semibold text-teal-700 dark:text-teal-300 uppercase tracking-wide mb-4">
               {t('cardHours')}
             </h2>
             <HourlyDashboard />
@@ -307,7 +307,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
       case 'accuracy':
         return (
           <section key="accuracy">
-            <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
+            <h2 className="text-base font-semibold text-teal-700 dark:text-teal-300 uppercase tracking-wide mb-4">
               {t('cardAccuracy')}
             </h2>
             <PredictionsPanel />
@@ -316,7 +316,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
       case 'trends':
         return (
           <section key="trends">
-            <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
+            <h2 className="text-base font-semibold text-teal-700 dark:text-teal-300 uppercase tracking-wide mb-4">
               {t('cardTrends')}
             </h2>
             <TrendsView />
@@ -333,13 +333,13 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
         <div className="flex items-start justify-between gap-4 rounded-2xl border border-teal-200 dark:border-teal-700
                         bg-teal-50 dark:bg-teal-900/20 px-5 py-4">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-teal-700 shrink-0 mt-0.5 dark:text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <div>
               <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">{t('firstTaskTitle')}</p>
-              <p className="text-sm text-teal-700 dark:text-teal-400 mt-0.5 leading-relaxed">
+              <p className="text-sm text-teal-700 dark:text-teal-300 mt-0.5 leading-relaxed">
                 {t('firstTaskMsg')}
               </p>
             </div>
@@ -444,13 +444,13 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
                         rounded-2xl border border-slate-200 dark:border-slate-600
                         bg-slate-50 dark:bg-slate-800/60 px-5 py-4">
           <div className="flex items-start gap-3 min-w-0">
-            <svg className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-slate-600 shrink-0 mt-0.5 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('simpleModePromptTitle')}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
                 {t('simpleModePromptDesc')}
               </p>
             </div>
@@ -480,20 +480,20 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
         <div className="flex items-start justify-between gap-4 rounded-2xl border border-amber-200 dark:border-amber-800
                         bg-amber-50 dark:bg-amber-900/20 px-5 py-4">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-amber-700 shrink-0 mt-0.5 dark:text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
               <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t('tapRolloverTitle')}</p>
-              <p className="text-sm text-amber-700 dark:text-amber-400 mt-0.5 leading-relaxed">
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-0.5 leading-relaxed">
                 {t('tapRolloverMsg')}
               </p>
             </div>
           </div>
           <button
             onClick={() => { setShowLog(true); setShowSell(false); setShowRegular(false) }}
-            className="shrink-0 px-4 py-2 bg-amber-500 text-white text-sm font-semibold
+            className="shrink-0 px-4 py-2 bg-amber-700 text-white text-sm font-semibold
                        rounded-xl hover:bg-amber-600 transition-colors"
           >
             {t('logToday')}
@@ -506,20 +506,20 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
         <div className="flex items-start justify-between gap-4 rounded-2xl border border-teal-200 dark:border-teal-700
                         bg-teal-50 dark:bg-teal-900/20 px-5 py-4">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-teal-700 shrink-0 mt-0.5 dark:text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
             <div>
               <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">{t('nudgeBannerTitle')}</p>
-              <p className="text-sm text-teal-700 dark:text-teal-400 mt-0.5 leading-relaxed">
+              <p className="text-sm text-teal-700 dark:text-teal-300 mt-0.5 leading-relaxed">
                 {nudge.message}
               </p>
             </div>
           </div>
           <button
             onClick={() => setNudgeDismissed(true)}
-            className="shrink-0 text-xs text-teal-600 dark:text-teal-400 hover:text-teal-800
+            className="shrink-0 text-xs text-teal-600 dark:text-teal-300 hover:text-teal-800
                        dark:hover:text-teal-200 transition-colors"
             aria-label={t('nudgeDismiss')}
           >
@@ -536,7 +536,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
             <div className="flex gap-2">
               <button
                 onClick={resetLayout}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-xs text-slate-500 dark:text-slate-400
+                className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-xs text-slate-600 dark:text-slate-400
                            hover:bg-white dark:hover:bg-slate-700 transition-colors"
               >
                 {t('resetDefault')}
@@ -576,7 +576,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
                     onClick={() => moveCard(idx, -1)}
                     disabled={idx === 0}
                     aria-label={t('moveUpLabel', { name: t(card.labelKey as TranslationKey) })}
-                    className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-300
+                    className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300
                                hover:bg-teal-50 dark:hover:bg-slate-600 disabled:opacity-30 disabled:hover:bg-transparent
                                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
                   >
@@ -589,7 +589,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
                     onClick={() => moveCard(idx, 1)}
                     disabled={idx === layout.length - 1}
                     aria-label={t('moveDownLabel', { name: t(card.labelKey as TranslationKey) })}
-                    className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-300
+                    className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300
                                hover:bg-teal-50 dark:hover:bg-slate-600 disabled:opacity-30 disabled:hover:bg-transparent
                                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
                   >
@@ -599,7 +599,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
                   </button>
                 </div>
 
-                <span className={`flex-1 text-sm font-medium ${card.visible ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500 line-through'}`}>
+                <span className={`flex-1 text-sm font-medium ${card.visible ? 'text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-400 line-through'}`}>
                   {t(card.labelKey as TranslationKey)}
                 </span>
 
@@ -611,7 +611,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
                 >
                   <span
                     className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm
-                                 transition-transform ${card.visible ? 'translate-x-4' : ''}`}
+                                 transition-transform ${card.visible ? 'translate-x-4' : ''} dark:bg-slate-800`}
                   />
                 </button>
               </div>
@@ -625,9 +625,10 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
           <div className="flex justify-end">
             <button
               onClick={() => setCustomizing(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
-                         text-xs text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400
-                         hover:border-teal-200 dark:hover:border-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
+              className="flex items-center gap-1.5 px-4 min-h-11 rounded-xl border border-slate-300 dark:border-slate-700
+                         text-sm text-slate-700 dark:text-slate-300 hover:text-teal-800 dark:hover:text-teal-300
+                         hover:border-teal-300 dark:hover:border-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors
+                         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >
               <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

@@ -63,7 +63,7 @@ export default function BusinessSetup({
             <h1 className="text-xl font-semibold text-slate-700 dark:text-slate-100 mb-2">
               {t('oneFreeLocation')}
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
               {t('freePlanOneLocMsg')}
             </p>
             {onCancel && (
@@ -82,7 +82,7 @@ export default function BusinessSetup({
             <h1 className="text-xl font-semibold text-slate-700 dark:text-slate-100 mb-2">
               {isAdditional ? t('addLocation') : t('welcomeTitle')}
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
               {isAdditional ? t('locationNameHint') : t('businessNameHint')}
             </p>
 
@@ -104,7 +104,7 @@ export default function BusinessSetup({
                   </span>
                   <div>
                     <span className="font-medium">{t('startFreshLabel')}</span>
-                    <span className="block text-xs text-slate-400 dark:text-slate-500 mt-0.5">{t('startFreshDesc')}</span>
+                    <span className="block text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t('startFreshDesc')}</span>
                   </div>
                 </button>
 
@@ -125,7 +125,7 @@ export default function BusinessSetup({
                       <span className={`font-medium ${mode === 'copy' ? 'text-teal-700 dark:text-teal-300' : 'text-slate-600 dark:text-slate-300'}`}>
                         {t('copySettingsTitle')}
                       </span>
-                      <span className="block text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                      <span className="block text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                         {t('copySettingsDesc')}
                       </span>
                     </div>
@@ -139,7 +139,7 @@ export default function BusinessSetup({
                       <select
                         value={copySourceId}
                         onChange={e => setCopySourceId(Number(e.target.value))}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 text-sm
+                        className="w-full px-3 min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 text-sm
                                    text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700
                                    focus:outline-none focus:ring-2 focus:ring-teal-400"
                       >

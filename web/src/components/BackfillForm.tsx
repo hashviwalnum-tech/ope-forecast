@@ -227,17 +227,17 @@ export default function BackfillForm({ onSaved }: Props) {
           value={date}
           max={locked ? localYesterday : localToday}
           onChange={e => { setDate(e.target.value); setFeedback(null) }}
-          className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-3
+          className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-3 min-h-12
                      text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700
                      focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
-        <p className="text-xs text-slate-400 mt-1.5">
+        <p className="text-xs text-slate-600 mt-1.5 dark:text-slate-300">
           {locked
             ? t('todayStillOpen')
             : t('clickCalendar')}
         </p>
         {nonWorking && (
-          <p className="mt-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20
+          <p className="mt-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20
                          border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
             {t('nonWorkingDayMsg')}
           </p>
@@ -281,11 +281,11 @@ export default function BackfillForm({ onSaved }: Props) {
                   placeholder="0"
                   value={unitsSold[p.id] ?? ''}
                   onChange={e => setUnitsSold(prev => ({ ...prev, [p.id]: e.target.value }))}
-                  className="w-24 border border-slate-300 dark:border-slate-600 rounded-xl px-2 py-2 text-sm
+                  className="w-24 border border-slate-300 dark:border-slate-600 rounded-xl px-2 min-h-11 text-sm
                              bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100
                              focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
-                <span className="text-xs text-slate-400 w-8">{p.unit}</span>
+                <span className="text-xs text-slate-600 w-8 dark:text-slate-300">{p.unit}</span>
               </div>
             ))}
           </div>
@@ -303,10 +303,10 @@ export default function BackfillForm({ onSaved }: Props) {
                      transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span>
-            {t('addHourlyBreakdown')} <span className="text-slate-400 font-normal">({t('optionalLabel')})</span>
+            {t('addHourlyBreakdown')} <span className="text-slate-600 font-normal dark:text-slate-300">({t('optionalLabel')})</span>
           </span>
           <svg
-            className={`w-4 h-4 text-slate-400 transition-transform ${showHourly ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 text-slate-600 transition-transform ${showHourly ? 'rotate-180' : ''} dark:text-slate-300`}
             fill="none" viewBox="0 0 24 24" stroke="currentColor"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -341,26 +341,26 @@ export default function BackfillForm({ onSaved }: Props) {
                 )}
               </div>
             )}
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               {t('hourlyBreakdownDesc')}
             </p>
             {openHours !== null && (
-              <p className="text-xs text-slate-400 dark:text-slate-500 italic">
+              <p className="text-xs text-slate-600 dark:text-slate-400 italic">
                 {t('openHoursOnlyShown')}
               </p>
             )}
             {hoursCase === 'no-manual' && (
-              <p className="text-xs text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
+              <p className="text-xs text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
                 {t('hoursBecomeTotalNoManual', { typed: String(Math.round(openHoursTotal)) })}
               </p>
             )}
             {hoursCase === 'becomes-total' && (
-              <p className="text-xs text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
+              <p className="text-xs text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
                 {t('hoursBecomeTotalNote', { typed: String(Math.round(openHoursTotal)) })}
               </p>
             )}
             {hourlyUnderTotal && (
-              <p className="text-xs text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
+              <p className="text-xs text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-2 leading-relaxed">
                 {t('hoursUnderTotalNote', {
                   typed: String(Math.round(openHoursTotal)),
                   cust: String(custNum),
@@ -371,7 +371,7 @@ export default function BackfillForm({ onSaved }: Props) {
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 max-w-xs">
               {visibleHours.map(h => (
                 <div key={h} className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 w-11 shrink-0 text-right tabular-nums">
+                  <span className="text-xs text-slate-600 dark:text-slate-400 w-11 shrink-0 text-right tabular-nums">
                     {fmtHour(h, lang)}
                   </span>
                   <input
@@ -391,8 +391,8 @@ export default function BackfillForm({ onSaved }: Props) {
 
       {feedback && (
         <p className={`text-sm rounded-xl px-3 py-2.5 ${feedback.ok
-          ? 'text-emerald-700 bg-emerald-50'
-          : 'text-red-700 bg-red-50'}`}>
+          ? 'text-emerald-700 bg-emerald-50 dark:text-emerald-300'
+          : 'text-red-700 bg-red-50 dark:text-red-300'}`}>
           {feedback.msg}
         </p>
       )}

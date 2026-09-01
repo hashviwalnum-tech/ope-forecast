@@ -35,16 +35,16 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function NotEnoughData({ message }: { message?: string }) {
   const { t } = useLanguage()
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+    <div className="flex flex-col items-center justify-center py-12 text-slate-600 dark:text-slate-300">
       <div className="w-14 h-14 mb-4 rounded-full bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center">
-        <svg className="w-7 h-7 text-teal-300 dark:text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-7 h-7 text-teal-700 dark:text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0
                002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0
                002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       </div>
-      <p className="text-sm text-center max-w-xs leading-relaxed text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-center max-w-xs leading-relaxed text-slate-600 dark:text-slate-400">
         {message ?? t('keepLogging')}
       </p>
     </div>
@@ -83,19 +83,19 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
   const topModel = (weights: Record<string, number>) =>
     Object.entries(weights).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
 
-  const tickFill = isDark ? '#94a3b8' : '#64748b'
+  const tickFill = isDark ? '#94a3b8' : '#45556c'
   const gridStroke = isDark ? '#334155' : '#e2e8f0'
 
   return (
     <>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
         {t('predMixNote')}
       </p>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-          <XAxis dataKey="name" tick={{ fontSize: 11, fill: tickFill }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 11, fill: tickFill }} width={36} axisLine={false} tickLine={false} />
+          <XAxis dataKey="name" tick={{ fontSize: 12, fill: tickFill }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 12, fill: tickFill }} width={36} axisLine={false} tickLine={false} />
           <Tooltip
             cursor={{ fill: isDark ? '#1e293b' : '#f2f8f7' }}
             content={({ active, payload }) => {
@@ -104,8 +104,8 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
               return (
                 <div className="bg-white dark:bg-slate-800 border border-teal-100 dark:border-slate-600 rounded-xl px-3 py-2 shadow text-xs">
                   <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">{d.fullDay}</p>
-                  <p className="text-teal-600 dark:text-teal-400">{t('expectedLabel')}: <strong>{d.predicted}</strong> {t('customersLabel')}</p>
-                  <p className="text-slate-400 dark:text-slate-500">{t('likelyRange')}: {d.low} – {d.high}</p>
+                  <p className="text-teal-600 dark:text-teal-300">{t('expectedLabel')}: <strong>{d.predicted}</strong> {t('customersLabel')}</p>
+                  <p className="text-slate-600 dark:text-slate-400">{t('likelyRange')}: {d.low} – {d.high}</p>
                 </div>
               )
             }}
@@ -124,7 +124,7 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
             same_date_last_year: t('modelNameLastYear'),
           }
           return (
-            <span key={d.date} className="text-xs text-slate-400 dark:text-slate-500">
+            <span key={d.date} className="text-xs text-slate-600 dark:text-slate-400">
               {wdayShort(d.weekday, t)}: <span className="text-slate-600 dark:text-slate-300">{modelLabel[top] ?? top}</span>
             </span>
           )
@@ -237,7 +237,7 @@ function ProductOrderActions({
             <button
               onClick={() => void doMarkArrived(o.id)}
               disabled={arriving}
-              className="text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:underline shrink-0 disabled:opacity-50"
+              className="text-sm font-medium text-emerald-700 dark:text-emerald-300 hover:underline shrink-0 disabled:opacity-50 min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >
               {t('confirmArrived')}
             </button>
@@ -245,7 +245,7 @@ function ProductOrderActions({
         </div>
       ))}
       {hiddenPendingCount > 0 && (
-        <p className="text-xs text-slate-400 dark:text-slate-500">
+        <p className="text-xs text-slate-600 dark:text-slate-400">
           {t('moreOnTheWay', { n: String(hiddenPendingCount) })}
         </p>
       )}
@@ -260,20 +260,20 @@ function ProductOrderActions({
             <button
               onClick={() => void doMarkArrived(activePending.id)}
               disabled={arriving}
-              className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700
-                         rounded-lg px-2 py-0.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shrink-0 disabled:opacity-50"
+              className="text-sm font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700
+                         rounded-lg px-3 min-h-11 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shrink-0 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >
               {arriving ? '…' : t('confirmArrived')}
             </button>
           )}
           <button
             onClick={() => { setEditing(true); setEditQty(String(activePending.quantity)); setErr(null) }}
-            className="text-xs text-teal-600 dark:text-teal-400 hover:underline shrink-0"
+            className="text-sm text-teal-800 dark:text-teal-300 hover:underline shrink-0 min-h-11 min-w-11 px-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >{t('editBtn')}</button>
           <button
             onClick={() => doCancel(activePending.id)}
             disabled={cancelling}
-            className="text-xs text-rose-500 hover:underline shrink-0 disabled:opacity-50"
+            className="text-sm text-rose-700 hover:underline shrink-0 min-h-11 px-2 rounded-lg disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 dark:text-rose-300"
           >{cancelling ? '…' : t('cancelOrder')}</button>
         </div>
       )}
@@ -282,7 +282,7 @@ function ProductOrderActions({
       {activePending && editing && (
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
+            <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
             <input
               type="number"
               min={isWhole ? '1' : '0.01'}
@@ -292,17 +292,17 @@ function ProductOrderActions({
               className="w-20 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-sm
                          bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
             />
-            <span className="text-xs text-slate-400 shrink-0">{unit}</span>
+            <span className="text-xs text-slate-600 shrink-0 dark:text-slate-300">{unit}</span>
             <button
               onClick={saveEdit} disabled={saving}
-              className="text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 rounded-lg px-3 py-1.5"
+              className="text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 rounded-lg px-4 min-h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >{saving ? '…' : t('saveChangesBtn')}</button>
             <button
               onClick={() => { setEditing(false); setErr(null) }}
-              className="text-sm text-slate-400 hover:underline"
+              className="text-sm text-slate-700 dark:text-slate-200 hover:underline min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >{t('cancelBtn')}</button>
           </div>
-          {err && <p className="text-xs text-rose-500">{err}</p>}
+          {err && <p className="text-xs text-rose-700 dark:text-rose-300">{err}</p>}
         </div>
       )}
 
@@ -310,9 +310,9 @@ function ProductOrderActions({
       {!activePending && !showForm && (
         <button
           onClick={() => { setShowForm(true); setQty(isWhole ? String(Math.round(suggestedQty || 1)) : String(suggestedQty || 1)) }}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 dark:text-teal-400
-                     border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-1.5
-                     hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-800 dark:text-teal-300
+                     border border-teal-300 dark:border-teal-700 rounded-lg px-4 min-h-11
+                     hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
         >
           📦 {t('iOrderedThis')}
         </button>
@@ -321,7 +321,7 @@ function ProductOrderActions({
       {!activePending && showForm && (
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
+            <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
             <input
               type="number"
               min={isWhole ? '1' : '0.01'}
@@ -331,17 +331,17 @@ function ProductOrderActions({
               className="w-20 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm
                          bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
             />
-            <span className="text-xs text-slate-400 shrink-0">{unit}</span>
+            <span className="text-xs text-slate-600 shrink-0 dark:text-slate-300">{unit}</span>
             <button
               onClick={placeOrder} disabled={saving}
               className="text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 rounded-lg px-3 py-1.5 transition-colors"
             >{saving ? '…' : t('confirmOrder')}</button>
             <button
               onClick={() => { setShowForm(false); setErr(null) }}
-              className="text-sm text-slate-400 hover:underline"
+              className="text-sm text-slate-700 dark:text-slate-200 hover:underline min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >{t('cancelBtn')}</button>
           </div>
-          {err && <p className="text-xs text-rose-500">{err}</p>}
+          {err && <p className="text-xs text-rose-700 dark:text-rose-300">{err}</p>}
         </div>
       )}
     </div>
@@ -386,18 +386,18 @@ function OrderingProductCard({
       <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 px-4 py-3 bg-slate-50/60 dark:bg-slate-700/40">
           <div className="min-w-0">
-            {isFav && <span className="text-xs text-amber-500 mr-1">★</span>}
+            {isFav && <span className="text-xs text-amber-700 mr-1 dark:text-amber-300">★</span>}
             <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.name}</span>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
               {displayStock != null && !stockUntracked
                 ? t('inStockSuffix', { qty: `${displayStock} ${p.unit}` })
                 : stockUntracked ? t('setStartingStockHint') : ''}
             </p>
           </div>
-          <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{t('noStockTracked')}</span>
+          <span className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('noStockTracked')}</span>
         </div>
         <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700">
-          <p className="text-xs text-slate-400 dark:text-slate-500 italic">{t('noSalesDataYet')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 italic">{t('noSalesDataYet')}</p>
         </div>
       </div>
     )
@@ -415,10 +415,10 @@ function OrderingProductCard({
       >
         <div className="min-w-0">
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-            {isFav && <span className="text-amber-500 mr-1">★</span>}
+            {isFav && <span className="text-amber-700 mr-1 dark:text-amber-300">★</span>}
             {p.name}
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
             ~{p.avg_daily_demand} {p.unit}{t('perDaySuffix')} · {t('restockInNDays', { n: String(p.lead_time_days) })}
             {stock.kind === 'counted'
               ? ` · ${t('inStockSuffix', { qty: `${stock.qty} ${p.unit}` })}`
@@ -427,7 +427,7 @@ function OrderingProductCard({
                 : ` · ${t('setStartingStockHint')}`}
           </p>
           {stock.kind === 'estimated' && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-snug">
               {stock.countedOn
                 ? t('lastCountedOn', { qty: `${stock.counted} ${p.unit}`, date: stock.countedOn })
                 : t('lastCountedNoDate', { qty: `${stock.counted} ${p.unit}` })}
@@ -437,7 +437,7 @@ function OrderingProductCard({
         <div className="shrink-0 sm:text-right">
           {p.order_now ? (
             hasQty ? (
-              <span className="inline-block px-3 py-1 bg-red-500 text-white rounded-full text-xs font-bold">
+              <span className="inline-block px-3 py-1 bg-red-700 text-white rounded-full text-xs font-bold">
                 {t('orderNowBadge', { qty: `${fmtQty(p.suggested_order_qty!)} ${p.unit}` })}
               </span>
             ) : (
@@ -454,19 +454,19 @@ function OrderingProductCard({
               {t('youreGood')}
             </span>
           ) : (
-            <span className="text-xs text-slate-400 dark:text-slate-500">{t('noStockTracked')}</span>
+            <span className="text-xs text-slate-600 dark:text-slate-400">{t('noStockTracked')}</span>
           )}
         </div>
       </div>
       <div className="px-4 py-2 bg-teal-25 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex flex-wrap gap-x-4 gap-y-0.5">
-        <span className="text-xs text-slate-400 dark:text-slate-500">
+        <span className="text-xs text-slate-600 dark:text-slate-400">
           {t('reorderBelowColon')} <strong className="text-slate-600 dark:text-slate-300">{fmtQty(p.reorder_point)} {p.unit}</strong>
         </span>
-        <span className="text-xs text-slate-400 dark:text-slate-500">
+        <span className="text-xs text-slate-600 dark:text-slate-400">
           {t('safetyBufferColon')} <strong className="text-slate-600 dark:text-slate-300">{fmtQty(p.safety_stock_units)} {p.unit}</strong>
         </span>
         {p.eoq != null && (
-          <span className="text-xs text-slate-400 dark:text-slate-500">
+          <span className="text-xs text-slate-600 dark:text-slate-400">
             {t('eoqLabelColon')} <strong className="text-slate-600 dark:text-slate-300">{fmtQty(p.eoq)} {p.unit}</strong>
           </span>
         )}
@@ -521,7 +521,7 @@ function OrderingTable({
       <div className="py-8 text-center">
         <p className="text-2xl mb-2">✓</p>
         <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">{t('nothingToOrder')}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
           {t('fullyStockedNote', { n: String(data.products.length), s: data.products.length === 1 ? '' : 's' })}
         </p>
       </div>
@@ -530,7 +530,7 @@ function OrderingTable({
 
   return (
     <>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
         {t('orderingNoteText')}
       </p>
       <div className="space-y-3">
@@ -545,7 +545,7 @@ function OrderingTable({
         ))}
       </div>
       {stockOkCount > 0 && (
-        <p className="mt-4 text-xs text-slate-400 dark:text-slate-500 text-center">
+        <p className="mt-4 text-xs text-slate-600 dark:text-slate-400 text-center">
           {t('fullyStockedNote', { n: String(stockOkCount), s: stockOkCount === 1 ? '' : 's' })}
         </p>
       )}
@@ -577,7 +577,7 @@ export function WeekPredictionPanel({ refreshKey = 0 }: PanelProps) {
   if (loading) {
     return (
       <Card title={t('weekPredictionTitle')}>
-        <p className="text-sm text-slate-400 dark:text-slate-500 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
       </Card>
     )
   }
@@ -640,7 +640,7 @@ export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
   if (loading) {
     return (
       <Card title={t('whatToOrderTitle')}>
-        <p className="text-sm text-slate-400 dark:text-slate-500 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
       </Card>
     )
   }

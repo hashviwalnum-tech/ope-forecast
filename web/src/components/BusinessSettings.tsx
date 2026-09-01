@@ -182,7 +182,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
               className={`px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
                 openDays.includes(i)
                   ? 'bg-teal-600 text-white border-teal-600'
-                  : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-300'
+                  : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-700'
               }`}
             >
               {t(dayKey(i) as Parameters<typeof t>[0])}
@@ -190,7 +190,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
           ))}
         </div>
         {openDays.length === 1 && (
-          <p className="text-xs text-amber-600 mt-2">{t('atLeastOneDay')}</p>
+          <p className="text-xs text-amber-800 dark:text-amber-300 mt-2">{t('atLeastOneDay')}</p>
         )}
       </div>
 
@@ -200,11 +200,11 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
           {t('openingHoursLabel')}
         </label>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-500 dark:text-slate-400 w-16">{t('opensLabel')}</span>
+          <span className="text-sm text-slate-600 dark:text-slate-400 w-16">{t('opensLabel')}</span>
           <select
             value={openingHour}
             onChange={e => setOpeningHour(Number(e.target.value))}
-            className="border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5 text-slate-900 dark:text-slate-100
+            className="border border-slate-300 dark:border-slate-600 rounded-xl px-3 min-h-11 text-slate-900 dark:text-slate-100
                        bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
             {Array.from({ length: 24 }, (_, h) => (
@@ -213,11 +213,11 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
           </select>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-500 dark:text-slate-400 w-16">{t('closesLabel')}</span>
+          <span className="text-sm text-slate-600 dark:text-slate-400 w-16">{t('closesLabel')}</span>
           <select
             value={closingHour}
             onChange={e => setClosingHour(Number(e.target.value))}
-            className="border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5 text-slate-900 dark:text-slate-100
+            className="border border-slate-300 dark:border-slate-600 rounded-xl px-3 min-h-11 text-slate-900 dark:text-slate-100
                        bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
             {Array.from({ length: 24 }, (_, h) => (
@@ -237,7 +237,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         >
           {t('timeZoneLabel')}
         </label>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
           {t('timeZoneDesc')}
         </p>
         <select
@@ -264,7 +264,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         >
           {t('currencyLabel')}
         </label>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
           {t('currencySettingsDesc')}
         </p>
         <CurrencyPicker id="settings-currency" value={currency} onChange={setCurrency} />
@@ -278,7 +278,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
           {t('avgServiceTimeLabel')}
         </label>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
           {t('avgServiceTimeDesc')}
         </p>
         <div className="flex items-center gap-3">
@@ -291,7 +291,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
             className="w-24 px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
                        bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
           />
-          <span className="text-sm text-slate-500 dark:text-slate-400">{t('minPerCustomer')}</span>
+          <span className="text-sm text-slate-600 dark:text-slate-400">{t('minPerCustomer')}</span>
         </div>
       </div>
 
@@ -300,7 +300,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
           {t('staffingGoalLabel')}
         </label>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
           {t('staffingGoalDesc')}
         </p>
 
@@ -334,7 +334,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
               className="w-24 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
                          bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
             />
-            <span className="text-sm text-slate-500 dark:text-slate-400">{t('minutesMaxWait')}</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">{t('minutesMaxWait')}</span>
           </div>
         )}
 
@@ -349,7 +349,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
               className="w-24 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
                          bg-white dark:bg-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
             />
-            <span className="text-sm text-slate-500 dark:text-slate-400">{t('peopleMaxInLine')}</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">{t('peopleMaxInLine')}</span>
           </div>
         )}
       </div>
@@ -359,17 +359,17 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       {/* Stock & reorder management toggle */}
       <div data-tour="settings-stock" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('stockMgmtLabel')}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('stockMgmtDesc')}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">{t('stockMgmtDesc')}</p>
         <button
           type="button"
           onClick={() => setStockMgmtEnabled(v => !v)}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors w-full text-left
             ${stockMgmtEnabled
               ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-700 text-teal-800 dark:text-teal-300'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'}`}
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400'}`}
         >
           <span className={`w-9 h-5 rounded-full flex-shrink-0 relative transition-colors ${stockMgmtEnabled ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${stockMgmtEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${stockMgmtEnabled ? 'translate-x-4' : 'translate-x-0.5'} dark:bg-slate-800`} />
           </span>
           <span className="text-sm font-medium">{stockMgmtEnabled ? t('stockMgmtOn') : t('stockMgmtOff')}</span>
         </button>
@@ -378,17 +378,17 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       {/* Appointment-based toggle — blends booked counts into the forecast */}
       <div data-tour="settings-appointments" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('appointmentBasedLabel')}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('appointmentBasedDesc')}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">{t('appointmentBasedDesc')}</p>
         <button
           type="button"
           onClick={() => setAppointmentBased(v => !v)}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors w-full text-left
             ${appointmentBased
               ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-700 text-teal-800 dark:text-teal-300'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'}`}
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400'}`}
         >
           <span className={`w-9 h-5 rounded-full flex-shrink-0 relative transition-colors ${appointmentBased ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${appointmentBased ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${appointmentBased ? 'translate-x-4' : 'translate-x-0.5'} dark:bg-slate-800`} />
           </span>
           <span className="text-sm font-medium">{appointmentBased ? t('appointmentBasedOn') : t('appointmentBasedOff')}</span>
         </button>
@@ -397,17 +397,17 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       {/* Proactive nudges toggle */}
       <div data-tour="settings-nudges" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('nudgesLabel')}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('nudgesDesc')}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">{t('nudgesDesc')}</p>
         <button
           type="button"
           onClick={() => setNudgesEnabled(v => !v)}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors w-full text-left
             ${nudgesEnabled
               ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-700 text-teal-800 dark:text-teal-300'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'}`}
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400'}`}
         >
           <span className={`w-9 h-5 rounded-full flex-shrink-0 relative transition-colors ${nudgesEnabled ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${nudgesEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${nudgesEnabled ? 'translate-x-4' : 'translate-x-0.5'} dark:bg-slate-800`} />
           </span>
           <span className="text-sm font-medium">{nudgesEnabled ? t('nudgesOn') : t('nudgesOff')}</span>
         </button>
@@ -415,7 +415,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         {nudgesEnabled && (
           <div className="mt-3 space-y-3">
             <div className="flex items-center gap-3">
-              <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('nudgesFrequencyLabel')}:</label>
+              <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('nudgesFrequencyLabel')}:</label>
               <input
                 type="number"
                 min={1}
@@ -426,7 +426,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
                            text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700
                            text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 tabular-nums"
               />
-              <span className="text-xs text-slate-400">h</span>
+              <span className="text-xs text-slate-600 dark:text-slate-300">h</span>
             </div>
 
             <button
@@ -469,14 +469,14 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       {/* Dark mode toggle */}
       <div data-tour="settings-appearance" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('appearanceLabel')}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">{t('appearanceDesc')}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">{t('appearanceDesc')}</p>
         <button
           type="button"
           onClick={toggleTheme}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors w-full
             ${isDark
               ? 'bg-slate-700 border-slate-600 text-slate-100'
-              : 'bg-white border-slate-200 text-slate-700 hover:border-teal-300'}`}
+              : 'bg-white border-slate-200 text-slate-700 hover:border-teal-300 dark:text-slate-200'} dark:bg-slate-800 dark:border-slate-600`}
         >
           {isDark ? (
             <svg className="w-5 h-5 shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -484,7 +484,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
                 d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m15.07-6.07-.7.7M6.34 17.66l-.7.7M17.66 17.66l-.7-.7M6.34 6.34l-.7-.7M12 5a7 7 0 100 14A7 7 0 0012 5z" />
             </svg>
           ) : (
-            <svg className="w-5 h-5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 shrink-0 text-slate-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
@@ -496,17 +496,17 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       {/* Simple language mode toggle */}
       <div data-tour="settings-simple-lang" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('simpleModeLabel')}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 leading-relaxed">{t('simpleModeDesc')}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">{t('simpleModeDesc')}</p>
         <button
           type="button"
           onClick={() => setSimpleMode(!simpleMode)}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors w-full text-left
             ${simpleMode
               ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-700 text-teal-800 dark:text-teal-300'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400'}`}
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400'}`}
         >
           <span className={`w-9 h-5 rounded-full flex-shrink-0 relative transition-colors ${simpleMode ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${simpleMode ? 'translate-x-4' : 'translate-x-0.5'}`} />
+            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${simpleMode ? 'translate-x-4' : 'translate-x-0.5'} dark:bg-slate-800`} />
           </span>
           <span className="text-sm font-medium">{simpleMode ? t('simpleModeOn') : t('simpleModeOff')}</span>
         </button>
@@ -531,7 +531,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       {/* ── Plan / tier ─────────────────────────────────────────────── */}
       <div data-tour="settings-plan" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('planLabel')}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
           {currentTier === 'premium' ? t('planDescPremium') : t('planDescFree')}
         </p>
 
@@ -543,7 +543,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
             className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors
               ${currentTier === 'free'
                 ? 'bg-teal-600 text-white border-teal-600'
-                : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-300'}`}
+                : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-700'}`}
           >
             {t('planFree')}
           </button>
@@ -554,7 +554,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
             className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors
               ${currentTier === 'premium'
                 ? 'bg-teal-600 text-white border-teal-600'
-                : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-300'}`}
+                : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-700'}`}
           >
             {t('planPremium')}
           </button>
@@ -581,7 +581,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       {onReplayTour && (
         <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('tourReplayLabel')}</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{t('tourReplayDesc')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{t('tourReplayDesc')}</p>
           <button
             type="button"
             onClick={onReplayTour}
@@ -600,7 +600,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
           href="/privacy"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+          className="text-xs text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-700 transition-colors"
         >
           {t('privacyPolicy')}
         </a>

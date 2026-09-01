@@ -62,13 +62,13 @@ function TapButton({
         {label}
       </span>
       {unit && (
-        <span className="text-xs text-slate-400">{unit}</span>
+        <span className="text-xs text-slate-600 dark:text-slate-300">{unit}</span>
       )}
       {count > 0 && (
         <span className={`
           absolute top-2 right-2 min-w-[22px] h-[22px] rounded-full
           flex items-center justify-center text-xs font-bold px-1
-          ${flash ? 'bg-teal-500 text-white' : 'bg-teal-100 text-teal-700'}
+          ${flash ? 'bg-teal-500 text-white' : 'bg-teal-100 text-teal-700 dark:text-teal-300'}
           transition-colors
         `}>
           {count}
@@ -110,13 +110,13 @@ function RecentTapsList({
               className="flex items-center justify-between gap-3 px-3 py-2
                          rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 group"
             >
-              <span className="text-xs text-slate-400 tabular-nums w-14 shrink-0">{timeStr}</span>
+              <span className="text-xs text-slate-600 tabular-nums w-14 shrink-0 dark:text-slate-300">{timeStr}</span>
               <span className="flex-1 text-sm text-slate-700 dark:text-slate-200">{label}{qty}</span>
               <button
                 onClick={() => onDelete(tap.id)}
                 aria-label={`Remove ${label} at ${timeStr}`}
                 className="opacity-0 group-hover:opacity-100 focus:opacity-100
-                           text-slate-400 hover:text-red-500 transition-all
+                           text-slate-600 hover:text-red-700 transition-all
                            rounded-lg p-1 -mr-1"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,13 +149,13 @@ function HourlyChart({ hours, salesByHourLabel }: { hours: HourSlot[]; salesByHo
         <BarChart data={data} barSize={28}>
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
+            tick={{ fontSize: 12, fill: '#45556c' }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fontSize: 11, fill: '#94a3b8' }}
+            tick={{ fontSize: 12, fill: '#45556c' }}
             axisLine={false}
             tickLine={false}
             width={28}
@@ -183,13 +183,13 @@ function HourlyTable({ hours }: { hours: HourSlot[] }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-100 dark:border-slate-700">
-            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
               {t('hourLabel')}
             </th>
-            <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+            <th className="text-right px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
               {t('tapsLabel')}
             </th>
-            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
               {t('whatWasSold')}
             </th>
           </tr>
@@ -200,14 +200,14 @@ function HourlyTable({ hours }: { hours: HourSlot[] }) {
               <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-200 tabular-nums whitespace-nowrap">
                 {fmtHour(h.hour)}
               </td>
-              <td className="px-4 py-3 text-right font-bold text-teal-700 dark:text-teal-400 tabular-nums">
+              <td className="px-4 py-3 text-right font-bold text-teal-700 dark:text-teal-300 tabular-nums">
                 {h.taps}
               </td>
-              <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs">
+              <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-xs">
                 {h.product_taps
                   .filter(pt => pt.product_id !== null)
                   .map(pt => `${pt.product_name} ×${pt.units}`)
-                  .join(', ') || <span className="text-slate-300 dark:text-slate-600">—</span>}
+                  .join(', ') || <span className="text-slate-300 dark:text-slate-300">—</span>}
               </td>
             </tr>
           ))}
@@ -297,10 +297,10 @@ export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {})
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 px-6 py-4 shadow-sm
                       flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{t('todayIs', { date: dateStr })}</p>
-          <p className="text-2xl font-bold text-teal-700 dark:text-teal-400 tabular-nums">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">{t('todayIs', { date: dateStr })}</p>
+          <p className="text-2xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">
             {summary?.total_taps ?? 0}
-            <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2">{t('tapsRecorded')}</span>
+            <span className="text-sm font-normal text-slate-600 dark:text-slate-400 ml-2">{t('tapsRecorded')}</span>
           </p>
         </div>
 
@@ -326,13 +326,13 @@ export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {})
           {t('tapTitle')}
         </h2>
         {/* Short plain explanation next to tap screen */}
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 leading-relaxed">
           {t('tapExplanation')}
         </p>
 
         {productList.length === 0 ? (
           <div className="rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 p-8 text-center">
-            <p className="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto mb-4">
+            <p className="text-sm text-slate-600 leading-relaxed max-w-xs mx-auto mb-4 dark:text-slate-300">
               {t('noProductsAddFirst')}
             </p>
             {onGoToProducts && (
@@ -363,7 +363,7 @@ export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {})
                   />
                   {isDecimal && (
                     <div className="flex items-center gap-1.5 px-1">
-                      <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">{t('tapUnit')}</span>
+                      <span className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('tapUnit')}</span>
                       <input
                         type="number"
                         min="0.01"
@@ -374,7 +374,7 @@ export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {})
                                    bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200
                                    focus:outline-none focus:ring-1 focus:ring-teal-400 tabular-nums"
                       />
-                      <span className="text-xs text-slate-400 dark:text-slate-500">{p.unit}</span>
+                      <span className="text-xs text-slate-600 dark:text-slate-400">{p.unit}</span>
                     </div>
                   )}
                 </div>
@@ -407,7 +407,7 @@ export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {})
             <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
               {t('howTodayLooks')}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
               {t('eachBarHour')}
             </p>
           </div>
@@ -418,7 +418,7 @@ export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {})
 
       {summary && summary.hours.length === 0 && productList.length > 0 && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
-          <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed max-w-xs mx-auto">
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
             {t('noTapsYet')}
           </p>
         </div>

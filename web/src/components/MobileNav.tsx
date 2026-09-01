@@ -150,7 +150,7 @@ export default function MobileNav({
                     className={`w-full text-start px-3 min-h-12 py-3 rounded-xl text-base transition-colors
                                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 ${
                       active === item.id
-                        ? 'bg-teal-100 dark:bg-teal-900/40 text-teal-800 dark:text-teal-200 font-semibold'
+                        ? 'bg-teal-100 dark:bg-teal-900/40 text-teal-800 dark:text-teal-50 font-semibold'
                         : 'text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-700'
                     }`}
                   >

@@ -45,13 +45,13 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
   }, [regularId])
 
   if (loading) return (
-    <p className="text-xs text-slate-400 dark:text-slate-500 py-2">{t('loadingLabel')}</p>
+    <p className="text-xs text-slate-600 dark:text-slate-400 py-2">{t('loadingLabel')}</p>
   )
 
   const hasAnyData = data && (data.this_month > 0 || data.this_year > 0 || data.all_time > 0)
 
   if (!data || !hasAnyData) return (
-    <p className="text-xs text-slate-400 dark:text-slate-500 py-2">{t('profitabilityNoData')}</p>
+    <p className="text-xs text-slate-600 dark:text-slate-400 py-2">{t('profitabilityNoData')}</p>
   )
 
   const chartData = [
@@ -60,7 +60,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
     { label: t('profitabilityAllTime'), value: data.all_time },
   ]
 
-  const tickFill = isDark ? '#94a3b8' : '#64748b'
+  const tickFill = isDark ? '#94a3b8' : '#45556c'
   const gridStroke = isDark ? '#334155' : '#e2e8f0'
   const barColors = ['#4e8b87', '#3a7470', '#2c5f5c']
 
@@ -92,7 +92,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
     <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 space-y-4">
       {/* Revenue profitability chart */}
       <div>
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+        <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
           {t('profitabilityTitle', { name: data.name })}
         </p>
         <ResponsiveContainer width="100%" height={120}>
@@ -100,12 +100,12 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
             <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 10, fill: tickFill }}
+              tick={{ fontSize: 12, fill: tickFill }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: tickFill }}
+              tick={{ fontSize: 12, fill: tickFill }}
               width={48}
               axisLine={false}
               tickLine={false}
@@ -128,7 +128,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
           </BarChart>
         </ResponsiveContainer>
         {data.first_visit_date && (
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
             {t('firstVisitLabel', { date: fmtDate(data.first_visit_date, lang) ?? '' })}
           </p>
         )}
@@ -137,11 +137,11 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
       {/* Churn / visit frequency chart */}
       {hasChurnData && (
         <div>
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+          <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
             {t('churnChartTitle')}
           </p>
           {declining && (
-            <p className="text-[11px] text-amber-600 dark:text-amber-400 mb-2 font-medium">
+            <p className="text-xs text-amber-800 dark:text-amber-300 mb-2 font-medium">
               ⚠ {t('churnDecliningNote')}
             </p>
           )}
@@ -150,13 +150,13 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
               <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 9, fill: tickFill }}
+                tick={{ fontSize: 12, fill: tickFill }}
                 axisLine={false}
                 tickLine={false}
                 interval={churnData.length > 6 ? 1 : 0}
               />
               <YAxis
-                tick={{ fontSize: 9, fill: tickFill }}
+                tick={{ fontSize: 12, fill: tickFill }}
                 width={32}
                 axisLine={false}
                 tickLine={false}
@@ -351,7 +351,7 @@ export default function RegularsPanel() {
       {!showForm && (
         <button
           onClick={startAdd}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 text-white
+          className="flex items-center gap-2 px-5 min-h-11 rounded-xl bg-teal-600 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
                      text-sm font-semibold hover:bg-teal-700 transition-colors shadow-sm"
         >
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -369,7 +369,7 @@ export default function RegularsPanel() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('nameLabel')}</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('nameLabel')}</label>
               <input
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -381,7 +381,7 @@ export default function RegularsPanel() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                 {t('avgSpendLabel')}
               </label>
               <input
@@ -396,11 +396,11 @@ export default function RegularsPanel() {
           </div>
 
           <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 px-4 py-3">
-            <p className="text-xs text-teal-600 dark:text-teal-400 font-medium">
+            <p className="text-xs text-teal-600 dark:text-teal-300 font-medium">
               {t('clvEstimateText', { years: String(form.expected_lifespan_years ?? 3) })}
               <span className="text-teal-800 dark:text-teal-200 font-bold ml-1">{money(clvPreview)}</span>
             </p>
-            <p className="text-[11px] text-teal-500 dark:text-teal-500 mt-0.5">
+            <p className="text-xs text-teal-700 dark:text-teal-300 mt-0.5">
               {t('clvFormulaText', {
                 freq: String(form.visit_frequency_per_week),
                 spend: String(form.avg_spend),
@@ -412,7 +412,7 @@ export default function RegularsPanel() {
           <button
             type="button"
             onClick={() => setShowOptional(o => !o)}
-            className="text-xs text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1"
+            className="text-sm text-teal-800 dark:text-teal-300 hover:underline flex items-center gap-1 min-h-11 px-1 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >
             {showOptional ? '▴' : '▾'} {t('optionalDetailsToggle')}
           </button>
@@ -420,7 +420,7 @@ export default function RegularsPanel() {
           {showOptional && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                   {t('visitsPerWeek')}
                 </label>
                 <input
@@ -434,7 +434,7 @@ export default function RegularsPanel() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                   {t('expectedLoyalty')}
                 </label>
                 <input
@@ -448,7 +448,7 @@ export default function RegularsPanel() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('firstVisitDateLabel')}</label>
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('firstVisitDateLabel')}</label>
                 <input
                   type="date"
                   value={form.first_visit_date ?? ''}
@@ -457,11 +457,11 @@ export default function RegularsPanel() {
                              bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                              focus:outline-none focus:ring-2 focus:ring-teal-300"
                 />
-                <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{t('firstVisitDateDesc')}</p>
+                <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{t('firstVisitDateDesc')}</p>
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('notesOptional')}</label>
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('notesOptional')}</label>
                 <input
                   value={form.notes ?? ''}
                   onChange={e => setForm(f => ({ ...f, notes: e.target.value || undefined }))}
@@ -497,13 +497,13 @@ export default function RegularsPanel() {
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">{t('loadingLabel')}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{t('loadingLabel')}</p>
       ) : loadError ? (
         <LoadError error={loadError} onRetry={load} />
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 p-8 text-center">
-          <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">{t('noRegularsEmptyTitle')}</p>
-          <p className="text-xs text-teal-400 dark:text-teal-600 mt-1">
+          <p className="text-sm text-teal-600 dark:text-teal-300 font-medium">{t('noRegularsEmptyTitle')}</p>
+          <p className="text-xs text-teal-700 dark:text-teal-300 mt-1">
             {t('noRegularsEmptyDesc')}
           </p>
         </div>
@@ -523,20 +523,26 @@ export default function RegularsPanel() {
                     <button
                       onClick={() => toggleFavorite(r)}
                       title={r.is_favorite ? t('unfavoriteLabel') : t('favoriteLabel')}
-                      className={`text-lg leading-none transition-colors ${r.is_favorite ? 'text-amber-400 hover:text-amber-500' : 'text-slate-300 dark:text-slate-600 hover:text-amber-300'}`}
+                      aria-label={r.is_favorite ? t('unfavoriteLabel') : t('favoriteLabel')}
+                      aria-pressed={r.is_favorite}
+                      className={`w-11 h-11 flex items-center justify-center rounded-lg text-lg leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 ${
+                        r.is_favorite
+                          ? 'text-amber-700 dark:text-amber-300 hover:text-amber-800'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-amber-700'
+                      }`}
                     >★</button>
                     <span className="font-semibold text-slate-800 dark:text-slate-100">{r.name}</span>
-                    <span className="text-xs bg-teal-50 dark:bg-teal-900/40 text-teal-600 dark:text-teal-300 border border-teal-100 dark:border-teal-800
+                    <span className="text-xs bg-teal-50 dark:bg-teal-900/40 text-teal-800 dark:text-teal-50 border border-teal-100 dark:border-teal-800
                                      rounded-full px-2 py-0.5 font-medium">
                       CLV {money(r.clv)}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
                     {r.visit_frequency_per_week}×/week · ${r.avg_spend}/visit · {r.expected_lifespan_years} yr
                   </p>
-                  {r.notes && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 italic">{r.notes}</p>}
+                  {r.notes && <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 italic">{r.notes}</p>}
                   {r.last_visit_date && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                       {t('lastVisitLabel', { date: fmtDate(r.last_visit_date, lang) ?? '' })}
                     </p>
                   )}
@@ -545,14 +551,14 @@ export default function RegularsPanel() {
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => startEdit(r)}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-xs
+                    className="px-4 min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
                                hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                   >
                     {t('editBtn')}
                   </button>
                   <button
                     onClick={() => del(r.id)}
-                    className="px-3 py-1.5 rounded-lg border border-rose-100 dark:border-rose-900 text-rose-500 dark:text-rose-400 text-xs
+                    className="px-4 min-h-11 rounded-xl border border-rose-300 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
                                hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
                   >
                     {t('removeBtn')}
@@ -565,19 +571,19 @@ export default function RegularsPanel() {
                 <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700
                                 flex flex-wrap gap-x-5 gap-y-1">
                   <div>
-                    <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityThisMonth')}</span>
+                    <span className="text-xs text-slate-600 dark:text-slate-400">{t('profitabilityThisMonth')}</span>
                     <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
                       {money(profMap[r.id].this_month)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityThisYear')}</span>
+                    <span className="text-xs text-slate-600 dark:text-slate-400">{t('profitabilityThisYear')}</span>
                     <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
                       {money(profMap[r.id].this_year)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-xs text-slate-400 dark:text-slate-500">{t('profitabilityAllTime')}</span>
+                    <span className="text-xs text-slate-600 dark:text-slate-400">{t('profitabilityAllTime')}</span>
                     <span className="ml-1.5 text-sm font-semibold text-teal-700 dark:text-teal-300">
                       {money(profMap[r.id].all_time)}
                     </span>
@@ -587,18 +593,18 @@ export default function RegularsPanel() {
 
               {/* Record visit row */}
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                <span className="text-xs text-slate-600 dark:text-slate-400 shrink-0">
                   {r.today_amount != null ? t('updateTodaysTotalLabel') : t('recordVisitAmountLabel')}
                 </span>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-slate-400 dark:text-slate-500">{symbol}</span>
+                  <span className="text-xs text-slate-600 dark:text-slate-400">{symbol}</span>
                   <input
                     type="number"
                     min="0"
                     step={step}
                     value={visitAmounts[r.id] ?? (r.today_amount ?? r.avg_spend)}
                     onChange={e => setVisitAmounts(a => ({ ...a, [r.id]: e.target.value }))}
-                    className="w-20 text-sm px-2 py-1 border border-slate-200 dark:border-slate-600 rounded-lg
+                    className="w-24 text-sm px-3 min-h-11 border border-slate-300 dark:border-slate-600 rounded-xl
                                bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200
                                focus:outline-none focus:ring-2 focus:ring-teal-300 tabular-nums"
                   />
@@ -606,7 +612,7 @@ export default function RegularsPanel() {
                 <button
                   onClick={() => recordVisit(r.id, r.name)}
                   disabled={visitRecording === r.id}
-                  className={`px-3 py-1.5 rounded-lg text-white text-xs font-semibold
+                  className={`px-4 min-h-11 rounded-xl text-white text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
                              hover:bg-teal-700 disabled:opacity-50 transition-colors
                              ${r.today_amount != null ? 'bg-teal-500' : 'bg-teal-600'}`}
                 >
@@ -617,7 +623,7 @@ export default function RegularsPanel() {
                       : t('recordVisit')}
                 </button>
                 {r.today_amount != null && (
-                  <span className="text-xs text-teal-600 dark:text-teal-400 font-medium">
+                  <span className="text-xs text-teal-600 dark:text-teal-300 font-medium">
                     {t('todayLoggedLabel', { amount: String(r.today_amount.toFixed(2)) })}
                   </span>
                 )}
@@ -627,7 +633,7 @@ export default function RegularsPanel() {
               <div className="mt-2">
                 <button
                   onClick={() => toggleProfit(r.id)}
-                  className="text-xs text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1"
+                  className="text-sm text-teal-800 dark:text-teal-300 hover:underline flex items-center gap-1 min-h-11 px-1 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
                 >
                   {expandedProfit.has(r.id) ? '▴' : '▾'} {t('showProfitabilityBtn')}
                 </button>
@@ -638,7 +644,7 @@ export default function RegularsPanel() {
         </div>
       )}
 
-      <p className="text-xs text-slate-400 dark:text-slate-500">
+      <p className="text-xs text-slate-600 dark:text-slate-400">
         {t('regularsNote')}
       </p>
     </div>

@@ -119,7 +119,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
       {/* Approaching reorder — heads-up before running low */}
       {item.approaching_reorder && !item.projected_runout_warning && (
         <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-900">
-          <span className="text-amber-500 shrink-0">⚠</span>
+          <span className="text-amber-700 shrink-0 dark:text-amber-300">⚠</span>
           <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">
             {t('approachingReorderMsg', { name: item.name })}
           </p>
@@ -128,7 +128,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
       {/* Low stock / projected run-out */}
       {item.projected_runout_warning && (
         <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 border-b border-red-100 dark:border-red-900">
-          <span className="text-red-500 shrink-0">⚠</span>
+          <span className="text-red-700 shrink-0 dark:text-red-300">⚠</span>
           <p className="text-xs text-red-800 dark:text-red-300 flex-1">
             {t('lowStockWarning', { name: item.name })}
           </p>
@@ -137,7 +137,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
       {/* No baseline set — honest fallback */}
       {stockUntracked && (
         <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-700/40 border-b border-slate-100 dark:border-slate-600">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             {t('stockUntrackedMsg')}
           </p>
         </div>
@@ -147,7 +147,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
         <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{t('orderingAdvice')}</p>
         <div className="flex items-center gap-2">
           {item.order_now ? (
-            <span className="px-2.5 py-1 bg-red-500 text-white rounded-full text-xs font-bold">
+            <span className="px-2.5 py-1 bg-red-700 text-white rounded-full text-xs font-bold">
               {t('orderNowBadge', { qty: fmtQty(qty, uMode, unit) })}
             </span>
           ) : !stockUntracked ? (
@@ -159,26 +159,26 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
         <div className="px-4 py-3">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{t('reorderWhenBelow')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">{t('reorderWhenBelow')}</p>
           <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-100">{fmtQty(item.reorder_point, uMode, unit)}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{haveNow}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{haveNow}</p>
           {stockFootnote && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{stockFootnote}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-snug">{stockFootnote}</p>
           )}
         </div>
         <div className="px-4 py-3">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{t('safetyBufferLabel')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">{t('safetyBufferLabel')}</p>
           <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-100">{fmtQty(item.safety_stock_units, uMode, unit)}</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{t('extraAbsorbSwings')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t('extraAbsorbSwings')}</p>
         </div>
         <div className={`px-4 py-3 ${item.order_now ? 'bg-red-50/40 dark:bg-red-900/10' : ''}`}>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">
             {item.eoq != null ? t('idealOrderEOQ') : t('suggestedOrder')}
           </p>
           <p className={`text-base font-bold tabular-nums ${item.order_now ? 'text-red-700 dark:text-red-400' : 'text-slate-800 dark:text-slate-100'}`}>
             {fmtQty(qty, uMode, unit)}
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
             {item.eoq != null ? t('minimisesOrderingHolding') : t('coversLeadTimeSafety')}
           </p>
         </div>
@@ -195,7 +195,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
       )}
       {/* Footer: avg data note + "I ordered this" button */}
       <div className="px-4 py-3 bg-teal-50/40 dark:bg-teal-900/10 border-t border-teal-100 dark:border-teal-800 space-y-2">
-        <p className="text-xs text-slate-400 dark:text-slate-500">
+        <p className="text-xs text-slate-600 dark:text-slate-400">
           {t('avgPerDayData', {
             qty: fmtQty(item.avg_daily_demand, uMode, unit),
             n: String(item.n_days_data),
@@ -215,12 +215,12 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
               <button
                 onClick={markRecentArrived}
                 disabled={arriving}
-                className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline shrink-0 disabled:opacity-50"
+                className="text-sm font-semibold text-emerald-700 dark:text-emerald-300 hover:underline shrink-0 disabled:opacity-50 min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
               >
                 {arriving ? '…' : t('confirmArrived')}
               </button>
             )}
-            <button onClick={cancelRecentOrder} className="text-xs text-slate-400 hover:text-red-500 shrink-0">
+            <button onClick={cancelRecentOrder} className="text-xs text-slate-600 hover:text-red-700 shrink-0 dark:text-slate-300">
               {t('cancelOrder')}
             </button>
           </div>
@@ -231,7 +231,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
           <button
             onClick={() => { setShowOrderForm(true); setOrderQty(uMode === 'whole' ? String(Math.round(qty || 1)) : String(qty || 1)) }}
             className="inline-flex items-center gap-2 text-sm font-semibold text-white
-                       bg-teal-600 hover:bg-teal-700 rounded-xl px-4 py-2 transition-colors shadow-sm"
+                       bg-teal-600 hover:bg-teal-700 rounded-xl px-5 min-h-11 transition-colors shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >
             📦 {t('iOrderedThis')}
           </button>
@@ -250,7 +250,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
               className="w-20 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm
                          bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
             />
-            <span className="text-xs text-slate-400 shrink-0">{unit}</span>
+            <span className="text-xs text-slate-600 shrink-0 dark:text-slate-300">{unit}</span>
             <button
               onClick={submitOrder}
               disabled={submitting}
@@ -259,7 +259,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
             >
               {submitting ? '…' : t('confirmOrder')}
             </button>
-            <button onClick={() => setShowOrderForm(false)} className="text-sm text-slate-400 hover:underline">
+            <button onClick={() => setShowOrderForm(false)} className="text-sm text-slate-700 dark:text-slate-200 hover:underline min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
               {t('cancelBtn')}
             </button>
           </div>
@@ -282,7 +282,8 @@ function Chip({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors
+      className={`flex items-center gap-1.5 px-3 min-h-11 rounded-xl text-sm font-medium border transition-colors
+        focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
         ${active
           ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
           : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-teal-300 hover:text-teal-700 bg-white dark:bg-slate-800'
@@ -328,7 +329,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
         <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-3">{t('demandForecast')}</h2>
         {/* This is a READ, not a write — 'Saving…' told the owner the app was
             writing something when it was only fetching the forecast. */}
-        <p className="text-sm text-slate-400 animate-pulse">{t('loadingLabel')}</p>
+        <p className="text-sm text-slate-600 animate-pulse dark:text-slate-300">{t('loadingLabel')}</p>
       </section>
     )
   }
@@ -397,8 +398,35 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
         )}
       </div>
 
-      {/* Series chips */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      {/* Which series to chart.
+          A chip each stops scaling: the spec anticipates shops with thirty
+          products, and thirty 44px chips is a wall before you reach the chart.
+          Below `sm` this is one native picker — one control, whatever the
+          product count — and chips above it, where the room exists. */}
+      <div className="sm:hidden mb-4">
+        <label htmlFor="forecast-series" className="sr-only">{t('demandForecast')}</label>
+        <select
+          id="forecast-series"
+          value={typeof selected === 'number' ? String(selected) : 'customers'}
+          onChange={e => setSelected(e.target.value === 'customers' ? 'customers' : Number(e.target.value))}
+          className="w-full min-h-11 rounded-xl border border-slate-300 dark:border-slate-600
+                     bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 px-3 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-teal-500"
+        >
+          <option value="customers">{t('customersLabel')}</option>
+          {sortedProductItems.map(p => {
+            const isFav = (p as typeof p & { is_favorite?: boolean }).is_favorite
+            const needsOrder = p.status === 'ok' && p.order_now
+            return (
+              <option key={p.product_id} value={p.product_id}>
+                {isFav ? `★ ${p.name}` : p.name}{needsOrder ? ` — ${t('orderNowLabel')}` : ''}
+              </option>
+            )
+          })}
+        </select>
+      </div>
+
+      <div className="hidden sm:flex flex-wrap gap-2 mb-4">
         <Chip
           label={t('customersLabel')}
           active={selected === 'customers'}
@@ -442,15 +470,15 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
       {/* Chart */}
       {noData ? (
         <div className="flex flex-col items-center justify-center py-10">
-          <p className="text-sm text-center max-w-xs leading-relaxed text-slate-500 dark:text-slate-400">{noDataMsg}</p>
+          <p className="text-sm text-center max-w-xs leading-relaxed text-slate-600 dark:text-slate-400">{noDataMsg}</p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#45556c' }} axisLine={false} tickLine={false} />
             <YAxis
-              tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }}
+              tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#45556c' }}
               width={yLabel.length > 4 ? 48 : 36}
               axisLine={false}
               tickLine={false}
@@ -464,10 +492,10 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
                 return (
                   <div className="bg-white dark:bg-slate-800 border border-teal-100 dark:border-teal-700 rounded-xl px-3 py-2 shadow text-xs">
                     <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">{dayLabel}</p>
-                    <p className="text-teal-600 dark:text-teal-400">
+                    <p className="text-teal-600 dark:text-teal-300">
                       {t('expectedLabel')}: <strong>{d.predicted}</strong> {yLabel}
                     </p>
-                    <p className="text-slate-400 dark:text-slate-500">{t('likelyRange')}: {d.low} – {d.high}</p>
+                    <p className="text-slate-600 dark:text-slate-400">{t('likelyRange')}: {d.low} – {d.high}</p>
                   </div>
                 )
               }}
@@ -481,7 +509,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
           saying so plainly stops an owner reading the one day in five that lands
           outside as the app simply being wrong. */}
       {!noData && (
-        <p className="mt-3 text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+        <p className="mt-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
           {t('rangeMeaningNote')}
         </p>
       )}
@@ -489,7 +517,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
       {/* While learning, lead with the RANGE for each day rather than the midpoint */}
       {selected === 'customers' && learning && chartData.length > 0 && (
         <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-4">
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
             {t('learningRangesTitle')}
           </p>
           {chartData.map(d => (
@@ -505,7 +533,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
           Works for both the customers total and a selected service's own series. */}
       {selected === 'customers' && forecast?.status === 'ok' && forecast.days.some(d => d.booked_count != null) && (
         <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-4">
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
             {t('bookedVsPredictedTitle')}
           </p>
           {forecast.days.filter(d => d.booked_count != null).map(d => (
@@ -520,7 +548,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
       )}
       {typeof selected === 'number' && activeProduct?.status === 'ok' && activeProduct.days.some(d => d.booked_count != null) && (
         <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-700 pt-4">
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">
             {t('bookedVsPredictedTitle')}
           </p>
           {activeProduct.days.filter(d => d.booked_count != null).map(d => (
@@ -540,11 +568,11 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
       {/* Product selected but no data yet */}
       {activeProduct && activeProduct.status !== 'ok' && (
         <div className="mt-3 rounded-xl bg-teal-50/40 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 px-4 py-4 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
             {activeProduct.message ?? t('logMoreProductSales', { name: activeProduct.name })}
           </p>
           {activeProduct.n_days_data > 0 && (
-            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
               {t('daysRecordedSoFar', { n: String(activeProduct.n_days_data), s: activeProduct.n_days_data !== 1 ? 's' : '' })}
             </p>
           )}

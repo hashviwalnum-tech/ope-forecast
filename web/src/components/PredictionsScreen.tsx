@@ -14,7 +14,7 @@ export default function PredictionsScreen({ refreshKey }: Props) {
       <OrderingPanel refreshKey={refreshKey} />
       <MergedForecastPanel refreshKey={refreshKey} />
       <section>
-        <h2 className="text-base font-semibold text-teal-700/70 dark:text-teal-400/70 uppercase tracking-wide mb-4">
+        <h2 className="text-base font-semibold text-teal-700 dark:text-teal-300 uppercase tracking-wide mb-4">
           {t('busyHoursLabel')}
         </h2>
         <HourlyDashboard />

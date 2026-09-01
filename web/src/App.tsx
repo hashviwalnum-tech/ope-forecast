@@ -293,15 +293,15 @@ function AppInner() {
       <div className="min-h-screen bg-teal-50/60 dark:bg-slate-900 flex items-center justify-center px-6">
         {waking ? (
           <div className="text-center space-y-4 max-w-xs">
-            <svg className="w-12 h-12 text-teal-400 dark:text-teal-500 animate-spin mx-auto" fill="none" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 text-teal-700 dark:text-teal-500 animate-spin mx-auto" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
             <p className="text-teal-700 dark:text-teal-300 font-semibold text-lg">{t('wakingUpTitle')}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{t('wakingUpMsg')}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{t('wakingUpMsg')}</p>
           </div>
         ) : (
-          <p className="text-teal-600 dark:text-teal-400 text-sm">{t('loadingLabel')}</p>
+          <p className="text-teal-600 dark:text-teal-300 text-sm">{t('loadingLabel')}</p>
         )}
       </div>
     )
@@ -314,7 +314,7 @@ function AppInner() {
       <div className="min-h-screen bg-teal-50 dark:bg-slate-900 flex items-center justify-center p-6">
         <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8 text-center">
           <p className="text-slate-700 dark:text-slate-200 font-semibold mb-2">{t('serverUnreachable')}</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t('checkConnection')}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{t('checkConnection')}</p>
           <button
             onClick={() => { setBizLoaded(false); setBizError(false); loadBusinesses() }}
             className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-semibold
@@ -374,7 +374,7 @@ function AppInner() {
           <img src={logo} alt="Ope logo" className="logo-img h-9 lg:h-11 w-auto" />
           <div className="leading-tight">
             <span className="block text-lg lg:text-xl font-bold text-teal-700 dark:text-teal-300 tracking-tight">Ope</span>
-            <span className="hidden lg:block text-xs text-teal-600 dark:text-teal-400 font-medium">{t('slogan')}</span>
+            <span className="hidden lg:block text-xs text-teal-600 dark:text-teal-300 font-medium">{t('slogan')}</span>
           </div>
         </button>
 
@@ -383,7 +383,7 @@ function AppInner() {
           <button
             onClick={() => setSwitcherOpen(o => !o)}
             className="flex items-center gap-1.5 px-3 min-h-11 lg:min-h-0 lg:py-1.5 rounded-lg text-sm max-w-full
-                       text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-slate-700 hover:bg-teal-100 dark:hover:bg-slate-600 font-medium
+                       text-teal-800 dark:text-teal-200 bg-teal-50 dark:bg-slate-700 hover:bg-teal-100 dark:hover:bg-slate-600 font-medium
                        border border-teal-100 dark:border-slate-600 transition-colors"
           >
             <span className="truncate lg:max-w-[140px]">{activeBusiness.name}</span>
@@ -401,7 +401,7 @@ function AppInner() {
                     onClick={() => switchBusiness(b)}
                     className={`flex-1 text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors
                       ${b.id === activeBusiness.id
-                        ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-medium'
+                        ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-50 font-medium'
                         : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                   >
                     <svg
@@ -417,7 +417,7 @@ function AppInner() {
                     <button
                       onClick={() => handleDeleteBusiness(b.id, b.name)}
                       title={t('deleteLocation')}
-                      className="px-2 py-2 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400
+                      className="px-2 py-2 text-slate-300 dark:text-slate-300 hover:text-rose-700 dark:hover:text-rose-400
                                  opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -432,7 +432,7 @@ function AppInner() {
                 {activeBusiness?.tier === 'premium' || allBusinesses.length < FREE_BUSINESS_LIMIT ? (
                   <button
                     onClick={() => { setShowAddBusiness(true); setSwitcherOpen(false) }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-teal-600 dark:text-teal-400
+                    className="w-full text-left px-4 py-2.5 text-sm text-teal-600 dark:text-teal-300
                                hover:bg-teal-50 dark:hover:bg-slate-700 flex items-center gap-2 transition-colors"
                   >
                     <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -442,10 +442,10 @@ function AppInner() {
                   </button>
                 ) : (
                   <div className="px-4 py-2.5">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t('freeOneLocation')}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">{t('freeOneLocation')}</p>
                     <button
                       onClick={() => { setTab('premium'); setSwitcherOpen(false) }}
-                      className="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-700 hover:underline transition-colors"
+                      className="text-xs text-teal-600 dark:text-teal-300 hover:text-teal-700 hover:underline transition-colors"
                     >
                       {t('upgradeForLocations')}
                     </button>
@@ -468,7 +468,7 @@ function AppInner() {
               className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 tab === navTab.id
                   ? 'bg-teal-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-700 dark:hover:text-teal-300'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-700 dark:hover:text-teal-700'
               }`}
             >
               {navTab.label}
@@ -485,8 +485,8 @@ function AppInner() {
                   onClick={() => setOpenGroup(isOpen ? null : group.id)}
                   className={`flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isGroupActive
-                      ? 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-700 dark:hover:text-teal-300'
+                      ? 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-50'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-700 dark:hover:text-teal-700'
                   }`}
                 >
                   {group.label}
@@ -507,7 +507,7 @@ function AppInner() {
                         onClick={() => { setTab(navTab.id); setOpenGroup(null) }}
                         className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 transition-colors ${
                           tab === navTab.id
-                            ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-medium'
+                            ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-50 font-medium'
                             : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                       >
@@ -548,8 +548,8 @@ function AppInner() {
           aria-label={t('settings')}
           className={`w-11 h-11 flex items-center justify-center rounded-lg transition-colors shrink-0 ml-auto lg:ml-0 ${
             tab === 'settings'
-              ? 'text-teal-700 dark:text-teal-300 bg-teal-100 dark:bg-teal-900/40'
-              : 'text-slate-500 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700'
+              ? 'text-teal-700 dark:text-teal-50 bg-teal-100 dark:bg-teal-900/40'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700'
           }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -629,7 +629,8 @@ function AppInner() {
           </p>
           <button
             onClick={() => setTab('premium')}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition-colors shrink-0"
+            className="text-sm font-semibold px-4 min-h-11 rounded-xl bg-amber-700 hover:bg-amber-800 text-white transition-colors shrink-0
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-800"
           >
             {t('premiumTrialBannerUpgrade')}
           </button>
@@ -644,7 +645,7 @@ function AppInner() {
           <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
             <div className="w-full min-h-[600px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
                             flex items-center justify-center">
-              <span className="text-[10px] text-teal-300 dark:text-teal-600 tracking-widest uppercase select-none">Ad</span>
+              <span className="text-xs text-teal-700 dark:text-teal-300 tracking-widest uppercase select-none">Ad</span>
             </div>
           </aside>
         )}
@@ -696,7 +697,7 @@ function AppInner() {
           <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
             <div className="w-full min-h-[600px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
                             flex items-center justify-center">
-              <span className="text-[10px] text-teal-300 dark:text-teal-600 tracking-widest uppercase select-none">Ad</span>
+              <span className="text-xs text-teal-700 dark:text-teal-300 tracking-widest uppercase select-none">Ad</span>
             </div>
           </aside>
         )}
@@ -708,7 +709,7 @@ function AppInner() {
       {SHOW_ADS && (
         <div className="fixed bottom-14 lg:bottom-0 inset-x-0 xl:hidden h-14 bg-teal-50/90 dark:bg-slate-800/90 backdrop-blur-sm
                         border-t border-teal-100 dark:border-slate-700 flex items-center justify-center z-10">
-          <span className="text-[10px] text-teal-500 dark:text-teal-500 tracking-widest uppercase select-none">Ad</span>
+          <span className="text-xs text-teal-700 dark:text-teal-300 tracking-widest uppercase select-none">Ad</span>
         </div>
       )}
 

@@ -43,18 +43,18 @@ export default function LoginPage() {
           <img src={logo} alt="Ope logo" className="logo-img h-12 w-auto" />
           <div className="leading-tight">
             <span className="block text-2xl font-bold text-teal-700 dark:text-teal-300">Ope</span>
-            <span className="block text-sm text-teal-500 dark:text-teal-400">Know Tomorrow, Today.</span>
+            <span className="block text-sm text-teal-700 dark:text-teal-300">Know Tomorrow, Today.</span>
           </div>
         </div>
 
         {signedUp ? (
           <div className="text-center">
             <p className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">Check your email</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
               We sent you a confirmation link. Click it, then come back to sign in.
             </p>
             <button
-              className="text-teal-600 dark:text-teal-400 underline text-sm"
+              className="text-teal-600 dark:text-teal-300 underline text-sm"
               onClick={() => { setSignedUp(false); setMode('signin') }}
             >
               Back to sign in
@@ -108,9 +108,9 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
               {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
-              <button onClick={switchMode} className="text-teal-600 dark:text-teal-400 font-medium underline">
+              <button onClick={switchMode} className="text-teal-600 dark:text-teal-300 font-medium underline">
                 {mode === 'signin' ? 'Create one' : 'Sign in'}
               </button>
             </p>

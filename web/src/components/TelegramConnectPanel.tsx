@@ -62,7 +62,7 @@ export default function TelegramConnectPanel() {
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
           {t('telegramLabel')}
         </p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
           {t('telegramDesc')}
         </p>
       </div>
@@ -85,7 +85,7 @@ export default function TelegramConnectPanel() {
               onClick={handleGenerate}
               className="flex-1 py-2 rounded-xl text-sm font-medium border border-slate-200
                          dark:border-slate-600 text-slate-600 dark:text-slate-300
-                         hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-300
+                         hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-700
                          disabled:opacity-50 transition-colors"
             >
               {t('telegramRelink')}
@@ -122,7 +122,7 @@ export default function TelegramConnectPanel() {
       {/* Display the generated code with copy & instructions */}
       {code && (
         <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
             {t('telegramCodeInstructions')}
           </p>
           <div className="flex items-center gap-2">
@@ -135,7 +135,7 @@ export default function TelegramConnectPanel() {
               onClick={() => navigator.clipboard.writeText(`/link ${code}`)}
               title={t('copyToClipboard')}
               className="shrink-0 p-2 rounded-lg border border-slate-200 dark:border-slate-600
-                         text-slate-500 hover:text-teal-600 hover:border-teal-300 transition-colors"
+                         text-slate-600 hover:text-teal-600 hover:border-teal-300 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -143,7 +143,7 @@ export default function TelegramConnectPanel() {
               </svg>
             </button>
           </div>
-          <p className="text-xs text-amber-600 dark:text-amber-400">
+          <p className="text-xs text-amber-800 dark:text-amber-300">
             {t('telegramCodeExpiry')}
           </p>
           {!linked && (
@@ -151,7 +151,7 @@ export default function TelegramConnectPanel() {
               type="button"
               disabled={working}
               onClick={handleGenerate}
-              className="text-xs text-teal-600 dark:text-teal-400 underline underline-offset-2
+              className="text-xs text-teal-600 dark:text-teal-300 underline underline-offset-2
                          hover:no-underline disabled:opacity-50"
             >
               {t('telegramRefreshCode')}

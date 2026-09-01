@@ -111,14 +111,14 @@ function NotEnoughHourlyData({ message, nDays }: { message?: string; nDays: numb
   const { t } = useLanguage()
   return (
     <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
-      <div className="w-14 h-14 mb-4 rounded-full bg-teal-50 flex items-center justify-center mx-auto">
-        <svg className="w-7 h-7 text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="w-14 h-14 mb-4 rounded-full bg-teal-50 flex items-center justify-center mx-auto dark:bg-slate-800">
+        <svg className="w-7 h-7 text-teal-700 dark:text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
       <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">{t('notEnoughTapData')}</p>
-      <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed max-w-xs mx-auto">
+      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
         {message ?? t('useRecordSaleHourly', { n: String(MIN_DAYS) })}
       </p>
       {nDays > 0 && (
@@ -128,7 +128,7 @@ function NotEnoughHourlyData({ message, nDays }: { message?: string; nDays: numb
               <div key={i} className={`w-2 h-2 rounded-full ${i < nDays ? 'bg-teal-500' : 'bg-teal-100 dark:bg-teal-800'}`} />
             ))}
           </div>
-          <span className="text-xs text-teal-600 dark:text-teal-400 font-medium">
+          <span className="text-xs text-teal-600 dark:text-teal-300 font-medium">
             {t('daysCollected', { n: String(nDays), min: String(MIN_DAYS) })}
           </span>
         </div>
@@ -163,20 +163,20 @@ function TomorrowPanel({
     <div className="space-y-4">
       {/* Headline callout */}
       <div className="bg-teal-600 rounded-2xl px-6 py-5 text-white shadow-sm">
-        <p className="text-xs font-medium text-teal-200 uppercase tracking-wide mb-2">
+        <p className="text-xs font-medium text-teal-50 uppercase tracking-wide mb-2">
           {isFallback ? t('tomorrowTypical') : t('tomorrowDay', { dayName })}
         </p>
         <p className="text-2xl font-bold leading-tight">
           {t('busiestAtTime', { timeRange })}{': '}
-          <span className="text-teal-200">
+          <span className="text-teal-50">
             {busiest.recommended_staff} {staffWord}
           </span>
         </p>
-        <p className="text-sm text-teal-200 mt-1">
+        <p className="text-sm text-teal-50 mt-1">
           {t('peakCustomersHr', { n: String(Math.round(busiest.avg_taps)) })}
         </p>
         {isFallback && (
-          <p className="text-xs text-teal-300 mt-2">
+          <p className="text-xs text-teal-700 mt-2 dark:text-teal-300">
             {t('notEnoughForWeekday', { dayName })}
           </p>
         )}
@@ -187,14 +187,14 @@ function TomorrowPanel({
         <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
           {t('busyHoursTomorrow')}
         </h2>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
           {t('avgCustomersHourOn', { dayType: isFallback ? t('tomorrowTypical').toLowerCase() : dayName })}
         </p>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} width={36} axisLine={false} tickLine={false} allowDecimals={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#45556c' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#45556c' }} width={36} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip
               contentStyle={{
                 fontSize: 12, borderRadius: 8,
@@ -229,7 +229,7 @@ function TomorrowPanel({
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2 min-w-0">
                     {isBusiest && (
-                      <span className="shrink-0 text-xs bg-teal-100 dark:bg-teal-800 text-teal-700 dark:text-teal-300 font-semibold px-2 py-0.5 rounded-full">
+                      <span className="shrink-0 text-xs bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-50 font-semibold px-2 py-0.5 rounded-full">
                         {t('busiestLabel')}
                       </span>
                     )}
@@ -237,25 +237,25 @@ function TomorrowPanel({
                       <p className={`text-sm font-medium leading-tight ${isBusiest ? 'text-teal-800 dark:text-teal-200' : 'text-slate-700 dark:text-slate-200'}`}>
                         {fmtHourRange(h.hour, lang)}
                       </p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                         ~{Math.round(h.avg_taps)} {t('avgCustomersTooltip')}/hr ·{' '}
-                        <span className={h.expected_wait_minutes < 0.5 ? 'text-teal-500' : 'text-amber-500'}>
+                        <span className={h.expected_wait_minutes < 0.5 ? 'text-teal-700 dark:text-teal-300' : 'text-amber-800 dark:text-amber-300'}>
                           {waitLabel}
                         </span>
                       </p>
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <span className={`text-2xl font-bold tabular-nums ${isBusiest ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <span className={`text-2xl font-bold tabular-nums ${isBusiest ? 'text-teal-600 dark:text-teal-300' : 'text-slate-600 dark:text-slate-400'}`}>
                       {h.recommended_staff}
                     </span>
-                    <span className="block text-xs text-slate-400 dark:text-slate-500">
+                    <span className="block text-xs text-slate-600 dark:text-slate-400">
                       {hStaffWord}
                     </span>
                   </div>
                 </div>
                 {(fmtNote(h) ?? h.marginal_note) && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 italic pt-0.5 border-t border-slate-100 dark:border-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 italic pt-0.5 border-t border-slate-100 dark:border-slate-600 mt-0.5">
                     <span className="font-medium not-italic">{t('marginalNoteLabel')}</span>{' '}
                     {fmtNote(h) ?? h.marginal_note}
                   </p>
@@ -284,7 +284,7 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
     <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="px-6 py-4 border-b border-teal-100/60 dark:border-slate-700">
         <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">{t('peakHoursByDay')}</h2>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{t('busiestHourEachDay')}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t('busiestHourEachDay')}</p>
       </div>
       <div className="divide-y divide-slate-100 dark:divide-slate-700">
         {weekdays.map(wd => {
@@ -306,17 +306,17 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                 <div className="flex items-center gap-2.5">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{translateWeekdayFull(wd.weekday, t)}</span>
                   {isTomorrow && (
-                    <span className="text-xs bg-teal-100 dark:bg-teal-800 text-teal-700 dark:text-teal-300 font-semibold px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-50 font-semibold px-2 py-0.5 rounded-full">
                       {t('tomorrowBadge')}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                  <span className="text-xs text-slate-600 dark:text-slate-400">
                     {fmtHourRange(busiest.hour, lang)} · {busiest.recommended_staff} {bStaffWord}
                   </span>
                   <svg
-                    className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 text-slate-600 transition-transform ${isOpen ? 'rotate-180' : ''} dark:text-slate-300`}
                     fill="none" viewBox="0 0 24 24" stroke="currentColor"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -339,19 +339,19 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
                           <span className={`text-xs font-medium ${isBest ? 'text-teal-700 dark:text-teal-300' : 'text-slate-600 dark:text-slate-300'}`}>
                             {fmtHourRange(h.hour, lang)}
                           </span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">
+                          <span className="text-xs text-slate-600 dark:text-slate-400">
                             ~{Math.round(h.avg_taps)}/hr · {h.recommended_staff} {hStaffWord}
                           </span>
                         </div>
                         {(fmtNote(h) ?? h.marginal_note) && (
-                          <p className="text-xs text-slate-400 dark:text-slate-500 italic">
+                          <p className="text-xs text-slate-600 dark:text-slate-400 italic">
                             {fmtNote(h) ?? h.marginal_note}
                           </p>
                         )}
                       </div>
                     )
                   })}
-                  <p className="text-xs text-slate-400 dark:text-slate-500 pt-1">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 pt-1">
                     {t('basedOnNDays', {
                       n: String(wd.n_days_data),
                       weekday: translateWeekdayFull(wd.weekday, t),
@@ -390,7 +390,7 @@ export default function HourlyDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24 text-teal-400">
+      <div className="flex items-center justify-center py-24 text-teal-700 dark:text-teal-300">
         <span className="text-sm animate-pulse">{t('loadingHourlyData')}</span>
       </div>
     )

@@ -33,7 +33,7 @@ function DemandChart({ item }: { item: ProductForecastItem }) {
 
   if (chartData.length === 0) {
     return (
-      <p className="text-sm text-slate-400 py-6 text-center">
+      <p className="text-sm text-slate-600 py-6 text-center dark:text-slate-300">
         {t('noOpenDaysWeek')}
       </p>
     )
@@ -43,13 +43,13 @@ function DemandChart({ item }: { item: ProductForecastItem }) {
     <ResponsiveContainer width="100%" height={200}>
       <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
-        <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+        <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
         <YAxis
-          tick={{ fontSize: 11 }}
+          tick={{ fontSize: 12 }}
           width={44}
           axisLine={false}
           tickLine={false}
-          label={{ value: item.unit, angle: -90, position: 'insideLeft', offset: 8, style: { fontSize: 10, fill: '#94a3b8' } }}
+          label={{ value: item.unit, angle: -90, position: 'insideLeft', offset: 8, style: { fontSize: 12, fill: '#45556c' } }}
         />
         <Tooltip
           cursor={{ fill: '#f2f8f7' }}
@@ -58,11 +58,11 @@ function DemandChart({ item }: { item: ProductForecastItem }) {
             const d = payload[0].payload
             return (
               <div className="bg-teal-25 dark:bg-slate-700 border border-teal-100 dark:border-slate-600 rounded-xl px-3 py-2 shadow text-xs">
-                <p className="font-semibold text-slate-700 mb-1">{d.fullDay}</p>
+                <p className="font-semibold text-slate-700 mb-1 dark:text-slate-200">{d.fullDay}</p>
                 <p className="text-teal-600">
                   {t('expectedLabel')}: <strong>{d.predicted} {item.unit}</strong>
                 </p>
-                <p className="text-slate-400">{t('likelyRange')}: {d.low} – {d.high} {item.unit}</p>
+                <p className="text-slate-600 dark:text-slate-300">{t('likelyRange')}: {d.low} – {d.high} {item.unit}</p>
               </div>
             )
           }}
@@ -132,32 +132,32 @@ function OrderCard({
   }
 
   return (
-    <div className="mt-5 rounded-xl border border-slate-100 overflow-hidden">
+    <div className="mt-5 rounded-xl border border-slate-100 overflow-hidden dark:border-slate-700">
       {/* Low stock warning — fires ONLY when projected stock is about to run out */}
       {showWarning && (
         <div className="flex items-start gap-3 px-4 py-3 bg-amber-50 border-b border-amber-200">
-          <span className="text-amber-500 mt-0.5 flex-shrink-0">⚠</span>
-          <p className="text-sm text-amber-800 flex-1 leading-snug">
+          <span className="text-amber-700 mt-0.5 flex-shrink-0 dark:text-amber-300">⚠</span>
+          <p className="text-sm text-amber-800 flex-1 leading-snug dark:text-amber-300">
             {t('lowStockWarning', { name: item.name })}
           </p>
           <button
             onClick={() => onDismissWarning(item.product_id)}
-            className="text-xs text-amber-600 hover:underline flex-shrink-0 mt-0.5"
+            className="text-sm text-amber-800 dark:text-amber-300 hover:underline flex-shrink-0 min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >
             {t('leaveItBe')}
           </button>
         </div>
       )}
 
-      <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex items-center justify-between">
-        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{t('orderingAdvice')}</p>
+      <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex items-center justify-between dark:bg-slate-800 dark:border-slate-700">
+        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide dark:text-slate-300">{t('orderingAdvice')}</p>
         {item.order_now && (
-          <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+          <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold dark:text-red-300">
             {t('orderNowLabel')}
           </span>
         )}
         {!item.order_now && item.current_stock != null && (
-          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">
+          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold dark:text-emerald-300">
             {t('youreGood')}
           </span>
         )}
@@ -192,20 +192,20 @@ function OrderCard({
       </div>
 
       {/* "I ordered this" section */}
-      <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 space-y-2">
-        <p className="text-xs text-slate-400 leading-relaxed">
+      <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 space-y-2 dark:bg-slate-800 dark:border-slate-700">
+        <p className="text-xs text-slate-600 leading-relaxed dark:text-slate-300">
           {t('basedOnAvgDays', { qty: fmt(item.avg_daily_demand, unit), n: String(item.n_days_data) })}{' '}
           {t('reorderPointForecastNote')}
         </p>
 
         {/* Recent order confirmation */}
         {recentOrder && (
-          <div className="flex items-center gap-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+          <div className="flex items-center gap-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 dark:text-emerald-300">
             <span>✓ {t('orderLoggedConfirm', { qty: String(recentOrder.quantity), unit, arrival: recentOrder.expected_arrival_date })}</span>
             <button
               onClick={cancelRecentOrder}
               disabled={cancellingId !== null}
-              className="ml-auto text-xs text-slate-400 hover:text-red-500 disabled:opacity-50"
+              className="ml-auto text-xs text-slate-600 hover:text-red-700 disabled:opacity-50 dark:text-slate-300"
             >
               {cancellingId !== null ? '…' : t('cancelOrder')}
             </button>
@@ -225,14 +225,14 @@ function OrderCard({
 
         {!recentOrder && showOrderForm && (
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs text-slate-600">{t('quantityOrdered')}</label>
+            <label className="text-xs text-slate-600 dark:text-slate-300">{t('quantityOrdered')}</label>
             <input
               type="number" min="0.1" step="0.1"
               value={orderQty}
               onChange={e => setOrderQty(e.target.value)}
-              className="w-24 border border-slate-300 rounded px-2 py-1 text-sm"
+              className="w-24 border border-slate-300 rounded px-2 py-1 text-sm dark:border-slate-600"
             />
-            <span className="text-xs text-slate-400">{unit}</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300">{unit}</span>
             <button
               onClick={submitOrder}
               disabled={submitting}
@@ -243,7 +243,7 @@ function OrderCard({
             </button>
             <button
               onClick={() => setShowOrderForm(false)}
-              className="text-sm text-slate-400 hover:underline"
+              className="text-sm text-slate-700 dark:text-slate-200 hover:underline min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >
               {t('cancelBtn')}
             </button>
@@ -259,11 +259,11 @@ function Stat({
 }: { label: string; value: string; sub: string; highlight?: boolean }) {
   return (
     <div className={`px-4 py-3 ${highlight ? 'bg-red-50' : ''}`}>
-      <p className="text-xs text-slate-500 mb-0.5">{label}</p>
-      <p className={`text-base font-bold tabular-nums ${highlight ? 'text-red-700' : 'text-slate-800'}`}>
+      <p className="text-xs text-slate-600 mb-0.5 dark:text-slate-300">{label}</p>
+      <p className={`text-base font-bold tabular-nums ${highlight ? 'text-red-700 dark:text-red-300' : 'text-slate-800 dark:text-slate-100'}`}>
         {value}
       </p>
-      <p className="text-xs text-slate-400 mt-0.5 leading-snug">{sub}</p>
+      <p className="text-xs text-slate-600 mt-0.5 leading-snug dark:text-slate-300">{sub}</p>
     </div>
   )
 }
@@ -321,12 +321,12 @@ function ProductDetail({
   const { t } = useLanguage()
   if (item.status !== 'ok') {
     return (
-      <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 px-5 py-8 text-center">
-        <p className="text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
+      <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 px-5 py-8 text-center dark:bg-slate-800 dark:border-slate-700">
+        <p className="text-sm text-slate-600 leading-relaxed max-w-sm mx-auto dark:text-slate-300">
           {item.message ?? t('logMoreProductSales', { name: item.name })}
         </p>
         {item.n_days_data > 0 && (
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
             {t('daysRecordedSoFar', { n: String(item.n_days_data), s: item.n_days_data !== 1 ? 's' : '' })}
           </p>
         )}
@@ -390,8 +390,8 @@ export default function ProductForecastPanel({ refreshKey = 0 }: Props) {
   if (loading) {
     return (
       <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-800 mb-4">{t('forecastByProduct')}</h2>
-        <p className="text-sm text-slate-400 animate-pulse">{t('loadingLabel')}</p>
+        <h2 className="text-base font-semibold text-slate-800 mb-4 dark:text-slate-100">{t('forecastByProduct')}</h2>
+        <p className="text-sm text-slate-600 animate-pulse dark:text-slate-300">{t('loadingLabel')}</p>
       </section>
     )
   }
@@ -399,8 +399,8 @@ export default function ProductForecastPanel({ refreshKey = 0 }: Props) {
   if (!data || data.status === 'no_products' || data.products.length === 0) {
     return (
       <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-800 mb-2">{t('forecastByProduct')}</h2>
-        <p className="text-sm text-slate-400 leading-relaxed">
+        <h2 className="text-base font-semibold text-slate-800 mb-2 dark:text-slate-100">{t('forecastByProduct')}</h2>
+        <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-300">
           {t('productForecastNoProducts')}
         </p>
       </section>
@@ -411,16 +411,16 @@ export default function ProductForecastPanel({ refreshKey = 0 }: Props) {
   const orderNowCount = data.products.filter(p => p.status === 'ok' && p.order_now).length
 
   return (
-    <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm">
+    <section className="bg-white rounded-2xl border border-teal-100 p-6 shadow-sm dark:bg-slate-800 dark:border-slate-700">
       <div className="flex items-start justify-between gap-4 mb-1">
-        <h2 className="text-base font-semibold text-slate-800">{t('forecastByProduct')}</h2>
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">{t('forecastByProduct')}</h2>
         {orderNowCount > 0 && (
-          <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold shrink-0">
+          <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-semibold shrink-0 dark:text-red-300">
             {t('needsOrdering', { n: String(orderNowCount), s: orderNowCount !== 1 ? 's' : '' })}
           </span>
         )}
       </div>
-      <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+      <p className="text-xs text-slate-600 mb-4 leading-relaxed dark:text-slate-300">
         {t('productSelectorDesc')}
       </p>
 

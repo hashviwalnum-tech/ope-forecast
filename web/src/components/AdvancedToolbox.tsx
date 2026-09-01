@@ -28,10 +28,10 @@ function Section({
       >
         <div>
           <p className="text-base font-semibold text-slate-800 dark:text-slate-100">{title}</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">{subtitle}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">{subtitle}</p>
         </div>
         <svg
-          className={`w-5 h-5 text-teal-500 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 text-teal-700 shrink-0 transition-transform ${open ? 'rotate-180' : ''} dark:text-teal-300`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -58,7 +58,7 @@ function Input({
   return (
     <div className="relative">
       {prefix && (
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 text-sm pointer-events-none dark:text-slate-300">
           {prefix}
         </span>
       )}
@@ -69,7 +69,7 @@ function Input({
         placeholder={placeholder}
         className={`w-full border border-slate-200 dark:border-slate-600 rounded-xl text-sm
                     text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700
-                    placeholder:text-slate-400 dark:placeholder:text-slate-500 py-2.5
+                    placeholder:text-slate-600 dark:placeholder:text-slate-400 min-h-11
                     focus:outline-none focus:ring-2 focus:ring-teal-400
                     ${prefix ? 'pl-7 pr-3' : 'px-3'}`}
       />
@@ -84,7 +84,7 @@ function ResultBadge({
     <div className={`rounded-xl px-4 py-3 ${highlight
       ? 'bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700'
       : 'bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700'}`}>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{label}</p>
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-0.5">{label}</p>
       <p className={`text-sm font-semibold ${highlight ? 'text-teal-700 dark:text-teal-300' : 'text-slate-700 dark:text-slate-200'}`}>{value}</p>
     </div>
   )
@@ -190,7 +190,7 @@ function DecisionPlanner() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-slate-500 leading-relaxed">{t('toolboxDecisionDesc')}</p>
+      <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-300">{t('toolboxDecisionDesc')}</p>
 
       {decisions.map((d, i) => (
         <div key={i} className="rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/40 dark:bg-slate-900/20 p-4 space-y-3">
@@ -219,8 +219,8 @@ function DecisionPlanner() {
         {decisions.length < 3 && (
           <button
             onClick={() => setDecisions(prev => [...prev, emptyDecision()])}
-            className="px-3 py-1.5 rounded-lg border border-teal-200 text-xs text-teal-600
-                       hover:bg-teal-50 transition-colors"
+            className="px-4 min-h-11 rounded-xl border border-teal-300 dark:border-teal-700 text-sm
+                       text-teal-800 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >
             {t('toolboxAddOption')}
           </button>
@@ -228,7 +228,7 @@ function DecisionPlanner() {
         {decisions.length > 2 && (
           <button
             onClick={() => setDecisions(prev => prev.slice(0, -1))}
-            className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500
+            className="px-4 min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
                        hover:bg-slate-50 transition-colors"
           >
             {t('toolboxRemoveOption')}
@@ -268,10 +268,10 @@ function DecisionPlanner() {
             <ResultBadge label={t('toolboxFeelingBold')} value={t('toolboxGoWith', { name: boldest ?? '?' })} highlight={true} />
           </div>
 
-          <div className="rounded-xl bg-teal-50/60 border border-teal-100 p-4">
+          <div className="rounded-xl bg-teal-50/60 border border-teal-100 p-4 dark:bg-slate-800 dark:border-slate-700">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-slate-600">{t('toolboxHowBold')}</p>
-              <span className="text-xs text-teal-700 font-semibold">
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{t('toolboxHowBold')}</p>
+              <span className="text-xs text-teal-700 font-semibold dark:text-teal-300">
                 {alpha < 30 ? t('toolboxCautious') : alpha < 70 ? t('toolboxBalanced') : t('toolboxBold')}
               </span>
             </div>
@@ -280,22 +280,22 @@ function DecisionPlanner() {
               onChange={e => setAlpha(Number(e.target.value))}
               className="w-full accent-teal-600"
             />
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-600 mt-2 dark:text-slate-300">
               {t('toolboxAtConfidence', { name: hurwicz ?? '?' })}
             </p>
           </div>
 
           <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 p-4">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">{t('toolboxExpectedValues')}</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">{t('toolboxExpectedValues')}</p>
             <div className="space-y-1">
               {results.map((r, i) => (
-                <div key={i} className="flex justify-between text-xs text-slate-600">
+                <div key={i} className="flex justify-between text-xs text-slate-600 dark:text-slate-300">
                   <span>{r.name}</span>
                   <span className="font-medium tabular-nums">{r.ev.toFixed(1)}</span>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-slate-400 mt-2">{t('toolboxEVNote')}</p>
+            <p className="text-xs text-slate-600 mt-2 dark:text-slate-300">{t('toolboxEVNote')}</p>
           </div>
         </div>
       )}
@@ -339,7 +339,7 @@ function OrderFraming() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-slate-500 leading-relaxed">{t('toolboxFramingDesc')}</p>
+      <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-300">{t('toolboxFramingDesc')}</p>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -389,8 +389,8 @@ function OrderFraming() {
               className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${
                 frame === 'gain'
                   ? 'bg-emerald-600 text-white border-emerald-600'
-                  : 'border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700'
-              }`}
+                  : 'border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700 dark:text-slate-300'
+              } dark:border-slate-600`}
             >
               {t('toolboxGainFrame')}
             </button>
@@ -399,8 +399,8 @@ function OrderFraming() {
               className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${
                 frame === 'loss'
                   ? 'bg-rose-600 text-white border-rose-600'
-                  : 'border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-700'
-              }`}
+                  : 'border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-700 dark:text-slate-300'
+              } dark:border-slate-600`}
             >
               {t('toolboxLossFrame')}
             </button>
@@ -409,22 +409,22 @@ function OrderFraming() {
           {frame === 'gain' ? (
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
-                <p className="text-xs font-semibold text-emerald-700 mb-1">
+                <p className="text-xs font-semibold text-emerald-700 mb-1 dark:text-emerald-300">
                   {t('toolboxOrderDemandStrong', { qty: String(qMore) })}
                 </p>
-                <p className="text-2xl font-bold text-emerald-700 tabular-nums">
+                <p className="text-2xl font-bold text-emerald-700 tabular-nums dark:text-emerald-300">
                   {signedMoney(f.more_upside)}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitAllUnits', { qty: String(qMore) })}</p>
+                <p className="text-xs text-slate-600 mt-1 dark:text-slate-300">{t('toolboxProfitAllUnits', { qty: String(qMore) })}</p>
               </div>
               <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
-                <p className="text-xs font-semibold text-emerald-700 mb-1">
+                <p className="text-xs font-semibold text-emerald-700 mb-1 dark:text-emerald-300">
                   {t('toolboxOrderDemandStrong', { qty: String(qLess) })}
                 </p>
-                <p className="text-2xl font-bold text-emerald-700 tabular-nums">
+                <p className="text-2xl font-bold text-emerald-700 tabular-nums dark:text-emerald-300">
                   {signedMoney(f.less_upside)}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">{t('toolboxProfitFillOrder', { qty: String(qLess) })}</p>
+                <p className="text-xs text-slate-600 mt-1 dark:text-slate-300">{t('toolboxProfitFillOrder', { qty: String(qLess) })}</p>
               </div>
             </div>
           ) : (
@@ -444,13 +444,13 @@ function OrderFraming() {
                   ? 'text-rose-700 dark:text-rose-300' : 'text-amber-700 dark:text-amber-300'}`}>
                   {signedMoney(f.more_downside)}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-600 mt-1 dark:text-slate-300">
                   {f.more_unsold > 0
                     ? t('toolboxUnsoldWaste', { extra: String(f.more_unsold) })
                     : t('toolboxDemandExceeds')}
                 </p>
                 {f.more_downside > 0 && f.more_unsold > 0 && (
-                  <p className="text-xs text-slate-500 mt-1">{t('toolboxStillProfitNote')}</p>
+                  <p className="text-xs text-slate-600 mt-1 dark:text-slate-300">{t('toolboxStillProfitNote')}</p>
                 )}
               </div>
               <div className="rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 p-4">
@@ -460,14 +460,14 @@ function OrderFraming() {
                 <p className="text-2xl font-bold text-rose-700 dark:text-rose-300 tabular-nums">
                   {signedMoney(-f.less_missed)}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-600 mt-1 dark:text-slate-300">
                   {t('toolboxMissedProfit', { n: String(f.less_short) })}
                 </p>
               </div>
             </div>
           )}
 
-          <div className="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3 text-xs text-slate-600 leading-relaxed">
+          <div className="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3 text-xs text-slate-600 leading-relaxed dark:text-slate-300 dark:bg-slate-800 dark:border-slate-700">
             {t('toolboxOpeTip')}
           </div>
         </div>
@@ -532,7 +532,7 @@ function BudgetOptimizer() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-slate-500 leading-relaxed">{t('toolboxBudgetDesc')}</p>
+      <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-300">{t('toolboxBudgetDesc')}</p>
 
       <div>
         <Label>{t('toolboxMyBudget')}</Label>
@@ -568,7 +568,7 @@ function BudgetOptimizer() {
         {items.length < 6 && (
           <button
             onClick={() => setItems(prev => [...prev, { name: '', cost: '', profit: '', maxQty: '' }])}
-            className="px-3 py-1.5 rounded-lg border border-teal-200 text-xs text-teal-600
+            className="px-4 min-h-11 rounded-xl border border-teal-300 dark:border-teal-700 text-sm text-teal-800 dark:text-teal-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
                        hover:bg-teal-50 transition-colors"
           >
             {t('toolboxAddItem')}
@@ -577,7 +577,7 @@ function BudgetOptimizer() {
         {items.length > 2 && (
           <button
             onClick={() => setItems(prev => prev.slice(0, -1))}
-            className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500
+            className="px-4 min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
                        hover:bg-slate-50 transition-colors"
           >
             {t('toolboxRemoveItem')}
@@ -605,7 +605,7 @@ function BudgetOptimizer() {
 
       {result && result.allocation.length > 0 && (
         <div className="space-y-3">
-          <p className="text-sm font-semibold text-slate-700">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
             {budget
               ? t('toolboxWithBudget', { currency: cur, budget: num(budget).toFixed(0) })
               : t('toolboxWithoutBudget')}
@@ -614,33 +614,33 @@ function BudgetOptimizer() {
             <div key={i} className="flex items-center justify-between rounded-xl bg-teal-50/60
                                     border border-teal-100 px-4 py-3">
               <div>
-                <p className="text-sm font-semibold text-slate-800">{r.name}</p>
-                <p className="text-xs text-slate-500">{t('toolboxItemCosts', { currency: cur, amount: r.spend.toFixed(2) })}</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{r.name}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">{t('toolboxItemCosts', { currency: cur, amount: r.spend.toFixed(2) })}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-teal-700">{t('toolboxItemUnits', { qty: String(r.qty) })}</p>
+                <p className="text-sm font-bold text-teal-700 dark:text-teal-300">{t('toolboxItemUnits', { qty: String(r.qty) })}</p>
                 <p className="text-xs text-emerald-600">{t('toolboxItemProfit', { currency: cur, profit: r.earn.toFixed(2) })}</p>
               </div>
             </div>
           ))}
           <div className="flex justify-between rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-700 px-4 py-3">
             <div>
-              <p className="text-xs text-slate-500">{t('toolboxTotalSpend')}</p>
-              <p className="text-sm font-semibold text-slate-700 tabular-nums">{money(result.total_spend)}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">{t('toolboxTotalSpend')}</p>
+              <p className="text-sm font-semibold text-slate-700 tabular-nums dark:text-slate-200">{money(result.total_spend)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-500">{t('toolboxTotalProfit')}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">{t('toolboxTotalProfit')}</p>
               <p className="text-sm font-bold text-emerald-600 tabular-nums">{signedMoney(result.total_earn)}</p>
             </div>
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-slate-600 leading-relaxed dark:text-slate-300">
             {result.approximate ? t('toolboxApproximateNote') : t('toolboxRatioNote')}
           </p>
         </div>
       )}
 
       {result && result.allocation.length === 0 && (
-        <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 rounded-xl px-4 py-3">
+        <p className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 rounded-xl px-4 py-3">
           {t('toolboxNoBudgetFit')}
         </p>
       )}
@@ -714,11 +714,11 @@ function Checklist() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-500 leading-relaxed">{t('toolboxChecklistDesc')}</p>
+      <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-300">{t('toolboxChecklistDesc')}</p>
 
       <div className="space-y-2">
         {items.length === 0 && (
-          <p className="text-sm text-slate-400 text-center py-4">{t('toolboxChecklistEmpty')}</p>
+          <p className="text-sm text-slate-600 text-center py-4 dark:text-slate-300">{t('toolboxChecklistEmpty')}</p>
         )}
         {items.map(item => (
           <div
@@ -733,7 +733,7 @@ function Checklist() {
               onClick={() => toggle(item.id)}
               className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
                 item.done ? 'bg-teal-500 border-teal-500' : 'border-slate-300 hover:border-teal-400'
-              }`}
+              } dark:border-slate-600`}
             >
               {item.done && (
                 <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -741,7 +741,7 @@ function Checklist() {
                 </svg>
               )}
             </button>
-            <span className={`flex-1 text-sm ${item.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
+            <span className={`flex-1 text-sm ${item.done ? 'line-through text-slate-600 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200'}`}>
               {item.text}
             </span>
             <button
@@ -765,7 +765,7 @@ function Checklist() {
           placeholder={t('toolboxAddTaskPlaceholder')}
           className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600
                      text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700
-                     placeholder:text-slate-400 dark:placeholder:text-slate-500
+                     placeholder:text-slate-600 dark:placeholder:text-slate-600
                      focus:outline-none focus:ring-2 focus:ring-teal-400"
         />
         <button
@@ -781,7 +781,7 @@ function Checklist() {
       {doneCount > 0 && (
         <button
           onClick={clearDone}
-          className="text-xs text-slate-400 hover:text-rose-500 transition-colors"
+          className="text-xs text-slate-600 hover:text-rose-700 transition-colors dark:text-slate-300"
         >
           {t('toolboxClearDone', { n: String(doneCount), s: doneCount !== 1 ? 's' : '' })}
         </button>
@@ -796,7 +796,7 @@ export default function AdvancedToolbox() {
   const { t } = useLanguage()
   return (
     <div className="space-y-4 max-w-2xl">
-      <div className="bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 text-sm text-slate-600 leading-relaxed">
+      <div className="bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 text-sm text-slate-600 leading-relaxed dark:text-slate-300 dark:bg-slate-800 dark:border-slate-700">
         {t('toolboxIntro')}
       </div>
 

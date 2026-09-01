@@ -103,7 +103,7 @@ export default function RecurringPatternsPanel() {
       {!adding && (
         <button
           onClick={() => setAdding(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 text-white
+          className="flex items-center gap-2 px-5 min-h-11 rounded-xl bg-teal-600 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
                      text-sm font-semibold hover:bg-teal-700 transition-colors shadow-sm"
         >
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,7 +118,7 @@ export default function RecurringPatternsPanel() {
           <h3 className="font-semibold text-slate-700 dark:text-slate-200">{t('newPatternTitle')}</h3>
 
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('nameLabel')}</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('nameLabel')}</label>
             <input
               value={form.label}
               onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
@@ -130,14 +130,14 @@ export default function RecurringPatternsPanel() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">{t('whichDays')}</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">{t('whichDays')}</label>
             <div className="flex flex-wrap gap-2">
               {WD_LONG.map((_name, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => toggleWd(idx)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                  className={`px-4 min-h-11 rounded-xl text-sm font-medium transition-colors border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 ${
                     form.weekdays.includes(idx)
                       ? 'bg-teal-600 text-white border-teal-600'
                       : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-teal-300'
@@ -151,7 +151,7 @@ export default function RecurringPatternsPanel() {
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('effectLabel')}</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('effectLabel')}</label>
               <select
                 value={form.effect ?? 'higher'}
                 onChange={e => setForm(f => ({ ...f, effect: e.target.value }))}
@@ -166,7 +166,7 @@ export default function RecurringPatternsPanel() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                 {t('startHourOptional')}
               </label>
               <input
@@ -181,7 +181,7 @@ export default function RecurringPatternsPanel() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                 {t('endHourOptional')}
               </label>
               <input
@@ -194,7 +194,7 @@ export default function RecurringPatternsPanel() {
                            focus:outline-none focus:ring-2 focus:ring-teal-300"
               />
               {form.hour_start != null && form.hour_end == null && (
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                   {t('endHourNote')}
                 </p>
               )}
@@ -224,13 +224,13 @@ export default function RecurringPatternsPanel() {
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">{t('loadingLabel')}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{t('loadingLabel')}</p>
       ) : loadError ? (
         <LoadError error={loadError} onRetry={load} />
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 p-8 text-center">
-          <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">{t('noRecurringPatterns')}</p>
-          <p className="text-xs text-teal-400 dark:text-teal-600 mt-1">
+          <p className="text-sm text-teal-600 dark:text-teal-300 font-medium">{t('noRecurringPatterns')}</p>
+          <p className="text-xs text-teal-700 dark:text-teal-300 mt-1">
             {t('noRecurringDesc')}
           </p>
         </div>
@@ -246,18 +246,18 @@ export default function RecurringPatternsPanel() {
                   <span className="font-semibold text-slate-800 dark:text-slate-100">{rp.label}</span>
                   <span className={`text-xs rounded-full px-2 py-0.5 font-medium border ${
                     rp.effect === 'higher'
-                      ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-600 dark:text-teal-300 border-teal-100 dark:border-teal-800'
+                      ? 'bg-teal-50 dark:bg-teal-900/40 text-teal-600 dark:text-teal-50 border-teal-100 dark:border-teal-800'
                       : rp.effect === 'lower'
-                        ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-800'
-                        : 'bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600'
+                        ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 border-amber-100 dark:border-amber-800'
+                        : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-600'
                   }`}>
                     {effectLabel(rp.effect)}
                   </span>
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
                   {fmtWeekdays(rp.weekdays)}
                   {(rp.hour_start !== null || rp.hour_end !== null) && (
-                    <span className="ml-2 text-slate-400 dark:text-slate-500">
+                    <span className="ml-2 text-slate-600 dark:text-slate-400">
                       · {fmtHourRange(rp.hour_start, rp.hour_end)}
                     </span>
                   )}
@@ -265,7 +265,7 @@ export default function RecurringPatternsPanel() {
               </div>
               <button
                 onClick={() => del(rp.id)}
-                className="px-3 py-1.5 rounded-lg border border-rose-100 dark:border-rose-900 text-rose-500 dark:text-rose-400 text-xs
+                className="px-4 min-h-11 rounded-xl border border-rose-300 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
                            hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors shrink-0"
               >
                 {t('removeBtn')}

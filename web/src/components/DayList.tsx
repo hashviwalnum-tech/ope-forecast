@@ -140,13 +140,13 @@ export default function DayList({ refreshKey }: Props) {
   if (error)   return <LoadError error={error} onRetry={load} />
   if (!days.length) return (
     <div className="py-12 text-center">
-      <div className="w-14 h-14 mb-4 mx-auto rounded-full bg-teal-50 flex items-center justify-center">
-        <svg className="w-7 h-7 text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="w-14 h-14 mb-4 mx-auto rounded-full bg-teal-50 flex items-center justify-center dark:bg-slate-800">
+        <svg className="w-7 h-7 text-teal-700 dark:text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </div>
-      <p className="text-slate-500 text-sm max-w-xs mx-auto leading-relaxed">
+      <p className="text-slate-600 text-sm max-w-xs mx-auto leading-relaxed dark:text-slate-300">
         {t('noDaysLoggedYet', { addToday: t('logToday') })}
       </p>
     </div>
@@ -157,7 +157,7 @@ export default function DayList({ refreshKey }: Props) {
 
       {/* Which stretch of history to show */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <label htmlFor="daylist-period" className="text-sm text-slate-700 dark:text-slate-200">
+        <label htmlFor="daylist-period" className="inline-flex items-center min-h-11 text-sm text-slate-700 dark:text-slate-200">
           {t('showingPeriodLabel')}
         </label>
         <select
@@ -276,13 +276,13 @@ export default function DayList({ refreshKey }: Props) {
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b-2 border-slate-200 text-left text-xs font-semibold
-                         text-slate-500 uppercase tracking-wider">
+                         text-slate-600 uppercase tracking-wider">
             <th className="py-2 pr-4 whitespace-nowrap">{t('dateColLabel')}</th>
             <th className="py-2 pr-4">{t('dayColLabel')}</th>
             <th className="py-2 pr-4">{t('customersLabel')}</th>
             {productList.map(p => (
               <th key={p.id} className="py-2 pr-4 whitespace-nowrap">
-                {p.name} <span className="font-normal text-slate-400">({p.unit})</span>
+                {p.name} <span className="font-normal text-slate-600 dark:text-slate-300">({p.unit})</span>
               </th>
             ))}
             <th className="py-2"></th>
@@ -295,15 +295,15 @@ export default function DayList({ refreshKey }: Props) {
 
             if (isEditing) {
               return (
-                <tr key={day.id} className="border-b border-slate-100 bg-teal-50">
-                  <td className="py-2 pr-4 text-slate-500 text-xs">{day.date}</td>
-                  <td className="py-2 pr-4 text-slate-400">{weekdayLabel(day.date, t)}</td>
+                <tr key={day.id} className="border-b border-slate-100 bg-teal-50 dark:bg-slate-800 dark:border-slate-700">
+                  <td className="py-2 pr-4 text-slate-600 text-xs dark:text-slate-300">{day.date}</td>
+                  <td className="py-2 pr-4 text-slate-600 dark:text-slate-300">{weekdayLabel(day.date, t)}</td>
                   <td className="py-2 pr-4">
                     <input
                       type="number" min="0"
                       value={editCustomers}
                       onChange={e => setEditCustomers(e.target.value)}
-                      className="w-20 border border-slate-300 rounded px-2 py-0.5 text-sm"
+                      className="w-20 border border-slate-300 rounded px-2 py-0.5 text-sm dark:border-slate-600"
                     />
                   </td>
                   {productList.map(p => (
@@ -312,7 +312,7 @@ export default function DayList({ refreshKey }: Props) {
                         type="number" min="0" step="0.01"
                         value={editSales[p.id] ?? ''}
                         onChange={e => setEditSales(prev => ({ ...prev, [p.id]: e.target.value }))}
-                        className="w-20 border border-slate-300 rounded px-2 py-0.5 text-sm"
+                        className="w-20 border border-slate-300 rounded px-2 py-0.5 text-sm dark:border-slate-600"
                       />
                     </td>
                   ))}
@@ -325,7 +325,7 @@ export default function DayList({ refreshKey }: Props) {
                         </p>
                         <button
                           onClick={() => { setEditId(null); setEditError(null) }}
-                          className="text-xs text-slate-400 hover:underline text-left"
+                          className="text-sm text-slate-700 dark:text-slate-200 hover:underline text-start min-h-11 px-1 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
                         >
                           {t('dismissBtn')}
                         </button>
@@ -340,7 +340,7 @@ export default function DayList({ refreshKey }: Props) {
                         </button>
                         <button
                           onClick={() => { setEditId(null); setEditError(null) }}
-                          className="text-slate-400 hover:underline"
+                          className="text-slate-600 hover:underline dark:text-slate-300"
                         >
                           {t('cancelBtn')}
                         </button>
@@ -358,20 +358,20 @@ export default function DayList({ refreshKey }: Props) {
                   isFlagged ? 'bg-amber-50/60 dark:bg-amber-900/10' : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
                 }`}
               >
-                <td className="py-2 pr-4 text-slate-500 text-xs whitespace-nowrap">
+                <td className="py-2 pr-4 text-slate-600 text-xs whitespace-nowrap dark:text-slate-300">
                   {day.date}
                   {isFlagged && (
-                    <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
+                    <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full dark:text-amber-300">
                       {t('unusualBadge')}
                     </span>
                   )}
                 </td>
-                <td className="py-2 pr-4 text-slate-400">{weekdayLabel(day.date, t)}</td>
-                <td className="py-2 pr-4 font-semibold text-slate-800">{day.customers}</td>
+                <td className="py-2 pr-4 text-slate-600 dark:text-slate-300">{weekdayLabel(day.date, t)}</td>
+                <td className="py-2 pr-4 font-semibold text-slate-800 dark:text-slate-100">{day.customers}</td>
                 {productList.map(p => {
                   const sale = daySales.find(s => s.product_id === p.id)
                   return (
-                    <td key={p.id} className="py-2 pr-4 text-slate-600">
+                    <td key={p.id} className="py-2 pr-4 text-slate-600 dark:text-slate-300">
                       {sale != null ? sale.units_sold : <span className="text-slate-300">—</span>}
                     </td>
                   )

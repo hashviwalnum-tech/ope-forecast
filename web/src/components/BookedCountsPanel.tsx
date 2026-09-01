@@ -72,11 +72,11 @@ export default function BookedCountsPanel() {
 
       {services.length > 0 && (
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('bookingsForLabel')}</label>
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('bookingsForLabel')}</label>
           <select
             value={target === 'business' ? 'business' : String(target)}
             onChange={e => setTarget(e.target.value === 'business' ? 'business' : Number(e.target.value))}
-            className="w-full sm:w-64 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
+            className="w-full sm:w-64 rounded-xl border border-slate-300 dark:border-slate-600 px-3 min-h-11 text-sm
                        bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
                        focus:outline-none focus:ring-2 focus:ring-teal-300"
           >
@@ -92,7 +92,7 @@ export default function BookedCountsPanel() {
         <h3 className="font-semibold text-slate-700 dark:text-slate-200">{t('addBookedCountTitle')}</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('dateLabel')}</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('dateLabel')}</label>
             <input
               type="date"
               value={date}
@@ -103,7 +103,7 @@ export default function BookedCountsPanel() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t('bookedCountLabel')}</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('bookedCountLabel')}</label>
             <input
               type="number" min="0" step="1"
               value={count}
@@ -127,13 +127,13 @@ export default function BookedCountsPanel() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">{t('loadingLabel')}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{t('loadingLabel')}</p>
       ) : loadError ? (
         <LoadError error={loadError} onRetry={load} />
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 p-8 text-center">
-          <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">{t('noBookedCounts')}</p>
-          <p className="text-xs text-teal-400 dark:text-teal-600 mt-1">{t('noBookedCountsDesc')}</p>
+          <p className="text-sm text-teal-600 dark:text-teal-300 font-medium">{t('noBookedCounts')}</p>
+          <p className="text-xs text-teal-700 dark:text-teal-300 mt-1">{t('noBookedCountsDesc')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -144,13 +144,13 @@ export default function BookedCountsPanel() {
             >
               <div>
                 <span className="font-semibold text-slate-800 dark:text-slate-100">{r.date}</span>
-                <span className="ml-3 text-sm text-slate-500 dark:text-slate-400">
+                <span className="ml-3 text-sm text-slate-600 dark:text-slate-400">
                   {t('bookedCountRow', { n: String(r.booked_count) })}
                 </span>
               </div>
               <button
                 onClick={() => del(r.date)}
-                className="px-3 py-1.5 rounded-lg border border-rose-100 dark:border-rose-900 text-rose-500 dark:text-rose-400 text-xs
+                className="px-3 py-1.5 rounded-lg border border-rose-100 dark:border-rose-900 text-rose-700 dark:text-rose-400 text-xs
                            hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors shrink-0"
               >
                 {t('removeBtn')}

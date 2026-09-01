@@ -46,11 +46,11 @@ export default function FeedbackPanel() {
   return (
     <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
       <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('feedbackTitle')}</p>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 leading-relaxed">{t('feedbackDesc')}</p>
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">{t('feedbackDesc')}</p>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
             {t('feedbackNameLabel')}
           </label>
           <input
@@ -66,7 +66,7 @@ export default function FeedbackPanel() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
             {t('feedbackBusinessLabel')}
           </label>
           <input
@@ -82,7 +82,7 @@ export default function FeedbackPanel() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
             {t('feedbackMessageLabel')}
           </label>
           <textarea

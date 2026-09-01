@@ -22,11 +22,11 @@ function fmtDateShort(s: string): string {
 
 function MomBadge({ pct }: { pct: number | null }) {
   const { t } = useLanguage()
-  if (pct === null) return <span className="text-slate-400 dark:text-slate-500 text-sm">{t('firstMonth')}</span>
+  if (pct === null) return <span className="text-slate-600 dark:text-slate-400 text-sm">{t('firstMonth')}</span>
   const up = pct >= 0
   return (
     <span className={`inline-flex items-center gap-1 text-sm font-semibold
-      ${up ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
+      ${up ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
       <span>{up ? '▲' : '▼'}</span>
       <span>{Math.abs(pct).toFixed(1)}%</span>
     </span>
@@ -41,7 +41,7 @@ function NotEnoughData({ message }: { message?: string }) {
     <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
       <div className="w-14 h-14 mb-4 rounded-full bg-teal-50 dark:bg-teal-900/20 flex items-center
                       justify-center mx-auto">
-        <svg className="w-7 h-7 text-teal-300 dark:text-teal-600" fill="none" viewBox="0 0 24 24"
+        <svg className="w-7 h-7 text-teal-700 dark:text-teal-300" fill="none" viewBox="0 0 24 24"
              stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0
@@ -51,7 +51,7 @@ function NotEnoughData({ message }: { message?: string }) {
         </svg>
       </div>
       <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">{t('trendsNoHistoryTitle')}</p>
-      <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed max-w-xs mx-auto">
+      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
         {message ?? t('trendsNoHistoryMsg')}
       </p>
     </div>
@@ -73,13 +73,13 @@ function MomCard({ current, prev }: { current: MonthSummary; prev: MonthSummary 
       <div className="flex items-stretch gap-4">
 
         {/* Previous month */}
-        <div className="flex-1 bg-slate-50 dark:bg-slate-700 rounded-xl p-4">
-          <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">{prev.month_label}</p>
+        <div className="flex-1 bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">{prev.month_label}</p>
           <p className="text-2xl font-bold text-slate-600 dark:text-slate-300 tabular-nums">
             {prev.avg_daily_customers.toFixed(1)}
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{t('avgCustomersPerDay')}</p>
-          <p className="text-xs text-slate-300 dark:text-slate-600 mt-1">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t('avgCustomersPerDay')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
             {prev.total_customers.toLocaleString()} total · {prev.logged_days} days logged
           </p>
         </div>
@@ -101,13 +101,13 @@ function MomCard({ current, prev }: { current: MonthSummary; prev: MonthSummary 
           ${up ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900'
                : change !== null ? 'bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900'
                : 'bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800'}`}>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{current.month_label}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">{current.month_label}</p>
           <p className={`text-2xl font-bold tabular-nums
             ${up ? 'text-emerald-700 dark:text-emerald-400' : change !== null ? 'text-rose-600 dark:text-rose-400' : 'text-teal-700 dark:text-teal-300'}`}>
             {current.avg_daily_customers.toFixed(1)}
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{t('avgCustomersPerDay')}</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t('avgCustomersPerDay')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
             {current.total_customers.toLocaleString()} total · {current.logged_days} days logged
           </p>
         </div>
@@ -139,12 +139,12 @@ function HomeToggleButton() {
   return (
     <button
       onClick={toggle}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
-                 text-xs text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400
+      className="flex items-center gap-1.5 px-4 min-h-11 rounded-xl border border-slate-300 dark:border-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
+                 text-xs text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-700
                  hover:border-teal-200 dark:hover:border-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
     >
       {flash ? (
-        <><svg className="w-3.5 h-3.5 shrink-0 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <><svg className="w-3.5 h-3.5 shrink-0 text-teal-700 dark:text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>{t('addedToHomeConfirm')}</>
       ) : onHome ? (
@@ -180,12 +180,12 @@ export default function TrendsView() {
 
   useEffect(() => { reload() }, [reload])
 
-  const tickFill    = isDark ? '#94a3b8' : '#64748b'
+  const tickFill    = isDark ? '#94a3b8' : '#45556c'
   const gridStroke  = isDark ? '#334155' : '#e2e8f0'
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24 text-teal-400">
+      <div className="flex items-center justify-center py-24 text-teal-700 dark:text-teal-300">
         <span className="text-sm animate-pulse">{t('trendsLoading')}</span>
       </div>
     )
@@ -230,21 +230,21 @@ export default function TrendsView() {
       <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 px-6 py-4 shadow-sm
                       flex flex-wrap items-center gap-x-8 gap-y-2">
         <div>
-          <p className="text-xs text-slate-400 dark:text-slate-500">{t('totalDaysLogged')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">{t('totalDaysLogged')}</p>
           <p className="text-xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">{data.n_total_days}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-400 dark:text-slate-500">{t('monthsOfHistory')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">{t('monthsOfHistory')}</p>
           <p className="text-xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">{months.length}</p>
         </div>
         {dateRange && (
           <div>
-            <p className="text-xs text-slate-400 dark:text-slate-500">{t('dateRangeLabel')}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">{t('dateRangeLabel')}</p>
             <p className="text-sm font-medium text-slate-600 dark:text-slate-300">{dateRange}</p>
           </div>
         )}
         {months.length === 1 && (
-          <p className="text-xs text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-3 py-1.5 rounded-lg">
+          <p className="text-xs text-teal-600 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30 px-3 py-1.5 rounded-lg">
             {t('logMoreMonths')}
           </p>
         )}
@@ -260,7 +260,7 @@ export default function TrendsView() {
         <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
           {t('customersByMonth')}
         </h2>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-5 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 leading-relaxed">
           {t('avgCustomersMonthDesc')}
         </p>
         <ResponsiveContainer width="100%" height={220}>
@@ -268,12 +268,12 @@ export default function TrendsView() {
             <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
             <XAxis
               dataKey="name"
-              tick={{ fontSize: 10, fill: tickFill }}
+              tick={{ fontSize: 12, fill: tickFill }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: tickFill }}
+              tick={{ fontSize: 12, fill: tickFill }}
               width={40}
               axisLine={false}
               tickLine={false}
@@ -306,7 +306,7 @@ export default function TrendsView() {
           <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
             {t('fullCustomerHistory')}
           </h2>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mb-5 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 leading-relaxed">
             {t('fullHistoryDesc')}
           </p>
           <ResponsiveContainer width="100%" height={200}>
@@ -320,13 +320,13 @@ export default function TrendsView() {
               <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fontSize: 10, fill: tickFill }}
+                tick={{ fontSize: 12, fill: tickFill }}
                 axisLine={false}
                 tickLine={false}
                 interval={Math.max(1, Math.floor(lineData.length / 8) - 1)}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: tickFill }}
+                tick={{ fontSize: 12, fill: tickFill }}
                 width={40}
                 axisLine={false}
                 tickLine={false}
@@ -368,15 +368,15 @@ export default function TrendsView() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 dark:border-slate-700">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 dark:text-slate-500
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400
                                uppercase tracking-wide">{t('monthColLabel')}</th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-400 dark:text-slate-500
+                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400
                                uppercase tracking-wide">{t('avgPerDayCol')}</th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-400 dark:text-slate-500
+                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400
                                uppercase tracking-wide">{t('totalCol')}</th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-400 dark:text-slate-500
+                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400
                                uppercase tracking-wide">{t('daysLoggedCol')}</th>
-                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-400 dark:text-slate-500
+                <th className="text-right px-5 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400
                                uppercase tracking-wide">{t('vsPrevMonth')}</th>
               </tr>
             </thead>
@@ -390,7 +390,7 @@ export default function TrendsView() {
                     <td className="px-5 py-3 font-medium text-slate-700 dark:text-slate-200">
                       {m.month_label}
                       {isLatest && (
-                        <span className="ml-2 text-xs bg-teal-100 dark:bg-teal-800 text-teal-600 dark:text-teal-300
+                        <span className="ml-2 text-xs bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-50
                                          font-medium px-1.5 py-0.5 rounded-full">
                           {t('latestLabel')}
                         </span>
@@ -399,10 +399,10 @@ export default function TrendsView() {
                     <td className="px-5 py-3 text-right font-semibold text-slate-700 dark:text-slate-200 tabular-nums">
                       {m.avg_daily_customers.toFixed(1)}
                     </td>
-                    <td className="px-5 py-3 text-right text-slate-500 dark:text-slate-400 tabular-nums">
+                    <td className="px-5 py-3 text-right text-slate-600 dark:text-slate-400 tabular-nums">
                       {m.total_customers.toLocaleString()}
                     </td>
-                    <td className="px-5 py-3 text-right text-slate-400 dark:text-slate-500 tabular-nums">
+                    <td className="px-5 py-3 text-right text-slate-600 dark:text-slate-400 tabular-nums">
                       {m.logged_days}
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums">

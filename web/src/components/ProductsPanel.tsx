@@ -67,7 +67,7 @@ function ConsumablePicker({
   return (
     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
       <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-0.5">{t('consumablesTitle')}</p>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{t('consumablesDesc')}</p>
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{t('consumablesDesc')}</p>
 
       {items.length > 0 && (
         <ul className="mb-3 space-y-1">
@@ -78,7 +78,7 @@ function ConsumablePicker({
               <button
                 type="button"
                 onClick={() => onRemove(item.key)}
-                className="text-red-500 hover:text-red-700 font-medium shrink-0"
+                className="text-red-700 hover:text-red-700 font-medium shrink-0 dark:text-red-300"
               >
                 {t('removeSupplyBtn')}
               </button>
@@ -88,17 +88,17 @@ function ConsumablePicker({
       )}
 
       {items.length === 0 && (
-        <p className="text-xs text-slate-400 dark:text-slate-500 mb-3">{t('noConsumables')}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{t('noConsumables')}</p>
       )}
 
       {stocked.length > 0 && (
         <div className="flex flex-wrap gap-2 items-end">
           <div className="flex-1 min-w-32">
-            <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">{t('consumableProductLabel')}</label>
+            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('consumableProductLabel')}</label>
             <select
               value={newConsumableId}
               onChange={e => { setNewConsumableId(e.target.value); setSaveErr(null) }}
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+              className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                          bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100
                          focus:outline-none focus:ring-2 focus:ring-teal-400"
             >
@@ -109,7 +109,7 @@ function ConsumablePicker({
             </select>
           </div>
           <div className="w-28">
-            <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">{t('qtyPerServiceLabel')}</label>
+            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('qtyPerServiceLabel')}</label>
             <input
               type="number"
               min="0.01"
@@ -117,7 +117,7 @@ function ConsumablePicker({
               placeholder={`${t('egPrefix')} 20`}
               value={newQty}
               onChange={e => { setNewQty(e.target.value); setSaveErr(null) }}
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+              className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                          bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100
                          focus:outline-none focus:ring-2 focus:ring-teal-400"
             />
@@ -334,7 +334,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
         {/* Name */}
         <div className="sm:col-span-2">
           <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            {t('productNameLabel')} <span className="text-red-400">*</span>
+            {t('productNameLabel')} <span className="text-red-700 dark:text-red-300" aria-hidden="true">*</span>
           </label>
           <input
             ref={nameRef}
@@ -351,7 +351,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
         {/* Unit */}
         <div>
           <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            {t('soldInLabel')} <span className="text-red-400">*</span>
+            {t('soldInLabel')} <span className="text-red-700 dark:text-red-300" aria-hidden="true">*</span>
           </label>
           <input
             type="text"
@@ -381,7 +381,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                          focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                          text-slate-900 dark:text-slate-100"
             />
-            <p className="mt-1 text-xs text-slate-400">{t('daysToRestockDesc')}</p>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{t('daysToRestockDesc')}</p>
           </div>
         )}
       </div>
@@ -423,7 +423,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
         </label>
         <div className="flex gap-3">
           {(['whole', 'decimal'] as const).map(m => (
-            <label key={m} className="flex items-center gap-2 cursor-pointer">
+            <label key={m} className="flex items-center gap-2 cursor-pointer min-h-11 pe-3">
               <input
                 type="radio"
                 name="unit_mode_add"
@@ -438,14 +438,14 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
             </label>
           ))}
         </div>
-        <p className="mt-1 text-xs text-slate-400">{t('unitModeDesc')}</p>
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{t('unitModeDesc')}</p>
       </div>
 
       {/* Optional extra fields */}
       <button
         type="button"
         onClick={() => setShowMore(s => !s)}
-        className="text-xs font-medium text-teal-600 hover:text-teal-800 transition-colors"
+        className="text-sm font-medium text-teal-800 dark:text-teal-300 hover:text-teal-900 transition-colors min-h-11 px-1 rounded-lg text-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
       >
         {showMore ? t('optionalDetailsHide') : t('optionalDetailsShow')}
       </button>
@@ -454,7 +454,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
           <div>
             <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-              {t('sellingPrice')} <span className="text-slate-400 dark:text-slate-500 font-normal">({symbol})</span>
+              {t('sellingPrice')} <span className="text-slate-600 dark:text-slate-400 font-normal">({symbol})</span>
             </label>
             <input
               type="number"
@@ -487,7 +487,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                              focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                              text-slate-900 dark:text-slate-100"
                 />
-                <p className="mt-1 text-xs text-slate-400">{t('stockDesc')}</p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{t('stockDesc')}</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
@@ -504,7 +504,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                              focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                              text-slate-900 dark:text-slate-100"
                 />
-                <p className="mt-1 text-xs text-slate-400">{t('storageDesc')}</p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{t('storageDesc')}</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
@@ -521,7 +521,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                              focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                              text-slate-900 dark:text-slate-100"
                 />
-                <p className="mt-1 text-xs text-slate-400">{t('shelfLifeDesc')}</p>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{t('shelfLifeDesc')}</p>
               </div>
             </>
           )}
@@ -541,7 +541,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                          focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                          text-slate-900 dark:text-slate-100"
             />
-            <p className="mt-1 text-xs text-slate-400">{t('serviceTimeDesc')}</p>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{t('serviceTimeDesc')}</p>
           </div>
         </div>
       )}
@@ -666,7 +666,7 @@ function EditProductForm({
             type="text"
             value={form.name}
             onChange={e => set('name', e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+            className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                        focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                        text-slate-900 dark:text-slate-100"
           />
@@ -677,7 +677,7 @@ function EditProductForm({
             type="text"
             value={form.unit}
             onChange={e => set('unit', e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+            className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                        focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                        text-slate-900 dark:text-slate-100"
           />
@@ -691,7 +691,7 @@ function EditProductForm({
               step="1"
               value={form.lead_time_days}
               onChange={e => set('lead_time_days', e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+              className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                          focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                          text-slate-900 dark:text-slate-100"
             />
@@ -728,7 +728,7 @@ function EditProductForm({
           <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">{t('howDoYouCount')}</label>
           <div className="flex gap-4">
             {(['whole', 'decimal'] as const).map(m => (
-              <label key={m} className="flex items-center gap-2 cursor-pointer">
+              <label key={m} className="flex items-center gap-2 cursor-pointer min-h-11 pe-3">
                 <input
                   type="radio"
                   name={`unit_mode_edit_${product.id}`}
@@ -747,7 +747,7 @@ function EditProductForm({
 
         <div>
           <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            {t('sellingPrice')} <span className="text-slate-400 dark:text-slate-500 font-normal">({symbol})</span>
+            {t('sellingPrice')} <span className="text-slate-600 dark:text-slate-400 font-normal">({symbol})</span>
           </label>
           <input
             type="number"
@@ -756,7 +756,7 @@ function EditProductForm({
             placeholder="—"
             value={form.price}
             onChange={e => set('price', e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+            className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                        focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                        text-slate-900 dark:text-slate-100"
           />
@@ -774,7 +774,7 @@ function EditProductForm({
                 placeholder="—"
                 value={form.current_stock}
                 onChange={e => set('current_stock', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+                className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                            focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                            text-slate-900 dark:text-slate-100"
               />
@@ -788,7 +788,7 @@ function EditProductForm({
                 placeholder="—"
                 value={form.storage_capacity}
                 onChange={e => set('storage_capacity', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+                className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                            focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                            text-slate-900 dark:text-slate-100"
               />
@@ -802,7 +802,7 @@ function EditProductForm({
                 placeholder="—"
                 value={form.shelf_life_days}
                 onChange={e => set('shelf_life_days', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+                className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                            focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                            text-slate-900 dark:text-slate-100"
               />
@@ -821,11 +821,11 @@ function EditProductForm({
             placeholder={t('productServicePlaceholder')}
             value={form.service_time_minutes}
             onChange={e => set('service_time_minutes', e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg
+            className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
                        focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-700
                        text-slate-900 dark:text-slate-100"
           />
-          <p className="mt-1 text-xs text-slate-400">{t('serviceTimeDesc')}</p>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{t('serviceTimeDesc')}</p>
         </div>
       </div>
 
@@ -916,7 +916,7 @@ function ProductRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="text-base font-semibold text-slate-800 dark:text-slate-100">
-            {product.is_favorite && <span className="text-amber-400 mr-1">★</span>}
+            {product.is_favorite && <span className="text-amber-700 dark:text-amber-300 mr-1" aria-hidden="true">★</span>}
             {product.name}
           </p>
           {isService && (
@@ -926,9 +926,9 @@ function ProductRow({
             </span>
           )}
         </div>
-        <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
+        <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-600 dark:text-slate-400">
           <span>{t('soldInDisplay')}: <strong className="text-slate-700 dark:text-slate-200">{product.unit}</strong></span>
-          <span className="text-slate-400 dark:text-slate-500">{product.unit_mode === 'decimal' ? t('decimalLabel') : t('wholeUnitsLabel')}</span>
+          <span className="text-slate-600 dark:text-slate-400">{product.unit_mode === 'decimal' ? t('decimalLabel') : t('wholeUnitsLabel')}</span>
           {!isService && (
             <span>{t('restockTime')}: <strong className="text-slate-700 dark:text-slate-200">{product.lead_time_days}d</strong></span>
           )}
@@ -956,18 +956,18 @@ function ProductRow({
         <StarButton isFavorite={product.is_favorite} onToggle={onToggleFavorite} />
         <button
           onClick={() => { setEditing(true); setConfirming(false); setDeleteErr(null) }}
-          className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium
-                     rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+          className="px-4 min-h-11 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium
+                     rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
         >
           {t('editBtn')}
         </button>
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+          className={`px-4 min-h-11 text-sm font-medium rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 ${
             confirming
-              ? 'bg-red-100 text-red-700 hover:bg-red-200'
-              : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+              ? 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 hover:bg-red-200'
+              : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600'
           }`}
         >
           {deleting ? '…' : confirming ? t('confirmRemoveBtn') : t('removeBtn')}
@@ -985,7 +985,13 @@ function StarButton({ isFavorite, onToggle }: { isFavorite: boolean; onToggle: (
     <button
       onClick={onToggle}
       title={isFavorite ? t('unfavoriteLabel') : t('favoriteLabel')}
-      className={`text-lg leading-none transition-colors ${isFavorite ? 'text-amber-400 hover:text-amber-500' : 'text-slate-300 dark:text-slate-600 hover:text-amber-300'}`}
+      aria-label={isFavorite ? t('unfavoriteLabel') : t('favoriteLabel')}
+      aria-pressed={isFavorite}
+      className={`w-11 h-11 flex items-center justify-center rounded-lg text-lg leading-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 ${
+        isFavorite
+          ? 'text-amber-700 dark:text-amber-300 hover:text-amber-800'
+          : 'text-slate-600 dark:text-slate-400 hover:text-amber-700'
+      }`}
     >
       ★
     </button>
@@ -1028,7 +1034,7 @@ export default function ProductsPanel() {
       {/* ── add form ── */}
       <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
         <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">{t('addAProduct')}</h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-5">
           {t('productPanelDesc')}
         </p>
         <AddProductForm allProducts={productList} onCreated={load} />
@@ -1039,9 +1045,9 @@ export default function ProductsPanel() {
         <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 px-6 py-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
             {t('yourProducts')}
-            <span className="ml-2 text-sm font-normal text-slate-400">({sorted.length})</span>
+            <span className="ml-2 text-sm font-normal text-slate-600 dark:text-slate-300">({sorted.length})</span>
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
             {t('tapEditRemove')}
           </p>
           <div>
@@ -1060,7 +1066,7 @@ export default function ProductsPanel() {
         <LoadError error={listError} onRetry={load} />
       ) : (
         <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
-          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
             {t('noProductsYet')}
           </p>
         </section>

@@ -58,8 +58,8 @@ function InlineOrderForm({
         {existingOrder.expected_arrival_date <= today && (
           <button
             onClick={markArrived} disabled={arriving}
-            className="text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700
-                       rounded px-2 py-0.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 disabled:opacity-50"
+            className="text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700
+                       rounded-xl px-3 min-h-11 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >
             {arriving ? '…' : t('confirmArrived')}
           </button>
@@ -72,7 +72,7 @@ function InlineOrderForm({
     return (
       <button
         onClick={() => { setShowForm(true); setQty(isWhole ? String(Math.round(suggestedQty || 1)) : String(suggestedQty || 1)) }}
-        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-teal-600 dark:text-teal-400
+        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-teal-600 dark:text-teal-300
                    border border-teal-200 dark:border-teal-700 rounded-lg px-3 py-1.5
                    hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
       >
@@ -84,7 +84,7 @@ function InlineOrderForm({
   return (
     <div className="mt-2 space-y-1">
       <div className="flex items-center gap-2 flex-wrap">
-        <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
+        <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
         <input
           type="number"
           min={isWhole ? '1' : '0.01'}
@@ -94,7 +94,7 @@ function InlineOrderForm({
           className="w-20 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm
                      bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
         />
-        <span className="text-xs text-slate-400 shrink-0">{unit}</span>
+        <span className="text-xs text-slate-600 shrink-0 dark:text-slate-300">{unit}</span>
         <button
           onClick={place} disabled={saving}
           className="text-sm font-medium text-white bg-teal-600 hover:bg-teal-700
@@ -102,10 +102,10 @@ function InlineOrderForm({
         >{saving ? '…' : t('confirmOrder')}</button>
         <button
           onClick={() => { setShowForm(false); setErr(null) }}
-          className="text-sm text-slate-400 hover:underline"
+          className="text-sm text-slate-700 dark:text-slate-200 hover:underline min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
         >{t('cancelBtn')}</button>
       </div>
-      {err && <p className="text-xs text-red-500">{err}</p>}
+      {err && <p className="text-xs text-red-700 dark:text-red-300">{err}</p>}
     </div>
   )
 }
@@ -167,7 +167,7 @@ export default function ProductStatusPanel() {
   if (loading) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
-        <p className="text-sm text-slate-500 dark:text-slate-400 animate-pulse">{t('loadingLabel')}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 animate-pulse">{t('loadingLabel')}</p>
       </div>
     )
   }
@@ -177,10 +177,10 @@ export default function ProductStatusPanel() {
   return (
     <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
       <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">{t('allProductsTitle')}</h2>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">{t('stockStatusDesc')}</p>
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-5">{t('stockStatusDesc')}</p>
 
       {stockedProducts.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500">{t('stockStatusEmpty')}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{t('stockStatusEmpty')}</p>
       ) : (
         <div className="space-y-3">
           {stockedProducts.map(prod => {
@@ -203,7 +203,7 @@ export default function ProductStatusPanel() {
                 ? <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold">⚠ {t('reorderWhenBelow')}</span>
                 : displayStock != null && !stockUntracked
                   ? <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">{t('youreGood')}</span>
-                  : <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full text-xs">{t('noStockTracked')}</span>
+                  : <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full text-xs">{t('noStockTracked')}</span>
 
             return (
               <div
@@ -217,10 +217,10 @@ export default function ProductStatusPanel() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      {prod.is_favorite && <span className="text-amber-500 mr-1">★</span>}
+                      {prod.is_favorite && <span className="text-amber-700 mr-1 dark:text-amber-300">★</span>}
                       {prod.name}
                     </p>
-                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-600 dark:text-slate-400">
                       {stock.kind === 'counted' && (
                         <span>{t('inStock')}: <strong className="text-slate-700 dark:text-slate-200">{fmtQtyVal(stock.qty, uMode)} {prod.unit}</strong></span>
                       )}
@@ -232,7 +232,7 @@ export default function ProductStatusPanel() {
                         </span>
                       )}
                       {stockUntracked && (
-                        <span className="text-slate-400 dark:text-slate-500 italic">{t('setStartingStockHint')}</span>
+                        <span className="text-slate-600 dark:text-slate-400 italic">{t('setStartingStockHint')}</span>
                       )}
                       {ord && (p => p.n_days_data != null && p.n_days_data > 0)(ord) && (
                         <>

@@ -31,9 +31,9 @@ function StatCard({ label, value, sub, valueClass = 'text-slate-800 dark:text-sl
 }) {
   return (
     <div className="bg-teal-50/50 dark:bg-teal-900/20 rounded-xl p-4 text-center">
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</p>
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">{label}</p>
       <p className={`text-xl font-bold tabular-nums ${valueClass}`}>{value}</p>
-      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{sub}</p>
+      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{sub}</p>
     </div>
   )
 }
@@ -58,12 +58,12 @@ function HomeToggleButton() {
   return (
     <button
       onClick={toggle}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
-                 text-xs text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400
+      className="flex items-center gap-1.5 px-4 min-h-11 rounded-xl border border-slate-300 dark:border-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600
+                 text-xs text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-700
                  hover:border-teal-200 dark:hover:border-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
     >
       {flash ? (
-        <><svg className="w-3.5 h-3.5 shrink-0 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <><svg className="w-3.5 h-3.5 shrink-0 text-teal-700 dark:text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>{t('addedToHomeConfirm')}</>
       ) : onHome ? (
@@ -100,7 +100,7 @@ export default function PredictionsPanel() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24 text-teal-400">
+      <div className="flex items-center justify-center py-24 text-teal-700 dark:text-teal-300">
         <span className="text-sm animate-pulse">{t('loadingPredictions')}</span>
       </div>
     )
@@ -120,10 +120,10 @@ export default function PredictionsPanel() {
   const tsColor = tsAbs > 4
     ? 'text-red-700 dark:text-red-400'
     : tsAbs > 2
-      ? 'text-amber-700 dark:text-amber-400'
+      ? 'text-amber-700 dark:text-amber-300'
       : 'text-slate-800 dark:text-slate-100'
 
-  const tickFill   = isDark ? '#94a3b8' : '#64748b'
+  const tickFill   = isDark ? '#94a3b8' : '#45556c'
   const gridStroke = isDark ? '#334155' : '#e2e8f0'
 
   return (
@@ -138,8 +138,8 @@ export default function PredictionsPanel() {
           <ResponsiveContainer width="100%" height={240}>
             <ComposedChart data={histData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: tickFill }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: tickFill }} width={36} axisLine={false} tickLine={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: tickFill }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: tickFill }} width={36} axisLine={false} tickLine={false} />
               <Tooltip
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null
@@ -155,7 +155,14 @@ export default function PredictionsPanel() {
                   )
                 }}
               />
-              <Legend wrapperStyle={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }} />
+              <Legend
+                wrapperStyle={{ fontSize: 12 }}
+                // The label inherits the line's colour by default, and a line
+                // colour is picked to be seen, not to be read.
+                formatter={(value: string) => (
+                  <span style={{ color: isDark ? '#94a3b8' : '#45556c' }}>{value}</span>
+                )}
+              />
               <Line type="monotone" dataKey="actual" stroke="#3a7470" strokeWidth={2}
                 dot={{ r: 3, fill: '#3a7470' }} name={t('chartActual')} />
               <Line type="monotone" dataKey="predicted" stroke="#6ba3a0" strokeWidth={2}
@@ -163,7 +170,7 @@ export default function PredictionsPanel() {
             </ComposedChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-sm text-slate-400 dark:text-slate-500 text-center leading-relaxed py-4">
+          <p className="text-sm text-slate-600 dark:text-slate-400 text-center leading-relaxed py-4">
             {t('forecastHistoryBuilding')}
           </p>
         )}
@@ -195,11 +202,11 @@ export default function PredictionsPanel() {
               sub={t('customersOnAverage')}
             />
             <div className="bg-teal-50/50 dark:bg-teal-900/20 rounded-xl p-4 text-center">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t('driftCheck')}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">{t('driftCheck')}</p>
               <p className={`text-xl font-bold tabular-nums ${tsColor}`}>
                 {accuracy.tracking_signal != null ? String(accuracy.tracking_signal) : '—'}
               </p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{t('driftNote')}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('driftNote')}</p>
             </div>
             <StatCard
               label={t('basedOnLabel')}

@@ -15,7 +15,7 @@ function StatChip({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col items-center bg-teal-50 dark:bg-teal-900/20 rounded-xl px-5 py-4 min-w-[96px]">
       <span className="text-2xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">{value}</span>
-      <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 text-center">{label}</span>
+      <span className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 text-center">{label}</span>
     </div>
   )
 }
@@ -32,8 +32,8 @@ function InsightCard({ title, children, accent }: {
     ? 'bg-amber-50/60 dark:bg-amber-900/10'
     : 'bg-white dark:bg-slate-800'
   const titleColor = accent === 'warning'
-    ? 'text-amber-700 dark:text-amber-400'
-    : 'text-teal-700 dark:text-teal-400'
+    ? 'text-amber-700 dark:text-amber-300'
+    : 'text-teal-700 dark:text-teal-300'
   return (
     <div className={`${bg} rounded-2xl border ${border} shadow-sm p-6 space-y-4`}>
       <h2 className={`text-sm font-semibold ${titleColor} uppercase tracking-wide`}>{title}</h2>
@@ -44,7 +44,7 @@ function InsightCard({ title, children, accent }: {
 
 function DimNote({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed italic">{children}</p>
+    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">{children}</p>
   )
 }
 
@@ -61,7 +61,7 @@ function TrendRow({ trend }: { trend: InsightsWeekdayTrend }) {
             ? t('insightsTrendGrowing', { weekday: trend.weekday, pct })
             : t('insightsTrendDeclining', { weekday: trend.weekday, pct })}
         </p>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
           {t('insightsTrendDetail', {
             recent: String(Math.round(trend.recent_avg)),
             prior:  String(Math.round(trend.prior_avg)),
@@ -92,7 +92,7 @@ function SeasonalRow({ alert }: { alert: InsightsSeasonalAlert }) {
             expected: String(Math.round(alert.expected_pace ?? alert.current_pace)),
           })}
         </p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{weeksNote}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{weeksNote}</p>
       </div>
     </div>
   )
@@ -135,7 +135,7 @@ export default function InsightsView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-slate-400 dark:text-slate-500 text-sm">{t('insightsLoading')}</p>
+        <p className="text-slate-600 dark:text-slate-400 text-sm">{t('insightsLoading')}</p>
       </div>
     )
   }
@@ -146,13 +146,13 @@ export default function InsightsView() {
     return (
       <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
         <div className="w-16 h-16 mb-5 rounded-full bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center mx-auto">
-          <svg className="w-8 h-8 text-teal-300 dark:text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-8 h-8 text-teal-700 dark:text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
           </svg>
         </div>
         <p className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-2">{t('tabInsights')}</p>
-        <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed max-w-xs mx-auto">
+        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
           {data?.message ?? t('insightsKeepLogging')}
         </p>
       </div>
@@ -176,7 +176,7 @@ export default function InsightsView() {
   return (
     <div className="space-y-6">
 
-      <p className="text-sm text-slate-500 dark:text-slate-400">{t('insightsSubtitle')}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-400">{t('insightsSubtitle')}</p>
 
       {/* ── Data volume stats ──────────────────────────────────────── */}
       <div className="flex flex-wrap gap-3">
@@ -187,7 +187,7 @@ export default function InsightsView() {
           <StatChip label={t('insightsMonthsData')} value={String(data.n_months_logged)} />
         )}
         {data.first_date && data.last_date && (
-          <div className="flex items-center text-xs text-slate-400 dark:text-slate-500 self-center px-2">
+          <div className="flex items-center text-xs text-slate-600 dark:text-slate-400 self-center px-2">
             {t('insightsDateRange', { first: data.first_date, last: data.last_date })}
           </div>
         )}
@@ -251,7 +251,7 @@ export default function InsightsView() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             {t('insightsAllRegularsActive')}
           </p>
         )}
@@ -259,7 +259,7 @@ export default function InsightsView() {
 
       {/* ── Demoted context: quick-stats line ─────────────────────── */}
       {contextChips.length > 0 && (
-        <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
+        <p className="text-xs text-slate-600 dark:text-slate-400 text-center">
           {contextChips.join(' · ')}
         </p>
       )}

@@ -4,6 +4,18 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* ── Type scale ────────────────────────────────────────────────────────
+     The floor is 14px, not 12px. A UX pass measured 724 distinct strings
+     rendering at 12px on a phone and chart labels at 10–11px, against roughly
+     16px of platform guidance for body text — the app's owners are often
+     working in glare, in a hurry, or with older eyes. Raising the scale here
+     lifts every one of them at once, including strings a search would miss,
+     and keeps the steps between sizes rather than collapsing them. */
+  --text-xs: 0.875rem;          /* 14px — was 12px */
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.9375rem;         /* 15px — was 14px */
+  --text-sm--line-height: 1.45;
+
   /* teal-25 = very light card / header background (not pure white) */
   --color-teal-25:  #f5fbf9;
   /* teal-50 = page body background — more vibrant than before */
@@ -22,7 +34,13 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; background: var(--color-teal-50); }
+
+/* The page ground itself, per theme. The body was painted the light mint in
+   both, with the dark surface coming from a container inside it — so on iOS,
+   an over-scroll bounce revealed a bright mint band under a dark app. */
+html { color-scheme: light; background: var(--color-teal-50); }
+html.dark { color-scheme: dark; background: #0f172b; }   /* slate-900 */
+body { margin: 0; background: inherit; }
 #root { min-height: 100vh; }
 
 /* Logo: transparent PNG — no outline in light mode; thin white outline in dark mode */

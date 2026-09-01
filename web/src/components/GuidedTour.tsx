@@ -318,7 +318,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
               value={lang}
               onChange={e => { setLang(e.target.value as Lang) }}
               onClick={stopProp}
-              className="text-[10px] rounded border border-teal-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-1 py-0.5 cursor-pointer focus:outline-none"
+              className="text-xs rounded border border-teal-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-1 py-0.5 cursor-pointer focus:outline-none"
               aria-label={t('a11yLanguage')}
             >
               {(Object.entries(LANG_LABELS) as [Lang, string][]).map(([code, label]) => (
@@ -330,7 +330,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
 
         {/* Section label */}
         {section.nameKey && (
-          <div className="text-[10px] font-semibold text-teal-500 dark:text-teal-400 uppercase tracking-widest mb-1.5">
+          <div className="text-xs font-semibold text-teal-700 dark:text-teal-300 uppercase tracking-widest mb-1.5">
             {t(section.nameKey as TranslationKey)}
           </div>
         )}
@@ -347,7 +347,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
         <div className={`flex items-center justify-between gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
           <button
             onClick={(e) => { stopProp(e); finish() }}
-            className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors shrink-0"
+            className="text-xs text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors shrink-0 dark:text-slate-300"
           >
             {t('tourSkipAll')}
           </button>
@@ -356,7 +356,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
             {!isFirstStep && (
               <button
                 onClick={(e) => { stopProp(e); back() }}
-                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors whitespace-nowrap"
+                className="text-xs text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors whitespace-nowrap dark:text-slate-300"
               >
                 {t('tourBack')}
               </button>
@@ -364,7 +364,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
             {showSkipSec && (
               <button
                 onClick={(e) => { stopProp(e); skipSection() }}
-                className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors whitespace-nowrap"
+                className="text-xs text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors whitespace-nowrap dark:text-slate-300"
               >
                 {t('tourSkipSection', { section: t(section.nameKey as TranslationKey) })}
               </button>

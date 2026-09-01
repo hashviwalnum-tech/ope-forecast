@@ -109,7 +109,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
                   ? 'bg-teal-600 text-white'
                   : n < step
                   ? 'bg-teal-200 dark:bg-teal-800 text-teal-700 dark:text-teal-300'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-400'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
               }`}
             >
               {n < step ? '✓' : n}
@@ -119,7 +119,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
             )}
           </div>
         ))}
-        <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">
+        <span className="text-xs text-slate-600 dark:text-slate-400 ml-2">
           {t('onboardingStep', { n: String(step), total: '3' })}
         </span>
       </div>
@@ -131,11 +131,11 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
             {t('onboardingStepHoursTitle')}
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
             {t('onboardingStepHoursDesc')}
           </p>
 
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-3">
             {t('openDaysLabel')}
           </p>
           <div className="flex flex-wrap gap-2 mb-6">
@@ -146,7 +146,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
                 className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border ${
                   openDays.includes(d)
                     ? 'bg-teal-600 text-white border-teal-600'
-                    : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-teal-300 dark:hover:border-teal-600'
+                    : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-teal-300 dark:hover:border-teal-600'
                 }`}
               >
                 {t(DAY_KEYS[d] as TranslationKey)}
@@ -154,26 +154,26 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
             ))}
           </div>
 
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-3">
             {t('openingHoursLabel')}
           </p>
           <div className="flex flex-wrap items-end gap-6 mb-6">
             <div>
-              <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">{t('opensLabel')}</label>
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('opensLabel')}</label>
               <select
                 value={openHour}
                 onChange={e => setOpenHour(Number(e.target.value))}
-                className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm"
+                className="px-3 min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 text-sm"
               >
                 {HOURS.map(h => <option key={h} value={h}>{hourLabel(h, amLabel, pmLabel)}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">{t('closesLabel')}</label>
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('closesLabel')}</label>
               <select
                 value={closeHour}
                 onChange={e => setCloseHour(Number(e.target.value))}
-                className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm"
+                className="px-3 min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 text-sm"
               >
                 {HOURS.map(h => <option key={h} value={h}>{hourLabel(h, amLabel, pmLabel)}</option>)}
               </select>
@@ -186,7 +186,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
           <div className="mt-6 mb-6">
             <label
               htmlFor="onboarding-currency"
-              className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2"
+              className="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-2"
             >
               {t('currencyLabel')}
             </label>
@@ -196,7 +196,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
               onChange={setCurrency}
               suggestOnLoad
             />
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
               {t('currencyOnboardingHelp')}
             </p>
           </div>
@@ -206,7 +206,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
           <div className="flex items-center justify-between">
             <button
               onClick={dismiss}
-              className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              className="text-sm text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors dark:text-slate-300"
             >
               {t('onboardingSkipAll')}
             </button>
@@ -228,7 +228,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
             {t('onboardingStepProductsTitle')}
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
             {t('onboardingStepProductsDesc')}
           </p>
 
@@ -242,13 +242,13 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
           <div className="flex items-center justify-between">
             <button
               onClick={() => setStep(1)}
-              className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              className="text-sm text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors dark:text-slate-300"
             >
               ← Back
             </button>
             <button
               onClick={() => setStep(3)}
-              className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              className="text-sm text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors dark:text-slate-300"
             >
               {t('onboardingProductsLater')}
             </button>
@@ -263,7 +263,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
             {t('onboardingStepLogTitle')}
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-5 leading-relaxed">
             {t('onboardingStepLogDesc')}
           </p>
 
@@ -273,14 +273,14 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
             </p>
           </div>
 
-          <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed mb-6">
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
             {t('simpleModeHint')}
           </p>
 
           <div className="flex items-center justify-between">
             <button
               onClick={() => setStep(2)}
-              className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              className="text-sm text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors dark:text-slate-300"
             >
               ← Back
             </button>

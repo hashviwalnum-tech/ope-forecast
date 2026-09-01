@@ -141,16 +141,16 @@ export default function LogDayForm({ onSaved }: Props) {
     return (
       <div className="max-w-sm rounded-2xl border border-amber-200 bg-amber-50 px-5 py-5 space-y-2">
         <div className="flex items-start gap-3">
-          <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 text-amber-700 shrink-0 mt-0.5 dark:text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm font-semibold text-amber-800">{t('notReadyToLogYet')}</p>
-            <p className="text-sm text-amber-700 mt-1 leading-relaxed">{lockReason}</p>
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t('notReadyToLogYet')}</p>
+            <p className="text-sm text-amber-700 mt-1 leading-relaxed dark:text-amber-300">{lockReason}</p>
           </div>
         </div>
-        <p className="text-xs text-amber-600 pl-8">
+        <p className="text-xs text-amber-800 dark:text-amber-300 pl-8">
           {t('fixEarlierDayNote')}
         </p>
       </div>
@@ -161,7 +161,7 @@ export default function LogDayForm({ onSaved }: Props) {
     <form onSubmit={handleSubmit} className="space-y-5 max-w-sm">
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+        <label className="block text-sm font-medium text-slate-700 mb-1.5 dark:text-slate-200">
           {t('howManyCustomersToday')}
         </label>
         <input
@@ -171,7 +171,7 @@ export default function LogDayForm({ onSaved }: Props) {
           className={`w-full border rounded-xl px-3 py-3 text-slate-900
                      focus:outline-none focus:ring-2 focus:ring-teal-500 ${
             validationError ? 'border-red-400' : 'border-slate-300'
-          }`}
+          } dark:border-slate-600`}
         />
         {validationError && (
           <p className="text-sm text-red-600 mt-1">{validationError}</p>
@@ -179,12 +179,12 @@ export default function LogDayForm({ onSaved }: Props) {
       </div>
 
       {productList.length > 0 && (
-        <fieldset className="border border-teal-100 rounded-2xl p-4 bg-teal-50/30">
-          <legend className="text-sm font-semibold text-slate-600 px-1">{t('whatDidYouSellToday')}</legend>
+        <fieldset className="border border-teal-100 rounded-2xl p-4 bg-teal-50/30 dark:bg-slate-800 dark:border-slate-700">
+          <legend className="text-sm font-semibold text-slate-600 px-1 dark:text-slate-300">{t('whatDidYouSellToday')}</legend>
           <div className="space-y-3 mt-2">
             {productList.map(p => (
               <div key={p.id} className="flex items-center gap-3">
-                <span className="flex-1 text-sm text-slate-700">{p.name}</span>
+                <span className="flex-1 text-sm text-slate-700 dark:text-slate-200">{p.name}</span>
                 <input
                   type="number" min="0"
                   step={p.unit_mode === 'decimal' ? '0.01' : '1'}
@@ -194,7 +194,7 @@ export default function LogDayForm({ onSaved }: Props) {
                   className="w-24 border border-slate-300 rounded-xl px-2 py-2 text-sm
                              focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
-                <span className="text-xs text-slate-400 w-8">{p.unit}</span>
+                <span className="text-xs text-slate-600 w-8 dark:text-slate-300">{p.unit}</span>
               </div>
             ))}
           </div>
@@ -203,25 +203,25 @@ export default function LogDayForm({ onSaved }: Props) {
 
       {feedback && (
         <p className={`text-sm rounded-xl px-3 py-2.5 ${feedback.ok
-          ? 'text-emerald-700 bg-emerald-50'
-          : 'text-red-700 bg-red-50'}`}>
+          ? 'text-emerald-700 bg-emerald-50 dark:text-emerald-300'
+          : 'text-red-700 bg-red-50 dark:text-red-300'}`}>
           {feedback.msg}
         </p>
       )}
 
       {warning && (
         <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-3">
-          <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-4 h-4 text-amber-700 shrink-0 mt-0.5 dark:text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <p className="text-sm text-amber-700 leading-relaxed">{warning}</p>
+          <p className="text-sm text-amber-700 leading-relaxed dark:text-amber-300">{warning}</p>
         </div>
       )}
 
       {overwriteId !== null ? (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 space-y-3">
-          <p className="text-sm font-medium text-amber-800">
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
             {t('todayOverwritePrompt')}
           </p>
           <div className="flex gap-2">
