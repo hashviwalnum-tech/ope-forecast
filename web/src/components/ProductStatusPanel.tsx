@@ -201,7 +201,7 @@ export default function ProductStatusPanel() {
             const statusBadge = ord?.order_now
               ? <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-semibold">{t('orderNowLabel')}</span>
               : ord?.approaching_reorder
-                ? <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold">⚠ {t('reorderWhenBelow')}</span>
+                ? <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold">⚠ {t('gettingLowBadge')}</span>
                 : displayStock != null && !stockUntracked
                   ? <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">{t('youreGood')}</span>
                   : <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full text-xs">{t('noStockTracked')}</span>

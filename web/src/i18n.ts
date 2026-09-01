@@ -9,6 +9,7 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    gettingLowBadge: 'Getting low',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Worth about {amount}',
     worthAboutHint: 'What this regular is likely to spend with you over the years, from how often they come and what they usually spend.',
@@ -239,7 +240,7 @@ export const translations = {
     productNamePlaceholder: 'e.g. Sourdough loaf, Large coffee, Haircut',
     soldInLabel: 'Sold in',
     soldInPlaceholder: 'e.g. each, kg, litre, box',
-    daysToRestock: 'How many days to restock?',
+    daysToRestock: 'How many days until it arrives?',
     daysToRestockDesc: 'Days between ordering and receiving stock',
     howDoYouCount: 'How do you count this product?',
     wholeUnitsLabel: 'Whole units (e.g. bottles, loaves)',
@@ -1155,6 +1156,7 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    gettingLowBadge: 'המלאי מתמעט',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'שווה בערך {amount}',
     worthAboutHint: 'כמה הלקוח הקבוע הזה צפוי להוציא אצלך לאורך השנים, לפי תדירות ההגעה והסכום הרגיל.',
@@ -2301,6 +2303,7 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    gettingLowBadge: '库存将尽',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: '大约价值 {amount}',
     worthAboutHint: '根据来店频率和平均消费，估算这位常客多年下来会在您店里花多少。',
@@ -2973,6 +2976,7 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    gettingLowBadge: 'Se está acabando',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Vale unos {amount}',
     worthAboutHint: 'Lo que este cliente habitual gastará contigo con los años, según cuánto viene y cuánto suele gastar.',
@@ -3697,6 +3701,7 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    gettingLowBadge: 'कम हो रहा है',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'लगभग {amount} का',
     worthAboutHint: 'यह नियमित ग्राहक वर्षों में आपके यहाँ कितना खर्च करेगा — कितनी बार आता है और आमतौर पर कितना खर्च करता है, इससे।',
@@ -4379,6 +4384,7 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    gettingLowBadge: 'يوشك على النفاد',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'يساوي نحو {amount}',
     worthAboutHint: 'ما يُتوقّع أن ينفقه هذا الزبون الدائم لديك عبر السنوات، بحسب تكرار زيارته ومتوسط إنفاقه.',
@@ -5358,6 +5364,7 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    gettingLowBadge: 'A acabar',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Vale cerca de {amount}',
     worthAboutHint: 'O que este cliente habitual deverá gastar consigo ao longo dos anos, pelo que vem e pelo que costuma gastar.',
@@ -6067,6 +6074,7 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    gettingLowBadge: 'Заканчивается',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Примерно на {amount}',
     worthAboutHint: 'Сколько этот постоянный клиент, скорее всего, потратит у вас за годы — исходя из частоты визитов и обычной суммы.',
@@ -6774,6 +6782,7 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    gettingLowBadge: 'Bientôt épuisé',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Vaut environ {amount}',
     worthAboutHint: 'Ce que ce client fidèle dépensera probablement chez vous au fil des ans, d\'après sa fréquence de visite et sa dépense habituelle.',
@@ -7919,6 +7928,7 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    gettingLowBadge: 'কমে আসছে',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'প্রায় {amount} মূল্যের',
     worthAboutHint: 'এই নিয়মিত ক্রেতা বছরের পর বছর আপনার কাছে কত খরচ করতে পারেন — কত ঘন ঘন আসেন ও সাধারণত কত খরচ করেন তা থেকে।',
@@ -9064,6 +9074,7 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    gettingLowBadge: 'کم ہو رہا ہے',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'تقریباً {amount} کے برابر',
     worthAboutHint: 'یہ مستقل گاہک برسوں میں آپ کے ہاں کتنا خرچ کرے گا — کتنی بار آتا ہے اور عام طور پر کتنا خرچ کرتا ہے، اس سے۔',
@@ -10209,6 +10220,7 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    gettingLowBadge: 'Mulai menipis',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Bernilai sekitar {amount}',
     worthAboutHint: 'Perkiraan belanja pelanggan tetap ini selama bertahun-tahun, dari seberapa sering datang dan biasanya belanja berapa.',
@@ -11354,6 +11366,7 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    gettingLowBadge: 'Wird knapp',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Etwa {amount} wert',
     worthAboutHint: 'Was diese Stammkundin oder dieser Stammkunde über die Jahre bei Ihnen ausgeben dürfte — aus Besuchshäufigkeit und üblichem Betrag.',
@@ -12499,6 +12512,7 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    gettingLowBadge: '残り少なめ',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'およそ {amount} 相当',
     worthAboutHint: 'この常連さんが何年かけてお店で使うと見込まれる金額です。来店の頻度と普段の金額から算出しています。',
@@ -13644,6 +13658,7 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    gettingLowBadge: 'Azalıyor',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Yaklaşık {amount} değerinde',
     worthAboutHint: 'Bu düzenli müşterinin yıllar içinde sizde harcaması beklenen tutar — ne sıklıkla geldiğine ve genelde ne harcadığına göre.',

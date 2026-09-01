@@ -448,7 +448,7 @@ function OrderingProductCard({
             )
           ) : p.approaching_reorder ? (
             <span className="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold">
-              ⚠ {t('reorderWhenBelow')}
+              ⚠ {t('gettingLowBadge')}
             </span>
           ) : !stockUntracked ? (
             <span className="inline-block px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">
