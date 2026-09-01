@@ -172,6 +172,21 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
   const [nudge, setNudge] = useState<NudgeItem | null>(null)
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
 
+  // When a quick-action panel opens it must come to the owner, not the other
+  // way round: on a 390px phone the first tap button sat 1,099px down the page
+  // — 255px below the fold — and nothing scrolled.
+  const panelRef = useRef<HTMLDivElement>(null)
+  const openPanel = showSell ? 'sell' : showLog ? 'log' : showRegular ? 'regular' : null
+
+  useEffect(() => {
+    if (!openPanel) return
+    // One frame, so the panel is laid out before we scroll to it.
+    const id = requestAnimationFrame(() => {
+      panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [openPanel])
+
   // Drag state for reorder
   const dragIdx = useRef<number | null>(null)
   const [dragOver, setDragOver] = useState<number | null>(null)
@@ -339,9 +354,94 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
         </div>
       )}
 
+      {/* ① Quick actions */}
+      <section data-tour="quick-actions" className="scroll-mt-20">
+        <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-3">
+          <button
+            onClick={() => { setShowSell(s => !s); setShowLog(false); setShowRegular(false) }}
+            className={`flex items-center justify-center sm:justify-start gap-2 px-6 py-4 sm:py-3.5 min-h-14 sm:min-h-0 rounded-xl text-sm font-semibold
+                        transition-colors shadow-sm ${
+              showSell
+                ? 'bg-teal-700 text-white'
+                : 'bg-teal-600 text-white hover:bg-teal-700'
+            }`}
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            {t('recordASale')}
+            <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showSell ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => { setShowLog(l => !l); setShowSell(false); setShowRegular(false) }}
+            className={`flex items-center justify-center sm:justify-start gap-2 px-6 py-4 sm:py-3.5 min-h-14 sm:min-h-0 rounded-xl text-sm font-semibold
+                        transition-colors border ${
+              showLog
+                ? 'bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300'
+                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-teal-200 hover:bg-teal-50 dark:hover:bg-teal-900/20'
+            }`}
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0
+                   00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            {t('logToday')}
+            <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showLog ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => { setShowRegular(r => !r); setShowSell(false); setShowLog(false) }}
+            className={`flex items-center justify-center sm:justify-start gap-2 px-6 py-4 sm:py-3.5 min-h-14 sm:min-h-0 rounded-xl text-sm font-semibold
+                        transition-colors border ${
+              showRegular
+                ? 'bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300'
+                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-teal-200 hover:bg-teal-50 dark:hover:bg-teal-900/20'
+            }`}
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            {t('recordARegular')}
+            <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showRegular ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+
+        {showSell && (
+          <div ref={panelRef} className="mt-4 scroll-mt-20 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-4 sm:p-6 shadow-sm">
+            <TapSellPanel onGoToProducts={onGoToProducts} />
+          </div>
+        )}
+        {showLog && (
+          <div ref={panelRef} className="mt-4 scroll-mt-20 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-4 sm:p-6 shadow-sm">
+            <LogDayForm onSaved={handleSaved} />
+          </div>
+        )}
+        {showRegular && (
+          <div ref={panelRef} className="mt-4 scroll-mt-20 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-4 sm:p-6 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">{t('recordRegularTitle')}</h3>
+            <RecordRegularPanel onDone={() => setShowRegular(false)} />
+          </div>
+        )}
+      </section>
+
       {/* Simple language suggestion — shown once to users who have never set it */}
       {simpleModeNeverSet && !simpleMode && (
-        <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 dark:border-slate-600
+        /* Stacked on a phone: side by side, the buttons squeezed the text into a
+           ~90px column that wrapped three words to a line. */
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4
+                        rounded-2xl border border-slate-200 dark:border-slate-600
                         bg-slate-50 dark:bg-slate-800/60 px-5 py-4">
           <div className="flex items-start gap-3 min-w-0">
             <svg className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -355,16 +455,19 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setSimpleMode(true)}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-colors"
+              className="text-sm font-semibold px-4 min-h-11 rounded-xl bg-teal-600 text-white hover:bg-teal-700 transition-colors
+                         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
             >
               {t('simpleModePromptOn')}
             </button>
             <button
               onClick={() => setSimpleMode(false)}
-              className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              className="text-sm px-4 min-h-11 rounded-xl text-slate-600 dark:text-slate-300
+                         hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors
+                         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
             >
               {t('simpleModePromptDismiss')}
             </button>
@@ -424,88 +527,6 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
           </button>
         </div>
       )}
-
-      {/* ① Quick actions */}
-      <section data-tour="quick-actions">
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => { setShowSell(s => !s); setShowLog(false); setShowRegular(false) }}
-            className={`flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold
-                        transition-colors shadow-sm ${
-              showSell
-                ? 'bg-teal-700 text-white'
-                : 'bg-teal-600 text-white hover:bg-teal-700'
-            }`}
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            {t('recordASale')}
-            <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showSell ? 'rotate-180' : ''}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => { setShowLog(l => !l); setShowSell(false); setShowRegular(false) }}
-            className={`flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold
-                        transition-colors border ${
-              showLog
-                ? 'bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300'
-                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-teal-200 hover:bg-teal-50 dark:hover:bg-teal-900/20'
-            }`}
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0
-                   00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            {t('logToday')}
-            <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showLog ? 'rotate-180' : ''}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => { setShowRegular(r => !r); setShowSell(false); setShowLog(false) }}
-            className={`flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold
-                        transition-colors border ${
-              showRegular
-                ? 'bg-teal-50 dark:bg-teal-900/30 border-teal-300 dark:border-teal-700 text-teal-700 dark:text-teal-300'
-                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-teal-200 hover:bg-teal-50 dark:hover:bg-teal-900/20'
-            }`}
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            {t('recordARegular')}
-            <svg className={`w-3.5 h-3.5 shrink-0 transition-transform ${showRegular ? 'rotate-180' : ''}`}
-              fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
-
-        {showSell && (
-          <div className="mt-4 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm">
-            <TapSellPanel onGoToProducts={onGoToProducts} />
-          </div>
-        )}
-        {showLog && (
-          <div className="mt-4 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm">
-            <LogDayForm onSaved={handleSaved} />
-          </div>
-        )}
-        {showRegular && (
-          <div className="mt-4 rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 p-6 shadow-sm">
-            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">{t('recordRegularTitle')}</h3>
-            <RecordRegularPanel onDone={() => setShowRegular(false)} />
-          </div>
-        )}
-      </section>
 
       {/* ② Analytics cards (customizable) */}
       {customizing ? (

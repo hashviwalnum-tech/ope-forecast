@@ -9,6 +9,19 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    whatSoldThatDay: 'What sold ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'Showing',
+    lastNDays: 'Last {n} days',
+    daysShownOfTotal: '{shown} of {total} days',
+    deleteBtn: 'Delete',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'Switch to dark mode',
+    a11ySwitchToLight: 'Switch to light mode',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'Close',
+    a11yMainNav: 'Main navigation',
+    moreSectionOther: 'Your account',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'Turn cards on or off, and use the arrows to change their order.',
     moveUpLabel: 'Move {name} up',
@@ -1121,6 +1134,19 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    whatSoldThatDay: 'מה נמכר ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'מציג',
+    lastNDays: '{n} הימים האחרונים',
+    daysShownOfTotal: '{shown} מתוך {total} ימים',
+    deleteBtn: 'מחק',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'עבור למצב כהה',
+    a11ySwitchToLight: 'עבור למצב בהיר',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'סגור',
+    a11yMainNav: 'ניווט ראשי',
+    moreSectionOther: 'החשבון שלך',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'הפעל או כבה כרטיסים, והשתמש בחצים כדי לשנות את הסדר שלהם.',
     moveUpLabel: 'העבר את {name} למעלה',
@@ -2233,6 +2259,19 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    whatSoldThatDay: '当天销售（{n}）',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: '显示',
+    lastNDays: '最近 {n} 天',
+    daysShownOfTotal: '{total} 天中的 {shown} 天',
+    deleteBtn: '删除',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: '切换到深色模式',
+    a11ySwitchToLight: '切换到浅色模式',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: '关闭',
+    a11yMainNav: '主导航',
+    moreSectionOther: '您的账户',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: '开启或关闭卡片，用箭头调整顺序。',
     moveUpLabel: '将 {name} 上移',
@@ -2871,6 +2910,19 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    whatSoldThatDay: 'Qué se vendió ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'Mostrando',
+    lastNDays: 'Últimos {n} días',
+    daysShownOfTotal: '{shown} de {total} días',
+    deleteBtn: 'Eliminar',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'Cambiar a modo oscuro',
+    a11ySwitchToLight: 'Cambiar a modo claro',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'Cerrar',
+    a11yMainNav: 'Navegación principal',
+    moreSectionOther: 'Tu cuenta',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'Activa o desactiva tarjetas y usa las flechas para cambiar su orden.',
     moveUpLabel: 'Subir {name}',
@@ -3561,6 +3613,19 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    whatSoldThatDay: 'क्या बिका ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'दिखा रहे हैं',
+    lastNDays: 'पिछले {n} दिन',
+    daysShownOfTotal: '{total} में से {shown} दिन',
+    deleteBtn: 'हटाएँ',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'डार्क मोड पर जाएँ',
+    a11ySwitchToLight: 'लाइट मोड पर जाएँ',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'बंद करें',
+    a11yMainNav: 'मुख्य नेविगेशन',
+    moreSectionOther: 'आपका खाता',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'कार्ड चालू या बंद करें, और क्रम बदलने के लिए तीरों का उपयोग करें।',
     moveUpLabel: '{name} को ऊपर ले जाएँ',
@@ -4209,6 +4274,19 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    whatSoldThatDay: 'ما بيع ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'يعرض',
+    lastNDays: 'آخر {n} يوماً',
+    daysShownOfTotal: '{shown} من {total} يوم',
+    deleteBtn: 'حذف',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'التبديل إلى الوضع الداكن',
+    a11ySwitchToLight: 'التبديل إلى الوضع الفاتح',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'إغلاق',
+    a11yMainNav: 'التنقل الرئيسي',
+    moreSectionOther: 'حسابك',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'شغّل البطاقات أو أوقفها، واستخدم الأسهم لتغيير ترتيبها.',
     moveUpLabel: 'حرّك {name} لأعلى',
@@ -5154,6 +5232,19 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    whatSoldThatDay: 'O que se vendeu ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'A mostrar',
+    lastNDays: 'Últimos {n} dias',
+    daysShownOfTotal: '{shown} de {total} dias',
+    deleteBtn: 'Eliminar',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'Mudar para modo escuro',
+    a11ySwitchToLight: 'Mudar para modo claro',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'Fechar',
+    a11yMainNav: 'Navegação principal',
+    moreSectionOther: 'A sua conta',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'Ligue ou desligue cartões e use as setas para mudar a ordem.',
     moveUpLabel: 'Mover {name} para cima',
@@ -5829,6 +5920,19 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    whatSoldThatDay: 'Что продано ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'Показано',
+    lastNDays: 'Последние {n} дней',
+    daysShownOfTotal: '{shown} из {total} дней',
+    deleteBtn: 'Удалить',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'Перейти в тёмный режим',
+    a11ySwitchToLight: 'Перейти в светлый режим',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'Закрыть',
+    a11yMainNav: 'Основная навигация',
+    moreSectionOther: 'Ваш аккаунт',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'Включайте и выключайте карточки, а стрелками меняйте их порядок.',
     moveUpLabel: 'Переместить «{name}» вверх',
@@ -6502,6 +6606,19 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    whatSoldThatDay: 'Ce qui a été vendu ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'Affichage',
+    lastNDays: '{n} derniers jours',
+    daysShownOfTotal: '{shown} jours sur {total}',
+    deleteBtn: 'Supprimer',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'Passer en mode sombre',
+    a11ySwitchToLight: 'Passer en mode clair',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'Fermer',
+    a11yMainNav: 'Navigation principale',
+    moreSectionOther: 'Votre compte',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'Activez ou désactivez les cartes, et utilisez les flèches pour changer l\'ordre.',
     moveUpLabel: 'Monter {name}',
@@ -7613,6 +7730,19 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    whatSoldThatDay: 'কী বিক্রি হয়েছে ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'দেখানো হচ্ছে',
+    lastNDays: 'গত {n} দিন',
+    daysShownOfTotal: '{total} দিনের মধ্যে {shown}',
+    deleteBtn: 'মুছুন',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'ডার্ক মোডে যান',
+    a11ySwitchToLight: 'লাইট মোডে যান',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'বন্ধ করুন',
+    a11yMainNav: 'প্রধান নেভিগেশন',
+    moreSectionOther: 'আপনার অ্যাকাউন্ট',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'কার্ড চালু বা বন্ধ করুন, এবং ক্রম বদলাতে তীরচিহ্ন ব্যবহার করুন।',
     moveUpLabel: '{name} উপরে নিন',
@@ -8724,6 +8854,19 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    whatSoldThatDay: 'کیا فروخت ہوا ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'دکھایا جا رہا ہے',
+    lastNDays: 'پچھلے {n} دن',
+    daysShownOfTotal: '{total} میں سے {shown} دن',
+    deleteBtn: 'حذف کریں',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'ڈارک موڈ پر جائیں',
+    a11ySwitchToLight: 'لائٹ موڈ پر جائیں',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'بند کریں',
+    a11yMainNav: 'مرکزی نیویگیشن',
+    moreSectionOther: 'آپ کا اکاؤنٹ',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'کارڈ آن یا آف کریں، اور ترتیب بدلنے کے لیے تیر استعمال کریں۔',
     moveUpLabel: '{name} کو اوپر لے جائیں',
@@ -9835,6 +9978,19 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    whatSoldThatDay: 'Yang terjual ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'Menampilkan',
+    lastNDays: '{n} hari terakhir',
+    daysShownOfTotal: '{shown} dari {total} hari',
+    deleteBtn: 'Hapus',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'Beralih ke mode gelap',
+    a11ySwitchToLight: 'Beralih ke mode terang',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'Tutup',
+    a11yMainNav: 'Navigasi utama',
+    moreSectionOther: 'Akun Anda',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'Nyalakan atau matikan kartu, dan gunakan panah untuk mengubah urutannya.',
     moveUpLabel: 'Naikkan {name}',
@@ -10946,6 +11102,19 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    whatSoldThatDay: 'Was verkauft wurde ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'Angezeigt',
+    lastNDays: 'Letzte {n} Tage',
+    daysShownOfTotal: '{shown} von {total} Tagen',
+    deleteBtn: 'Löschen',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'Zum dunklen Modus wechseln',
+    a11ySwitchToLight: 'Zum hellen Modus wechseln',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'Schließen',
+    a11yMainNav: 'Hauptnavigation',
+    moreSectionOther: 'Ihr Konto',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'Karten ein- oder ausschalten und die Reihenfolge mit den Pfeilen ändern.',
     moveUpLabel: '{name} nach oben',
@@ -12057,6 +12226,19 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    whatSoldThatDay: '売れたもの（{n}）',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: '表示',
+    lastNDays: '直近 {n} 日',
+    daysShownOfTotal: '{total} 日中 {shown} 日',
+    deleteBtn: '削除',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'ダークモードに切り替え',
+    a11ySwitchToLight: 'ライトモードに切り替え',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: '閉じる',
+    a11yMainNav: 'メインナビゲーション',
+    moreSectionOther: 'アカウント',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'カードのオン・オフを切り替え、矢印で並び順を変えられます。',
     moveUpLabel: '{name} を上へ',
@@ -13168,6 +13350,19 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    whatSoldThatDay: 'Ne satıldı ({n})',
+    // Past Days — a year of history, reachable without endless scrolling
+    showingPeriodLabel: 'Gösterilen',
+    lastNDays: 'Son {n} gün',
+    daysShownOfTotal: '{total} günün {shown} günü',
+    deleteBtn: 'Sil',
+    // Theme toggle — was hardcoded English on every screen
+    a11ySwitchToDark: 'Koyu moda geç',
+    a11ySwitchToLight: 'Açık moda geç',
+    // Phone navigation — the bottom bar and its sheet
+    closeLabel: 'Kapat',
+    a11yMainNav: 'Ana gezinme',
+    moreSectionOther: 'Hesabınız',
     // Reordering the home cards — works with a finger, not only a mouse
     toggleAndReorder: 'Kartları açıp kapatın, sırayı oklarla değiştirin.',
     moveUpLabel: '{name} yukarı taşı',

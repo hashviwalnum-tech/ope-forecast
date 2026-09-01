@@ -26,8 +26,9 @@ import { useAuth } from './contexts/AuthContext'
 import { BusinessTimeProvider } from './contexts/BusinessTimeContext'
 import { CurrencyProvider } from './contexts/CurrencyContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
-import { LANG_LABELS, type Lang } from './i18n'
+import { LANG_LABELS, type Lang, type TranslationKey } from './i18n'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
+import MobileNav from './components/MobileNav'
 import LoginPage from './pages/LoginPage'
 import * as api from './api/client'
 import type { BusinessRead, SubscriptionRead } from './api/types'
@@ -68,6 +69,7 @@ function AppInner() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [openGroup, setOpenGroup]   = useState<NavGroup | null>(null)
+  const [navSheetOpen, setNavSheetOpen] = useState(false)
   const switcherRef = useRef<HTMLDivElement>(null)
   const navRef      = useRef<HTMLDivElement>(null)
 
@@ -243,6 +245,29 @@ function AppInner() {
     },
   ]
 
+  // The phone bar's four slots — the same shape as the mobile app's, built from
+  // the destinations above so the two navigations can never drift apart.
+  const bottomTabs = [
+    { id: 'home',             label: t('home'),             icon: 'log'      as const },
+    { id: 'predictions_home', label: t('predictions'),      icon: 'forecast' as const },
+    { id: 'insights',         label: t('insightsNavLabel'), icon: 'insights' as const },
+    { id: 'manage',           label: t('manage'),           icon: 'manage'   as const },
+  ]
+
+  const sheetSections = [
+    ...dropdownGroups.map(g => ({
+      titleKey: (g.id === 'history' ? 'history' : 'manage') as TranslationKey,
+      items: g.tabs.map(x => ({ id: x.id as string, label: x.label })),
+    })),
+    {
+      titleKey: 'moreSectionOther' as TranslationKey,
+      items: [{ id: 'settings', label: t('settings') }],
+    },
+  ]
+
+  // Which screens should light the "Manage" slot: everything not on the bar.
+  const sheetTabIds = sheetSections.flatMap(sec => sec.items.map(i => i.id))
+
   const tabTitles: Record<Tab, string> = {
     home:             t('tabHome'),
     predictions_home: t('tabPredictions'),
@@ -332,32 +357,36 @@ function AppInner() {
     <div className="min-h-screen bg-teal-50 dark:bg-slate-900" dir={dir}>
 
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <header className="bg-teal-100 dark:bg-slate-800 backdrop-blur-sm border-b-2 border-teal-200 dark:border-slate-700 px-6 py-3
-                         flex flex-wrap items-center gap-x-4 gap-y-2
-                         sticky top-0 z-10 shadow-sm">
+      {/* On a phone this is a single compact row: the wrapped desktop nav used
+          to stand 339px tall on a 390px screen and 381px on a 360px one, stuck
+          to the top while scrolling. Navigation lives in the bottom bar below
+          1024px; only the logo, the business and two toggles stay up here. */}
+      <header className="bg-teal-100 dark:bg-slate-800 backdrop-blur-sm border-b-2 border-teal-200 dark:border-slate-700 px-4 lg:px-6 py-2 lg:py-3
+                         flex flex-nowrap lg:flex-wrap items-center gap-x-3 lg:gap-x-4 gap-y-2
+                         sticky top-0 z-20 shadow-sm">
 
         {/* Brand */}
         <button
-          className="flex items-center gap-3 shrink-0 cursor-pointer"
+          className="flex items-center gap-2 lg:gap-3 shrink-0 cursor-pointer min-h-11"
           onClick={() => setTab('home')}
           aria-label={t('a11yGoHome')}
         >
-          <img src={logo} alt="Ope logo" className="logo-img h-11 w-auto" />
+          <img src={logo} alt="Ope logo" className="logo-img h-9 lg:h-11 w-auto" />
           <div className="leading-tight">
-            <span className="block text-xl font-bold text-teal-700 dark:text-teal-300 tracking-tight">Ope</span>
-            <span className="block text-xs text-teal-500 dark:text-teal-400 font-medium">{t('slogan')}</span>
+            <span className="block text-lg lg:text-xl font-bold text-teal-700 dark:text-teal-300 tracking-tight">Ope</span>
+            <span className="hidden lg:block text-xs text-teal-600 dark:text-teal-400 font-medium">{t('slogan')}</span>
           </div>
         </button>
 
         {/* Business switcher */}
-        <div className="relative shrink-0" ref={switcherRef}>
+        <div className="relative min-w-0 flex-1 lg:flex-none lg:shrink-0" ref={switcherRef}>
           <button
             onClick={() => setSwitcherOpen(o => !o)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm
-                       text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-slate-700 hover:bg-teal-100 dark:hover:bg-slate-600 font-medium
+            className="flex items-center gap-1.5 px-3 min-h-11 lg:min-h-0 lg:py-1.5 rounded-lg text-sm max-w-full
+                       text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-slate-700 hover:bg-teal-100 dark:hover:bg-slate-600 font-medium
                        border border-teal-100 dark:border-slate-600 transition-colors"
           >
-            <span className="max-w-[140px] truncate">{activeBusiness.name}</span>
+            <span className="truncate lg:max-w-[140px]">{activeBusiness.name}</span>
             <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
@@ -428,7 +457,7 @@ function AppInner() {
         </div>
 
         {/* Nav */}
-        <nav ref={navRef} className="flex flex-wrap gap-1 flex-1">
+        <nav ref={navRef} className="hidden lg:flex flex-wrap gap-1 flex-1">
 
           {/* Primary tabs — always visible */}
           {primaryTabs.map(navTab => (
@@ -497,8 +526,8 @@ function AppInner() {
           })}
         </nav>
 
-        {/* Language switcher */}
-        <div className="flex items-center shrink-0">
+        {/* Language switcher — in the phone sheet below 1024px */}
+        <div className="hidden lg:flex items-center shrink-0">
           <select
             value={lang}
             onChange={e => setLang(e.target.value as Lang)}
@@ -516,7 +545,8 @@ function AppInner() {
           data-tour="settings-gear"
           onClick={() => setTab('settings')}
           title={t('settings')}
-          className={`p-2 rounded-lg transition-colors shrink-0 ${
+          aria-label={t('settings')}
+          className={`w-11 h-11 flex items-center justify-center rounded-lg transition-colors shrink-0 ml-auto lg:ml-0 ${
             tab === 'settings'
               ? 'text-teal-700 dark:text-teal-300 bg-teal-100 dark:bg-teal-900/40'
               : 'text-slate-500 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-slate-700'
@@ -538,8 +568,9 @@ function AppInner() {
         <button
           data-tour="dark-mode-toggle"
           onClick={toggleTheme}
-          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="p-2 rounded-lg text-slate-500 dark:text-slate-300
+          title={isDark ? t('a11ySwitchToLight') : t('a11ySwitchToDark')}
+          aria-label={isDark ? t('a11ySwitchToLight') : t('a11ySwitchToDark')}
+          className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300
                      hover:bg-teal-50 dark:hover:bg-slate-700 transition-colors shrink-0"
         >
           {isDark ? (
@@ -555,10 +586,10 @@ function AppInner() {
           )}
         </button>
 
-        {/* Log out */}
+        {/* Log out — in the phone sheet below 1024px */}
         <button
           onClick={signOut}
-          className="px-4 py-2 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-600
+          className="hidden lg:block px-4 py-2 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-600
                      text-slate-600 dark:text-slate-300 hover:border-rose-300 hover:text-rose-600
                      hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors shrink-0"
         >
@@ -619,7 +650,8 @@ function AppInner() {
         )}
 
         {/* Main content */}
-        <main className={`flex-1 max-w-4xl mx-auto px-6 py-8 ${SHOW_ADS ? 'pb-20 xl:pb-8' : ''}`}>
+        <main className={`flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-6 lg:py-8 w-full min-w-0
+                          pb-32 lg:pb-8 ${SHOW_ADS ? 'xl:pb-8' : ''}`}>
           <h1 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-6">{tabTitles[tab]}</h1>
           <OutlierBanner onResolved={refresh} />
           {tab === 'home'             && (!onboardingDone ? (
@@ -671,13 +703,51 @@ function AppInner() {
 
       </div>
 
-      {/* Bottom ad banner — narrow screens only */}
+      {/* Bottom ad banner — narrow screens only. Sits ABOVE the tab bar below
+          1024px so the two never overlap, and never over content. */}
       {SHOW_ADS && (
-        <div className="fixed bottom-0 inset-x-0 xl:hidden h-14 bg-teal-50/90 dark:bg-slate-800/90 backdrop-blur-sm
+        <div className="fixed bottom-14 lg:bottom-0 inset-x-0 xl:hidden h-14 bg-teal-50/90 dark:bg-slate-800/90 backdrop-blur-sm
                         border-t border-teal-100 dark:border-slate-700 flex items-center justify-center z-10">
-          <span className="text-[10px] text-teal-300 dark:text-teal-600 tracking-widest uppercase select-none">Ad</span>
+          <span className="text-[10px] text-teal-500 dark:text-teal-500 tracking-widest uppercase select-none">Ad</span>
         </div>
       )}
+
+      {/* Phone and tablet navigation */}
+      <MobileNav
+        active={tab}
+        onNavigate={id => { setTab(id as Tab); setOpenGroup(null) }}
+        tabs={bottomTabs}
+        sections={sheetSections}
+        sheetOpen={navSheetOpen}
+        setSheetOpen={setNavSheetOpen}
+        sheetTabIds={sheetTabIds}
+        sheetFooter={
+          <>
+            <label className="flex items-center justify-between gap-3 text-sm text-slate-700 dark:text-slate-200">
+              <span>{t('a11yLanguage')}</span>
+              <select
+                value={lang}
+                onChange={e => setLang(e.target.value as Lang)}
+                className="min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700
+                           text-slate-900 dark:text-slate-100 px-3 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                {(Object.entries(LANG_LABELS) as [Lang, string][]).map(([code, label]) => (
+                  <option key={code} value={code}>{label}</option>
+                ))}
+              </select>
+            </label>
+            <button
+              onClick={signOut}
+              className="w-full min-h-11 px-4 rounded-xl text-sm font-medium border border-slate-300 dark:border-slate-600
+                         text-slate-700 dark:text-slate-200 hover:border-rose-300 hover:text-rose-700
+                         hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+            >
+              {t('logOut')}
+            </button>
+          </>
+        }
+      />
 
       {/* Guided product tour */}
       {showTour && activeBusiness && (

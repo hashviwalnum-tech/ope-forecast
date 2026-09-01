@@ -157,7 +157,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
           ) : null}
         </div>
       </div>
-      <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
+      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
         <div className="px-4 py-3">
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{t('reorderWhenBelow')}</p>
           <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-100">{fmtQty(item.reorder_point, uMode, unit)}</p>

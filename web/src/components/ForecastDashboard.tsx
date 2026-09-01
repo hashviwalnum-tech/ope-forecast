@@ -384,7 +384,7 @@ function OrderingProductCard({
   if (noHistory) {
     return (
       <div className="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
-        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50/60 dark:bg-slate-700/40">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 px-4 py-3 bg-slate-50/60 dark:bg-slate-700/40">
           <div className="min-w-0">
             {isFav && <span className="text-xs text-amber-500 mr-1">★</span>}
             <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{p.name}</span>
@@ -407,7 +407,10 @@ function OrderingProductCard({
     <div className={`rounded-xl border overflow-hidden
       ${p.order_now ? 'border-red-200 dark:border-red-800' : p.approaching_reorder ? 'border-amber-200 dark:border-amber-700' : 'border-slate-100 dark:border-slate-700'}`}
     >
-      <div className={`flex items-center justify-between gap-3 px-4 py-3
+      {/* Stacked on a phone. Side by side, the details column was squeezed to
+          96px against a 136px badge and wrapped to about ten lines, one word
+          each — the single biggest reason Home ran to seven phone screens. */}
+      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 px-4 py-3
         ${p.order_now ? 'bg-red-50/60 dark:bg-red-900/20' : p.approaching_reorder ? 'bg-amber-50/60 dark:bg-amber-900/20' : 'bg-slate-50/60 dark:bg-slate-700/40'}`}
       >
         <div className="min-w-0">
@@ -431,7 +434,7 @@ function OrderingProductCard({
             </p>
           )}
         </div>
-        <div className="shrink-0 text-right">
+        <div className="shrink-0 sm:text-right">
           {p.order_now ? (
             hasQty ? (
               <span className="inline-block px-3 py-1 bg-red-500 text-white rounded-full text-xs font-bold">

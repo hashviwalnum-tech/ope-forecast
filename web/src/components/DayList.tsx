@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { dayRecords, products as productsApi, sales as salesApi } from '../api/client'
 import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -11,10 +11,25 @@ function weekdayLabel(dateStr: string, t: ReturnType<typeof useLanguage>['t']): 
   return t(keys[jsDay])
 }
 
+/** Months present in the data, newest first, as `YYYY-MM`. */
+function monthsOf(days: { date: string }[]): string[] {
+  return [...new Set(days.map(d => d.date.slice(0, 7)))].sort().reverse()
+}
+
+/** "August 2026", in the language the owner picked in Ope. */
+function monthLabel(ym: string, lang: string): string {
+  const [y, m] = ym.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, 1))
+    .toLocaleDateString(lang, { month: 'long', year: 'numeric', timeZone: 'UTC' })
+}
+
+const RECENT = 'recent'
+const RECENT_DAYS = 30
+
 interface Props { refreshKey: number }
 
 export default function DayList({ refreshKey }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [days, setDays]         = useState<DayRecordRead[]>([])
   const [allSales, setAllSales] = useState<SaleRead[]>([])
   const [productList, setProductList] = useState<ProductRead[]>([])
@@ -27,6 +42,12 @@ export default function DayList({ refreshKey }: Props) {
   const [editSales, setEditSales]     = useState<Record<number, string>>({})
   const [saving, setSaving]           = useState(false)
   const [editError, setEditError]     = useState<string | null>(null)
+
+  // A year of trading is 300+ rows. Rendering the lot made this screen 12,025px
+  // tall on a phone — 14 screenfuls, 6,250 elements — with no way to reach a
+  // particular date but scrolling. Default to the recent weeks; the rest is a
+  // month away.
+  const [period, setPeriod] = useState<string>(RECENT)
 
   async function load() {
     setLoading(true)
@@ -47,6 +68,12 @@ export default function DayList({ refreshKey }: Props) {
   }
 
   useEffect(() => { load() }, [refreshKey])
+
+  const months = useMemo(() => monthsOf(days), [days])
+  const shown = useMemo(() => {
+    if (period !== RECENT) return days.filter(d => d.date.startsWith(period))
+    return days.slice(0, RECENT_DAYS)      // `days` is already newest-first
+  }, [days, period])
 
   function startEdit(day: DayRecordRead) {
     setEditId(day.id)
@@ -109,7 +136,7 @@ export default function DayList({ refreshKey }: Props) {
     }
   }
 
-  if (loading) return <p className="text-teal-500 text-sm animate-pulse">{t('loadingYourDays')}</p>
+  if (loading) return <p className="text-teal-700 dark:text-teal-300 text-sm animate-pulse">{t('loadingYourDays')}</p>
   if (error)   return <LoadError error={error} onRetry={load} />
   if (!days.length) return (
     <div className="py-12 text-center">
@@ -126,7 +153,126 @@ export default function DayList({ refreshKey }: Props) {
   )
 
   return (
-    <div className="overflow-x-auto">
+    <div className="max-w-full">
+
+      {/* Which stretch of history to show */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <label htmlFor="daylist-period" className="text-sm text-slate-700 dark:text-slate-200">
+          {t('showingPeriodLabel')}
+        </label>
+        <select
+          id="daylist-period"
+          value={period}
+          onChange={e => { setPeriod(e.target.value); setEditId(null) }}
+          className="min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700
+                     text-slate-900 dark:text-slate-100 px-3 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-teal-500"
+        >
+          <option value={RECENT}>{t('lastNDays', { n: String(RECENT_DAYS) })}</option>
+          {months.map(ym => (
+            <option key={ym} value={ym}>{monthLabel(ym, lang)}</option>
+          ))}
+        </select>
+        <span className="text-sm text-slate-600 dark:text-slate-300">
+          {t('daysShownOfTotal', { shown: String(shown.length), total: String(days.length) })}
+        </span>
+      </div>
+
+      {/* ── Phone: one card per day. A 14-column table on a 390px screen made
+             the whole PAGE scroll sideways to 896px, header and all. ── */}
+      <ul className="sm:hidden space-y-2 list-none p-0 m-0">
+        {shown.map(day => {
+          const daySales = allSales.filter(s => s.day_record_id === day.id)
+          const isFlagged = day.outlier_status === 'flagged'
+          return (
+            <li
+              key={day.id}
+              className={`rounded-xl border px-4 py-3 ${
+                isFlagged
+                  ? 'border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-900/10'
+                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+              }`}
+            >
+              <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  {weekdayLabel(day.date, t)} · {day.date}
+                </p>
+                <p className="text-sm text-slate-700 dark:text-slate-200">
+                  <strong className="tabular-nums">{day.customers}</strong>{' '}
+                  <span className="text-slate-600 dark:text-slate-300">{t('customersLabel').toLowerCase()}</span>
+                </p>
+              </div>
+              {isFlagged && (
+                <p className="mt-1 inline-block px-2 py-0.5 text-xs rounded-full
+                              bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200">
+                  {t('unusualBadge')}
+                </p>
+              )}
+              {daySales.length > 0 && (
+                /* Folded away by default: a shop with eleven products turns
+                   every card into a paragraph, and thirty of those is a screen
+                   the owner has to scroll past rather than read. */
+                <details className="mt-1.5 group">
+                  <summary className="text-sm text-teal-800 dark:text-teal-300 cursor-pointer
+                                      min-h-11 flex items-center gap-1
+                                      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
+                    <svg className="w-4 h-4 shrink-0 transition-transform group-open:rotate-90"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    {t('whatSoldThatDay', { n: String(daySales.length) })}
+                  </summary>
+                  <ul className="mt-1 ps-5 space-y-0.5 list-none">
+                    {daySales.map(sale => {
+                      const prod = productList.find(pr => pr.id === sale.product_id)
+                      if (!prod) return null
+                      return (
+                        <li key={sale.id ?? sale.product_id} className="text-sm text-slate-700 dark:text-slate-200">
+                          {prod.name}: <strong className="tabular-nums">{sale.units_sold}</strong> {prod.unit}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </details>
+              )}
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  onClick={() => startEdit(day)}
+                  className="min-h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600
+                             text-sm font-medium text-slate-700 dark:text-slate-200
+                             hover:bg-teal-50 dark:hover:bg-slate-700
+                             focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+                >
+                  {t('editBtn')}
+                </button>
+                {day.prev_customers != null && (
+                  <button
+                    onClick={() => handleUndo(day.id)}
+                    className="min-h-11 px-4 rounded-xl border border-amber-300 dark:border-amber-700
+                               text-sm font-medium text-amber-800 dark:text-amber-300
+                               hover:bg-amber-50 dark:hover:bg-amber-900/20
+                               focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+                  >
+                    {t('undoLabel')}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(day.id)}
+                  className="min-h-11 px-4 rounded-xl border border-slate-300 dark:border-slate-600
+                             text-sm font-medium text-slate-700 dark:text-slate-200
+                             hover:border-rose-300 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20
+                             focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+                >
+                  {t('deleteBtn')}
+                </button>
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+
+      {/* ── Wider screens: the table, scrolling inside its own box ── */}
+      <div className="hidden sm:block overflow-x-auto max-w-full">
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b-2 border-slate-200 text-left text-xs font-semibold
@@ -143,7 +289,7 @@ export default function DayList({ refreshKey }: Props) {
           </tr>
         </thead>
         <tbody>
-          {days.map(day => {
+          {shown.map(day => {
             const daySales = allSales.filter(s => s.day_record_id === day.id)
             const isEditing = editId === day.id
 
@@ -208,8 +354,8 @@ export default function DayList({ refreshKey }: Props) {
             const isFlagged = day.outlier_status === 'flagged'
             return (
               <tr key={day.id}
-                className={`border-b border-slate-100 group ${
-                  isFlagged ? 'bg-amber-50/60' : 'hover:bg-slate-50'
+                className={`border-b border-slate-100 dark:border-slate-700 ${
+                  isFlagged ? 'bg-amber-50/60 dark:bg-amber-900/10' : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
                 }`}
               >
                 <td className="py-2 pr-4 text-slate-500 text-xs whitespace-nowrap">
@@ -231,10 +377,12 @@ export default function DayList({ refreshKey }: Props) {
                   )
                 })}
                 <td className="py-2">
-                  <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 justify-end">
                     <button
                       onClick={() => startEdit(day)}
-                      className="text-teal-500 hover:text-teal-700 text-xs font-medium"
+                      className="min-w-11 min-h-11 px-2 rounded-lg text-sm font-medium
+                                 text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-slate-700
+                                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
                     >
                       {t('editBtn')}
                     </button>
@@ -242,17 +390,24 @@ export default function DayList({ refreshKey }: Props) {
                       <button
                         onClick={() => handleUndo(day.id)}
                         title={`${t('undoLabel')}: ${t('restoreToPrevious', { n: String(day.prev_customers) })}`}
-                        className="text-amber-500 hover:text-amber-700 text-xs font-medium"
+                        className="min-w-11 min-h-11 px-2 rounded-lg text-sm font-medium
+                                   text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20
+                                   focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
                       >
-                        ↩ {t('undoLabel')}
+                        {t('undoLabel')}
                       </button>
                     )}
                     <button
                       onClick={() => handleDelete(day.id)}
-                      className="text-slate-300 hover:text-red-500 text-xs"
+                      className="min-w-11 min-h-11 px-2 rounded-lg text-slate-600 dark:text-slate-300
+                                 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20
+                                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
                       aria-label={t('a11yDelete')}
+                      title={t('deleteBtn')}
                     >
-                      ✕
+                      <svg className="w-4 h-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeWidth={2} d="M6 6l12 12M18 6L6 18" />
+                      </svg>
                     </button>
                   </div>
                 </td>
@@ -261,7 +416,8 @@ export default function DayList({ refreshKey }: Props) {
           })}
         </tbody>
       </table>
-      <p className="text-xs text-slate-400 mt-3">{t('daysTotal', { n: String(days.length) })}</p>
+      </div>
+      <p className="text-sm text-slate-600 dark:text-slate-300 mt-3">{t('daysTotal', { n: String(days.length) })}</p>
     </div>
   )
 }
