@@ -161,7 +161,7 @@ export default function TelegramConnectPanel() {
       )}
 
       {error && (
-        <p className="text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 rounded-xl px-3 py-2.5">
+        <p role="alert" className="text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 rounded-xl px-3 py-2.5">
           {error}
         </p>
       )}

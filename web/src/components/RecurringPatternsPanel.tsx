@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useId } from 'react'
 import { recurringPatterns as api } from '../api/client'
 import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -8,6 +8,7 @@ const WD_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const WD_LONG  = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export default function RecurringPatternsPanel() {
+  const fieldId = useId()
   const { t } = useLanguage()
   const [rows, setRows]       = useState<RecurringPatternRead[]>([])
   const [loading, setLoading] = useState(true)
@@ -118,8 +119,8 @@ export default function RecurringPatternsPanel() {
           <h3 className="font-semibold text-slate-700 dark:text-slate-200">{t('newPatternTitle')}</h3>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('nameLabel')}</label>
-            <input
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f1`}>{t('nameLabel')}</label>
+            <input id={`${fieldId}-f1`}
               value={form.label}
               onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
               placeholder={`${t('egPrefix')} ${t('egPatternLabel')}`}
@@ -151,8 +152,8 @@ export default function RecurringPatternsPanel() {
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('effectLabel')}</label>
-              <select
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f2`}>{t('effectLabel')}</label>
+              <select id={`${fieldId}-f2`}
                 value={form.effect ?? 'higher'}
                 onChange={e => setForm(f => ({ ...f, effect: e.target.value }))}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
@@ -166,10 +167,10 @@ export default function RecurringPatternsPanel() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f3`}>
                 {t('startHourOptional')}
               </label>
-              <input
+              <input id={`${fieldId}-f3`}
                 type="number" min="0" max="23"
                 value={form.hour_start ?? ''}
                 onChange={e => setForm(f => ({ ...f, hour_start: e.target.value ? parseInt(e.target.value) : undefined }))}
@@ -181,10 +182,10 @@ export default function RecurringPatternsPanel() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f4`}>
                 {t('endHourOptional')}
               </label>
-              <input
+              <input id={`${fieldId}-f4`}
                 type="number" min="0" max="23"
                 value={form.hour_end ?? ''}
                 onChange={e => setForm(f => ({ ...f, hour_end: e.target.value ? parseInt(e.target.value) : undefined }))}
@@ -201,7 +202,7 @@ export default function RecurringPatternsPanel() {
             </div>
           </div>
 
-          {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
+          {error && <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
 
           <div className="flex gap-3">
             <button

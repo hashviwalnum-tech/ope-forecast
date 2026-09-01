@@ -118,3 +118,52 @@ def detect_drift(
         f"Your demand has been ~{abs_pct}% {direction} than usual over the last "
         f"{week_str}. This may be a real shift — check if anything has changed."
     )
+
+
+def detect_drift_detail(
+    values: list[float],
+    window: int = 21,
+    threshold_pct: float = 10.0,
+) -> dict | None:
+    """The same finding as :func:`detect_drift`, as data rather than a sentence.
+
+    The English sentence is a fallback for any client that does not understand
+    the code; the code is what lets the owner read it in their own language.
+    Same rule the ordering constraints already follow.
+    """
+    if len(values) < 2 * window:
+        return None
+
+    prior = values[-2 * window:-window]
+    recent = values[-window:]
+    prior_mean = float(np.mean(prior))
+    if prior_mean == 0:
+        return None
+
+    pct_change = (float(np.mean(recent)) - prior_mean) / prior_mean * 100.0
+    if abs(pct_change) < threshold_pct:
+        return None
+
+    return {
+        "code": "demand_shift",
+        "params": {
+            "pct": round(abs(pct_change), 1),
+            "direction": "higher" if pct_change > 0 else "lower",
+            "weeks": window // 7,
+        },
+    }
+
+
+def bias_detail(tracking_signal_value: float, limit: float = 4.0) -> dict | None:
+    """Whether the forecast has been leaning one way for a while.
+
+    A tracking signal past +/-4 means the misses have stopped cancelling out.
+    Positive: actuals keep coming in ABOVE the forecast, so Ope has been
+    guessing low. Negative: the other way round.
+    """
+    if abs(tracking_signal_value) <= limit:
+        return None
+    return {
+        "code": "forecast_leaning",
+        "params": {"direction": "low" if tracking_signal_value > 0 else "high"},
+    }

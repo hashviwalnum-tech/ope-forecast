@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId } from 'react'
 import { businesses } from '../api/client'
 import CurrencyPicker from './CurrencyPicker'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -30,6 +30,7 @@ interface Props {
 }
 
 export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Props) {
+  const fieldId = useId()
   const { t } = useLanguage()
   // If the user previously clicked "Add Products" and returned, jump straight to step 3
   const [step, setStep] = useState<1 | 2 | 3>(() =>
@@ -159,8 +160,8 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
           </p>
           <div className="flex flex-wrap items-end gap-6 mb-6">
             <div>
-              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('opensLabel')}</label>
-              <select
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f1`}>{t('opensLabel')}</label>
+              <select id={`${fieldId}-f1`}
                 value={openHour}
                 onChange={e => setOpenHour(Number(e.target.value))}
                 className="px-3 min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 text-sm"
@@ -169,8 +170,8 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
               </select>
             </div>
             <div>
-              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('closesLabel')}</label>
-              <select
+              <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f2`}>{t('closesLabel')}</label>
+              <select id={`${fieldId}-f2`}
                 value={closeHour}
                 onChange={e => setCloseHour(Number(e.target.value))}
                 className="px-3 min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 text-sm"

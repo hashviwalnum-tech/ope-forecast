@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useId } from 'react'
 import {
   Bar, BarChart, CartesianGrid, Cell, Line, LineChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -191,6 +191,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function RegularsPanel() {
+  const fieldId = useId()
   const { t, lang } = useLanguage()
   const { money, symbol, step } = useCurrency()
   const [rows, setRows]         = useState<RegularRead[]>([])
@@ -369,8 +370,8 @@ export default function RegularsPanel() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('nameLabel')}</label>
-              <input
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f1`}>{t('nameLabel')}</label>
+              <input id={`${fieldId}-f1`}
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder={`${t('egPrefix')} ${t('egRegularName')}`}
@@ -381,10 +382,10 @@ export default function RegularsPanel() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f2`}>
                 {t('avgSpendLabel')}
               </label>
-              <input
+              <input id={`${fieldId}-f2`}
                 type="number" min="0" step="0.5"
                 value={form.avg_spend}
                 onChange={e => setForm(f => ({ ...f, avg_spend: parseFloat(e.target.value) || 0 }))}
@@ -420,10 +421,10 @@ export default function RegularsPanel() {
           {showOptional && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f3`}>
                   {t('visitsPerWeek')}
                 </label>
-                <input
+                <input id={`${fieldId}-f3`}
                   type="number" min="0.1" step="0.5"
                   value={form.visit_frequency_per_week}
                   onChange={e => setForm(f => ({ ...f, visit_frequency_per_week: parseFloat(e.target.value) || 0 }))}
@@ -434,10 +435,10 @@ export default function RegularsPanel() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f4`}>
                   {t('expectedLoyalty')}
                 </label>
-                <input
+                <input id={`${fieldId}-f4`}
                   type="number" min="0.5" step="0.5"
                   value={form.expected_lifespan_years}
                   onChange={e => setForm(f => ({ ...f, expected_lifespan_years: parseFloat(e.target.value) || 1 }))}
@@ -448,8 +449,8 @@ export default function RegularsPanel() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('firstVisitDateLabel')}</label>
-                <input
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f5`}>{t('firstVisitDateLabel')}</label>
+                <input id={`${fieldId}-f5`}
                   type="date"
                   value={form.first_visit_date ?? ''}
                   onChange={e => setForm(f => ({ ...f, first_visit_date: e.target.value || undefined }))}
@@ -461,8 +462,8 @@ export default function RegularsPanel() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('notesOptional')}</label>
-                <input
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f6`}>{t('notesOptional')}</label>
+                <input id={`${fieldId}-f6`}
                   value={form.notes ?? ''}
                   onChange={e => setForm(f => ({ ...f, notes: e.target.value || undefined }))}
                   placeholder={`${t('egPrefix')} ${t('egRegularNotes')}`}
@@ -474,7 +475,7 @@ export default function RegularsPanel() {
             </div>
           )}
 
-          {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
+          {error && <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
 
           <div className="flex gap-3">
             <button
@@ -532,13 +533,23 @@ export default function RegularsPanel() {
                       }`}
                     >★</button>
                     <span className="font-semibold text-slate-800 dark:text-slate-100">{r.name}</span>
-                    <span className="text-xs bg-teal-50 dark:bg-teal-900/40 text-teal-800 dark:text-teal-50 border border-teal-100 dark:border-teal-800
-                                     rounded-full px-2 py-0.5 font-medium">
-                      CLV {money(r.clv)}
+                    <span
+                      className="text-xs bg-teal-50 dark:bg-teal-900/40 text-teal-800 dark:text-teal-50 border border-teal-100 dark:border-teal-800
+                                 rounded-full px-2 py-0.5 font-medium"
+                      title={t('worthAboutHint')}
+                    >
+                      {t('worthAboutLabel', { amount: money(r.clv) })}
                     </span>
                   </div>
+                  {/* Was "2x/week - $18.5/visit - 3 yr": three abbreviations, all
+                      English on a Hebrew screen, and a hardcoded dollar sign on
+                      a business that might not use dollars. */}
                   <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
-                    {r.visit_frequency_per_week}×/week · ${r.avg_spend}/visit · {r.expected_lifespan_years} yr
+                    {t('regularSummaryLine', {
+                      times: String(r.visit_frequency_per_week),
+                      amount: money(r.avg_spend),
+                      years: String(r.expected_lifespan_years),
+                    })}
                   </p>
                   {r.notes && <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 italic">{r.notes}</p>}
                   {r.last_visit_date && (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useId } from 'react'
 import {
   Bar,
   BarChart,
@@ -86,6 +86,7 @@ function OrderCard({
   onDismissWarning: (productId: number) => void
   onOrderPlaced: (order: OrderRecordRead) => void
 }) {
+  const fieldId = useId()
   const { t } = useLanguage()
   const { today } = useBusinessTime()
   const { unit } = item
@@ -225,8 +226,8 @@ function OrderCard({
 
         {!recentOrder && showOrderForm && (
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs text-slate-600 dark:text-slate-300">{t('quantityOrdered')}</label>
-            <input
+            <label className="text-xs text-slate-600 dark:text-slate-300" htmlFor={`${fieldId}-f1`}>{t('quantityOrdered')}</label>
+            <input id={`${fieldId}-f1`}
               type="number" min="0.1" step="0.1"
               value={orderQty}
               onChange={e => setOrderQty(e.target.value)}
@@ -391,7 +392,7 @@ export default function ProductForecastPanel({ refreshKey = 0 }: Props) {
     return (
       <section className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
         <h2 className="text-base font-semibold text-slate-800 mb-4 dark:text-slate-100">{t('forecastByProduct')}</h2>
-        <p className="text-sm text-slate-600 animate-pulse dark:text-slate-300">{t('loadingLabel')}</p>
+        <p role="status" aria-live="polite" className="text-sm text-slate-600 animate-pulse dark:text-slate-300">{t('loadingLabel')}</p>
       </section>
     )
   }

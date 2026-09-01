@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useId } from 'react'
 import {
   Bar,
   BarChart,
@@ -42,6 +42,7 @@ function fmtQty(n: number, unitMode: 'whole' | 'decimal', unit: string) {
 // ── ordering advice shown when a product chip is selected ─────────────────────
 
 function OrderCard({ item }: { item: ProductForecastItem }) {
+  const fieldId = useId()
   const { t } = useLanguage()
   const { unit } = item
   const uMode = (item.unit_mode ?? 'whole') as 'whole' | 'decimal'
@@ -240,8 +241,8 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
         {/* Inline order quantity form */}
         {!recentOrder && showOrderForm && (
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
-            <input
+            <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0" htmlFor={`${fieldId}-f1`}>{t('quantityOrdered')}</label>
+            <input id={`${fieldId}-f1`}
               type="number"
               min={uMode === 'whole' ? '1' : '0.01'}
               step={uMode === 'whole' ? '1' : '0.01'}
@@ -329,7 +330,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
         <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-3">{t('demandForecast')}</h2>
         {/* This is a READ, not a write — 'Saving…' told the owner the app was
             writing something when it was only fetching the forecast. */}
-        <p className="text-sm text-slate-600 animate-pulse dark:text-slate-300">{t('loadingLabel')}</p>
+        <p role="status" aria-live="polite" className="text-sm text-slate-600 animate-pulse dark:text-slate-300">{t('loadingLabel')}</p>
       </section>
     )
   }

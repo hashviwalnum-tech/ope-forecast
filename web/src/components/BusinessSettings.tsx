@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useId } from 'react'
 import CurrencyPicker from './CurrencyPicker'
 import { businesses, nudges as nudgesApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -32,6 +32,7 @@ function dayKey(i: number): string {
 }
 
 export default function BusinessSettings({ onTierChanged, onReplayTour }: Props) {
+  const fieldId = useId()
   const { t, simpleMode, setSimpleMode } = useLanguage()
   const [openDays,        setOpenDays]        = useState<number[]>([0,1,2,3,4,5,6])
   const [openingHour,     setOpeningHour]     = useState<number>(9)
@@ -415,8 +416,8 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         {nudgesEnabled && (
           <div className="mt-3 space-y-3">
             <div className="flex items-center gap-3">
-              <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('nudgesFrequencyLabel')}:</label>
-              <input
+              <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0" htmlFor={`${fieldId}-f1`}>{t('nudgesFrequencyLabel')}:</label>
+              <input id={`${fieldId}-f1`}
                 type="number"
                 min={1}
                 max={168}
@@ -456,7 +457,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
             </button>
 
             {nudgeFeedback && (
-              <p className={`text-xs rounded-lg px-3 py-2 ${nudgeFeedback.ok
+              <p role="status" aria-live="polite" className={`text-xs rounded-lg px-3 py-2 ${nudgeFeedback.ok
                 ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20'
                 : 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800'}`}>
                 {nudgeFeedback.msg}
@@ -513,7 +514,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       </div>
 
       {feedback && (
-        <p className={`text-sm rounded-xl px-3 py-2.5 ${feedback.ok
+        <p role="status" aria-live="polite" className={`text-sm rounded-xl px-3 py-2.5 ${feedback.ok
           ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20'
           : 'text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20'}`}>
           {feedback.msg}
@@ -561,7 +562,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         </div>
 
         {tierFeedback && (
-          <p className={`mt-3 text-sm rounded-xl px-3 py-2.5 ${tierFeedback.ok
+          <p role="status" aria-live="polite" className={`mt-3 text-sm rounded-xl px-3 py-2.5 ${tierFeedback.ok
             ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20'
             : 'text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20'}`}>
             {tierFeedback.msg}

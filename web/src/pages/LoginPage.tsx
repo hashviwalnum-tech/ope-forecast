@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, useId } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import logo from '../assets/logo.png'
 
 export default function LoginPage() {
+  const fieldId = useId()
   const { signIn, signUp } = useAuth()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
@@ -68,8 +69,8 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Email</label>
-                <input
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor={`${fieldId}-f1`}>Email</label>
+                <input id={`${fieldId}-f1`}
                   type="email"
                   required
                   value={email}
@@ -81,8 +82,8 @@ export default function LoginPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Password</label>
-                <input
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor={`${fieldId}-f2`}>Password</label>
+                <input id={`${fieldId}-f2`}
                   type="password"
                   required
                   value={password}
@@ -95,7 +96,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">{error}</p>
+                <p role="alert" className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">{error}</p>
               )}
 
               <button

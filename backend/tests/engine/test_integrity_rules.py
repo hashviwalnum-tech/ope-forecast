@@ -19,7 +19,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.engine.accuracy import detect_drift
+from app.engine.accuracy import bias_detail, detect_drift, detect_drift_detail
 from app.engine.product_forecast import build_product_demand_series
 from app.engine.seasonality import seasonal_naive_forecast
 
@@ -558,3 +558,47 @@ def test_today_and_past_dates_are_allowed():
     from app.engine.limits import check_not_in_the_future
     check_not_in_the_future(_d(2026, 3, 10), _d(2026, 3, 10))   # today
     check_not_in_the_future(_d(2025, 3, 10), _d(2026, 3, 10))   # a year back
+
+
+# ---------------------------------------------------------------------------
+# The same findings as data, so a client can say them in the owner's language
+# ---------------------------------------------------------------------------
+
+def test_drift_detail_matches_the_sentence_it_replaces():
+    """Code and prose must agree — one of them being wrong is worse than either."""
+    values = [100.0] * 21 + [125.0] * 21
+    sentence = detect_drift(values, window=21, threshold_pct=10.0)
+    detail = detect_drift_detail(values, window=21, threshold_pct=10.0)
+    assert sentence is not None and detail is not None
+    assert detail["code"] == "demand_shift"
+    assert detail["params"]["direction"] == "higher"
+    assert detail["params"]["weeks"] == 3
+    assert f"{detail['params']['pct']}%" in sentence
+    assert detail["params"]["direction"] in sentence
+
+
+def test_drift_detail_is_silent_when_the_sentence_is():
+    steady = [100.0] * 42
+    assert detect_drift(steady, window=21) is None
+    assert detect_drift_detail(steady, window=21) is None
+    assert detect_drift_detail([100.0] * 10, window=21) is None
+
+
+def test_a_fall_in_demand_is_reported_as_lower():
+    values = [100.0] * 21 + [80.0] * 21
+    detail = detect_drift_detail(values, window=21, threshold_pct=10.0)
+    assert detail["params"]["direction"] == "lower"
+    assert detail["params"]["pct"] == 20.0
+
+
+def test_bias_detail_names_the_direction_the_forecast_leans():
+    # Positive tracking signal: actuals keep landing above the forecast, so the
+    # forecast has been guessing LOW.
+    assert bias_detail(8.0) == {"code": "forecast_leaning", "params": {"direction": "low"}}
+    assert bias_detail(-8.0) == {"code": "forecast_leaning", "params": {"direction": "high"}}
+
+
+def test_bias_detail_says_nothing_inside_the_normal_band():
+    assert bias_detail(0.0) is None
+    assert bias_detail(4.0) is None
+    assert bias_detail(-3.9) is None

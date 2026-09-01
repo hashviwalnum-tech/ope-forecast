@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import { feedback } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 
 export default function FeedbackPanel() {
+  const fieldId = useId()
   const { t } = useLanguage()
   const [name, setName]       = useState('')
   const [biz,  setBiz]        = useState('')
@@ -50,10 +51,10 @@ export default function FeedbackPanel() {
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f1`}>
             {t('feedbackNameLabel')}
           </label>
-          <input
+          <input id={`${fieldId}-f1`}
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
@@ -66,10 +67,10 @@ export default function FeedbackPanel() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f2`}>
             {t('feedbackBusinessLabel')}
           </label>
-          <input
+          <input id={`${fieldId}-f2`}
             type="text"
             value={biz}
             onChange={e => setBiz(e.target.value)}
@@ -82,10 +83,10 @@ export default function FeedbackPanel() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f3`}>
             {t('feedbackMessageLabel')}
           </label>
-          <textarea
+          <textarea id={`${fieldId}-f3`}
             value={msg}
             onChange={e => setMsg(e.target.value)}
             placeholder={t('feedbackMessagePlaceholder')}
@@ -98,7 +99,7 @@ export default function FeedbackPanel() {
         </div>
 
         {error && (
-          <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+          <p role="alert" className="text-xs text-red-600 dark:text-red-400">{error}</p>
         )}
 
         <button

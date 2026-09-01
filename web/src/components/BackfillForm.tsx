@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useId } from 'react'
 import { businesses, dayRecords, products, sales, saleEvents } from '../api/client'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -15,6 +15,7 @@ function fmtHour(h: number, lang: string): string {
 interface Props { onSaved: () => void }
 
 export default function BackfillForm({ onSaved }: Props) {
+  const fieldId = useId()
   const { t, lang } = useLanguage()
   const { today: localToday, yesterday: localYesterday, beforeClosing, isNonWorkingDay } = useBusinessTime()
   const [date, setDate]           = useState(localYesterday)
@@ -219,10 +220,10 @@ export default function BackfillForm({ onSaved }: Props) {
     <form onSubmit={handleSubmit} className="space-y-5 max-w-sm">
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5" htmlFor={`${fieldId}-f1`}>
           {t('whichDayFilling')}
         </label>
-        <input
+        <input id={`${fieldId}-f1`}
           type="date" required
           value={date}
           max={locked ? localYesterday : localToday}
@@ -245,10 +246,10 @@ export default function BackfillForm({ onSaved }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5" htmlFor={`${fieldId}-f2`}>
           {t('howManyCustomersThatDay')}
         </label>
-        <input
+        <input id={`${fieldId}-f2`}
           type="number" min="0" required placeholder="0"
           value={customers}
           onChange={e => { setCustomers(e.target.value); setValidationError(null) }}
@@ -261,7 +262,7 @@ export default function BackfillForm({ onSaved }: Props) {
           }`}
         />
         {validationError && (
-          <p className="text-sm text-red-600 dark:text-red-400 mt-1">{validationError}</p>
+          <p role="alert" className="text-sm text-red-600 dark:text-red-400 mt-1">{validationError}</p>
         )}
       </div>
 
@@ -390,7 +391,7 @@ export default function BackfillForm({ onSaved }: Props) {
       </div>
 
       {feedback && (
-        <p className={`text-sm rounded-xl px-3 py-2.5 ${feedback.ok
+        <p role="status" aria-live="polite" className={`text-sm rounded-xl px-3 py-2.5 ${feedback.ok
           ? 'text-emerald-700 bg-emerald-50 dark:text-emerald-300'
           : 'text-red-700 bg-red-50 dark:text-red-300'}`}>
           {feedback.msg}

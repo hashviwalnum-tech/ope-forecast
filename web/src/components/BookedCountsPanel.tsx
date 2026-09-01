@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useId } from 'react'
 import { bookedCounts as api, products as productsApi } from '../api/client'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import LoadError from './LoadError'
@@ -8,6 +8,7 @@ import type { BookedCountRead, ProductRead } from '../api/types'
 type Target = 'business' | number
 
 export default function BookedCountsPanel() {
+  const fieldId = useId()
   const { t } = useLanguage()
   const { today: todayStr } = useBusinessTime()
   const [services, setServices] = useState<ProductRead[]>([])
@@ -72,8 +73,8 @@ export default function BookedCountsPanel() {
 
       {services.length > 0 && (
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('bookingsForLabel')}</label>
-          <select
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f1`}>{t('bookingsForLabel')}</label>
+          <select id={`${fieldId}-f1`}
             value={target === 'business' ? 'business' : String(target)}
             onChange={e => setTarget(e.target.value === 'business' ? 'business' : Number(e.target.value))}
             className="w-full sm:w-64 rounded-xl border border-slate-300 dark:border-slate-600 px-3 min-h-11 text-sm
@@ -92,8 +93,8 @@ export default function BookedCountsPanel() {
         <h3 className="font-semibold text-slate-700 dark:text-slate-200">{t('addBookedCountTitle')}</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('dateLabel')}</label>
-            <input
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f2`}>{t('dateLabel')}</label>
+            <input id={`${fieldId}-f2`}
               type="date"
               value={date}
               onChange={e => setDate(e.target.value)}
@@ -103,8 +104,8 @@ export default function BookedCountsPanel() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('bookedCountLabel')}</label>
-            <input
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f3`}>{t('bookedCountLabel')}</label>
+            <input id={`${fieldId}-f3`}
               type="number" min="0" step="1"
               value={count}
               onChange={e => setCount(e.target.value)}
@@ -115,7 +116,7 @@ export default function BookedCountsPanel() {
             />
           </div>
         </div>
-        {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
+        {error && <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
         <button
           onClick={save}
           disabled={saving}

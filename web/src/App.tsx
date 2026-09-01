@@ -613,7 +613,13 @@ function AppInner() {
       )}
 
       {/* ── Trial banner ─────────────────────────────────────────────── */}
+      {/* Not until the owner has actually set the place up. On a new business's
+          very first screen this was a 97px amber strip above the setup wizard —
+          the most saturated thing on the page, selling to someone who had not
+          yet typed a single number. */}
       {subInfo &&
+        onboardingDone &&
+        !showTour &&
         subInfo.effective_tier === 'premium' &&
         subInfo.subscription_status !== 'active' &&
         subInfo.trial_days_remaining !== null &&
@@ -671,7 +677,11 @@ function AppInner() {
           {tab === 'insights'         && <InsightsView />}
           {tab === 'trends'           && <TrendsView />}
           {tab === 'events'           && <PeriodsPanel />}
-          {tab === 'products'         && <ProductsPanel />}
+          {tab === 'products'         && (
+            <ProductsPanel
+              onBackToSetup={!onboardingDone ? () => setTab('home') : undefined}
+            />
+          )}
           {tab === 'stock'            && <ProductStatusPanel />}
           {tab === 'regulars'         && <RegularsPanel />}
           {tab === 'recurring'        && <RecurringPatternsPanel />}

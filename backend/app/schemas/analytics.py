@@ -57,6 +57,10 @@ class AccuracyResponse(BaseModel):
     tracking_signal: Optional[float] = None
     bias_warning: Optional[str] = None
     drift_alert: Optional[str] = None
+    # Structured equivalents of the two messages above, so the client can render
+    # them in the owner's language instead of showing backend English.
+    bias_code: Optional[dict] = None
+    drift_code: Optional[dict] = None
     message: Optional[str] = None
 
 

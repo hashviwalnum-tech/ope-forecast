@@ -9,6 +9,27 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'Worth about {amount}',
+    worthAboutHint: 'What this regular is likely to spend with you over the years, from how often they come and what they usually spend.',
+    regularSummaryLine: '{times}× a week · {amount} a visit · {years} years',
+    minutesShort: '{n} min',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'Leaning',
+    driftOnTrack: 'On track',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope has been guessing a little low lately — real days keep coming in above the forecast. It corrects itself as you log more days.',
+    forecastLeaningHigh: 'Ope has been guessing a little high lately — real days keep coming in below the forecast. It corrects itself as you log more days.',
+    demandShiftAlert: 'Your trade has been about {pct}% {direction} than usual over the last {weeks} weeks. Worth checking whether something has changed.',
+    directionHigher: 'busier',
+    directionLower: 'quieter',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'You\'re in the middle of setting up. Add a product or two below, then head back.',
+    backToSetupBtn: 'Back to setup',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'Your busiest hour is {timeRange} — about {n} customers',
+    staffNeededForWait: 'You\'d want about {staff} on to keep the wait under {mins} minutes.',
+    staffNeededPlain: 'You\'d want about {staff} on to keep the queue moving.',
     whatSoldThatDay: 'What sold ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'Showing',
@@ -242,7 +263,7 @@ export const translations = {
     saveChangesBtn: 'Save changes',
     cancelBtn: 'Cancel',
     soldInDisplay: 'Sold in',
-    restockTime: 'Days to arrive',
+    restockTime: 'Days until it arrives',
     inStock: 'In stock',
     maxStorage: 'Max storage',
     serveTime: 'Serve time',
@@ -250,7 +271,7 @@ export const translations = {
 
     // Demand forecast / MergedForecastPanel
     demandForecast: 'Demand forecast',
-    needsOrdering: '{n} need{s} ordering',
+    needsOrdering: '{n} to order',
     customersLabel: 'Customers',
     orderingAdvice: 'Ordering advice',
     reorderWhenBelow: 'Order more when you drop below',
@@ -457,7 +478,7 @@ export const translations = {
     // BusinessSettings — staffing goal
     staffingGoalLabel: 'Staffing goal',
     staffingGoalDesc: "How do you want to size your team? Pick the thing that matters most to you — the app will recommend the smallest number of people that keeps your queue under control.",
-    staffingOptionBusy: 'Keep servers busy (default — 85% utilisation)',
+    staffingOptionBusy: 'Keep staff steadily busy (recommended)',
     staffingOptionWait: 'Max time a customer waits',
     staffingOptionQueue: 'Max people in line at once',
     minutesMaxWait: 'minutes max wait',
@@ -520,7 +541,7 @@ export const translations = {
     // Chart / data-derived labels (bypass normal text path — must be translated explicitly)
     perDaySuffix: ' a day',
     perHourSuffix: '/hr',
-    restockInNDays: 'takes ~{n} days',
+    restockInNDays: 'takes about {n} day{s}',
     inStockSuffix: '{qty} in stock',
     weekdayFull_Monday: 'Monday',
     weekdayFull_Tuesday: 'Tuesday',
@@ -535,13 +556,13 @@ export const translations = {
     // Predictions panel
     loadingPredictions: 'Loading predictions…',
     howPredictionsDid: 'How our predictions did',
-    howAppDoing: 'How well is the app doing?',
-    averageError: 'Average error',
-    howFarOff: 'how far off, as a %',
-    offByLabel: 'Off by',
-    customersOnAverage: 'customers, on average',
-    driftCheck: 'Drift check',
-    driftNote: '±4 or more = worth a look',
+    howAppDoing: 'How well is Ope guessing?',
+    averageError: 'Typical miss',
+    howFarOff: 'how far out, on average',
+    offByLabel: 'Out by about',
+    customersOnAverage: 'customers on a typical day',
+    driftCheck: 'Guessing evenly?',
+    driftNote: 'Is Ope guessing evenly high and low?',
     basedOnLabel: 'Based on',
     daysCompared: 'days compared',
     oncePassedPrediction: "Once a predicted day has passed, you'll see here how close we were.",
@@ -561,21 +582,21 @@ export const translations = {
     // Periods (promos & events) panel — product targeting
     periodsTargetLabel: 'What is this promoting?',
     periodsTargetCustomers: 'Overall customers (default)',
-    periodsTargetNote: 'The lift chart will measure the effect on this specific metric.',
+    periodsTargetNote: 'We\'ll show what this did to that one number.',
 
     // Periods (promos & events) panel
     periodsSomethingSpecial: 'Did something special happen?',
-    periodsTagDesc: "Tag a special event or ad campaign below. We'll keep it out of your normal baseline and show you how much extra business it brought.",
+    periodsTagDesc: 'Tag a special event or ad campaign below. We\'ll keep it from skewing your normal days, and show how much extra business it brought.',
     periodsNameLabel: 'Name',
     periodsTypeLabel: 'Type',
     periodsEventLabel: 'Event',
     periodsAdLabel: 'Ad campaign',
     periodsCostLabel: 'Cost',
-    periodsCostNote: '(optional — enables ROI)',
+    periodsCostNote: '(optional — lets us show what you got back)',
     periodsStartDate: 'Start date',
     periodsEndDate: 'End date',
-    periodsSaveBtn: 'Save this period',
-    periodsSavedTitle: 'Saved Periods',
+    periodsSaveBtn: 'Save this promo',
+    periodsSavedTitle: 'Your promos & events',
     periodsDifference: 'Did it make a difference?',
     periodsDiffDesc: "We compare each tagged period against what we predicted you'd normally get — no event, no ad.",
     periodsRefresh: 'Refresh',
@@ -1134,6 +1155,27 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'שווה בערך {amount}',
+    worthAboutHint: 'כמה הלקוח הקבוע הזה צפוי להוציא אצלך לאורך השנים, לפי תדירות ההגעה והסכום הרגיל.',
+    regularSummaryLine: '{times} פעמים בשבוע · {amount} לביקור · {years} שנים',
+    minutesShort: '{n} דק׳',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'נוטה',
+    driftOnTrack: 'במסלול',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'לאחרונה Ope מנחש קצת נמוך מדי — הימים בפועל יוצאים גבוהים מהתחזית. הוא מתקן את עצמו ככל שנרשמים עוד ימים.',
+    forecastLeaningHigh: 'לאחרונה Ope מנחש קצת גבוה מדי — הימים בפועל יוצאים נמוכים מהתחזית. הוא מתקן את עצמו ככל שנרשמים עוד ימים.',
+    demandShiftAlert: 'הפעילות שלך הייתה בערך {pct}% {direction} מהרגיל ב-{weeks} השבועות האחרונים. שווה לבדוק אם משהו השתנה.',
+    directionHigher: 'עמוסה יותר',
+    directionLower: 'שקטה יותר',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'אתה באמצע ההגדרה. הוסף מוצר או שניים למטה, ואז חזור.',
+    backToSetupBtn: 'חזרה להגדרה',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'השעה העמוסה ביותר שלך היא {timeRange} — בערך {n} לקוחות',
+    staffNeededForWait: 'כדאי שיהיו בערך {staff} כדי לשמור על המתנה של פחות מ-{mins} דקות.',
+    staffNeededPlain: 'כדאי שיהיו בערך {staff} כדי שהתור ימשיך לזוז.',
     whatSoldThatDay: 'מה נמכר ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'מציג',
@@ -2074,7 +2116,7 @@ export const translations = {
     insightsAllRegularsActive: 'כל הלקוחות הקבועים שלך פעילים. מעולה!',
 
     // Guided product tour
-    tourWelcomeTitle: '!ברוכים הבאים ל-Ope',
+    tourWelcomeTitle: 'ברוכים הבאים ל-Ope!‏',
     tourWelcomeBody: 'Ope עוזר לך לדעת כמה יהיה עמוס העסק שלך — כדי שתוכל להזמין את המלאי הנכון, לסדר את הסגל המתאים, ולא להיתפס לא מוכן. בוא נסתכל מהר על מה שיש כאן.',
     tourQuickActionsTitle: 'הפעולות המהירות שלך',
     tourQuickActionsBody: 'שלושת הכפתורים האלה הם הכלים היומיומיים שלך. "רשום מכירה" סופר כל מכירה בזמן אמת. "תעד היום" מזין את הסיכום היומי לאחר הסגירה. "רשום לקוח קבוע" מתעד ביקור של לקוח נאמן.',
@@ -2259,6 +2301,27 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: '大约价值 {amount}',
+    worthAboutHint: '根据来店频率和平均消费，估算这位常客多年下来会在您店里花多少。',
+    regularSummaryLine: '每周 {times} 次 · 每次 {amount} · {years} 年',
+    minutesShort: '{n} 分钟',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: '有偏差',
+    driftOnTrack: '正常',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope 最近估得偏低——实际的日子一直高于预测。随着记录的天数增加，它会自行调整。',
+    forecastLeaningHigh: 'Ope 最近估得偏高——实际的日子一直低于预测。随着记录的天数增加，它会自行调整。',
+    demandShiftAlert: '最近 {weeks} 周，您的生意比平时{direction}约 {pct}%。值得看看是不是有什么变化。',
+    directionHigher: '更忙',
+    directionLower: '更清淡',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: '您正在完成设置。在下面添加一两个产品，然后返回。',
+    backToSetupBtn: '返回设置',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: '最忙的时段是 {timeRange} — 大约 {n} 位顾客',
+    staffNeededForWait: '要把等待时间控制在 {mins} 分钟以内，大约需要 {staff}。',
+    staffNeededPlain: '为了让队伍不积压，大约需要 {staff}。',
     whatSoldThatDay: '当天销售（{n}）',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: '显示',
@@ -2910,6 +2973,27 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'Vale unos {amount}',
+    worthAboutHint: 'Lo que este cliente habitual gastará contigo con los años, según cuánto viene y cuánto suele gastar.',
+    regularSummaryLine: '{times} veces por semana · {amount} por visita · {years} años',
+    minutesShort: '{n} min',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'Se desvía',
+    driftOnTrack: 'En rumbo',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope viene quedándose corto: los días reales superan a la previsión. Se corrige solo a medida que registras más días.',
+    forecastLeaningHigh: 'Ope viene pasándose: los días reales quedan por debajo de la previsión. Se corrige solo a medida que registras más días.',
+    demandShiftAlert: 'Tu actividad ha estado un {pct}% {direction} de lo normal en las últimas {weeks} semanas. Vale la pena comprobar si algo ha cambiado.',
+    directionHigher: 'más movida',
+    directionLower: 'más floja',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'Estás a mitad de la configuración. Añade uno o dos productos abajo y vuelve.',
+    backToSetupBtn: 'Volver a la configuración',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'Tu hora más ocupada es {timeRange}: unos {n} clientes',
+    staffNeededForWait: 'Te convendrían unas {staff} para que la espera no pase de {mins} minutos.',
+    staffNeededPlain: 'Te convendrían unas {staff} para que la cola siga avanzando.',
     whatSoldThatDay: 'Qué se vendió ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'Mostrando',
@@ -3613,6 +3697,27 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'लगभग {amount} का',
+    worthAboutHint: 'यह नियमित ग्राहक वर्षों में आपके यहाँ कितना खर्च करेगा — कितनी बार आता है और आमतौर पर कितना खर्च करता है, इससे।',
+    regularSummaryLine: 'हफ़्ते में {times} बार · हर बार {amount} · {years} साल',
+    minutesShort: '{n} मिनट',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'झुकाव',
+    driftOnTrack: 'सही राह',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope हाल में थोड़ा कम आँक रहा है — असली दिन पूर्वानुमान से ऊपर निकल रहे हैं। जैसे-जैसे और दिन दर्ज होंगे, यह खुद ठीक हो जाएगा।',
+    forecastLeaningHigh: 'Ope हाल में थोड़ा ज़्यादा आँक रहा है — असली दिन पूर्वानुमान से नीचे रह रहे हैं। जैसे-जैसे और दिन दर्ज होंगे, यह खुद ठीक हो जाएगा।',
+    demandShiftAlert: 'पिछले {weeks} हफ़्तों में आपका कारोबार सामान्य से लगभग {pct}% {direction} रहा है। देखने लायक है कि कुछ बदला तो नहीं।',
+    directionHigher: 'ज़्यादा व्यस्त',
+    directionLower: 'ज़्यादा सुस्त',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'आप सेटअप के बीच में हैं। नीचे एक-दो उत्पाद जोड़ें, फिर वापस जाएँ।',
+    backToSetupBtn: 'सेटअप पर लौटें',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'आपका सबसे व्यस्त समय {timeRange} है — लगभग {n} ग्राहक',
+    staffNeededForWait: 'इंतज़ार {mins} मिनट से कम रखने के लिए लगभग {staff} चाहिए।',
+    staffNeededPlain: 'कतार चलती रहे इसके लिए लगभग {staff} चाहिए।',
     whatSoldThatDay: 'क्या बिका ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'दिखा रहे हैं',
@@ -4274,6 +4379,27 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'يساوي نحو {amount}',
+    worthAboutHint: 'ما يُتوقّع أن ينفقه هذا الزبون الدائم لديك عبر السنوات، بحسب تكرار زيارته ومتوسط إنفاقه.',
+    regularSummaryLine: '{times} مرات أسبوعياً · {amount} لكل زيارة · {years} سنوات',
+    minutesShort: '{n} دقيقة',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'يميل',
+    driftOnTrack: 'على المسار',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'يقدّر Ope أقل من الواقع مؤخراً — الأيام الفعلية تأتي أعلى من التوقع. يصحّح نفسه كلما سجّلت أياماً أكثر.',
+    forecastLeaningHigh: 'يقدّر Ope أعلى من الواقع مؤخراً — الأيام الفعلية تأتي أقل من التوقع. يصحّح نفسه كلما سجّلت أياماً أكثر.',
+    demandShiftAlert: 'كان نشاطك بنحو {pct}% {direction} من المعتاد خلال {weeks} أسابيع الماضية. يستحق التحقق مما إذا كان شيء قد تغيّر.',
+    directionHigher: 'أكثر ازدحاماً',
+    directionLower: 'أقل ازدحاماً',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'أنت في منتصف الإعداد. أضف منتجاً أو اثنين بالأسفل ثم عُد.',
+    backToSetupBtn: 'العودة إلى الإعداد',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'أكثر ساعاتك ازدحاماً هي {timeRange} — نحو {n} زبوناً',
+    staffNeededForWait: 'يُستحسن وجود نحو {staff} لإبقاء الانتظار أقل من {mins} دقيقة.',
+    staffNeededPlain: 'يُستحسن وجود نحو {staff} حتى يستمر الطابور في التحرك.',
     whatSoldThatDay: 'ما بيع ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'يعرض',
@@ -5082,7 +5208,7 @@ export const translations = {
     insightsSectionWarnings: 'يستحق انتباهك',
     insightsDecliningRegular: '{name} لم يزر منذ {days} يوم — عادةً ما يأتي كل ~{gap} يوم.',
     insightsAllRegularsActive: 'جميع عملائك الدائمين نشطون. رائع!',
-    tourWelcomeTitle: 'مرحبًا بك في Ope!',
+    tourWelcomeTitle: 'مرحباً بك في Ope!‏',
     tourWelcomeBody: 'يساعدك Ope على معرفة مدى ازدحام عملك — حتى تطلب المخزون المناسب، وتجدول الموظفين المناسبين، ولا تُفاجأ أبدًا. دعنا نلقي نظرة سريعة على ما هو موجود هنا.',
     tourQuickActionsTitle: 'إجراءاتك السريعة',
     tourQuickActionsBody: 'هذه الأزرار الثلاثة هي أدواتك اليومية. "تسجيل عملية بيع" يعدّ كل عملية بيع لحظيًا. "تسجيل اليوم" يُدخل إجماليات اليوم بعد الإغلاق. "تسجيل زيارة عميل دائم" يسجّل زيارة عميل مخلص.',
@@ -5232,6 +5358,27 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'Vale cerca de {amount}',
+    worthAboutHint: 'O que este cliente habitual deverá gastar consigo ao longo dos anos, pelo que vem e pelo que costuma gastar.',
+    regularSummaryLine: '{times}× por semana · {amount} por visita · {years} anos',
+    minutesShort: '{n} min',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'A desviar',
+    driftOnTrack: 'No caminho',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'O Ope tem ficado um pouco abaixo: os dias reais superam a previsão. Vai-se corrigindo à medida que regista mais dias.',
+    forecastLeaningHigh: 'O Ope tem ficado um pouco acima: os dias reais ficam abaixo da previsão. Vai-se corrigindo à medida que regista mais dias.',
+    demandShiftAlert: 'O seu movimento esteve cerca de {pct}% {direction} do habitual nas últimas {weeks} semanas. Vale a pena ver se algo mudou.',
+    directionHigher: 'mais movimentado',
+    directionLower: 'mais fraco',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'Está a meio da configuração. Adicione um ou dois produtos abaixo e volte.',
+    backToSetupBtn: 'Voltar à configuração',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'A sua hora mais movimentada é {timeRange} — cerca de {n} clientes',
+    staffNeededForWait: 'Convém ter cerca de {staff} para a espera não passar de {mins} minutos.',
+    staffNeededPlain: 'Convém ter cerca de {staff} para a fila continuar a andar.',
     whatSoldThatDay: 'O que se vendeu ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'A mostrar',
@@ -5920,6 +6067,27 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'Примерно на {amount}',
+    worthAboutHint: 'Сколько этот постоянный клиент, скорее всего, потратит у вас за годы — исходя из частоты визитов и обычной суммы.',
+    regularSummaryLine: '{times} раз в неделю · {amount} за визит · {years} лет',
+    minutesShort: '{n} мин',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'Смещение',
+    driftOnTrack: 'В норме',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'В последнее время Ope занижает: фактические дни выходят выше прогноза. Он подстраивается по мере накопления данных.',
+    forecastLeaningHigh: 'В последнее время Ope завышает: фактические дни выходят ниже прогноза. Он подстраивается по мере накопления данных.',
+    demandShiftAlert: 'За последние {weeks} недель у вас было примерно на {pct}% {direction}, чем обычно. Стоит проверить, не изменилось ли что-то.',
+    directionHigher: 'оживлённее',
+    directionLower: 'спокойнее',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'Вы на середине настройки. Добавьте пару товаров ниже и возвращайтесь.',
+    backToSetupBtn: 'Вернуться к настройке',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'Самый загруженный час — {timeRange}, примерно {n} клиентов',
+    staffNeededForWait: 'Понадобится около {staff}, чтобы ожидание не превышало {mins} минут.',
+    staffNeededPlain: 'Понадобится около {staff}, чтобы очередь не стояла.',
     whatSoldThatDay: 'Что продано ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'Показано',
@@ -6606,6 +6774,27 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'Vaut environ {amount}',
+    worthAboutHint: 'Ce que ce client fidèle dépensera probablement chez vous au fil des ans, d\'après sa fréquence de visite et sa dépense habituelle.',
+    regularSummaryLine: '{times}× par semaine · {amount} par visite · {years} ans',
+    minutesShort: '{n} min',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'Décalage',
+    driftOnTrack: 'Dans les clous',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope prévoit un peu bas en ce moment — les journées réelles dépassent la prévision. Il se corrige à mesure que vous enregistrez des jours.',
+    forecastLeaningHigh: 'Ope prévoit un peu haut en ce moment — les journées réelles restent sous la prévision. Il se corrige à mesure que vous enregistrez des jours.',
+    demandShiftAlert: 'Votre activité a été environ {pct}% {direction} que d\'habitude ces {weeks} dernières semaines. Cela vaut la peine de vérifier si quelque chose a changé.',
+    directionHigher: 'plus chargée',
+    directionLower: 'plus calme',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'Vous êtes en pleine configuration. Ajoutez un ou deux produits ci-dessous, puis revenez.',
+    backToSetupBtn: 'Retour à la configuration',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'Votre heure la plus chargée est {timeRange} — environ {n} clients',
+    staffNeededForWait: 'Il vous faudrait environ {staff} pour que l\'attente reste sous {mins} minutes.',
+    staffNeededPlain: 'Il vous faudrait environ {staff} pour que la file avance.',
     whatSoldThatDay: 'Ce qui a été vendu ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'Affichage',
@@ -7730,6 +7919,27 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'প্রায় {amount} মূল্যের',
+    worthAboutHint: 'এই নিয়মিত ক্রেতা বছরের পর বছর আপনার কাছে কত খরচ করতে পারেন — কত ঘন ঘন আসেন ও সাধারণত কত খরচ করেন তা থেকে।',
+    regularSummaryLine: 'সপ্তাহে {times} বার · প্রতি বার {amount} · {years} বছর',
+    minutesShort: '{n} মিনিট',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'ঝুঁকছে',
+    driftOnTrack: 'ঠিক আছে',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope ইদানীং একটু কম আন্দাজ করছে — আসল দিনগুলো পূর্বাভাসের চেয়ে বেশি হচ্ছে। আরও দিন নথিভুক্ত হলে এটি নিজেই ঠিক হয়ে যায়।',
+    forecastLeaningHigh: 'Ope ইদানীং একটু বেশি আন্দাজ করছে — আসল দিনগুলো পূর্বাভাসের চেয়ে কম হচ্ছে। আরও দিন নথিভুক্ত হলে এটি নিজেই ঠিক হয়ে যায়।',
+    demandShiftAlert: 'গত {weeks} সপ্তাহে আপনার ব্যবসা স্বাভাবিকের চেয়ে প্রায় {pct}% {direction} ছিল। কিছু বদলেছে কিনা দেখা ভালো।',
+    directionHigher: 'বেশি ব্যস্ত',
+    directionLower: 'কম ব্যস্ত',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'আপনি সেটআপের মাঝপথে আছেন। নিচে দু-একটি পণ্য যোগ করে ফিরে আসুন।',
+    backToSetupBtn: 'সেটআপে ফিরুন',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'আপনার সবচেয়ে ব্যস্ত সময় {timeRange} — প্রায় {n} জন ক্রেতা',
+    staffNeededForWait: 'অপেক্ষা {mins} মিনিটের নিচে রাখতে প্রায় {staff} দরকার।',
+    staffNeededPlain: 'সারি চলতে রাখতে প্রায় {staff} দরকার।',
     whatSoldThatDay: 'কী বিক্রি হয়েছে ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'দেখানো হচ্ছে',
@@ -8854,6 +9064,27 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'تقریباً {amount} کے برابر',
+    worthAboutHint: 'یہ مستقل گاہک برسوں میں آپ کے ہاں کتنا خرچ کرے گا — کتنی بار آتا ہے اور عام طور پر کتنا خرچ کرتا ہے، اس سے۔',
+    regularSummaryLine: 'ہفتے میں {times} بار · فی آمد {amount} · {years} سال',
+    minutesShort: '{n} منٹ',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'جھکاؤ',
+    driftOnTrack: 'درست',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope حال ہی میں کچھ کم اندازہ لگا رہا ہے — اصل دن پیش گوئی سے زیادہ نکل رہے ہیں۔ مزید دن درج ہونے پر یہ خود درست ہو جاتا ہے۔',
+    forecastLeaningHigh: 'Ope حال ہی میں کچھ زیادہ اندازہ لگا رہا ہے — اصل دن پیش گوئی سے کم نکل رہے ہیں۔ مزید دن درج ہونے پر یہ خود درست ہو جاتا ہے۔',
+    demandShiftAlert: 'پچھلے {weeks} ہفتوں میں آپ کا کاروبار معمول سے تقریباً {pct}% {direction} رہا۔ دیکھنا چاہیے کہ کچھ بدلا تو نہیں۔',
+    directionHigher: 'زیادہ مصروف',
+    directionLower: 'کم مصروف',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'آپ سیٹ اپ کے درمیان میں ہیں۔ نیچے ایک دو مصنوعات شامل کریں، پھر واپس آئیں۔',
+    backToSetupBtn: 'سیٹ اپ پر واپس',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'آپ کا سب سے مصروف وقت {timeRange} ہے — تقریباً {n} گاہک',
+    staffNeededForWait: 'انتظار {mins} منٹ سے کم رکھنے کے لیے تقریباً {staff} درکار ہوں گے۔',
+    staffNeededPlain: 'قطار چلتی رہے اس کے لیے تقریباً {staff} درکار ہوں گے۔',
     whatSoldThatDay: 'کیا فروخت ہوا ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'دکھایا جا رہا ہے',
@@ -9793,7 +10024,7 @@ export const translations = {
     insightsAllRegularsActive: 'آپ کے تمام مستقل گاہک فعال ہیں۔ بہت خوب!',
 
     // Guided product tour
-    tourWelcomeTitle: 'Ope میں خوش آمدید!',
+    tourWelcomeTitle: 'Ope میں خوش آمدید!‏',
     tourWelcomeBody: 'Ope آپ کو یہ جاننے میں مدد دیتا ہے کہ آپ کا کاروبار کتنا مصروف ہو گا — تاکہ آپ صحیح اسٹاک آرڈر کر سکیں، صحیح عملہ شیڈول کر سکیں، اور کبھی حیران نہ ہوں۔ آئیے دیکھتے ہیں یہاں کیا ہے۔',
     tourQuickActionsTitle: 'آپ کے فوری اقدامات',
     tourQuickActionsBody: 'یہ تین بٹن آپ کے روزمرہ کے آلات ہیں۔ "فروخت ریکارڈ کریں" ہر فروخت کو حقیقی وقت میں شمار کرتا ہے۔ "آج کا اندراج کریں" بند ہونے کے بعد آج کی کل تعداد درج کرتا ہے۔ "مستقل گاہک ریکارڈ کریں" کسی وفادار گاہک کی آمد نوٹ کرتا ہے۔',
@@ -9978,6 +10209,27 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'Bernilai sekitar {amount}',
+    worthAboutHint: 'Perkiraan belanja pelanggan tetap ini selama bertahun-tahun, dari seberapa sering datang dan biasanya belanja berapa.',
+    regularSummaryLine: '{times}× seminggu · {amount} per kunjungan · {years} tahun',
+    minutesShort: '{n} mnt',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'Menyimpang',
+    driftOnTrack: 'Sesuai',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope belakangan menaksir agak rendah — hari sebenarnya lebih tinggi dari perkiraan. Ia menyesuaikan sendiri seiring hari yang dicatat.',
+    forecastLeaningHigh: 'Ope belakangan menaksir agak tinggi — hari sebenarnya lebih rendah dari perkiraan. Ia menyesuaikan sendiri seiring hari yang dicatat.',
+    demandShiftAlert: 'Usaha Anda sekitar {pct}% {direction} dari biasanya dalam {weeks} minggu terakhir. Ada baiknya dicek apakah ada yang berubah.',
+    directionHigher: 'lebih ramai',
+    directionLower: 'lebih sepi',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'Anda sedang di tengah penyiapan. Tambahkan satu-dua produk di bawah, lalu kembali.',
+    backToSetupBtn: 'Kembali ke penyiapan',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'Jam tersibuk Anda {timeRange} — sekitar {n} pelanggan',
+    staffNeededForWait: 'Anda perlu sekitar {staff} agar antrean tidak lebih dari {mins} menit.',
+    staffNeededPlain: 'Anda perlu sekitar {staff} agar antrean tetap jalan.',
     whatSoldThatDay: 'Yang terjual ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'Menampilkan',
@@ -11102,6 +11354,27 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'Etwa {amount} wert',
+    worthAboutHint: 'Was diese Stammkundin oder dieser Stammkunde über die Jahre bei Ihnen ausgeben dürfte — aus Besuchshäufigkeit und üblichem Betrag.',
+    regularSummaryLine: '{times}× pro Woche · {amount} pro Besuch · {years} Jahre',
+    minutesShort: '{n} Min.',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'Weicht ab',
+    driftOnTrack: 'Im Rahmen',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope schätzt zuletzt etwas zu niedrig — die tatsächlichen Tage liegen über der Prognose. Mit jedem weiteren erfassten Tag korrigiert es sich.',
+    forecastLeaningHigh: 'Ope schätzt zuletzt etwas zu hoch — die tatsächlichen Tage liegen unter der Prognose. Mit jedem weiteren erfassten Tag korrigiert es sich.',
+    demandShiftAlert: 'Ihr Geschäft lag in den letzten {weeks} Wochen etwa {pct}% {direction} als sonst. Es lohnt sich zu prüfen, ob sich etwas geändert hat.',
+    directionHigher: 'lebhafter',
+    directionLower: 'ruhiger',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'Sie sind mitten in der Einrichtung. Legen Sie unten ein, zwei Produkte an und kommen Sie zurück.',
+    backToSetupBtn: 'Zurück zur Einrichtung',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'Ihre stärkste Stunde ist {timeRange} — etwa {n} Kundinnen und Kunden',
+    staffNeededForWait: 'Sie bräuchten etwa {staff}, damit die Wartezeit unter {mins} Minuten bleibt.',
+    staffNeededPlain: 'Sie bräuchten etwa {staff}, damit die Schlange in Bewegung bleibt.',
     whatSoldThatDay: 'Was verkauft wurde ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'Angezeigt',
@@ -12226,6 +12499,27 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'およそ {amount} 相当',
+    worthAboutHint: 'この常連さんが何年かけてお店で使うと見込まれる金額です。来店の頻度と普段の金額から算出しています。',
+    regularSummaryLine: '週 {times} 回 · 1回 {amount} · {years} 年',
+    minutesShort: '{n} 分',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'かたより',
+    driftOnTrack: '順調',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: '最近の Ope は少し低めに見積もっています。実際の日が予測を上回り続けています。記録が増えるにつれて自動的に調整されます。',
+    forecastLeaningHigh: '最近の Ope は少し高めに見積もっています。実際の日が予測を下回り続けています。記録が増えるにつれて自動的に調整されます。',
+    demandShiftAlert: 'この {weeks} 週間、売れ行きがいつもより約 {pct}% {direction}なっています。何か変わっていないか確かめる価値があります。',
+    directionHigher: '忙しく',
+    directionLower: '暇に',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'ただいま初期設定の途中です。下で商品をいくつか追加してから戻ってください。',
+    backToSetupBtn: '設定に戻る',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: '最も忙しい時間は {timeRange}、およそ {n} 人のお客さまです',
+    staffNeededForWait: '待ち時間を {mins} 分以内に保つには、{staff} ほど必要です。',
+    staffNeededPlain: '列が滞らないようにするには、{staff} ほど必要です。',
     whatSoldThatDay: '売れたもの（{n}）',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: '表示',
@@ -13350,6 +13644,27 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    // Regulars and service time — the last English left in a Hebrew screen
+    worthAboutLabel: 'Yaklaşık {amount} değerinde',
+    worthAboutHint: 'Bu düzenli müşterinin yıllar içinde sizde harcaması beklenen tutar — ne sıklıkla geldiğine ve genelde ne harcadığına göre.',
+    regularSummaryLine: 'Haftada {times} kez · ziyaret başına {amount} · {years} yıl',
+    minutesShort: '{n} dk',
+    // Drift, as a word rather than a raw tracking signal
+    driftOff: 'Sapıyor',
+    driftOnTrack: 'Yolunda',
+    // Accuracy and drift, said in words rather than statistics
+    forecastLeaningLow: 'Ope son zamanlarda biraz düşük tahmin ediyor — gerçek günler tahminin üzerinde çıkıyor. Daha fazla gün kaydettikçe kendini düzeltir.',
+    forecastLeaningHigh: 'Ope son zamanlarda biraz yüksek tahmin ediyor — gerçek günler tahminin altında kalıyor. Daha fazla gün kaydettikçe kendini düzeltir.',
+    demandShiftAlert: 'Son {weeks} haftada işleriniz normalden yaklaşık %{pct} {direction}. Bir şeyin değişip değişmediğine bakmakta fayda var.',
+    directionHigher: 'daha yoğun',
+    directionLower: 'daha sakin',
+    // Setup step 2 sends you to Products — this is the way back
+    backToSetupBanner: 'Kurulumun ortasındasınız. Aşağıdan bir iki ürün ekleyip geri dönün.',
+    backToSetupBtn: 'Kuruluma dön',
+    // Busy-hours headline: say what each number IS, or 12 reads as customers
+    busiestHourHeadline: 'En yoğun saatiniz {timeRange} — yaklaşık {n} müşteri',
+    staffNeededForWait: 'Bekleme süresini {mins} dakikanın altında tutmak için yaklaşık {staff} gerekir.',
+    staffNeededPlain: 'Sıranın akması için yaklaşık {staff} gerekir.',
     whatSoldThatDay: 'Ne satıldı ({n})',
     // Past Days — a year of history, reachable without endless scrolling
     showingPeriodLabel: 'Gösterilen',

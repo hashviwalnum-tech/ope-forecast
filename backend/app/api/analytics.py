@@ -18,7 +18,9 @@ from app import clock
 from app.api.day_records import rollup_tap_days
 from app.api.deps import get_business, get_tier
 from app.db import get_db
-from app.engine.accuracy import detect_drift, forecast_errors, mad, mape, mse, tracking_signal
+from app.engine.accuracy import (
+    bias_detail, detect_drift, detect_drift_detail, forecast_errors, mad, mape, mse, tracking_signal,
+)
 from app.engine.booking import booking_forecast, fit_booking_regression
 from app.engine.limits import Tier, history_cutoff
 from app.engine.monthly import monthly_summary
@@ -1320,6 +1322,8 @@ def get_accuracy(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         tracking_signal=round(ts, 3),
         bias_warning=bias_warning,
         drift_alert=drift,
+        drift_code=detect_drift_detail(obs),
+        bias_code=bias_detail(ts),
         measured_from=source,
     )
 

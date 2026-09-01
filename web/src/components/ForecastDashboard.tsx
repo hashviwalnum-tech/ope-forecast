@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, useId } from 'react'
 import {
   Bar,
   BarChart,
@@ -153,6 +153,7 @@ function ProductOrderActions({
   today: string
   onChanged: () => void
 }) {
+  const fieldId = useId()
   const { t } = useLanguage()
 
   const isWhole = unitMode === 'whole'
@@ -282,8 +283,8 @@ function ProductOrderActions({
       {activePending && editing && (
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
-            <input
+            <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0" htmlFor={`${fieldId}-f1`}>{t('quantityOrdered')}</label>
+            <input id={`${fieldId}-f1`}
               type="number"
               min={isWhole ? '1' : '0.01'}
               step={isWhole ? '1' : '0.01'}
@@ -302,7 +303,7 @@ function ProductOrderActions({
               className="text-sm text-slate-700 dark:text-slate-200 hover:underline min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >{t('cancelBtn')}</button>
           </div>
-          {err && <p className="text-xs text-rose-700 dark:text-rose-300">{err}</p>}
+          {err && <p role="alert" className="text-xs text-rose-700 dark:text-rose-300">{err}</p>}
         </div>
       )}
 
@@ -321,8 +322,8 @@ function ProductOrderActions({
       {!activePending && showForm && (
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
-            <input
+            <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0" htmlFor={`${fieldId}-f2`}>{t('quantityOrdered')}</label>
+            <input id={`${fieldId}-f2`}
               type="number"
               min={isWhole ? '1' : '0.01'}
               step={isWhole ? '1' : '0.01'}
@@ -341,7 +342,7 @@ function ProductOrderActions({
               className="text-sm text-slate-700 dark:text-slate-200 hover:underline min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >{t('cancelBtn')}</button>
           </div>
-          {err && <p className="text-xs text-rose-700 dark:text-rose-300">{err}</p>}
+          {err && <p role="alert" className="text-xs text-rose-700 dark:text-rose-300">{err}</p>}
         </div>
       )}
     </div>
@@ -419,7 +420,7 @@ function OrderingProductCard({
             {p.name}
           </p>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-            ~{p.avg_daily_demand} {p.unit}{t('perDaySuffix')} · {t('restockInNDays', { n: String(p.lead_time_days) })}
+            ~{p.avg_daily_demand} {p.unit}{t('perDaySuffix')} · {t('restockInNDays', { n: String(p.lead_time_days), s: p.lead_time_days === 1 ? '' : 's' })}
             {stock.kind === 'counted'
               ? ` · ${t('inStockSuffix', { qty: `${stock.qty} ${p.unit}` })}`
               : stock.kind === 'estimated'
@@ -577,7 +578,7 @@ export function WeekPredictionPanel({ refreshKey = 0 }: PanelProps) {
   if (loading) {
     return (
       <Card title={t('weekPredictionTitle')}>
-        <p className="text-sm text-slate-600 dark:text-slate-400 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
+        <p role="status" aria-live="polite" className="text-sm text-slate-600 dark:text-slate-400 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
       </Card>
     )
   }
@@ -640,7 +641,7 @@ export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
   if (loading) {
     return (
       <Card title={t('whatToOrderTitle')}>
-        <p className="text-sm text-slate-600 dark:text-slate-400 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
+        <p role="status" aria-live="polite" className="text-sm text-slate-600 dark:text-slate-400 animate-pulse py-8 text-center">{t('loadingLabel')}</p>
       </Card>
     )
   }

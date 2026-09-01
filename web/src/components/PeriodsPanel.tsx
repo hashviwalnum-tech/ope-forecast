@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useId } from 'react'
 import { analytics, periods as periodsApi, products as productsApi } from '../api/client'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -26,13 +26,16 @@ function sign(n: number) { return n >= 0 ? '+' : '' }
 // ── type badge ───────────────────────────────────────────────────────────────
 
 function TypeBadge({ type }: { type: string }) {
-  const styles =
-    type === 'event'
-      ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300'
-      : 'bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300'
+  const { t } = useLanguage()
+  const isEvent = type === 'event'
+  const styles = isEvent
+    ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-800 dark:text-violet-300'
+    : 'bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300'
   return (
+    // The raw stored value used to be printed here, so a Hebrew screen showed
+    // a lowercase English "event".
     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide ${styles}`}>
-      {type}
+      {isEvent ? t('periodsEventLabel') : t('periodsAdLabel')}
     </span>
   )
 }
@@ -109,6 +112,7 @@ type FormState = {
 const EMPTY: FormState = { label: '', type: 'event', start_date: '', end_date: '', cost: '', target_product_id: null }
 
 function CreateForm({ onCreated }: { onCreated: () => void }) {
+  const fieldId = useId()
   const { t } = useLanguage()
   const { step, symbol } = useCurrency()
   const [form, setForm] = useState<FormState>(EMPTY)
@@ -161,8 +165,8 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Label */}
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('periodsNameLabel')}</label>
-          <input
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f1`}>{t('periodsNameLabel')}</label>
+          <input id={`${fieldId}-f1`}
             ref={labelRef}
             type="text"
             placeholder={t('periodNamePlaceholder')}
@@ -199,10 +203,10 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
 
         {/* Cost */}
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f2`}>
             {t('periodsCostLabel')} <span className="text-slate-600 dark:text-slate-400 font-normal">({symbol}) {t('periodsCostNote')}</span>
           </label>
-          <input
+          <input id={`${fieldId}-f2`}
             type="number"
             min="0"
             step={step}
@@ -217,10 +221,10 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
 
         {/* Product target — what this ad/event is meant to promote */}
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f3`}>
             {t('periodsTargetLabel')}
           </label>
-          <select
+          <select id={`${fieldId}-f3`}
             value={form.target_product_id ?? ''}
             onChange={e => setForm(f => ({ ...f, target_product_id: e.target.value ? parseInt(e.target.value) : null }))}
             className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
@@ -237,8 +241,8 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
 
         {/* Dates */}
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('periodsStartDate')}</label>
-          <input
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f4`}>{t('periodsStartDate')}</label>
+          <input id={`${fieldId}-f4`}
             type="date"
             value={form.start_date}
             onChange={e => {
@@ -252,8 +256,8 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('periodsEndDate')}</label>
-          <input
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f5`}>{t('periodsEndDate')}</label>
+          <input id={`${fieldId}-f5`}
             type="date"
             min={form.start_date || undefined}
             value={form.end_date}
@@ -266,7 +270,7 @@ function CreateForm({ onCreated }: { onCreated: () => void }) {
       </div>
 
       {error && (
-        <p className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+        <p role="alert" className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
           {error}
         </p>
       )}

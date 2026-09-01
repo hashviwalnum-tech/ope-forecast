@@ -123,6 +123,20 @@ export default function PredictionsPanel() {
       ? 'text-amber-700 dark:text-amber-300'
       : 'text-slate-800 dark:text-slate-100'
 
+  const dirWord = (d: unknown) => d === 'higher' ? t('directionHigher') : t('directionLower')
+  const biasCode = accuracy?.bias_code
+  const biasMessage = biasCode?.code === 'forecast_leaning'
+    ? (biasCode.params?.direction === 'low' ? t('forecastLeaningLow') : t('forecastLeaningHigh'))
+    : null
+  const driftCode = accuracy?.drift_code
+  const driftMessage = driftCode?.code === 'demand_shift'
+    ? t('demandShiftAlert', {
+        pct: String(driftCode.params?.pct ?? ''),
+        direction: dirWord(driftCode.params?.direction),
+        weeks: String(driftCode.params?.weeks ?? ''),
+      })
+    : null
+
   const tickFill   = isDark ? '#94a3b8' : '#45556c'
   const gridStroke = isDark ? '#334155' : '#e2e8f0'
 
@@ -185,9 +199,17 @@ export default function PredictionsPanel() {
               </p>
             </div>
           )}
-          {accuracy.bias_warning && (
-            <div className="mb-4 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-700 dark:text-amber-300">
-              {accuracy.bias_warning}
+          {/* Said in words. This used to read "Forecast is biased — model may
+              need recalibration (|tracking signal| > 4)", which tells an owner
+              nothing they can do. */}
+          {biasMessage && (
+            <div className="mb-4 px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-800 dark:text-amber-300">
+              {biasMessage}
+            </div>
+          )}
+          {driftMessage && (
+            <div className="mb-4 px-3 py-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-800 dark:text-amber-300">
+              {driftMessage}
             </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -198,13 +220,15 @@ export default function PredictionsPanel() {
             />
             <StatCard
               label={t('offByLabel')}
-              value={accuracy.mad != null ? String(accuracy.mad) : '—'}
+              value={accuracy.mad != null ? String(Math.round(accuracy.mad)) : '—'}
               sub={t('customersOnAverage')}
             />
-            <div className="bg-teal-50/50 dark:bg-teal-900/20 rounded-xl p-4 text-center">
+            <div className="bg-teal-50/50 dark:bg-teal-900/20 rounded-xl p-4 text-center dark:bg-slate-800">
               <p className="text-xs text-slate-600 dark:text-slate-400 mb-1">{t('driftCheck')}</p>
-              <p className={`text-xl font-bold tabular-nums ${tsColor}`}>
-                {accuracy.tracking_signal != null ? String(accuracy.tracking_signal) : '—'}
+              <p className={`text-base font-bold ${tsColor}`}>
+                {accuracy.tracking_signal == null
+                  ? '—'
+                  : Math.abs(accuracy.tracking_signal) > 4 ? t('driftOff') : t('driftOnTrack')}
               </p>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{t('driftNote')}</p>
             </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useId } from 'react'
 import { products as productsApi } from '../api/client'
 import { useCurrency } from '../contexts/CurrencyContext'
 import LoadError from './LoadError'
@@ -37,6 +37,7 @@ function ConsumablePicker({
   onAdd: (productId: number, qty: number) => Promise<void>
   onRemove: (key: number) => void
 }) {
+  const fieldId = useId()
   const { t } = useLanguage()
   const [adding, setAdding] = useState(false)
   const [newConsumableId, setNewConsumableId] = useState('')
@@ -94,8 +95,8 @@ function ConsumablePicker({
       {stocked.length > 0 && (
         <div className="flex flex-wrap gap-2 items-end">
           <div className="flex-1 min-w-32">
-            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('consumableProductLabel')}</label>
-            <select
+            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f1`}>{t('consumableProductLabel')}</label>
+            <select id={`${fieldId}-f1`}
               value={newConsumableId}
               onChange={e => { setNewConsumableId(e.target.value); setSaveErr(null) }}
               className="w-full px-3 min-h-11 text-sm border border-slate-300 dark:border-slate-600 rounded-xl
@@ -109,8 +110,8 @@ function ConsumablePicker({
             </select>
           </div>
           <div className="w-28">
-            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">{t('qtyPerServiceLabel')}</label>
-            <input
+            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f2`}>{t('qtyPerServiceLabel')}</label>
+            <input id={`${fieldId}-f2`}
               type="number"
               min="0.01"
               step="any"
@@ -251,6 +252,7 @@ const EMPTY_ADD: AddForm = {
 }
 
 function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]; onCreated: () => void }) {
+  const fieldId = useId()
   const { t } = useLanguage()
   const { symbol, step } = useCurrency()
   const [form, setForm]       = useState<AddForm>(EMPTY_ADD)
@@ -333,10 +335,10 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Name */}
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f3`}>
             {t('productNameLabel')} <span className="text-red-700 dark:text-red-300" aria-hidden="true">*</span>
           </label>
-          <input
+          <input id={`${fieldId}-f3`}
             ref={nameRef}
             type="text"
             placeholder={t('productNamePlaceholder')}
@@ -350,10 +352,10 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
 
         {/* Unit */}
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f4`}>
             {t('soldInLabel')} <span className="text-red-700 dark:text-red-300" aria-hidden="true">*</span>
           </label>
-          <input
+          <input id={`${fieldId}-f4`}
             type="text"
             placeholder={t('soldInPlaceholder')}
             value={form.unit}
@@ -367,10 +369,10 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
         {/* Lead time — hidden for services */}
         {!isService && (
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f5`}>
               {t('daysToRestock')}
             </label>
-            <input
+            <input id={`${fieldId}-f5`}
               type="number"
               min="1"
               step="1"
@@ -453,10 +455,10 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
       {showMore && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f6`}>
               {t('sellingPrice')} <span className="text-slate-600 dark:text-slate-400 font-normal">({symbol})</span>
             </label>
-            <input
+            <input id={`${fieldId}-f6`}
               type="number"
               min="0"
               step={step}
@@ -473,10 +475,10 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
           {!isService && (
             <>
               <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f7`}>
                   {t('stockOnHand')}
                 </label>
-                <input
+                <input id={`${fieldId}-f7`}
                   type="number"
                   min="0"
                   step="any"
@@ -490,10 +492,10 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{t('stockDesc')}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f8`}>
                   {t('storageCapacity')}
                 </label>
-                <input
+                <input id={`${fieldId}-f8`}
                   type="number"
                   min="0.1"
                   step="any"
@@ -507,10 +509,10 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">{t('storageDesc')}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f9`}>
                   {t('shelfLifeLabel')}
                 </label>
-                <input
+                <input id={`${fieldId}-f9`}
                   type="number"
                   min="1"
                   step="1"
@@ -527,10 +529,10 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
           )}
 
           <div className="sm:col-span-2">
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f10`}>
               {t('minutesToServe')}
             </label>
-            <input
+            <input id={`${fieldId}-f10`}
               type="number"
               min="0.1"
               step="any"
@@ -555,7 +557,7 @@ function AddProductForm({ allProducts, onCreated }: { allProducts: ProductRead[]
       )}
 
       {error && (
-        <p className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
+        <p role="alert" className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
           {error}
         </p>
       )}
@@ -613,6 +615,7 @@ function EditProductForm({
   onSaved: () => void
   onCancel: () => void
 }) {
+  const fieldId = useId()
   const { t } = useLanguage()
   const { symbol, step } = useCurrency()
   const [form, setForm]     = useState<EditForm>(productToEditForm(product))
@@ -661,8 +664,8 @@ function EditProductForm({
     <form onSubmit={handleSubmit} className="pt-3 pb-1 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('productNameLabel')}</label>
-          <input
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f11`}>{t('productNameLabel')}</label>
+          <input id={`${fieldId}-f11`}
             type="text"
             value={form.name}
             onChange={e => set('name', e.target.value)}
@@ -672,8 +675,8 @@ function EditProductForm({
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('soldInLabel')}</label>
-          <input
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f12`}>{t('soldInLabel')}</label>
+          <input id={`${fieldId}-f12`}
             type="text"
             value={form.unit}
             onChange={e => set('unit', e.target.value)}
@@ -684,8 +687,8 @@ function EditProductForm({
         </div>
         {!isService && (
           <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('daysToRestock')}</label>
-            <input
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f13`}>{t('daysToRestock')}</label>
+            <input id={`${fieldId}-f13`}
               type="number"
               min="1"
               step="1"
@@ -746,10 +749,10 @@ function EditProductForm({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f14`}>
             {t('sellingPrice')} <span className="text-slate-600 dark:text-slate-400 font-normal">({symbol})</span>
           </label>
-          <input
+          <input id={`${fieldId}-f14`}
             type="number"
             min="0"
             step={step}
@@ -766,8 +769,8 @@ function EditProductForm({
         {!isService && (
           <>
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('stockOnHand')}</label>
-              <input
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f15`}>{t('stockOnHand')}</label>
+              <input id={`${fieldId}-f15`}
                 type="number"
                 min="0"
                 step="any"
@@ -780,8 +783,8 @@ function EditProductForm({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('storageCapacity')}</label>
-              <input
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f16`}>{t('storageCapacity')}</label>
+              <input id={`${fieldId}-f16`}
                 type="number"
                 min="0.1"
                 step="any"
@@ -794,8 +797,8 @@ function EditProductForm({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{t('shelfLifeLabel')}</label>
-              <input
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f17`}>{t('shelfLifeLabel')}</label>
+              <input id={`${fieldId}-f17`}
                 type="number"
                 min="1"
                 step="1"
@@ -811,10 +814,10 @@ function EditProductForm({
         )}
 
         <div className="sm:col-span-2">
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f18`}>
             {t('minutesToServe')}
           </label>
-          <input
+          <input id={`${fieldId}-f18`}
             type="number"
             min="0.1"
             step="any"
@@ -830,7 +833,7 @@ function EditProductForm({
       </div>
 
       {error && (
-        <p className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+        <p role="alert" className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
           {error}
         </p>
       )}
@@ -945,11 +948,11 @@ function ProductRow({
             <span>{t('shelfLifeLabel')}: <strong className="text-slate-700 dark:text-slate-200">{product.shelf_life_days}d</strong></span>
           )}
           {product.service_time_minutes != null && (
-            <span>{t('serveTime')}: <strong className="text-slate-700 dark:text-slate-200">{product.service_time_minutes} min</strong></span>
+            <span>{t('serveTime')}: <strong className="text-slate-700 dark:text-slate-200">{t('minutesShort', { n: String(product.service_time_minutes) })}</strong></span>
           )}
         </div>
         {deleteErr && (
-          <p className="text-xs text-red-600 mt-1">{deleteErr}</p>
+          <p role="alert" className="text-xs text-red-600 mt-1">{deleteErr}</p>
         )}
       </div>
       <div className="flex gap-2 shrink-0 pt-0.5 items-center">
@@ -998,7 +1001,7 @@ function StarButton({ isFavorite, onToggle }: { isFavorite: boolean; onToggle: (
   )
 }
 
-export default function ProductsPanel() {
+export default function ProductsPanel({ onBackToSetup }: { onBackToSetup?: () => void } = {}) {
   const { t } = useLanguage()
   const [productList, setProductList] = useState<ProductRead[]>([])
   const [listError, setListError] = useState<unknown>(null)
@@ -1030,6 +1033,22 @@ export default function ProductsPanel() {
 
   return (
     <div className="space-y-8">
+
+      {/* Arriving here from setup step 2, with no way back but guessing. */}
+      {onBackToSetup && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-teal-200 dark:border-teal-800
+                        bg-teal-50 dark:bg-teal-900/20 px-5 py-4">
+          <p className="text-sm text-teal-900 dark:text-teal-100">{t('backToSetupBanner')}</p>
+          <button
+            onClick={onBackToSetup}
+            className="shrink-0 px-4 min-h-11 rounded-xl bg-teal-600 text-white text-sm font-semibold
+                       hover:bg-teal-700 transition-colors
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+          >
+            {t('backToSetupBtn')}
+          </button>
+        </div>
+      )}
 
       {/* ── add form ── */}
       <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">

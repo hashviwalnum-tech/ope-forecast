@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, useId } from 'react'
 import * as api from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { deviceTimeZone } from '../lib/businessTime'
@@ -23,6 +23,7 @@ export default function BusinessSetup({
   existingBusinesses = [],
   onCancel,
 }: Props) {
+  const fieldId = useId()
   const { t } = useLanguage()
   const [name, setName] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -133,10 +134,10 @@ export default function BusinessSetup({
 
                   {mode === 'copy' && (
                     <div className="px-4 pb-3">
-                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+                      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5" htmlFor={`${fieldId}-f1`}>
                         {t('copyFromWhich')}
                       </label>
-                      <select
+                      <select id={`${fieldId}-f1`}
                         value={copySourceId}
                         onChange={e => setCopySourceId(Number(e.target.value))}
                         className="w-full px-3 min-h-11 rounded-xl border border-slate-300 dark:border-slate-600 text-sm
@@ -166,7 +167,7 @@ export default function BusinessSetup({
                            focus:outline-none focus:ring-2 focus:ring-teal-400"
               />
               {error && (
-                <p className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">{error}</p>
+                <p role="alert" className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">{error}</p>
               )}
               <button
                 type="submit"

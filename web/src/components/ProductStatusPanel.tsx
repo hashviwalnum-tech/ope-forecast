@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useId } from 'react'
 import { analytics, orders as ordersApi, products as productsApi } from '../api/client'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import LoadError from './LoadError'
@@ -20,6 +20,7 @@ function InlineOrderForm({
   productId: number; unit: string; unitMode: string; suggestedQty: number
   existingOrder: OrderRecordRead | null; today: string; onChanged: () => void
 }) {
+  const fieldId = useId()
   const { t } = useLanguage()
   const isWhole = unitMode === 'whole'
   const [showForm, setShowForm] = useState(false)
@@ -84,8 +85,8 @@ function InlineOrderForm({
   return (
     <div className="mt-2 space-y-1">
       <div className="flex items-center gap-2 flex-wrap">
-        <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0">{t('quantityOrdered')}</label>
-        <input
+        <label className="text-xs text-slate-600 dark:text-slate-400 shrink-0" htmlFor={`${fieldId}-f1`}>{t('quantityOrdered')}</label>
+        <input id={`${fieldId}-f1`}
           type="number"
           min={isWhole ? '1' : '0.01'}
           step={isWhole ? '1' : '0.01'}
@@ -105,7 +106,7 @@ function InlineOrderForm({
           className="text-sm text-slate-700 dark:text-slate-200 hover:underline min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
         >{t('cancelBtn')}</button>
       </div>
-      {err && <p className="text-xs text-red-700 dark:text-red-300">{err}</p>}
+      {err && <p role="alert" className="text-xs text-red-700 dark:text-red-300">{err}</p>}
     </div>
   )
 }
@@ -167,7 +168,7 @@ export default function ProductStatusPanel() {
   if (loading) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
-        <p className="text-sm text-slate-600 dark:text-slate-400 animate-pulse">{t('loadingLabel')}</p>
+        <p role="status" aria-live="polite" className="text-sm text-slate-600 dark:text-slate-400 animate-pulse">{t('loadingLabel')}</p>
       </div>
     )
   }

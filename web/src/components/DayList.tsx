@@ -136,7 +136,7 @@ export default function DayList({ refreshKey }: Props) {
     }
   }
 
-  if (loading) return <p className="text-teal-700 dark:text-teal-300 text-sm animate-pulse">{t('loadingYourDays')}</p>
+  if (loading) return <p role="status" aria-live="polite" className="text-teal-700 dark:text-teal-300 text-sm animate-pulse">{t('loadingYourDays')}</p>
   if (error)   return <LoadError error={error} onRetry={load} />
   if (!days.length) return (
     <div className="py-12 text-center">

@@ -245,7 +245,11 @@ export interface AccuracyResponse {
   mse?: number
   mape?: number
   tracking_signal?: number
+  /** English fallbacks. Prefer the codes below, which the client translates. */
   bias_warning?: string
+  drift_alert?: string
+  bias_code?: { code: string; params?: Record<string, string | number> }
+  drift_code?: { code: string; params?: Record<string, string | number> }
   message?: string
 }
 

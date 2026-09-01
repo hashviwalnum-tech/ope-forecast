@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { analytics } from '../api/client'
+import { analytics, businesses } from '../api/client'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { shiftIso, weekdayMon0 } from '../lib/businessTime'
 import LoadError from './LoadError'
@@ -140,11 +140,15 @@ function NotEnoughHourlyData({ message, nDays }: { message?: string; nDays: numb
 // ── tomorrow busy-hours panel ─────────────────────────────────────────────────
 
 function TomorrowPanel({
-  slots, dayName, isFallback,
+  slots, dayName, isFallback, maxWaitMinutes,
 }: {
   slots: WeekdayHourlySlot[]
   dayName: string
   isFallback: boolean
+  /** The owner's acceptable wait, when they have set one — it is what the
+   *  staffing number is FOR, and saying so is what stops it reading as a
+   *  customer count. */
+  maxWaitMinutes: number | null
 }) {
   const { t, lang } = useLanguage()
   const fmtNote = (slot: WeekdayHourlySlot) => formatMarginalNote(slot, t, lang)
@@ -166,14 +170,20 @@ function TomorrowPanel({
         <p className="text-xs font-medium text-teal-50 uppercase tracking-wide mb-2">
           {isFallback ? t('tomorrowTypical') : t('tomorrowDay', { dayName })}
         </p>
+        {/* Two numbers, each said out loud. This used to read "Busiest at
+            12pm–1pm: 12 people" in 2xl bold with "~72 customers/hr" beneath —
+            12 was the STAFF figure, unlabelled, so it looked like a customer
+            count that the line below immediately contradicted. */}
         <p className="text-2xl font-bold leading-tight">
-          {t('busiestAtTime', { timeRange })}{': '}
-          <span className="text-teal-50">
-            {busiest.recommended_staff} {staffWord}
-          </span>
+          {t('busiestHourHeadline', { timeRange, n: String(Math.round(busiest.avg_taps)) })}
         </p>
         <p className="text-sm text-teal-50 mt-1">
-          {t('peakCustomersHr', { n: String(Math.round(busiest.avg_taps)) })}
+          {maxWaitMinutes != null
+            ? t('staffNeededForWait', {
+                staff: `${busiest.recommended_staff} ${staffWord}`,
+                mins: String(Math.round(maxWaitMinutes)),
+              })
+            : t('staffNeededPlain', { staff: `${busiest.recommended_staff} ${staffWord}` })}
         </p>
         {isFallback && (
           <p className="text-xs text-teal-700 mt-2 dark:text-teal-300">
@@ -374,6 +384,8 @@ export default function HourlyDashboard() {
   const { t, lang } = useLanguage()
   const { today } = useBusinessTime()
   const [data, setData]     = useState<WeekdayHourlyResponse | null>(null)
+  // The owner's acceptable wait, so the staffing figure can say what it is for.
+  const [maxWait, setMaxWait] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState<unknown>(null)
 
@@ -387,6 +399,15 @@ export default function HourlyDashboard() {
   }, [])
 
   useEffect(() => { reload() }, [reload])
+
+  useEffect(() => {
+    businesses.me()
+      .then(biz => {
+        const v = (biz.settings as Record<string, unknown>).staffing_max_wait_minutes
+        setMaxWait(typeof v === 'number' ? v : null)
+      })
+      .catch(() => setMaxWait(null))   // no threshold set, or offline: say it plainly
+  }, [])
 
   if (loading) {
     return (
@@ -426,7 +447,7 @@ export default function HourlyDashboard() {
 
   return (
     <div className="space-y-6">
-      <TomorrowPanel slots={slots} dayName={dayName} isFallback={isFallback} />
+      <TomorrowPanel slots={slots} dayName={dayName} isFallback={isFallback} maxWaitMinutes={maxWait} />
       <WeekdayAccordion weekdays={data.weekdays} />
     </div>
   )

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
 import { LANG_LABELS, type Lang, type TranslationKey } from '../i18n'
 
@@ -104,7 +104,11 @@ const SECTIONS: TourSection[] = [
 // ── Persistence ─────────────────────────────────────────────────────────────
 
 const PADDING = 10
-const POP_W   = 340
+// The popover was a fixed 340px, which overflows a 320px phone, and its
+// position assumed a ~280px-tall card, so longer translated text ran off the
+// bottom with no way to reach the buttons.
+const POP_MAX_W = 340
+const POP_MARGIN = 10
 
 interface Props {
   bizId:      number
@@ -128,6 +132,8 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
   const [sectionIdx, setSectionIdx] = useState(0)
   const [stepIdx, setStepIdx]       = useState(0)
   const [rect, setRect]             = useState<DOMRect | null>(null)
+  const popRef                      = useRef<HTMLDivElement>(null)
+  const [popH, setPopH]             = useState(280)
   const [tick, setTick]             = useState(0)
 
   const section     = SECTIONS[sectionIdx]
@@ -178,6 +184,13 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
     }
   }, [calcRect])
 
+  // Re-measure after every render that could change the card's height (step,
+  // language, viewport). The guard stops it settling into a loop.
+  useEffect(() => {
+    const h = popRef.current?.offsetHeight
+    if (h && Math.abs(h - popH) > 2) setPopH(h)
+  }, [popH, sectionIdx, stepIdx, lang, tick])
+
   void tick
 
   // ── Actions ───────────────────────────────────────────────────────────────
@@ -222,6 +235,12 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
 
   const vpW = window.innerWidth
   const vpH = window.innerHeight
+  // Never wider than the screen allows.
+  const POP_W = Math.min(POP_MAX_W, vpW - POP_MARGIN * 2)
+  // The card scrolls inside itself rather than off the screen.
+  const popMaxH = Math.max(200, vpH - POP_MARGIN * 2 - 56)
+  // Position against what the card actually measures, capped by that maximum.
+  const popH_ = Math.min(popH, popMaxH)
 
   const sTop    = rect ? Math.max(0, rect.top    - PADDING) : 0
   const sLeft   = rect ? Math.max(0, rect.left   - PADDING) : 0
@@ -233,14 +252,16 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
   let popTop: number
   let popLeft: number
   if (!rect) {
-    popTop  = Math.max(10, vpH / 2 - 180)
-    popLeft = Math.max(10, vpW / 2 - POP_W / 2)
+    popTop  = Math.max(POP_MARGIN, (vpH - popH_) / 2)
+    popLeft = Math.max(POP_MARGIN, vpW / 2 - POP_W / 2)
   } else {
     popTop = sBottom + 14
-    if (popTop + 280 > vpH - 10) popTop = sTop - 280 - 14
-    popTop  = Math.max(10, Math.min(popTop, vpH - 290))
+    // Flip above the spotlight when there is no room below, then clamp so the
+    // card is always fully on screen — its own scrollbar handles the rest.
+    if (popTop + popH_ > vpH - POP_MARGIN) popTop = sTop - popH_ - 14
+    popTop  = Math.max(POP_MARGIN, Math.min(popTop, vpH - popH_ - POP_MARGIN))
     popLeft = sLeft + sW / 2 - POP_W / 2
-    popLeft = Math.max(10, Math.min(popLeft, vpW - POP_W - 10))
+    popLeft = Math.max(POP_MARGIN, Math.min(popLeft, vpW - POP_W - POP_MARGIN))
   }
 
   const stopProp = (e: React.MouseEvent) => e.stopPropagation()
@@ -286,9 +307,13 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
 
       {/* ── Popover ───────────────────────────────────────────────────────── */}
       <div
+        ref={popRef}
         className="fixed bg-white dark:bg-slate-800 rounded-2xl shadow-2xl
-                   border border-teal-100 dark:border-teal-800 p-5"
-        style={{ top: popTop, left: popLeft, width: POP_W, zIndex: 9001, pointerEvents: 'auto' }}
+                   border border-teal-100 dark:border-teal-800 p-5 overflow-y-auto"
+        style={{ top: popTop, left: popLeft, width: POP_W, maxHeight: popMaxH, zIndex: 9001, pointerEvents: 'auto' }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t(step.titleKey)}
         dir={dir}
         onClick={stopProp}
       >
@@ -318,7 +343,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
               value={lang}
               onChange={e => { setLang(e.target.value as Lang) }}
               onClick={stopProp}
-              className="text-xs rounded border border-teal-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-1 py-0.5 cursor-pointer focus:outline-none"
+              className="text-sm rounded-lg border border-teal-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 px-2 min-h-11 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
               aria-label={t('a11yLanguage')}
             >
               {(Object.entries(LANG_LABELS) as [Lang, string][]).map(([code, label]) => (
@@ -344,10 +369,10 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
         </p>
 
         {/* Buttons: Skip all | [spacer] | ← Back · Skip [Section] · Next */}
-        <div className={`flex items-center justify-between gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+        <div className={`flex flex-wrap items-center justify-between gap-x-2 gap-y-1 ${isRtl ? 'flex-row-reverse' : ''}`}>
           <button
             onClick={(e) => { stopProp(e); finish() }}
-            className="text-xs text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors shrink-0 dark:text-slate-300"
+            className="text-sm text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0 min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >
             {t('tourSkipAll')}
           </button>
@@ -356,7 +381,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
             {!isFirstStep && (
               <button
                 onClick={(e) => { stopProp(e); back() }}
-                className="text-xs text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors whitespace-nowrap dark:text-slate-300"
+                className="text-sm text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
               >
                 {t('tourBack')}
               </button>
@@ -364,15 +389,15 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
             {showSkipSec && (
               <button
                 onClick={(e) => { stopProp(e); skipSection() }}
-                className="text-xs text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors whitespace-nowrap dark:text-slate-300"
+                className="text-sm text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap min-h-11 px-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
               >
                 {t('tourSkipSection', { section: t(section.nameKey as TranslationKey) })}
               </button>
             )}
             <button
               onClick={(e) => { stopProp(e); next() }}
-              className="px-5 py-2 bg-teal-600 text-white text-sm font-semibold rounded-xl
-                         hover:bg-teal-700 transition-colors"
+              className="px-5 min-h-11 bg-teal-600 text-white text-sm font-semibold rounded-xl
+                         hover:bg-teal-700 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
             >
               {isLastStep ? t('tourFinish') : t('tourNext')}
             </button>
