@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   CartesianGrid,
   ComposedChart,
@@ -10,6 +10,7 @@ import {
   YAxis,
 } from 'recharts'
 import { analytics } from '../api/client'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { AccuracyResponse, ForecastHistoryResponse } from '../api/types'
@@ -84,15 +85,18 @@ export default function PredictionsPanel() {
   const [history, setHistory]   = useState<ForecastHistoryResponse | null>(null)
   const [accuracy, setAccuracy] = useState<AccuracyResponse | null>(null)
   const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState<string | null>(null)
+  const [error, setError]       = useState<unknown>(null)
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setLoading(true)
+    setError(null)
     Promise.all([analytics.forecastHistory(), analytics.accuracy()])
       .then(([h, a]) => { setHistory(h); setAccuracy(a) })
-      .catch(e => setError(String(e)))
+      .catch(setError)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { reload() }, [reload])
 
   if (loading) {
     return (
@@ -102,14 +106,7 @@ export default function PredictionsPanel() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="p-5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-sm text-red-700 dark:text-red-300">
-        {t('cantLoadPredictions')}
-        <span className="block mt-1 text-xs text-red-400 dark:text-red-500">{error}</span>
-      </div>
-    )
-  }
+  if (error) return <LoadError error={error} onRetry={reload} />
 
   const histData = history?.status === 'ok' && history.history.length > 0
     ? history.history.map(h => ({

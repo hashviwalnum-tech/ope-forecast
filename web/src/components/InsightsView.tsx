@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { analytics } from '../api/client'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import type {
   InsightsResponse,
@@ -119,15 +120,17 @@ export default function InsightsView() {
   const { t } = useLanguage()
   const [data, setData] = useState<InsightsResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setLoading(true)
     analytics.insights()
       .then(res => { setData(res); setError(null) })
-      .catch(e => setError(e instanceof Error ? e.message : 'Error'))
+      .catch(setError)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { reload() }, [reload])
 
   if (loading) {
     return (
@@ -137,13 +140,7 @@ export default function InsightsView() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 p-6 text-center">
-        <p className="text-sm text-red-600 dark:text-red-400">{t('insightsLoadError')}</p>
-      </div>
-    )
-  }
+  if (error) return <LoadError error={error} onRetry={reload} />
 
   if (!data || data.status === 'not_enough_data') {
     return (

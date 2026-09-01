@@ -3,6 +3,7 @@ import {
   Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { products as productsApi, saleEvents } from '../api/client'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { HourSlot, ProductRead, RecentTap, TodaySummaryResponse } from '../api/types'
 
@@ -13,15 +14,6 @@ function fmtHour(h: number) {
   if (h < 12)  return `${h} am`
   if (h === 12) return '12 pm'
   return `${h - 12} pm`
-}
-
-function today(): string {
-  const d = new Date()
-  return [
-    d.getFullYear(),
-    String(d.getMonth() + 1).padStart(2, '0'),
-    String(d.getDate()).padStart(2, '0'),
-  ].join('-')
 }
 
 // ── tap button ────────────────────────────────────────────────────────────────
@@ -233,6 +225,7 @@ interface TapSellPanelProps {
 
 export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {}) {
   const { t } = useLanguage()
+  const { today } = useBusinessTime()
   const [productList, setProductList]   = useState<ProductRead[]>([])
   const [summary, setSummary]           = useState<TodaySummaryResponse | null>(null)
   const [tapping, setTapping]           = useState<number | 'customer' | null>(null)
@@ -293,7 +286,9 @@ export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {})
     } catch { /* silent */ }
   }
 
-  const dateStr = today()
+  // The server states the day it filed these taps under; trust that over any
+  // date this client works out for itself.
+  const dateStr = summary?.date ?? today
 
   return (
     <div className="space-y-6">
@@ -302,7 +297,7 @@ export default function TapSellPanel({ onGoToProducts }: TapSellPanelProps = {})
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 px-6 py-4 shadow-sm
                       flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-xs text-slate-400 mb-0.5">Today — {dateStr}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{t('todayIs', { date: dateStr })}</p>
           <p className="text-2xl font-bold text-teal-700 dark:text-teal-400 tabular-nums">
             {summary?.total_taps ?? 0}
             <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2">{t('tapsRecorded')}</span>

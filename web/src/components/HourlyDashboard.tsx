@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -9,6 +9,9 @@ import {
   YAxis,
 } from 'recharts'
 import { analytics } from '../api/client'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
+import { shiftIso, weekdayMon0 } from '../lib/businessTime'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { WeekdayHourlyEntry, WeekdayHourlyResponse, WeekdayHourlySlot } from '../api/types'
@@ -89,20 +92,15 @@ function translateWeekdayFull(weekday: string, t: ReturnType<typeof useLanguage>
   return key ? t(key as Parameters<typeof t>[0]) : weekday
 }
 
-function jsDayToPython(jsDay: number): number {
-  return jsDay === 0 ? 6 : jsDay - 1
+/** Tomorrow on the BUSINESS's calendar, from its own today. */
+function tomorrowPyWeekday(businessToday: string): number {
+  return weekdayMon0(shiftIso(businessToday, 1))
 }
 
-function tomorrowPyWeekday(): number {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  return jsDayToPython(d.getDay())
-}
-
-function tomorrowName(): string {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  return d.toLocaleDateString('en-GB', { weekday: 'long' })
+function tomorrowName(businessToday: string, locale: string): string {
+  const [y, m, d] = shiftIso(businessToday, 1).split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d))
+    .toLocaleDateString(locale, { weekday: 'long', timeZone: 'UTC' })
 }
 
 const MIN_DAYS = 7
@@ -275,9 +273,10 @@ function TomorrowPanel({
 
 function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
   const { t, lang } = useLanguage()
+  const { today } = useBusinessTime()
   const fmtNote = (slot: WeekdayHourlySlot) => formatMarginalNote(slot, t, lang)
   const [open, setOpen] = useState<number | null>(null)
-  const tomorrowIdx = tomorrowPyWeekday()
+  const tomorrowIdx = tomorrowPyWeekday(today)
 
   if (weekdays.length === 0) return null
 
@@ -372,18 +371,22 @@ function WeekdayAccordion({ weekdays }: { weekdays: WeekdayHourlyEntry[] }) {
 // ── main component ────────────────────────────────────────────────────────────
 
 export default function HourlyDashboard() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const { today } = useBusinessTime()
   const [data, setData]     = useState<WeekdayHourlyResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError]   = useState<string | null>(null)
+  const [error, setError]   = useState<unknown>(null)
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setLoading(true)
+    setError(null)
     analytics.hourlyByWeekday()
       .then(setData)
-      .catch(e => setError(String(e)))
+      .catch(setError)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { reload() }, [reload])
 
   if (loading) {
     return (
@@ -393,14 +396,7 @@ export default function HourlyDashboard() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="p-5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-sm text-red-700 dark:text-red-300">
-        {t('couldntLoadHourly')}
-        <span className="block mt-1 text-xs text-red-400">{error}</span>
-      </div>
-    )
-  }
+  if (error) return <LoadError error={error} onRetry={reload} />
 
   if (!data || data.status !== 'ok') {
     return (
@@ -411,8 +407,8 @@ export default function HourlyDashboard() {
     )
   }
 
-  const pyWd = tomorrowPyWeekday()
-  const dayName = tomorrowName()
+  const pyWd = tomorrowPyWeekday(today)
+  const dayName = tomorrowName(today, lang)
   const tomorrowEntry = data.weekdays.find(w => w.weekday_idx === pyWd) ?? null
   const isFallback = tomorrowEntry === null || tomorrowEntry.hours.length === 0
   const slots: WeekdayHourlySlot[] = isFallback

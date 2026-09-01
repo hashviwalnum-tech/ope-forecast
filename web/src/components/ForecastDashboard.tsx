@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -9,6 +9,9 @@ import {
   YAxis,
 } from 'recharts'
 import { analytics, orders as ordersApi } from '../api/client'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
+import LoadError from './LoadError'
+import { describeStock, pendingArrivalQty } from '../lib/stockLabel'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type {
@@ -366,8 +369,11 @@ function OrderingProductCard({
   const { t } = useLanguage()
   const noHistory = (p.n_days_data ?? 0) === 0
   const hasQty = p.suggested_order_qty != null && p.suggested_order_qty > 0
-  const stockUntracked = p.stock_untracked ?? false
-  const displayStock = p.projected_stock ?? p.current_stock
+  // Counted or estimated — the card must not present one as the other.
+  const stock = describeStock(p)
+  const stockUntracked = stock.kind === 'untracked'
+  const displayStock = stock.kind === 'untracked' ? null : stock.qty
+  const onTheWay = pendingArrivalQty(ordersByProduct.get(p.product_id))
   const isFav = (p as OrderingRow & { is_favorite?: boolean }).is_favorite
   const uMode = p.unit_mode ?? 'whole'
 
@@ -410,10 +416,19 @@ function OrderingProductCard({
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             ~{p.avg_daily_demand} {p.unit}{t('perDaySuffix')} · {t('restockInNDays', { n: String(p.lead_time_days) })}
-            {displayStock != null && !stockUntracked
-              ? ` · ${t('inStockSuffix', { qty: `${displayStock} ${p.unit}` })}`
-              : stockUntracked ? ` · ${t('setStartingStockHint')}` : ''}
+            {stock.kind === 'counted'
+              ? ` · ${t('inStockSuffix', { qty: `${stock.qty} ${p.unit}` })}`
+              : stock.kind === 'estimated'
+                ? ` · ${t('estimatedLeftNow', { qty: `${stock.qty} ${p.unit}` })}`
+                : ` · ${t('setStartingStockHint')}`}
           </p>
+          {stock.kind === 'estimated' && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+              {stock.countedOn
+                ? t('lastCountedOn', { qty: `${stock.counted} ${p.unit}`, date: stock.countedOn })
+                : t('lastCountedNoDate', { qty: `${stock.counted} ${p.unit}` })}
+            </p>
+          )}
         </div>
         <div className="shrink-0 text-right">
           {p.order_now ? (
@@ -430,7 +445,7 @@ function OrderingProductCard({
             <span className="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-semibold">
               ⚠ {t('reorderWhenBelow')}
             </span>
-          ) : displayStock != null && !stockUntracked ? (
+          ) : !stockUntracked ? (
             <span className="inline-block px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">
               {t('youreGood')}
             </span>
@@ -452,6 +467,14 @@ function OrderingProductCard({
           </span>
         )}
       </div>
+      {/* "Order 2,107" beside "in transit: 2,961" reads as a mistake unless the
+          card says the advice goes by what is on the shelf, not what is coming. */}
+      {p.order_now && onTheWay > 0 && (
+        <p className="px-4 py-2 text-xs text-slate-600 dark:text-slate-300 leading-snug
+                      border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
+          {t('onTheWayNotCounted', { qty: `${fmtQty(onTheWay)} ${p.unit}` })}
+        </p>
+      )}
       <ProductOrderActions
         productId={p.product_id}
         unit={p.unit}
@@ -534,15 +557,18 @@ export function WeekPredictionPanel({ refreshKey = 0 }: PanelProps) {
   const { t } = useLanguage()
   const [forecast, setForecast] = useState<ForecastResponse | null>(null)
   const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState<string | null>(null)
+  const [error, setError]       = useState<unknown>(null)
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setLoading(true)
+    setError(null)
     analytics.forecast()
       .then(setForecast)
-      .catch(e => setError(String(e)))
+      .catch(setError)
       .finally(() => setLoading(false))
-  }, [refreshKey])
+  }, [])
+
+  useEffect(() => { reload() }, [refreshKey, reload])
 
   if (loading) {
     return (
@@ -555,7 +581,7 @@ export function WeekPredictionPanel({ refreshKey = 0 }: PanelProps) {
   if (error) {
     return (
       <Card title={t('weekPredictionTitle')}>
-        <p className="text-sm text-red-600 dark:text-red-400 py-4">{error}</p>
+        <LoadError error={error} onRetry={reload} />
       </Card>
     )
   }
@@ -572,9 +598,9 @@ export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
   const [ordering, setOrdering] = useState<OrderingResponse | null>(null)
   const [allOrders, setAllOrders] = useState<OrderRecordRead[]>([])
   const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState<string | null>(null)
+  const [error, setError]       = useState<unknown>(null)
 
-  const today = new Date().toISOString().slice(0, 10)
+  const { today } = useBusinessTime()
 
   const ordersByProduct = useMemo(() => {
     const map = new Map<number, OrderRecordRead[]>()
@@ -596,13 +622,16 @@ export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
     } catch { /* ignore */ }
   }
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setLoading(true)
+    setError(null)
     Promise.all([analytics.ordering(), ordersApi.list()])
       .then(([ord, list]) => { setOrdering(ord); setAllOrders(list) })
-      .catch(e => setError(String(e)))
+      .catch(setError)
       .finally(() => setLoading(false))
-  }, [refreshKey])
+  }, [])
+
+  useEffect(() => { reload() }, [refreshKey, reload])
 
   if (loading) {
     return (
@@ -615,7 +644,7 @@ export function OrderingPanel({ refreshKey = 0 }: PanelProps) {
   if (error) {
     return (
       <Card title={t('whatToOrderTitle')}>
-        <p className="text-sm text-red-600 dark:text-red-400 py-4">{error}</p>
+        <LoadError error={error} onRetry={reload} />
       </Card>
     )
   }

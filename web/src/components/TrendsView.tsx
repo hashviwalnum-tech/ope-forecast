@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Area, AreaChart, Bar, BarChart,
   CartesianGrid, ResponsiveContainer,
   Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { analytics } from '../api/client'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { MonthlyResponse, MonthSummary } from '../api/types'
@@ -166,15 +167,18 @@ export default function TrendsView() {
   const { isDark } = useTheme()
   const [data, setData] = useState<MonthlyResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setLoading(true)
+    setError(null)
     analytics.monthlySummary()
       .then(setData)
-      .catch(e => setError(String(e)))
+      .catch(setError)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { reload() }, [reload])
 
   const tickFill    = isDark ? '#94a3b8' : '#64748b'
   const gridStroke  = isDark ? '#334155' : '#e2e8f0'
@@ -187,14 +191,7 @@ export default function TrendsView() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="p-5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-sm text-red-700 dark:text-red-300">
-        {t('trendsLoadingError')}
-        <span className="block mt-1 text-xs text-red-400 dark:text-red-500">{error}</span>
-      </div>
-    )
-  }
+  if (error) return <LoadError error={error} onRetry={reload} />
 
   if (!data || data.status !== 'ok' || data.months.length === 0) {
     return <NotEnoughData message={data?.message} />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { recurringPatterns as api } from '../api/client'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { RecurringPatternCreate, RecurringPatternRead } from '../api/types'
 
@@ -10,6 +11,7 @@ export default function RecurringPatternsPanel() {
   const { t } = useLanguage()
   const [rows, setRows]       = useState<RecurringPatternRead[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<unknown>(null)
   const [adding, setAdding]   = useState(false)
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
@@ -46,7 +48,8 @@ export default function RecurringPatternsPanel() {
 
   async function load() {
     setLoading(true)
-    try { setRows(await api.list()) } catch { /* ignore */ }
+    setLoadError(null)
+    try { setRows(await api.list()); } catch (e) { setLoadError(e) }
     finally { setLoading(false) }
   }
 
@@ -221,7 +224,9 @@ export default function RecurringPatternsPanel() {
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500">{t('savingLabel')}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{t('loadingLabel')}</p>
+      ) : loadError ? (
+        <LoadError error={loadError} onRetry={load} />
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 p-8 text-center">
           <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">{t('noRecurringPatterns')}</p>

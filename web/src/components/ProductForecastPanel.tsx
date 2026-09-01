@@ -9,6 +9,7 @@ import {
   YAxis,
 } from 'recharts'
 import { analytics, orders as ordersApi } from '../api/client'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { OrderRecordRead, ProductForecastItem, ProductForecastResponse } from '../api/types'
 
@@ -86,6 +87,7 @@ function OrderCard({
   onOrderPlaced: (order: OrderRecordRead) => void
 }) {
   const { t } = useLanguage()
+  const { today } = useBusinessTime()
   const { unit } = item
 
   const [showOrderForm, setShowOrderForm] = useState(false)
@@ -101,7 +103,6 @@ function OrderCard({
     if (isNaN(qty) || qty <= 0) return
     setSubmitting(true)
     try {
-      const today = new Date().toISOString().slice(0, 10)
       const order = await ordersApi.create({
         product_id: item.product_id,
         ordered_date: today,

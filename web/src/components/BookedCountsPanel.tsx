@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react'
 import { bookedCounts as api, products as productsApi } from '../api/client'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { BookedCountRead, ProductRead } from '../api/types'
-
-function todayStr(): string {
-  return new Date().toISOString().slice(0, 10)
-}
 
 type Target = 'business' | number
 
 export default function BookedCountsPanel() {
   const { t } = useLanguage()
+  const { today: todayStr } = useBusinessTime()
   const [services, setServices] = useState<ProductRead[]>([])
   const [target, setTarget]   = useState<Target>('business')
   const [rows, setRows]       = useState<BookedCountRead[]>([])
   const [loading, setLoading] = useState(true)
-  const [date, setDate]       = useState(todayStr())
+  const [loadError, setLoadError] = useState<unknown>(null)
+  const [date, setDate]       = useState(todayStr)
   const [count, setCount]     = useState('')
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
@@ -28,7 +28,8 @@ export default function BookedCountsPanel() {
 
   async function load() {
     setLoading(true)
-    try { setRows(await api.list(target === 'business' ? undefined : target)) } catch { /* ignore */ }
+    setLoadError(null)
+    try { setRows(await api.list(target === 'business' ? undefined : target)) } catch (e) { setLoadError(e) }
     finally { setLoading(false) }
   }
 
@@ -59,7 +60,7 @@ export default function BookedCountsPanel() {
     load()
   }
 
-  const today = todayStr()
+  const today = todayStr
   const upcoming = rows.filter(r => r.date >= today)
   const past = rows.filter(r => r.date < today)
 
@@ -126,7 +127,9 @@ export default function BookedCountsPanel() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500">{t('savingLabel')}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{t('loadingLabel')}</p>
+      ) : loadError ? (
+        <LoadError error={loadError} onRetry={load} />
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 p-8 text-center">
           <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">{t('noBookedCounts')}</p>

@@ -1,3 +1,5 @@
+from zoneinfo import ZoneInfo
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
@@ -15,8 +17,36 @@ FREE_BUSINESS_LIMIT = 1  # §10: free = one location; premium = more
 router = APIRouter(prefix="/businesses", tags=["Businesses"])
 
 
+def _valid_timezone(v: str | None) -> str | None:
+    """Accept only IANA zone names the server can actually resolve.
+
+    A business's whole notion of "today" hangs off this (see app/clock.py), so a
+    typo must be refused rather than stored — a silently wrong zone files a day's
+    sales under the wrong date, which is exactly the class of bug this field
+    exists to close.
+    """
+    if v is None:
+        return None
+    name = v.strip()
+    if not name:
+        return None
+    try:
+        ZoneInfo(name)
+    except Exception:
+        raise ValueError(f"{v!r} is not a known time zone name.")
+    return name
+
+
 class BusinessCreate(BaseModel):
     name: str
+    # Sent by the client from the device at sign-up, so the server's "today" and
+    # the screen's "today" agree from the first day.
+    timezone: str | None = None
+
+    @field_validator("timezone")
+    @classmethod
+    def _known_timezone(cls, v: str | None) -> str | None:
+        return _valid_timezone(v)
 
 
 class BusinessRead(BaseModel):
@@ -53,6 +83,11 @@ class BusinessSettingsUpdate(BaseModel):
     nudge_frequency_hours: int | None = Field(None, ge=1, le=168)  # min hours between Telegram nudges
     appointment_based: bool | None = None           # owner takes appointments — blend booked counts into the forecast
     currency: str | None = None                     # ISO 4217 code, e.g. "ILS" — every money figure is shown in this
+
+    @field_validator("timezone")
+    @classmethod
+    def _known_timezone(cls, v: str | None) -> str | None:
+        return _valid_timezone(v)
 
     @field_validator("currency")
     @classmethod
@@ -131,7 +166,10 @@ def create_business(
             status_code=403,
             detail="Multiple locations require a premium plan. Upgrade in Settings.",
         )
-    biz = Business(name=body.name.strip(), user_id=user_id, settings={})
+    settings: dict = {}
+    if body.timezone:
+        settings["timezone"] = body.timezone
+    biz = Business(name=body.name.strip(), user_id=user_id, settings=settings)
     db.add(biz)
     db.commit()
     db.refresh(biz)

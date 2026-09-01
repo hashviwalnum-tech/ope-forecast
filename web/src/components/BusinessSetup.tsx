@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import * as api from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
+import { deviceTimeZone } from '../lib/businessTime'
 import type { BusinessRead } from '../api/types'
 
 interface Props {
@@ -43,7 +44,7 @@ export default function BusinessSetup({
       if (mode === 'copy' && copySourceId) {
         biz = await api.businesses.copyFrom(copySourceId, name.trim())
       } else {
-        biz = await api.businesses.create(name.trim())
+        biz = await api.businesses.create(name.trim(), deviceTimeZone())
       }
       onCreated(biz)
     } catch (err: unknown) {

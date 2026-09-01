@@ -9,6 +9,28 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'Turn cards on or off, and use the arrows to change their order.',
+    moveUpLabel: 'Move {name} up',
+    moveDownLabel: 'Move {name} down',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'about {qty} left now',
+    lastCountedOn: 'our estimate — you counted {qty} on {date}',
+    lastCountedNoDate: 'our estimate — you last counted {qty}',
+    onTheWayNotCounted: 'This doesn\'t count the {qty} already on the way — it goes by what is on your shelf now. If those arrive before you run low, you can order less.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'We couldn\'t reach Ope just now',
+    loadFailedBody: 'Check your connection and try again.',
+    loadFailedServerTitle: 'Ope ran into a problem',
+    loadFailedServerBody: 'Something went wrong at our end, not yours. Try again in a moment.',
+    loadFailedDataSafe: 'Nothing was lost — all your data is safe.',
+    tryAgainBtn: 'Try again',
+    stillTryingMsg: 'Still trying to reach Ope — this can take up to a minute after a quiet spell.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'Your time zone',
+    timeZoneDesc: 'This decides what "today" means for your business — which day a sale is filed under, and when the day is finished. Set it to where you actually trade.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'Today — {date}',
     toolboxOffline: 'Could not work that out just now — Ope could not be reached. Check your connection; your numbers are still here.',
     toolboxWorking: 'Working it out…',
     tourSettingsAppointmentsTitle: 'Do you take bookings?',
@@ -130,7 +152,7 @@ export const translations = {
     customizeTitle: 'Customize your home',
     resetDefault: 'Reset to default',
     done: 'Done',
-    toggleAndDrag: 'Toggle cards on/off and drag to reorder.',
+    
 
     // Record a Regular panel
     recordRegularTitle: "Record a regular's visit",
@@ -286,7 +308,6 @@ export const translations = {
 
     // Trends view
     trendsLoading: 'Loading trends…',
-    trendsLoadingError: "Couldn't load trends — is the backend running?",
     trendsNoHistoryTitle: 'No history yet',
     trendsNoHistoryMsg: 'Add daily customer counts in "Log Today" or "Add Past Day" and your monthly trends will appear here.',
     momTitle: 'Month-over-month',
@@ -411,7 +432,6 @@ export const translations = {
     todayAlreadyLoggedMsg: 'Today is already logged — find it in Past Days to edit it.',
 
     // DayList
-    failedToLoadData: "Failed to load data. Is the backend running?",
     deleteDayConfirm: 'Delete this day and its sales?',
     loadingYourDays: 'Loading your days…',
     noDaysLoggedYet: "No days logged yet — and that\'s a fine place to start! Switch to {addToday} to record your first day.",
@@ -501,7 +521,6 @@ export const translations = {
 
     // Predictions panel
     loadingPredictions: 'Loading predictions…',
-    cantLoadPredictions: "Couldn't load predictions — is the backend running?",
     howPredictionsDid: 'How our predictions did',
     howAppDoing: 'How well is the app doing?',
     averageError: 'Average error',
@@ -610,7 +629,6 @@ export const translations = {
     tomorrowBadge: 'tomorrow',
     basedOnNDays: 'Based on {n} {weekday} recording{s}',
     loadingHourlyData: 'Loading hourly data…',
-    couldntLoadHourly: "Couldn't load hourly data — is the backend running?",
     marginalNoteLabel: 'Adding or removing staff:',
 
     // ProductForecastPanel — strings missing translation (identified in audit)
@@ -904,7 +922,6 @@ export const translations = {
     insightsNoAccuracy: 'Log a few weeks of data to see how accurate your forecasts are.',
     insightsNotEnoughDays: 'Need at least 7 days of data to show patterns.',
     insightsLoading: 'Loading insights…',
-    insightsLoadError: "Couldn't load insights — is the backend running?",
     insightsSectionTrends: 'Your business is changing',
     insightsTrendGrowing: '{weekday}s are up {pct}% over the past 3 months',
     insightsTrendDeclining: '{weekday}s are down {pct}% over the past 3 months',
@@ -1007,7 +1024,7 @@ export const translations = {
     tourInsightsHoursTitle: 'Your peak hours',
     tourInsightsHoursBody: "Once you've used 'Record a Sale' for a few weeks, Ope shows your busiest and quietest hours of the day. Use this to plan prep time, staff breaks, or to know when you'll need all hands on deck.",
     tourInsightsYoYTitle: 'Year-over-year comparison',
-    tourInsightsYoYBody: "Once you have a year of history, Ope compares this month to the same month last year — so you know whether your business is growing, holding steady, or slipping, without doing the maths yourself. It also warns you in advance if a historically busy season is coming up.",
+    tourInsightsYoYBody: 'Once Ope has this month and the same month a year earlier to compare — so a bit over a year of history — it shows whether your business is growing, holding steady, or slipping, without you doing the maths. It also warns you in advance when a season that was busy before is coming round again.',
     tourInsightsAccuracyTitle: 'Forecast accuracy over time',
     tourInsightsAccuracyBody: "This shows how accurate your forecasts have been getting. Ope typically starts rough and improves as it learns your patterns — you'll see the improvement here as a real percentage. The lower the error, the more you can rely on the forecast for ordering and staffing decisions.",
     tourInsightsTrendsTitle: 'Changes worth noticing',
@@ -1061,7 +1078,6 @@ export const translations = {
     // Premium / billing page
     premiumBilling: 'Premium & Billing',
     tabPremium: 'Premium & Billing',
-    premiumLoadingError: "Couldn't load subscription info — is the backend running?",
     premiumStatusBadgeTrial: 'Free Trial',
     premiumStatusBadgePremium: 'Premium',
     premiumStatusBadgeFree: 'Free',
@@ -1105,6 +1121,28 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'הפעל או כבה כרטיסים, והשתמש בחצים כדי לשנות את הסדר שלהם.',
+    moveUpLabel: 'העבר את {name} למעלה',
+    moveDownLabel: 'העבר את {name} למטה',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'נשארו בערך {qty} עכשיו',
+    lastCountedOn: 'ההערכה שלנו — ספרת {qty} בתאריך {date}',
+    lastCountedNoDate: 'ההערכה שלנו — לאחרונה ספרת {qty}',
+    onTheWayNotCounted: 'זה לא כולל את {qty} שכבר בדרך — החישוב מבוסס על מה שיש על המדף עכשיו. אם הם יגיעו לפני שתיגמר לך הסחורה, אפשר להזמין פחות.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'לא הצלחנו להגיע ל-Ope כרגע',
+    loadFailedBody: 'בדוק את החיבור שלך ונסה שוב.',
+    loadFailedServerTitle: 'Ope נתקל בבעיה',
+    loadFailedServerBody: 'משהו השתבש אצלנו, לא אצלך. נסה שוב בעוד רגע.',
+    loadFailedDataSafe: 'שום דבר לא אבד — כל הנתונים שלך שמורים.',
+    tryAgainBtn: 'נסה שוב',
+    stillTryingMsg: 'עדיין מנסים להגיע ל-Ope — זה יכול לקחת עד דקה אחרי תקופה של חוסר פעילות.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'אזור הזמן שלך',
+    timeZoneDesc: 'זה קובע מה זה "היום" עבור העסק שלך — לאיזה יום נרשמת מכירה, ומתי היום נגמר. הגדר לפי המקום שבו אתה באמת עובד.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'היום — {date}',
     toolboxOffline: 'לא הצלחנו לחשב את זה כרגע — אין חיבור ל-Ope. בדוק את החיבור; המספרים שלך נשמרו.',
     toolboxWorking: 'מחשב…',
     tourSettingsAppointmentsTitle: 'אתם מקבלים הזמנות מראש?',
@@ -1226,7 +1264,7 @@ export const translations = {
     customizeTitle: 'התאם את הדף הראשי שלך',
     resetDefault: 'אפס לברירת מחדל',
     done: 'סיום',
-    toggleAndDrag: 'הפעל/כבה כרטיסים וגרור לסידור מחדש.',
+    
 
     // Record a Regular panel
     recordRegularTitle: 'רשום ביקור של לקוח קבוע',
@@ -1382,7 +1420,6 @@ export const translations = {
 
     // Trends view
     trendsLoading: 'טוען מגמות…',
-    trendsLoadingError: 'לא ניתן לטעון מגמות — האם השרת פועל?',
     trendsNoHistoryTitle: 'עדיין אין היסטוריה',
     trendsNoHistoryMsg: 'הוסף ספירות לקוחות יומיות ב"תעד היום" או "הוסף יום קודם" והמגמות החודשיות שלך יופיעו כאן.',
     momTitle: 'חודש מול חודש',
@@ -1507,7 +1544,6 @@ export const translations = {
     todayAlreadyLoggedMsg: 'היום כבר מתועד — מצא אותו ב"ימים קודמים" לעריכה.',
 
     // DayList
-    failedToLoadData: "טעינת הנתונים נכשלה. האם השרת פועל?",
     deleteDayConfirm: 'למחוק את היום הזה ואת המכירות שלו?',
     loadingYourDays: 'טוען את הימים שלך…',
     noDaysLoggedYet: "עדיין לא תועדו ימים — זה מקום טוב להתחיל! עבור ל-{addToday} כדי לרשום את היום הראשון.",
@@ -1597,7 +1633,6 @@ export const translations = {
 
     // Predictions panel
     loadingPredictions: 'טוען תחזיות…',
-    cantLoadPredictions: 'לא ניתן לטעון תחזיות — האם השרת פועל?',
     howPredictionsDid: 'כיצד התחזיות שלנו עבדו',
     howAppDoing: 'כמה טוב האפליקציה עובדת?',
     averageError: 'שגיאה ממוצעת',
@@ -1706,7 +1741,6 @@ export const translations = {
     tomorrowBadge: 'מחר',
     basedOnNDays: 'מבוסס על {n} רשומות {weekday}',
     loadingHourlyData: 'טוען נתוני שעות…',
-    couldntLoadHourly: 'לא ניתן לטעון נתוני שעות — האם השרת פועל?',
     marginalNoteLabel: 'הוספה/הסרה של עובד:',
 
     // ProductForecastPanel — Hebrew translations
@@ -2000,7 +2034,6 @@ export const translations = {
     insightsNoAccuracy: 'רשום כמה שבועות של נתונים כדי לראות עד כמה התחזיות שלך מדויקות.',
     insightsNotEnoughDays: 'צריך לפחות 7 ימים של נתונים להצגת דפוסים.',
     insightsLoading: 'טוען תובנות…',
-    insightsLoadError: 'לא ניתן לטעון תובנות — האם השרת פועל?',
     insightsSectionTrends: 'העסק שלך משתנה',
     insightsTrendGrowing: '{weekday}ים עלו ב-{pct}% ב-3 החודשים האחרונים',
     insightsTrendDeclining: '{weekday}ים ירדו ב-{pct}% ב-3 החודשים האחרונים',
@@ -2103,7 +2136,7 @@ export const translations = {
     tourInsightsHoursTitle: 'שעות השיא שלך',
     tourInsightsHoursBody: "לאחר שתשתמש ב'רשום מכירה' מספר שבועות, Ope מציג את השעות העמוסות והשקטות של היום שלך. השתמש בזה לתכנון זמן הכנה, הפסקות עובדים, או לדעת מתי תצטרך כל הכוחות.",
     tourInsightsYoYTitle: 'השוואה שנה-על-שנה',
-    tourInsightsYoYBody: 'ברגע שיש לך שנה של היסטוריה, Ope משווה את החודש הנוכחי לאותו חודש אשתקד — כך תדע אם העסק שלך צומח, יציב, או מדשדש, מבלי לחשב בעצמך. הוא גם מזהיר מראש אם עונה עמוסה היסטורית מתקרבת.',
+    tourInsightsYoYBody: 'ברגע של-Ope יש את החודש הנוכחי וגם את אותו חודש בשנה שעברה להשוואה — כלומר קצת יותר משנה של היסטוריה — הוא יראה אם העסק שלך צומח, יציב או מדשדש, בלי שתחשב בעצמך. הוא גם יזהיר מראש כשעונה שהייתה עמוסה בעבר חוזרת.',
     tourInsightsAccuracyTitle: 'דיוק התחזית לאורך זמן',
     tourInsightsAccuracyBody: 'כאן רואים כמה מדויקות התחזיות שלך. Ope בדרך כלל מתחיל גס ומשתפר ככל שהוא לומד את הדפוסים שלך — השיפור מוצג כאחוז אמיתי. ככל שהשגיאה נמוכה יותר, כך ניתן להסתמך יותר על התחזית להחלטות הזמנה וסגל.',
     tourInsightsTrendsTitle: 'שינויים שכדאי לשים לב אליהם',
@@ -2157,7 +2190,6 @@ export const translations = {
     // Premium / billing page
     premiumBilling: 'פרמיום וחיוב',
     tabPremium: 'פרמיום וחיוב',
-    premiumLoadingError: 'לא ניתן לטעון מידע על המנוי — האם השרת פועל?',
     premiumStatusBadgeTrial: 'ניסיון חינם',
     premiumStatusBadgePremium: 'פרמיום',
     premiumStatusBadgeFree: 'חינמי',
@@ -2201,6 +2233,28 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: '开启或关闭卡片，用箭头调整顺序。',
+    moveUpLabel: '将 {name} 上移',
+    moveDownLabel: '将 {name} 下移',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: '目前大约还剩 {qty}',
+    lastCountedOn: '这是我们的估算 — 您在 {date} 清点为 {qty}',
+    lastCountedNoDate: '这是我们的估算 — 您上次清点为 {qty}',
+    onTheWayNotCounted: '这没有算上已经在路上的 {qty}，只按您货架上现有的数量计算。如果它们在您用完之前到货，可以少订一些。',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: '暂时无法连接到 Ope',
+    loadFailedBody: '请检查网络连接后重试。',
+    loadFailedServerTitle: 'Ope 遇到了问题',
+    loadFailedServerBody: '这是我们这边出了问题，不是您的问题。请稍后重试。',
+    loadFailedDataSafe: '没有丢失任何东西——您的数据都很安全。',
+    tryAgainBtn: '重试',
+    stillTryingMsg: '仍在连接 Ope——闲置一段时间后可能需要一分钟左右。',
+    // The business own clock — what "today" means here
+    timeZoneLabel: '您的时区',
+    timeZoneDesc: '这决定了对您的店铺来说"今天"是哪一天——一笔销售记在哪一天，以及一天何时结束。请设置为您实际营业的地点。',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: '今天 — {date}',
     toolboxOffline: '暂时无法计算 — 无法连接到 Ope。请检查网络连接；您输入的数字仍在。',
     toolboxWorking: '正在计算…',
     tourSettingsAppointmentsTitle: '您接受预约吗？',
@@ -2275,7 +2329,7 @@ export const translations = {
     cardAccuracy: '预测效果', cardTrends: '月度趋势',
     customizeHome: '自定义主页', customizeTitle: '自定义您的主页',
     resetDefault: '重置为默认', done: '完成',
-    toggleAndDrag: '打开/关闭卡片并拖动以重新排序。',
+    
     recordRegularTitle: '记录常客访问', visitRecordedFor: '已为 {name} 记录访问',
     noRegularsYet: '尚未添加常客。',
     goToRegulars: '前往管理 → 我的常客以添加忠实客户。',
@@ -2358,7 +2412,7 @@ export const translations = {
     nudgesFrequencyLabel: 'Telegram 提醒之间的最少小时数',
     nudgeBannerTitle: '注意', nudgeDismiss: '忽略',
     addToHome: '添加到主页', removeFromHome: '从主页删除', addedToHomeConfirm: '已添加！',
-    trendsLoading: '正在加载趋势…', trendsLoadingError: '无法加载趋势 — 后端是否正在运行？',
+    trendsLoading: '正在加载趋势…', 
     trendsNoHistoryTitle: '尚无历史记录',
     trendsNoHistoryMsg: '在"记录今天"或"添加历史日期"中添加每日客户数，您的月度趋势将显示在这里。',
     momTitle: '月度对比', avgCustomersPerDay: '平均客户数/天',
@@ -2424,7 +2478,6 @@ export const translations = {
     notReadyToLogYet: '尚未准备好记录', fixEarlierDayNote: '需要修正早些时候的天？请使用历史日期。',
     todayOverwritePrompt: '今天已有记录。用此数据覆盖，还是取消？',
     saveTodayBtn: '保存今天', todayAlreadyLoggedMsg: '今天已记录 — 在历史日期中找到它以编辑。',
-    failedToLoadData: '加载数据失败。后端是否正在运行？',
     deleteDayConfirm: '删除这一天及其销售记录？', loadingYourDays: '正在加载您的记录…',
     noDaysLoggedYet: '尚未记录任何天 — 这是个很好的起点！切换到 {addToday} 记录您的第一天。',
     dateColLabel: '日期', dayColLabel: '星期', daysTotal: '共 {n} 天',
@@ -2470,7 +2523,7 @@ export const translations = {
     weekdayFull_Thursday: '星期四', weekdayFull_Friday: '星期五',
     weekdayFull_Saturday: '星期六', weekdayFull_Sunday: '星期日',
     amLabel: '上午', pmLabel: '下午',
-    loadingPredictions: '正在加载预测…', cantLoadPredictions: '无法加载预测 — 后端是否正在运行？',
+    loadingPredictions: '正在加载预测…', 
     howPredictionsDid: '我们的预测表现如何', howAppDoing: '应用程序运行有多好？',
     averageError: '平均误差', howFarOff: '偏差多少（%）', offByLabel: '偏差',
     customersOnAverage: '客户，平均', driftCheck: '偏移检查', driftNote: '±4 或以上 = 值得关注',
@@ -2525,7 +2578,6 @@ export const translations = {
     personLabel: '人', peopleLabel: '人', peakHoursByDay: '各天高峰时段',
     busiestHourEachDay: '每周每天最繁忙的时段。', tomorrowBadge: '明天',
     basedOnNDays: '基于 {n} 个 {weekday} 的记录', loadingHourlyData: '正在加载每小时数据…',
-    couldntLoadHourly: '无法加载每小时数据 — 后端是否正在运行？',
     marginalNoteLabel: '增减员工：', forecastByProduct: '按产品预测',
     productForecastNoProducts: '在"我的产品"中添加产品，然后记录每个产品的销售 — 您将在这里看到每个产品的需求预测和订购建议。',
     productSelectorDesc: '选择一个产品查看本周需要多少以及何时重新订购。红色 = 立即订购 · 绿色 = 库存充足 · 灰色 = 数据不足。',
@@ -2688,7 +2740,7 @@ export const translations = {
     insightsAccuracyImproving: '越来越好 — 从约 {early}% 误差开始，现在约 {recent}%。',
     insightsAccuracyStable: '目前约 {recent}% 平均误差。',
     insightsNoAccuracy: '记录几周数据以查看预测准确性。',
-    insightsLoading: '正在加载洞察…', insightsLoadError: '无法加载洞察 — 后端是否正在运行？',
+    insightsLoading: '正在加载洞察…', 
     insightsSectionTrends: '您的业务正在变化',
     insightsTrendGrowing: '{weekday} 在过去3个月增长了 {pct}%',
     insightsTrendDeclining: '{weekday} 在过去3个月下降了 {pct}%',
@@ -2753,7 +2805,7 @@ export const translations = {
     tourInsightsHoursTitle: '您的高峰时段',
     tourInsightsHoursBody: '一旦您使用"记录销售"几周后，Ope 将显示您一天中最繁忙和最安静的时段。用这个来规划准备时间或了解何时需要全员上阵。',
     tourInsightsYoYTitle: '同比比较',
-    tourInsightsYoYBody: '一旦您有一年的历史记录，Ope 就会将本月与去年同月进行比较 — 让您知道您的业务是在增长、保持稳定还是在下滑，无需自己计算。',
+    tourInsightsYoYBody: '当 Ope 同时拥有本月和去年同月的数据可供比较时（也就是一年多一点的历史），它会告诉您生意在增长、持平还是下滑，不用您自己算。它也会在以往旺季再次到来前提前提醒您。',
     tourInsightsAccuracyTitle: '随时间变化的预测准确性',
     tourInsightsAccuracyBody: '这显示您的预测有多准确。Ope 通常从粗略开始，随着学习您的规律而改进 — 误差越低，您越能依赖预测做订购和人员配置决策。',
     tourInsightsTrendsTitle: '值得注意的变化',
@@ -2795,7 +2847,6 @@ export const translations = {
     tourSettingsTelegramTitle: '连接 Telegram',
     tourSettingsTelegramBody: '将您的账户链接到 Ope Telegram 机器人，这样您就可以通过聊天记录销售并获取每日预测。在这里生成链接代码，然后将其发送给机器人。',
     premiumBilling: '高级版与账单', tabPremium: '高级版与账单',
-    premiumLoadingError: '无法加载订阅信息 — 后端是否正在运行？',
     premiumStatusBadgeTrial: '免费试用', premiumStatusBadgePremium: '高级', premiumStatusBadgeFree: '免费',
     premiumTrialEndsIn: '您的免费试用在 {n} 天内结束', premiumTrialEnded: '您的免费试用已结束',
     premiumTrialActive: '在免费试用期间，您可以访问所有功能。',
@@ -2820,6 +2871,28 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'Activa o desactiva tarjetas y usa las flechas para cambiar su orden.',
+    moveUpLabel: 'Subir {name}',
+    moveDownLabel: 'Bajar {name}',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'quedan unos {qty} ahora',
+    lastCountedOn: 'es nuestra estimación: contaste {qty} el {date}',
+    lastCountedNoDate: 'es nuestra estimación: la última vez contaste {qty}',
+    onTheWayNotCounted: 'Esto no cuenta los {qty} que ya vienen en camino: se basa en lo que tienes ahora en la estantería. Si llegan antes de quedarte corto, puedes pedir menos.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'No pudimos conectar con Ope ahora mismo',
+    loadFailedBody: 'Comprueba tu conexión e inténtalo de nuevo.',
+    loadFailedServerTitle: 'Ope tuvo un problema',
+    loadFailedServerBody: 'Ha fallado algo de nuestro lado, no del tuyo. Inténtalo en un momento.',
+    loadFailedDataSafe: 'No se ha perdido nada: todos tus datos están a salvo.',
+    tryAgainBtn: 'Reintentar',
+    stillTryingMsg: 'Seguimos intentando conectar con Ope: tras un rato inactivo puede tardar hasta un minuto.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'Tu zona horaria',
+    timeZoneDesc: 'Esto decide qué significa "hoy" para tu negocio: en qué día se registra una venta y cuándo termina el día. Ponlo donde realmente trabajas.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'Hoy — {date}',
     toolboxOffline: 'No se pudo calcular ahora mismo — no se pudo contactar con Ope. Comprueba tu conexión; tus números siguen aquí.',
     toolboxWorking: 'Calculando…',
     tourSettingsAppointmentsTitle: '¿Aceptas reservas?',
@@ -2896,7 +2969,7 @@ export const translations = {
     cardHours: 'Horas punta', cardAccuracy: 'Precisión de predicciones',
     cardTrends: 'Tendencias mensuales', customizeHome: 'Personalizar inicio',
     customizeTitle: 'Personaliza tu inicio', resetDefault: 'Restablecer predeterminado',
-    done: 'Hecho', toggleAndDrag: 'Activa/desactiva tarjetas y arrastra para reordenarlas.',
+    done: 'Hecho', 
     recordRegularTitle: 'Registrar visita de habitual',
     visitRecordedFor: 'Visita registrada para {name}',
     noRegularsYet: 'Aún no hay habituales.',
@@ -2985,7 +3058,7 @@ export const translations = {
     nudgesFrequencyLabel: 'Horas mínimas entre alertas de Telegram',
     nudgeBannerTitle: 'Atención', nudgeDismiss: 'Ignorar',
     addToHome: 'Añadir al inicio', removeFromHome: 'Quitar del inicio', addedToHomeConfirm: '¡Añadido!',
-    trendsLoading: 'Cargando tendencias…', trendsLoadingError: '¿No se pueden cargar las tendencias — está el servidor en marcha?',
+    trendsLoading: 'Cargando tendencias…', 
     trendsNoHistoryTitle: 'Sin historial aún',
     trendsNoHistoryMsg: 'Añade recuentos diarios de clientes en "Registrar hoy" o "Añadir día anterior" y tus tendencias mensuales aparecerán aquí.',
     momTitle: 'Mes a mes', avgCustomersPerDay: 'Prom. clientes/día',
@@ -3054,7 +3127,6 @@ export const translations = {
     fixEarlierDayNote: '¿Necesitas corregir un día anterior? Usa Días anteriores.',
     todayOverwritePrompt: 'Ya existe un registro para hoy. ¿Sobrescribirlo con estos datos o cancelar?',
     saveTodayBtn: 'Guardar hoy', todayAlreadyLoggedMsg: 'Hoy ya está registrado — encuéntralo en Días anteriores para editarlo.',
-    failedToLoadData: 'Error al cargar datos. ¿Está el servidor en marcha?',
     deleteDayConfirm: '¿Eliminar este día y sus ventas?', loadingYourDays: 'Cargando tus días…',
     noDaysLoggedYet: 'Sin días registrados aún — ¡es un buen punto de partida! Cambia a {addToday} para registrar tu primer día.',
     dateColLabel: 'Fecha', dayColLabel: 'Día', daysTotal: '{n} días en total',
@@ -3107,7 +3179,6 @@ export const translations = {
     weekdayFull_Saturday: 'Sábado', weekdayFull_Sunday: 'Domingo',
     amLabel: 'a. m.', pmLabel: 'p. m.',
     loadingPredictions: 'Cargando predicciones…',
-    cantLoadPredictions: 'No se pueden cargar las predicciones — ¿está el servidor en marcha?',
     howPredictionsDid: 'Cómo han ido nuestras predicciones', howAppDoing: '¿Qué tan bien funciona la app?',
     averageError: 'Error promedio', howFarOff: 'cuánto se desvía, en %',
     offByLabel: 'Desviación de', customersOnAverage: 'clientes, de promedio',
@@ -3168,7 +3239,6 @@ export const translations = {
     busiestHourEachDay: 'Tu hora más concurrida para cada día de la semana.',
     tomorrowBadge: 'mañana', basedOnNDays: 'Basado en {n} {weekday} registrado{s}',
     loadingHourlyData: 'Cargando datos por hora…',
-    couldntLoadHourly: 'No se pueden cargar datos por hora — ¿está el servidor en marcha?',
     marginalNoteLabel: 'Añadir o quitar personal:',
     forecastByProduct: 'Previsión por producto',
     productForecastNoProducts: 'Añade productos en Mis productos, luego registra ventas de cada uno — aquí verás previsiones de demanda por producto y consejos de pedido.',
@@ -3357,7 +3427,7 @@ export const translations = {
     insightsAccuracyImproving: 'Mejorando — empezó con ~{early}% de error, ahora ~{recent}%.',
     insightsAccuracyStable: 'Actualmente con ~{recent}% de error promedio.',
     insightsNoAccuracy: 'Registra algunas semanas de datos para ver la precisión de tus previsiones.',
-    insightsLoading: 'Cargando perspectivas…', insightsLoadError: 'No se pueden cargar las perspectivas — ¿está el servidor en marcha?',
+    insightsLoading: 'Cargando perspectivas…', 
     insightsSectionTrends: 'Tu negocio está cambiando',
     insightsTrendGrowing: 'Los {weekday}s han subido un {pct}% en los últimos 3 meses',
     insightsTrendDeclining: 'Los {weekday}s han bajado un {pct}% en los últimos 3 meses',
@@ -3423,7 +3493,7 @@ export const translations = {
     tourInsightsHoursTitle: 'Tus horas punta',
     tourInsightsHoursBody: 'Una vez que hayas usado "Registrar venta" durante algunas semanas, Ope mostrará tus horas más concurridas y tranquilas del día. Úsalo para planificar el tiempo de preparación o saber cuándo necesitas todo el equipo.',
     tourInsightsYoYTitle: 'Comparación año a año',
-    tourInsightsYoYBody: 'Una vez que tengas un año de historial, Ope compara este mes con el mismo mes del año pasado — para que sepas si tu negocio está creciendo, estable o bajando, sin hacer los cálculos tú mismo.',
+    tourInsightsYoYBody: 'Cuando Ope tenga este mes y el mismo mes del año anterior para comparar —algo más de un año de historial— te dirá si tu negocio crece, se mantiene o baja, sin que hagas cuentas. También te avisa con antelación cuando vuelve una temporada que antes fue fuerte.',
     tourInsightsAccuracyTitle: 'Precisión de la previsión con el tiempo',
     tourInsightsAccuracyBody: 'Esto muestra qué tan precisas han sido tus previsiones. Ope suele empezar siendo aproximado y mejorar a medida que aprende tus patrones — verás la mejora aquí como un porcentaje real.',
     tourInsightsTrendsTitle: 'Cambios que vale la pena notar',
@@ -3465,7 +3535,6 @@ export const translations = {
     tourSettingsTelegramTitle: 'Conectar Telegram',
     tourSettingsTelegramBody: 'Vincula tu cuenta al bot de Ope en Telegram para poder registrar ventas y obtener tu previsión diaria por chat. Genera un código de enlace aquí y envíalo al bot.',
     premiumBilling: 'Premium y facturación', tabPremium: 'Premium y facturación',
-    premiumLoadingError: 'No se puede cargar la información de suscripción — ¿está el servidor en marcha?',
     premiumStatusBadgeTrial: 'Prueba gratuita', premiumStatusBadgePremium: 'Premium', premiumStatusBadgeFree: 'Gratuito',
     premiumTrialEndsIn: 'Tu prueba gratuita termina en {n} día{s}', premiumTrialEnded: 'Tu prueba gratuita ha terminado',
     premiumTrialActive: 'Tienes acceso completo a todas las funciones durante tu prueba gratuita.',
@@ -3492,6 +3561,28 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'कार्ड चालू या बंद करें, और क्रम बदलने के लिए तीरों का उपयोग करें।',
+    moveUpLabel: '{name} को ऊपर ले जाएँ',
+    moveDownLabel: '{name} को नीचे ले जाएँ',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'अभी लगभग {qty} बचे हैं',
+    lastCountedOn: 'यह हमारा अनुमान है — आपने {date} को {qty} गिने थे',
+    lastCountedNoDate: 'यह हमारा अनुमान है — पिछली बार आपने {qty} गिने थे',
+    onTheWayNotCounted: 'इसमें रास्ते में पहले से आ रहे {qty} शामिल नहीं हैं — यह अभी शेल्फ़ पर मौजूद माल पर आधारित है। अगर वे स्टॉक खत्म होने से पहले आ जाएँ, तो आप कम मंगा सकते हैं।',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'अभी हम Ope तक नहीं पहुँच सके',
+    loadFailedBody: 'अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+    loadFailedServerTitle: 'Ope को एक समस्या आई',
+    loadFailedServerBody: 'गड़बड़ी हमारी तरफ़ से हुई है, आपकी नहीं। थोड़ी देर में फिर कोशिश करें।',
+    loadFailedDataSafe: 'कुछ भी नहीं खोया — आपका सारा डेटा सुरक्षित है।',
+    tryAgainBtn: 'फिर कोशिश करें',
+    stillTryingMsg: 'अभी भी Ope से जुड़ने की कोशिश हो रही है — कुछ देर निष्क्रिय रहने के बाद इसमें एक मिनट तक लग सकता है।',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'आपका समय क्षेत्र',
+    timeZoneDesc: 'यह तय करता है कि आपके व्यवसाय के लिए "आज" क्या है — कोई बिक्री किस दिन दर्ज होगी और दिन कब खत्म होगा। वही चुनें जहाँ आप वास्तव में काम करते हैं।',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'आज — {date}',
     toolboxOffline: 'अभी हिसाब नहीं लगाया जा सका — Ope से संपर्क नहीं हुआ। अपना कनेक्शन जाँचें; आपके अंक सुरक्षित हैं।',
     toolboxWorking: 'हिसाब लगाया जा रहा है…',
     tourSettingsAppointmentsTitle: 'क्या आप बुकिंग लेते हैं?',
@@ -3566,7 +3657,7 @@ export const translations = {
     cardAccuracy: 'पूर्वानुमान कैसे रहे', cardTrends: 'मासिक रुझान',
     customizeHome: 'होम कस्टमाइज़ करें', customizeTitle: 'अपना होम कस्टमाइज़ करें',
     resetDefault: 'डिफ़ॉल्ट पर रीसेट करें', done: 'हो गया',
-    toggleAndDrag: 'कार्ड चालू/बंद करें और पुनः क्रमबद्ध करने के लिए खींचें।',
+    
     recordRegularTitle: 'नियमित ग्राहक की यात्रा दर्ज करें', visitRecordedFor: '{name} के लिए यात्रा दर्ज की',
     noRegularsYet: 'अभी तक कोई नियमित ग्राहक नहीं जोड़ा।',
     goToRegulars: 'प्रबंधन → मेरे नियमित ग्राहक में जाकर वफादार ग्राहक जोड़ें।',
@@ -3649,7 +3740,7 @@ export const translations = {
     nudgesFrequencyLabel: 'Telegram सूचनाओं के बीच न्यूनतम घंटे',
     nudgeBannerTitle: 'ध्यान दें', nudgeDismiss: 'खारिज करें',
     addToHome: 'होम पर जोड़ें', removeFromHome: 'होम से हटाएँ', addedToHomeConfirm: 'जोड़ा गया!',
-    trendsLoading: 'रुझान लोड हो रहे हैं…', trendsLoadingError: 'रुझान लोड नहीं हो सके — क्या बैकएंड चल रहा है?',
+    trendsLoading: 'रुझान लोड हो रहे हैं…', 
     trendsNoHistoryTitle: 'अभी कोई इतिहास नहीं',
     trendsNoHistoryMsg: '"आज लॉग करें" या "पिछला दिन जोड़ें" में दैनिक ग्राहक संख्या जोड़ें और आपके मासिक रुझान यहाँ दिखेंगे।',
     momTitle: 'महीने-दर-महीने', avgCustomersPerDay: 'औसत ग्राहक/दिन',
@@ -3717,7 +3808,6 @@ export const translations = {
     fixEarlierDayNote: 'किसी पहले के दिन को ठीक करना है? पिछले दिनों का उपयोग करें।',
     todayOverwritePrompt: 'आज का रिकॉर्ड पहले से है। इस डेटा से ओवरराइट करें, या रद्द करें?',
     saveTodayBtn: 'आज सहेजें', todayAlreadyLoggedMsg: 'आज पहले से लॉग है — पिछले दिनों में संपादित करें।',
-    failedToLoadData: 'डेटा लोड नहीं हो सका। क्या बैकएंड चल रहा है?',
     deleteDayConfirm: 'यह दिन और उसकी बिक्री हटाएँ?', loadingYourDays: 'आपके दिन लोड हो रहे हैं…',
     noDaysLoggedYet: 'अभी कोई दिन लॉग नहीं — यह शुरू करने की अच्छी जगह है! अपना पहला दिन दर्ज करने के लिए {addToday} पर जाएं।',
     dateColLabel: 'तारीख', dayColLabel: 'दिन', daysTotal: 'कुल {n} दिन',
@@ -3763,7 +3853,7 @@ export const translations = {
     weekdayFull_Thursday: 'गुरुवार', weekdayFull_Friday: 'शुक्रवार',
     weekdayFull_Saturday: 'शनिवार', weekdayFull_Sunday: 'रविवार',
     amLabel: 'पूर्वाह्न', pmLabel: 'अपराह्न',
-    loadingPredictions: 'पूर्वानुमान लोड हो रहे हैं…', cantLoadPredictions: 'पूर्वानुमान लोड नहीं हो सके — क्या बैकएंड चल रहा है?',
+    loadingPredictions: 'पूर्वानुमान लोड हो रहे हैं…', 
     howPredictionsDid: 'हमारे पूर्वानुमान कैसे रहे', howAppDoing: 'ऐप कितना अच्छा काम कर रहा है?',
     averageError: 'औसत त्रुटि', howFarOff: 'कितना गलत, %', offByLabel: 'गलती से',
     customersOnAverage: 'ग्राहक, औसतन', driftCheck: 'ड्रिफ्ट जांच', driftNote: '±4 या अधिक = ध्यान देने योग्य',
@@ -3818,7 +3908,6 @@ export const translations = {
     personLabel: 'व्यक्ति', peopleLabel: 'लोग', peakHoursByDay: 'दिन के हिसाब से चरम घंटे',
     busiestHourEachDay: 'सप्ताह के हर दिन का सबसे व्यस्त घंटा।', tomorrowBadge: 'कल',
     basedOnNDays: '{n} {weekday} रिकॉर्डिंग पर आधारित', loadingHourlyData: 'घंटेवार डेटा लोड हो रहा है…',
-    couldntLoadHourly: 'घंटेवार डेटा लोड नहीं हो सका — क्या बैकएंड चल रहा है?',
     marginalNoteLabel: 'स्टाफ जोड़ना या घटाना:',
     forecastByProduct: 'उत्पाद के हिसाब से पूर्वानुमान',
     productForecastNoProducts: 'मेरे उत्पाद में उत्पाद जोड़ें, फिर प्रत्येक की बिक्री लॉग करें — यहाँ प्रति-उत्पाद मांग पूर्वानुमान और ऑर्डरिंग सलाह दिखेगी।',
@@ -3989,7 +4078,7 @@ export const translations = {
     insightsAccuracyStable: 'वर्तमान में ~{recent}% औसत त्रुटि।',
     insightsNoAccuracy: 'सटीकता देखने के लिए कुछ सप्ताह डेटा लॉग करें।',
     insightsNotEnoughDays: 'पैटर्न दिखाने के लिए कम से कम 7 दिन का डेटा चाहिए।',
-    insightsLoading: 'अंतर्दृष्टि लोड हो रही है…', insightsLoadError: 'अंतर्दृष्टि लोड नहीं हो सकी — क्या बैकएंड चल रहा है?',
+    insightsLoading: 'अंतर्दृष्टि लोड हो रही है…', 
     insightsSectionTrends: 'आपका व्यापार बदल रहा है',
     insightsTrendGrowing: '{weekday} पिछले 3 महीनों में {pct}% बढ़ा है',
     insightsTrendDeclining: '{weekday} पिछले 3 महीनों में {pct}% घटा है',
@@ -4054,7 +4143,7 @@ export const translations = {
     tourInsightsHoursTitle: 'आपके चरम घंटे',
     tourInsightsHoursBody: 'कुछ हफ्तों के उपयोग के बाद, Ope दिन के सबसे व्यस्त और शांत घंटे दिखाएगा।',
     tourInsightsYoYTitle: 'वर्ष-दर-वर्ष तुलना',
-    tourInsightsYoYBody: 'एक वर्ष के डेटा के बाद, Ope इस महीने की पिछले वर्ष के इसी महीने से तुलना करेगा — बिना खुद गणना किए।',
+    tourInsightsYoYBody: 'जब Ope के पास इस महीने और पिछले साल के उसी महीने — यानी एक साल से थोड़ा ज़्यादा का इतिहास — दोनों होंगे, तो वह बताएगा कि आपका कारोबार बढ़ रहा है, स्थिर है या घट रहा है, बिना आपके हिसाब लगाए। पहले जो सीज़न व्यस्त रहा हो, वह दोबारा आने से पहले चेतावनी भी देगा।',
     tourInsightsAccuracyTitle: 'समय के साथ पूर्वानुमान सटीकता',
     tourInsightsAccuracyBody: 'यह दिखाता है आपके पूर्वानुमान कितने सटीक होते जा रहे हैं। त्रुटि जितनी कम, पूर्वानुमान उतना अधिक भरोसेमंद।',
     tourInsightsTrendsTitle: 'ध्यान देने योग्य बदलाव',
@@ -4096,7 +4185,6 @@ export const translations = {
     tourSettingsTelegramTitle: 'Telegram कनेक्ट करें',
     tourSettingsTelegramBody: 'Ope Telegram बॉट से अपना खाता लिंक करें ताकि ऐप खोले बिना चैट से बिक्री लॉग कर सकें और अपना दैनिक पूर्वानुमान पा सकें।',
     premiumBilling: 'प्रीमियम और बिलिंग', tabPremium: 'प्रीमियम और बिलिंग',
-    premiumLoadingError: 'सदस्यता जानकारी लोड नहीं हो सकी — क्या बैकएंड चल रहा है?',
     premiumStatusBadgeTrial: 'निःशुल्क ट्रायल', premiumStatusBadgePremium: 'प्रीमियम', premiumStatusBadgeFree: 'निःशुल्क',
     premiumTrialEndsIn: 'आपका निःशुल्क ट्रायल {n} दिन में समाप्त होता है', premiumTrialEnded: 'आपका निःशुल्क ट्रायल समाप्त हो गया',
     premiumTrialActive: 'आपके निःशुल्क ट्रायल के दौरान सभी सुविधाओं तक पूर्ण पहुंच है।',
@@ -4121,6 +4209,28 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'شغّل البطاقات أو أوقفها، واستخدم الأسهم لتغيير ترتيبها.',
+    moveUpLabel: 'حرّك {name} لأعلى',
+    moveDownLabel: 'حرّك {name} لأسفل',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'يتبقى نحو {qty} الآن',
+    lastCountedOn: 'هذا تقديرنا — لقد أحصيت {qty} في {date}',
+    lastCountedNoDate: 'هذا تقديرنا — آخر مرة أحصيت {qty}',
+    onTheWayNotCounted: 'هذا لا يحتسب الـ {qty} القادمة بالفعل — الحساب يعتمد على ما لديك على الرف الآن. إن وصلت قبل أن ينفد مخزونك، يمكنك طلب كمية أقل.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'لم نتمكن من الوصول إلى Ope الآن',
+    loadFailedBody: 'تحقق من اتصالك وحاول مرة أخرى.',
+    loadFailedServerTitle: 'واجه Ope مشكلة',
+    loadFailedServerBody: 'حدث خطأ لدينا، وليس لديك. حاول مرة أخرى بعد قليل.',
+    loadFailedDataSafe: 'لم يُفقد شيء — كل بياناتك بأمان.',
+    tryAgainBtn: 'حاول مرة أخرى',
+    stillTryingMsg: 'ما زلنا نحاول الوصول إلى Ope — قد يستغرق ذلك دقيقة بعد فترة خمول.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'منطقتك الزمنية',
+    timeZoneDesc: 'هذا يحدد معنى "اليوم" لعملك — في أي يوم تُسجَّل المبيعة، ومتى ينتهي اليوم. اضبطه على المكان الذي تعمل فيه فعلاً.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'اليوم — {date}',
     toolboxOffline: 'تعذّر الحساب الآن — لم نتمكّن من الوصول إلى Ope. تحقّق من اتصالك؛ أرقامك ما زالت موجودة.',
     toolboxWorking: 'جارٍ الحساب…',
     tourSettingsAppointmentsTitle: 'هل تستقبل حجوزات؟',
@@ -4225,7 +4335,7 @@ export const translations = {
     customizeTitle: 'خصّص صفحتك الرئيسية',
     resetDefault: 'إعادة الضبط الافتراضي',
     done: 'تم',
-    toggleAndDrag: 'فعّل/عطّل البطاقات واسحبها لإعادة الترتيب.',
+    
     recordRegularTitle: 'تسجيل زيارة عميل دائم',
     visitRecordedFor: 'تم تسجيل الزيارة لـ {name}',
     noRegularsYet: 'لم تتم إضافة أي عملاء دائمين بعد.',
@@ -4361,7 +4471,6 @@ export const translations = {
     removeFromHome: 'إزالة من الرئيسية',
     addedToHomeConfirm: 'تمت الإضافة!',
     trendsLoading: 'جارٍ تحميل الاتجاهات…',
-    trendsLoadingError: 'تعذر تحميل الاتجاهات — هل الخادم يعمل؟',
     trendsNoHistoryTitle: 'لا يوجد سجل بعد',
     trendsNoHistoryMsg: 'أضف عدد العملاء اليومي في "تسجيل اليوم" أو "إضافة يوم سابق" وستظهر اتجاهاتك الشهرية هنا.',
     momTitle: 'مقارنة شهرية',
@@ -4466,7 +4575,6 @@ export const translations = {
     todayOverwritePrompt: 'يوجد بالفعل سجل لليوم. هل تريد استبداله بهذه البيانات أم الإلغاء؟',
     saveTodayBtn: 'حفظ اليوم',
     todayAlreadyLoggedMsg: 'تم تسجيل اليوم بالفعل — ابحث عنه في "الأيام السابقة" لتعديله.',
-    failedToLoadData: 'تعذر تحميل البيانات. هل الخادم يعمل؟',
     deleteDayConfirm: 'حذف هذا اليوم ومبيعاته؟',
     loadingYourDays: 'جارٍ تحميل أيامك…',
     noDaysLoggedYet: 'لم تُسجَّل أي أيام بعد — وهذه نقطة انطلاق جيدة! انتقل إلى {addToday} لتسجيل يومك الأول.',
@@ -4540,7 +4648,6 @@ export const translations = {
     amLabel: 'ص',
     pmLabel: 'م',
     loadingPredictions: 'جارٍ تحميل التوقعات…',
-    cantLoadPredictions: 'تعذر تحميل التوقعات — هل الخادم يعمل؟',
     howPredictionsDid: 'كيف كانت دقة توقعاتنا',
     howAppDoing: 'كيف أداء التطبيق؟',
     averageError: 'متوسط الخطأ',
@@ -4635,7 +4742,6 @@ export const translations = {
     tomorrowBadge: 'غدًا',
     basedOnNDays: 'بناءً على {n} تسجيل ليوم {weekday}',
     loadingHourlyData: 'جارٍ تحميل بيانات الساعات…',
-    couldntLoadHourly: 'تعذر تحميل بيانات الساعات — هل الخادم يعمل؟',
     marginalNoteLabel: 'إضافة أو إزالة موظف:',
     forecastByProduct: 'التوقع حسب المنتج',
     productForecastNoProducts: 'أضف منتجات في "منتجاتي"، ثم سجّل مبيعات كل واحد منها — ستظهر هنا توقعات الطلب ونصائح الطلب لكل منتج.',
@@ -4886,7 +4992,6 @@ export const translations = {
     insightsNoAccuracy: 'سجّل بضعة أسابيع من البيانات لرؤية مدى دقة توقعاتك.',
     insightsNotEnoughDays: 'تحتاج إلى 7 أيام على الأقل من البيانات لعرض الأنماط.',
     insightsLoading: 'جارٍ تحميل الرؤى…',
-    insightsLoadError: 'تعذر تحميل الرؤى — هل الخادم يعمل؟',
     insightsSectionTrends: 'عملك يتغيّر',
     insightsTrendGrowing: 'أيام {weekday} ارتفعت بنسبة {pct}% خلال الأشهر الثلاثة الماضية',
     insightsTrendDeclining: 'أيام {weekday} انخفضت بنسبة {pct}% خلال الأشهر الثلاثة الماضية',
@@ -4966,7 +5071,7 @@ export const translations = {
     tourInsightsHoursTitle: 'ساعات ذروتك',
     tourInsightsHoursBody: 'بمجرد استخدام "تسجيل عملية بيع" لبضعة أسابيع، يعرض Ope ساعات يومك الأكثر ازدحامًا وهدوءًا. استخدم هذا لتخطيط وقت التحضير، استراحات الموظفين، أو لمعرفة متى ستحتاج كل الأيدي العاملة.',
     tourInsightsYoYTitle: 'المقارنة السنوية',
-    tourInsightsYoYBody: 'بمجرد امتلاكك سنة من السجل، يقارن Ope هذا الشهر بنفس الشهر من العام الماضي — حتى تعرف ما إذا كان عملك ينمو، أو مستقرًا، أو يتراجع، دون إجراء الحسابات بنفسك. كما يحذّرك مسبقًا إذا كان موسم ازدحام تاريخي قادمًا.',
+    tourInsightsYoYBody: 'عندما يتوفر لدى Ope هذا الشهر ونفس الشهر قبل عام للمقارنة — أي أكثر بقليل من سنة من السجل — سيبيّن لك ما إذا كان عملك ينمو أو يثبت أو يتراجع، دون أن تحسب بنفسك. كما ينبّهك مسبقاً عند اقتراب موسم كان مزدحماً من قبل.',
     tourInsightsAccuracyTitle: 'دقة التوقع مع مرور الوقت',
     tourInsightsAccuracyBody: 'يوضح هذا مدى تحسّن دقة توقعاتك. عادةً ما يبدأ Ope تقريبيًا ويتحسن مع تعلّم أنماطك — سترى التحسّن هنا كنسبة مئوية فعلية. كلما قلّ الخطأ، زادت إمكانية اعتمادك على التوقع لقرارات الطلب والتوظيف.',
     tourInsightsTrendsTitle: 'تغييرات تستحق الملاحظة',
@@ -5010,7 +5115,6 @@ export const translations = {
     tourSettingsTelegramBody: 'اربط حسابك ببوت Ope على تيليجرام حتى تتمكن من تسجيل المبيعات والحصول على توقعك اليومي عبر الدردشة — دون فتح التطبيق. أنشئ رمز ربط هنا، ثم أرسله إلى البوت. رائع للتسجيل أثناء التنقل.',
     premiumBilling: 'بريميوم والفوترة',
     tabPremium: 'بريميوم والفوترة',
-    premiumLoadingError: 'تعذر تحميل معلومات الاشتراك — هل الخادم يعمل؟',
     premiumStatusBadgeTrial: 'تجربة مجانية',
     premiumStatusBadgePremium: 'بريميوم',
     premiumStatusBadgeFree: 'مجاني',
@@ -5050,6 +5154,28 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'Ligue ou desligue cartões e use as setas para mudar a ordem.',
+    moveUpLabel: 'Mover {name} para cima',
+    moveDownLabel: 'Mover {name} para baixo',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'restam cerca de {qty} agora',
+    lastCountedOn: 'é a nossa estimativa — contou {qty} em {date}',
+    lastCountedNoDate: 'é a nossa estimativa — da última vez contou {qty}',
+    onTheWayNotCounted: 'Isto não conta os {qty} que já vêm a caminho — baseia-se no que tem agora na prateleira. Se chegarem antes de ficar sem stock, pode encomendar menos.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'Não conseguimos ligar ao Ope neste momento',
+    loadFailedBody: 'Verifique a sua ligação e tente novamente.',
+    loadFailedServerTitle: 'O Ope teve um problema',
+    loadFailedServerBody: 'Falhou algo do nosso lado, não do seu. Tente novamente daqui a pouco.',
+    loadFailedDataSafe: 'Nada se perdeu — todos os seus dados estão seguros.',
+    tryAgainBtn: 'Tentar novamente',
+    stillTryingMsg: 'Ainda a tentar ligar ao Ope — depois de um período parado pode demorar até um minuto.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'Seu fuso horário',
+    timeZoneDesc: 'Isto decide o que "hoje" significa para o seu negócio — em que dia uma venda é registada e quando o dia termina. Defina onde realmente trabalha.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'Hoje — {date}',
     toolboxOffline: 'Não deu para calcular agora — não foi possível falar com o Ope. Verifique sua conexão; seus números continuam aqui.',
     toolboxWorking: 'Calculando…',
     tourSettingsAppointmentsTitle: 'Você aceita agendamentos?',
@@ -5126,7 +5252,7 @@ export const translations = {
     cardAccuracy: 'Como foram as previsões', cardTrends: 'Tendências mensais',
     customizeHome: 'Personalizar início', customizeTitle: 'Personalize sua tela inicial',
     resetDefault: 'Restaurar padrão', done: 'Concluído',
-    toggleAndDrag: 'Ative/desative os cartões e arraste para reordenar.',
+    
     recordRegularTitle: 'Registrar visita de um cliente fiel', visitRecordedFor: 'Visita registrada para {name}',
     noRegularsYet: 'Nenhum cliente fiel adicionado ainda.',
     goToRegulars: 'Vá em Gerenciar → Meus clientes fiéis para adicionar seus clientes fiéis.',
@@ -5213,7 +5339,6 @@ export const translations = {
     nudgeBannerTitle: 'Atenção', nudgeDismiss: 'Dispensar',
     addToHome: 'Adicionar à tela inicial', removeFromHome: 'Remover da tela inicial', addedToHomeConfirm: 'Adicionado!',
     trendsLoading: 'Carregando tendências…',
-    trendsLoadingError: 'Não foi possível carregar as tendências — o servidor está rodando?',
     trendsNoHistoryTitle: 'Ainda sem histórico',
     trendsNoHistoryMsg: 'Adicione a contagem diária de clientes em "Registrar hoje" ou "Adicionar dia anterior" e suas tendências mensais vão aparecer aqui.',
     momTitle: 'Mês a mês', avgCustomersPerDay: 'média de clientes/dia',
@@ -5283,7 +5408,6 @@ export const translations = {
     todayOverwritePrompt: 'Já existe um registro para hoje. Sobrescrever com esses dados ou cancelar?',
     saveTodayBtn: 'Salvar hoje',
     todayAlreadyLoggedMsg: 'Hoje já está registrado — encontre em Dias Anteriores para editar.',
-    failedToLoadData: 'Falha ao carregar dados. O servidor está rodando?',
     deleteDayConfirm: 'Excluir este dia e suas vendas?', loadingYourDays: 'Carregando seus dias…',
     noDaysLoggedYet: 'Nenhum dia registrado ainda — e esse é um ótimo lugar para começar! Vá para {addToday} para registrar seu primeiro dia.',
     dateColLabel: 'Data', dayColLabel: 'Dia', daysTotal: '{n} dias no total',
@@ -5332,7 +5456,6 @@ export const translations = {
     weekdayFull_Thursday: 'Quinta-feira', weekdayFull_Friday: 'Sexta-feira', weekdayFull_Saturday: 'Sábado',
     weekdayFull_Sunday: 'Domingo', amLabel: 'a.m.', pmLabel: 'p.m.',
     loadingPredictions: 'Carregando previsões…',
-    cantLoadPredictions: 'Não foi possível carregar as previsões — o servidor está rodando?',
     howPredictionsDid: 'Como foram nossas previsões', howAppDoing: 'Como o app está indo?',
     averageError: 'Erro médio', howFarOff: 'o quanto errou, em %',
     offByLabel: 'Errou por', customersOnAverage: 'clientes, em média',
@@ -5392,7 +5515,6 @@ export const translations = {
     peakHoursByDay: 'Horários de pico por dia', busiestHourEachDay: 'Sua hora mais movimentada de cada dia da semana.',
     tomorrowBadge: 'amanhã', basedOnNDays: 'Com base em {n} registro{s} de {weekday}',
     loadingHourlyData: 'Carregando dados por hora…',
-    couldntLoadHourly: 'Não foi possível carregar os dados por hora — o servidor está rodando?',
     marginalNoteLabel: 'Adicionar ou remover funcionário:',
     forecastByProduct: 'Previsão por produto',
     productForecastNoProducts: 'Adicione produtos em Meus Produtos e depois registre vendas de cada um — você verá previsões de demanda e recomendações de pedido por produto aqui.',
@@ -5573,7 +5695,6 @@ export const translations = {
     insightsNoAccuracy: 'Registre algumas semanas de dados para ver a precisão das suas previsões.',
     insightsNotEnoughDays: 'Precisa de pelo menos 7 dias de dados para mostrar padrões.',
     insightsLoading: 'Carregando insights…',
-    insightsLoadError: 'Não foi possível carregar os insights — o servidor está rodando?',
     insightsSectionTrends: 'Seu negócio está mudando',
     insightsTrendGrowing: '{weekday}s subiram {pct}% nos últimos 3 meses',
     insightsTrendDeclining: '{weekday}s caíram {pct}% nos últimos 3 meses',
@@ -5640,7 +5761,7 @@ export const translations = {
     tourInsightsHoursTitle: 'Seus horários de pico',
     tourInsightsHoursBody: 'Depois de usar "Registrar venda" por algumas semanas, o Ope mostra suas horas mais movimentadas e mais tranquilas do dia. Use isso para planejar tempo de preparo, pausas da equipe ou saber quando vai precisar de todo mundo.',
     tourInsightsYoYTitle: 'Comparação ano a ano',
-    tourInsightsYoYBody: 'Depois de ter um ano de histórico, o Ope compara este mês com o mesmo mês do ano passado — assim você sabe se seu negócio está crescendo, estável ou caindo, sem fazer a conta você mesmo. Também avisa com antecedência se uma temporada historicamente movimentada está chegando.',
+    tourInsightsYoYBody: 'Quando o Ope tiver este mês e o mesmo mês do ano anterior para comparar — pouco mais de um ano de histórico — mostra se o seu negócio está a crescer, estável ou a cair, sem contas da sua parte. Também avisa com antecedência quando volta uma época que antes foi movimentada.',
     tourInsightsAccuracyTitle: 'Precisão da previsão ao longo do tempo',
     tourInsightsAccuracyBody: 'Isso mostra o quão precisas suas previsões têm ficado. O Ope geralmente começa impreciso e melhora conforme aprende seus padrões — você verá a melhora aqui como uma porcentagem real. Quanto menor o erro, mais você pode confiar na previsão para decisões de pedido e escala.',
     tourInsightsTrendsTitle: 'Mudanças que vale notar',
@@ -5683,7 +5804,6 @@ export const translations = {
     tourSettingsTelegramTitle: 'Conectar Telegram',
     tourSettingsTelegramBody: 'Vincule sua conta ao bot do Telegram do Ope para registrar vendas e receber sua previsão diária por chat — sem abrir o app. Gere um código de vínculo aqui e envie para o bot. Ótimo para registrar em movimento.',
     premiumBilling: 'Premium e Faturamento', tabPremium: 'Premium e Faturamento',
-    premiumLoadingError: 'Não foi possível carregar as informações da assinatura — o servidor está rodando?',
     premiumStatusBadgeTrial: 'Teste Grátis', premiumStatusBadgePremium: 'Premium', premiumStatusBadgeFree: 'Gratuito',
     premiumTrialEndsIn: 'Seu teste grátis termina em {n} dia{s}', premiumTrialEnded: 'Seu teste grátis terminou',
     premiumTrialActive: 'Você tem acesso total a todos os recursos durante seu teste grátis.',
@@ -5709,6 +5829,28 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'Включайте и выключайте карточки, а стрелками меняйте их порядок.',
+    moveUpLabel: 'Переместить «{name}» вверх',
+    moveDownLabel: 'Переместить «{name}» вниз',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'сейчас осталось примерно {qty}',
+    lastCountedOn: 'это наша оценка — вы насчитали {qty} {date}',
+    lastCountedNoDate: 'это наша оценка — в прошлый раз вы насчитали {qty}',
+    onTheWayNotCounted: 'Здесь не учтены {qty}, которые уже в пути — расчёт идёт по тому, что сейчас на полке. Если они придут до того, как запас кончится, можно заказать меньше.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'Сейчас не удалось связаться с Ope',
+    loadFailedBody: 'Проверьте подключение и попробуйте снова.',
+    loadFailedServerTitle: 'В Ope возникла проблема',
+    loadFailedServerBody: 'Ошибка на нашей стороне, не на вашей. Попробуйте через минуту.',
+    loadFailedDataSafe: 'Ничего не потеряно — все ваши данные в сохранности.',
+    tryAgainBtn: 'Повторить',
+    stillTryingMsg: 'Всё ещё связываемся с Ope — после простоя это может занять до минуты.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'Ваш часовой пояс',
+    timeZoneDesc: 'Это определяет, что такое «сегодня» для вашего бизнеса: к какому дню относится продажа и когда день заканчивается. Укажите, где вы действительно работаете.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'Сегодня — {date}',
     toolboxOffline: 'Сейчас не удалось посчитать — нет связи с Ope. Проверьте соединение; ваши числа сохранены.',
     toolboxWorking: 'Считаем…',
     tourSettingsAppointmentsTitle: 'Вы принимаете записи?',
@@ -5783,7 +5925,7 @@ export const translations = {
     cardAccuracy: 'Насколько точны были прогнозы', cardTrends: 'Месячные тренды',
     customizeHome: 'Настроить главную', customizeTitle: 'Настройте свою главную страницу',
     resetDefault: 'Сбросить по умолчанию', done: 'Готово',
-    toggleAndDrag: 'Включайте/выключайте карточки и перетаскивайте для изменения порядка.',
+    
     recordRegularTitle: 'Записать визит постоянного клиента', visitRecordedFor: 'Визит записан для {name}',
     noRegularsYet: 'Постоянные клиенты пока не добавлены.',
     goToRegulars: 'Перейдите в Управление → Мои постоянные клиенты, чтобы добавить лояльных клиентов.',
@@ -5869,7 +6011,7 @@ export const translations = {
     nudgesFrequencyLabel: 'Минимум часов между уведомлениями в Telegram',
     nudgeBannerTitle: 'Обратите внимание', nudgeDismiss: 'Закрыть',
     addToHome: 'Добавить на главную', removeFromHome: 'Убрать с главной', addedToHomeConfirm: 'Добавлено!',
-    trendsLoading: 'Загрузка трендов…', trendsLoadingError: 'Не удалось загрузить тренды — сервер запущен?',
+    trendsLoading: 'Загрузка трендов…', 
     trendsNoHistoryTitle: 'Пока нет истории',
     trendsNoHistoryMsg: 'Добавьте ежедневное число клиентов через «Внести сегодня» или «Добавить прошлый день», и здесь появятся ваши месячные тренды.',
     momTitle: 'Месяц к месяцу', avgCustomersPerDay: 'ср. клиентов/день',
@@ -5938,7 +6080,6 @@ export const translations = {
     todayOverwritePrompt: 'Запись на сегодня уже существует. Перезаписать её этими данными или отменить?',
     saveTodayBtn: 'Сохранить сегодня',
     todayAlreadyLoggedMsg: 'Сегодня уже внесено — найдите запись в «Прошлых днях», чтобы отредактировать.',
-    failedToLoadData: 'Не удалось загрузить данные. Сервер запущен?',
     deleteDayConfirm: 'Удалить этот день и его продажи?', loadingYourDays: 'Загрузка ваших дней…',
     noDaysLoggedYet: 'Дней пока не внесено — и это отличное начало! Перейдите в {addToday}, чтобы записать свой первый день.',
     dateColLabel: 'Дата', dayColLabel: 'День', daysTotal: 'Всего дней: {n}',
@@ -5987,7 +6128,7 @@ export const translations = {
     weekdayFull_Monday: 'Понедельник', weekdayFull_Tuesday: 'Вторник', weekdayFull_Wednesday: 'Среда',
     weekdayFull_Thursday: 'Четверг', weekdayFull_Friday: 'Пятница', weekdayFull_Saturday: 'Суббота',
     weekdayFull_Sunday: 'Воскресенье', amLabel: 'утра', pmLabel: 'вечера',
-    loadingPredictions: 'Загрузка прогнозов…', cantLoadPredictions: 'Не удалось загрузить прогнозы — сервер запущен?',
+    loadingPredictions: 'Загрузка прогнозов…', 
     howPredictionsDid: 'Насколько точны были наши прогнозы', howAppDoing: 'Насколько хорошо работает приложение?',
     averageError: 'Средняя ошибка', howFarOff: 'насколько велика ошибка, в %',
     offByLabel: 'Отклонение', customersOnAverage: 'клиентов, в среднем',
@@ -6049,7 +6190,6 @@ export const translations = {
     peakHoursByDay: 'Пиковые часы по дням', busiestHourEachDay: 'Ваш самый загруженный час для каждого дня недели.',
     tomorrowBadge: 'завтра', basedOnNDays: 'На основе {n} записей за {weekday}',
     loadingHourlyData: 'Загрузка почасовых данных…',
-    couldntLoadHourly: 'Не удалось загрузить почасовые данные — сервер запущен?',
     marginalNoteLabel: 'Добавление или удаление сотрудника:',
     forecastByProduct: 'Прогноз по товарам',
     productForecastNoProducts: 'Добавьте товары в разделе «Мои товары», затем внесите продажи по каждому — здесь появятся прогнозы спроса и рекомендации по заказу для каждого товара.',
@@ -6225,7 +6365,7 @@ export const translations = {
     insightsAccuracyStable: 'Сейчас средняя ошибка ~{recent}%.',
     insightsNoAccuracy: 'Внесите данные за несколько недель, чтобы увидеть, насколько точны ваши прогнозы.',
     insightsNotEnoughDays: 'Нужно минимум 7 дней данных, чтобы показать закономерности.',
-    insightsLoading: 'Загрузка аналитики…', insightsLoadError: 'Не удалось загрузить аналитику — сервер запущен?',
+    insightsLoading: 'Загрузка аналитики…', 
     insightsSectionTrends: 'Ваш бизнес меняется',
     insightsTrendGrowing: '{weekday} выросли на {pct}% за последние 3 месяца',
     insightsTrendDeclining: '{weekday} снизились на {pct}% за последние 3 месяца',
@@ -6293,7 +6433,7 @@ export const translations = {
     tourInsightsHoursTitle: 'Ваши пиковые часы',
     tourInsightsHoursBody: 'После нескольких недель использования «Записать продажу» Ope покажет ваши самые загруженные и самые спокойные часы дня. Используйте это, чтобы спланировать время подготовки, перерывы персонала или знать, когда понадобятся все руки.',
     tourInsightsYoYTitle: 'Сравнение год к году',
-    tourInsightsYoYBody: 'Как только у вас накопится год истории, Ope сравнивает этот месяц с тем же месяцем прошлого года — так вы узнаете, растёт ли ваш бизнес, держится стабильно или снижается, не считая ничего вручную. Он также заранее предупредит, если приближается исторически загруженный сезон.',
+    tourInsightsYoYBody: 'Когда у Ope будут и текущий месяц, и тот же месяц год назад — то есть чуть больше года истории — он покажет, растёт ли ваш бизнес, держится или проседает, без расчётов с вашей стороны. Он также заранее предупредит, когда снова приближается сезон, который раньше был загруженным.',
     tourInsightsAccuracyTitle: 'Точность прогноза со временем',
     tourInsightsAccuracyBody: 'Показывает, насколько точными становятся ваши прогнозы. Ope обычно начинает с грубых оценок и улучшается по мере изучения ваших паттернов — вы увидите это улучшение здесь в виде реального процента. Чем ниже ошибка, тем больше можно полагаться на прогноз при заказе и планировании персонала.',
     tourInsightsTrendsTitle: 'Изменения, заслуживающие внимания',
@@ -6336,7 +6476,6 @@ export const translations = {
     tourSettingsTelegramTitle: 'Подключить Telegram',
     tourSettingsTelegramBody: 'Свяжите свой аккаунт с ботом Ope в Telegram, чтобы вносить продажи и получать ежедневный прогноз в чате — не открывая приложение. Создайте код для связи здесь, затем отправьте его боту. Отлично подходит для внесения данных на ходу.',
     premiumBilling: 'Премиум и оплата', tabPremium: 'Премиум и оплата',
-    premiumLoadingError: 'Не удалось загрузить информацию о подписке — сервер запущен?',
     premiumStatusBadgeTrial: 'Бесплатный пробный период', premiumStatusBadgePremium: 'Премиум', premiumStatusBadgeFree: 'Бесплатный',
     premiumTrialEndsIn: 'Ваш бесплатный пробный период заканчивается через {n} дн.',
     premiumTrialEnded: 'Ваш бесплатный пробный период закончился',
@@ -6363,6 +6502,28 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'Activez ou désactivez les cartes, et utilisez les flèches pour changer l\'ordre.',
+    moveUpLabel: 'Monter {name}',
+    moveDownLabel: 'Descendre {name}',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'environ {qty} restants',
+    lastCountedOn: 'c\'est notre estimation — vous aviez compté {qty} le {date}',
+    lastCountedNoDate: 'c\'est notre estimation — vous aviez compté {qty} la dernière fois',
+    onTheWayNotCounted: 'Ceci ne compte pas les {qty} déjà en route — le calcul se base sur ce qui est en rayon maintenant. S\'ils arrivent avant la rupture, vous pouvez commander moins.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'Nous n\'avons pas pu joindre Ope à l\'instant',
+    loadFailedBody: 'Vérifiez votre connexion et réessayez.',
+    loadFailedServerTitle: 'Ope a rencontré un problème',
+    loadFailedServerBody: 'Le problème vient de chez nous, pas de chez vous. Réessayez dans un instant.',
+    loadFailedDataSafe: 'Rien n’est perdu — toutes vos données sont intactes.',
+    tryAgainBtn: 'Réessayer',
+    stillTryingMsg: 'Nous essayons toujours de joindre Ope — après une période d\'inactivité, cela peut prendre jusqu\'à une minute.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'Votre fuseau horaire',
+    timeZoneDesc: 'Cela définit ce que « aujourd\'hui » veut dire pour votre commerce : à quel jour une vente est rattachée, et quand la journée se termine. Indiquez où vous travaillez vraiment.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'Aujourd\'hui — {date}',
     toolboxOffline: 'Impossible de calculer pour le moment — Ope est injoignable. Vérifiez votre connexion ; vos chiffres sont toujours là.',
     toolboxWorking: 'Calcul en cours…',
     tourSettingsAppointmentsTitle: 'Prenez-vous des rendez-vous ?',
@@ -6484,7 +6645,7 @@ export const translations = {
     customizeTitle: 'Personnalisez votre accueil',
     resetDefault: 'Réinitialiser par défaut',
     done: 'Terminé',
-    toggleAndDrag: 'Activez/désactivez les cartes et faites-les glisser pour les réorganiser.',
+    
 
     // Record a Regular panel
     recordRegularTitle: "Enregistrer la visite d'un habitué",
@@ -6640,7 +6801,6 @@ export const translations = {
 
     // Trends view
     trendsLoading: 'Chargement des tendances…',
-    trendsLoadingError: 'Impossible de charger les tendances — le serveur est-il en marche ?',
     trendsNoHistoryTitle: "Pas encore d'historique",
     trendsNoHistoryMsg: "Ajoutez le nombre de clients quotidien dans « Enregistrer aujourd'hui » ou « Ajouter un jour passé » et vos tendances mensuelles apparaîtront ici.",
     momTitle: 'Mois par mois',
@@ -6765,7 +6925,6 @@ export const translations = {
     todayAlreadyLoggedMsg: "Aujourd'hui est déjà enregistré — retrouvez-le dans Jours passés pour le modifier.",
 
     // DayList
-    failedToLoadData: 'Échec du chargement des données. Le serveur est-il en marche ?',
     deleteDayConfirm: 'Supprimer ce jour et ses ventes ?',
     loadingYourDays: 'Chargement de vos jours…',
     noDaysLoggedYet: "Aucun jour enregistré pour le moment — et c'est un bon point de départ ! Passez à {addToday} pour enregistrer votre premier jour.",
@@ -6855,7 +7014,6 @@ export const translations = {
 
     // Predictions panel
     loadingPredictions: 'Chargement des prévisions…',
-    cantLoadPredictions: 'Impossible de charger les prévisions — le serveur est-il en marche ?',
     howPredictionsDid: 'Comment nos prévisions se sont comportées',
     howAppDoing: "Comment l'application se comporte-t-elle ?",
     averageError: 'Erreur moyenne',
@@ -6964,7 +7122,6 @@ export const translations = {
     tomorrowBadge: 'demain',
     basedOnNDays: 'Basé sur {n} enregistrement{s} du {weekday}',
     loadingHourlyData: 'Chargement des données horaires…',
-    couldntLoadHourly: 'Impossible de charger les données horaires — le serveur est-il en marche ?',
     marginalNoteLabel: 'Ajouter ou retirer du personnel :',
 
     // ProductForecastPanel — strings missing translation (identified in audit)
@@ -7257,7 +7414,6 @@ export const translations = {
     insightsNoAccuracy: 'Enregistrez quelques semaines de données pour voir la fiabilité de vos prévisions.',
     insightsNotEnoughDays: 'Il faut au moins 7 jours de données pour afficher des habitudes.',
     insightsLoading: 'Chargement des aperçus…',
-    insightsLoadError: 'Impossible de charger les aperçus — le serveur est-il en marche ?',
     insightsSectionTrends: 'Votre entreprise évolue',
     insightsTrendGrowing: 'Les {weekday}s sont en hausse de {pct} % sur les 3 derniers mois',
     insightsTrendDeclining: 'Les {weekday}s sont en baisse de {pct} % sur les 3 derniers mois',
@@ -7360,7 +7516,7 @@ export const translations = {
     tourInsightsHoursTitle: 'Vos heures de pointe',
     tourInsightsHoursBody: "Une fois que vous avez utilisé « Enregistrer une vente » pendant quelques semaines, Ope montre vos heures les plus chargées et les plus calmes de la journée. Utilisez cela pour planifier le temps de préparation, les pauses du personnel, ou savoir quand vous aurez besoin de tout le monde.",
     tourInsightsYoYTitle: 'Comparaison année après année',
-    tourInsightsYoYBody: "Une fois que vous avez un an d'historique, Ope compare ce mois-ci au même mois l'an dernier — pour que vous sachiez si votre entreprise grandit, se maintient, ou décline, sans faire les calculs vous-même. Il vous avertit aussi à l'avance si une saison historiquement chargée approche.",
+    tourInsightsYoYBody: 'Dès qu\'Ope aura ce mois-ci et le même mois un an plus tôt à comparer — soit un peu plus d\'un an d\'historique — il vous dira si votre activité progresse, se maintient ou recule, sans calcul de votre part. Il vous prévient aussi à l\'avance quand revient une saison qui avait été chargée.',
     tourInsightsAccuracyTitle: 'Fiabilité des prévisions dans le temps',
     tourInsightsAccuracyBody: "Cela montre à quel point vos prévisions sont devenues fiables. Ope commence généralement de façon approximative et s'améliore en apprenant vos habitudes — vous verrez l'amélioration ici en pourcentage réel. Plus l'erreur est faible, plus vous pouvez compter sur la prévision pour les décisions de commande et d'effectifs.",
     tourInsightsTrendsTitle: 'Changements à noter',
@@ -7414,7 +7570,6 @@ export const translations = {
     // Premium / billing page
     premiumBilling: 'Premium et facturation',
     tabPremium: 'Premium et facturation',
-    premiumLoadingError: "Impossible de charger les informations d'abonnement — le serveur est-il en marche ?",
     premiumStatusBadgeTrial: 'Essai gratuit',
     premiumStatusBadgePremium: 'Premium',
     premiumStatusBadgeFree: 'Gratuit',
@@ -7458,6 +7613,28 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'কার্ড চালু বা বন্ধ করুন, এবং ক্রম বদলাতে তীরচিহ্ন ব্যবহার করুন।',
+    moveUpLabel: '{name} উপরে নিন',
+    moveDownLabel: '{name} নিচে নিন',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'এখন প্রায় {qty} বাকি',
+    lastCountedOn: 'এটি আমাদের অনুমান — আপনি {date}-এ {qty} গুনেছিলেন',
+    lastCountedNoDate: 'এটি আমাদের অনুমান — শেষবার আপনি {qty} গুনেছিলেন',
+    onTheWayNotCounted: 'এতে ইতিমধ্যে পথে থাকা {qty} ধরা হয়নি — হিসাবটি এখন তাকে যা আছে তার ভিত্তিতে। সেগুলো ফুরিয়ে যাওয়ার আগে পৌঁছালে আপনি কম অর্ডার করতে পারেন।',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'এই মুহূর্তে আমরা Ope-তে পৌঁছাতে পারিনি',
+    loadFailedBody: 'আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।',
+    loadFailedServerTitle: 'Ope একটি সমস্যায় পড়েছে',
+    loadFailedServerBody: 'সমস্যাটি আমাদের দিকে, আপনার নয়। একটু পরে আবার চেষ্টা করুন।',
+    loadFailedDataSafe: 'কিছুই হারায়নি — আপনার সব তথ্য নিরাপদ।',
+    tryAgainBtn: 'আবার চেষ্টা করুন',
+    stillTryingMsg: 'এখনও Ope-তে সংযোগের চেষ্টা চলছে — কিছুক্ষণ নিষ্ক্রিয় থাকার পর এক মিনিট পর্যন্ত লাগতে পারে।',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'আপনার সময় অঞ্চল',
+    timeZoneDesc: 'এটি ঠিক করে আপনার ব্যবসার জন্য "আজ" মানে কী — কোন দিনে একটি বিক্রি নথিভুক্ত হবে এবং দিন কখন শেষ হবে। আপনি আসলে যেখানে কাজ করেন সেটি বেছে নিন।',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'আজ — {date}',
     toolboxOffline: 'এখন হিসাব করা গেল না — Ope-এর সঙ্গে যোগাযোগ হয়নি। সংযোগ পরীক্ষা করুন; আপনার সংখ্যাগুলো রয়ে গেছে।',
     toolboxWorking: 'হিসাব করা হচ্ছে…',
     tourSettingsAppointmentsTitle: 'আপনি কি আগে থেকে বুকিং নেন?',
@@ -7579,7 +7756,7 @@ export const translations = {
     customizeTitle: 'আপনার হোম কাস্টমাইজ করুন',
     resetDefault: 'ডিফল্টে ফিরিয়ে নিন',
     done: 'সম্পন্ন',
-    toggleAndDrag: 'কার্ড চালু/বন্ধ করুন এবং টেনে সাজান।',
+    
 
     // Record a Regular panel
     recordRegularTitle: 'নিয়মিত গ্রাহকের ভ্রমণ রেকর্ড করুন',
@@ -7735,7 +7912,6 @@ export const translations = {
 
     // Trends view
     trendsLoading: 'প্রবণতা লোড হচ্ছে…',
-    trendsLoadingError: 'প্রবণতা লোড করা যায়নি — ব্যাকএন্ড চলছে কি?',
     trendsNoHistoryTitle: 'এখনও কোনো ইতিহাস নেই',
     trendsNoHistoryMsg: '"আজকের হিসাব লগ করুন" বা "অতীতের দিন যোগ করুন"-এ দৈনিক গ্রাহক সংখ্যা যোগ করুন, আপনার মাসিক প্রবণতা এখানে দেখা যাবে।',
     momTitle: 'মাস-অনুযায়ী',
@@ -7860,7 +8036,6 @@ export const translations = {
     todayAlreadyLoggedMsg: 'আজকের হিসাব ইতিমধ্যে লগ করা হয়েছে — সম্পাদনা করতে অতীতের দিন-এ খুঁজুন।',
 
     // DayList
-    failedToLoadData: 'ডেটা লোড করা যায়নি। ব্যাকএন্ড চলছে কি?',
     deleteDayConfirm: 'এই দিন এবং এর বিক্রয় মুছে ফেলবেন?',
     loadingYourDays: 'আপনার দিনগুলো লোড হচ্ছে…',
     noDaysLoggedYet: 'এখনও কোনো দিন লগ করা হয়নি — এটাই শুরু করার ভালো জায়গা! আপনার প্রথম দিন রেকর্ড করতে {addToday}-এ যান।',
@@ -7950,7 +8125,6 @@ export const translations = {
 
     // Predictions panel
     loadingPredictions: 'পূর্বাভাস লোড হচ্ছে…',
-    cantLoadPredictions: 'পূর্বাভাস লোড করা যায়নি — ব্যাকএন্ড চলছে কি?',
     howPredictionsDid: 'আমাদের পূর্বাভাস কেমন হয়েছিল',
     howAppDoing: 'অ্যাপটি কেমন কাজ করছে?',
     averageError: 'গড় ত্রুটি',
@@ -8059,7 +8233,6 @@ export const translations = {
     tomorrowBadge: 'আগামীকাল',
     basedOnNDays: '{n}টি {weekday} রেকর্ডের ভিত্তিতে',
     loadingHourlyData: 'ঘণ্টাভিত্তিক ডেটা লোড হচ্ছে…',
-    couldntLoadHourly: 'ঘণ্টাভিত্তিক ডেটা লোড করা যায়নি — ব্যাকএন্ড চলছে কি?',
     marginalNoteLabel: 'কর্মী যোগ বা বাদ দেওয়া:',
 
     // ProductForecastPanel — strings missing translation (identified in audit)
@@ -8352,7 +8525,6 @@ export const translations = {
     insightsNoAccuracy: 'আপনার পূর্বাভাস কতটা সঠিক তা দেখতে কয়েক সপ্তাহের ডেটা লগ করুন।',
     insightsNotEnoughDays: 'প্যাটার্ন দেখাতে কমপক্ষে ৭ দিনের ডেটা প্রয়োজন।',
     insightsLoading: 'অন্তর্দৃষ্টি লোড হচ্ছে…',
-    insightsLoadError: 'অন্তর্দৃষ্টি লোড করা যায়নি — ব্যাকএন্ড চলছে কি?',
     insightsSectionTrends: 'আপনার ব্যবসা বদলাচ্ছে',
     insightsTrendGrowing: 'গত ৩ মাসে {weekday}গুলো {pct}% বেড়েছে',
     insightsTrendDeclining: 'গত ৩ মাসে {weekday}গুলো {pct}% কমেছে',
@@ -8455,7 +8627,7 @@ export const translations = {
     tourInsightsHoursTitle: 'আপনার সর্বোচ্চ সময়',
     tourInsightsHoursBody: 'কয়েক সপ্তাহ \'বিক্রয় রেকর্ড করুন\' ব্যবহার করার পর, Ope আপনার দিনের সবচেয়ে ব্যস্ত ও শান্ত সময় দেখায়। প্রস্তুতির সময়, কর্মীদের বিরতি পরিকল্পনা করতে, অথবা কখন সবাইকে দরকার হবে তা জানতে এটি ব্যবহার করুন।',
     tourInsightsYoYTitle: 'বছরের-পর-বছর তুলনা',
-    tourInsightsYoYBody: 'একবার আপনার এক বছরের ইতিহাস হয়ে গেলে, Ope এই মাসকে গত বছরের একই মাসের সাথে তুলনা করে — যাতে আপনি নিজে হিসাব না করেই জানতে পারেন আপনার ব্যবসা বাড়ছে, স্থিতিশীল আছে, নাকি কমছে। ঐতিহাসিকভাবে ব্যস্ত মৌসুম আসছে হলে এটি আগে থেকে সতর্কও করে।',
+    tourInsightsYoYBody: 'যখন Ope-র কাছে এই মাস এবং এক বছর আগের একই মাস — অর্থাৎ এক বছরের কিছু বেশি ইতিহাস — তুলনার জন্য থাকবে, তখন এটি দেখাবে আপনার ব্যবসা বাড়ছে, স্থির আছে নাকি কমছে, আপনাকে হিসাব করতে হবে না। আগে ব্যস্ত ছিল এমন মরসুম ফিরে আসার আগেও এটি সতর্ক করবে।',
     tourInsightsAccuracyTitle: 'সময়ের সাথে পূর্বাভাসের নির্ভুলতা',
     tourInsightsAccuracyBody: 'এটি দেখায় আপনার পূর্বাভাস কতটা নির্ভুল হচ্ছে। Ope সাধারণত মোটামুটি শুরু হয় এবং আপনার প্যাটার্ন শেখার সাথে সাথে উন্নত হয় — আপনি এখানে প্রকৃত শতাংশ হিসেবে উন্নতি দেখতে পাবেন। ত্রুটি যত কম, অর্ডার ও স্টাফিং সিদ্ধান্তের জন্য পূর্বাভাসের উপর তত বেশি নির্ভর করা যায়।',
     tourInsightsTrendsTitle: 'লক্ষণীয় পরিবর্তন',
@@ -8509,7 +8681,6 @@ export const translations = {
     // Premium / billing page
     premiumBilling: 'প্রিমিয়াম ও বিলিং',
     tabPremium: 'প্রিমিয়াম ও বিলিং',
-    premiumLoadingError: 'সাবস্ক্রিপশনের তথ্য লোড করা যায়নি — ব্যাকএন্ড চলছে কি?',
     premiumStatusBadgeTrial: 'বিনামূল্যে ট্রায়াল',
     premiumStatusBadgePremium: 'প্রিমিয়াম',
     premiumStatusBadgeFree: 'ফ্রি',
@@ -8553,6 +8724,28 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'کارڈ آن یا آف کریں، اور ترتیب بدلنے کے لیے تیر استعمال کریں۔',
+    moveUpLabel: '{name} کو اوپر لے جائیں',
+    moveDownLabel: '{name} کو نیچے لے جائیں',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'اب تقریباً {qty} باقی ہیں',
+    lastCountedOn: 'یہ ہمارا اندازہ ہے — آپ نے {date} کو {qty} گنے تھے',
+    lastCountedNoDate: 'یہ ہمارا اندازہ ہے — پچھلی بار آپ نے {qty} گنے تھے',
+    onTheWayNotCounted: 'اس میں پہلے سے راستے میں موجود {qty} شامل نہیں ہیں — حساب اس پر ہے جو ابھی شیلف پر ہے۔ اگر وہ اسٹاک ختم ہونے سے پہلے پہنچ جائیں تو آپ کم منگوا سکتے ہیں۔',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'ابھی ہم Ope تک نہیں پہنچ سکے',
+    loadFailedBody: 'اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
+    loadFailedServerTitle: 'Ope کو ایک مسئلہ پیش آیا',
+    loadFailedServerBody: 'خرابی ہماری طرف سے ہے، آپ کی نہیں۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔',
+    loadFailedDataSafe: 'کچھ ضائع نہیں ہوا — آپ کا سارا ڈیٹا محفوظ ہے۔',
+    tryAgainBtn: 'دوبارہ کوشش کریں',
+    stillTryingMsg: 'اب بھی Ope سے رابطے کی کوشش جاری ہے — کچھ دیر خاموشی کے بعد ایک منٹ تک لگ سکتا ہے۔',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'آپ کا ٹائم زون',
+    timeZoneDesc: 'یہ طے کرتا ہے کہ آپ کے کاروبار کے لیے "آج" کا کیا مطلب ہے — فروخت کس دن درج ہوگی اور دن کب ختم ہوگا۔ جہاں آپ واقعی کام کرتے ہیں وہ منتخب کریں۔',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'آج — {date}',
     toolboxOffline: 'ابھی حساب نہیں لگ سکا — Ope سے رابطہ نہیں ہو سکا۔ اپنا کنکشن دیکھیں؛ آپ کے اعداد محفوظ ہیں۔',
     toolboxWorking: 'حساب لگایا جا رہا ہے…',
     tourSettingsAppointmentsTitle: 'کیا آپ پیشگی بکنگ لیتے ہیں؟',
@@ -8674,7 +8867,7 @@ export const translations = {
     customizeTitle: 'اپنا ہوم حسبِ ضرورت بنائیں',
     resetDefault: 'ڈیفالٹ پر ری سیٹ کریں',
     done: 'مکمل',
-    toggleAndDrag: 'کارڈز آن/آف کریں اور ترتیب بدلنے کے لیے گھسیٹیں۔',
+    
 
     // Record a Regular panel
     recordRegularTitle: 'مستقل گاہک کی آمد ریکارڈ کریں',
@@ -8830,7 +9023,6 @@ export const translations = {
 
     // Trends view
     trendsLoading: 'رجحانات لوڈ ہو رہے ہیں…',
-    trendsLoadingError: 'رجحانات لوڈ نہیں ہو سکے — کیا بیک اینڈ چل رہا ہے؟',
     trendsNoHistoryTitle: 'ابھی تک کوئی ریکارڈ نہیں',
     trendsNoHistoryMsg: '"آج کا اندراج کریں" یا "گزشتہ دن شامل کریں" میں روزانہ گاہکوں کی تعداد شامل کریں اور آپ کے ماہانہ رجحانات یہاں نظر آئیں گے۔',
     momTitle: 'مہینہ بہ مہینہ',
@@ -8955,7 +9147,6 @@ export const translations = {
     todayAlreadyLoggedMsg: 'آج پہلے سے درج ہے — اسے ترمیم کرنے کے لیے گزشتہ دنوں میں تلاش کریں۔',
 
     // DayList
-    failedToLoadData: 'ڈیٹا لوڈ نہیں ہو سکا۔ کیا بیک اینڈ چل رہا ہے؟',
     deleteDayConfirm: 'اس دن اور اس کی فروخت کو حذف کریں؟',
     loadingYourDays: 'آپ کے دن لوڈ ہو رہے ہیں…',
     noDaysLoggedYet: 'ابھی تک کوئی دن درج نہیں ہوا — اور یہ شروع کرنے کے لیے اچھی جگہ ہے! اپنا پہلا دن ریکارڈ کرنے کے لیے {addToday} پر جائیں۔',
@@ -9045,7 +9236,6 @@ export const translations = {
 
     // Predictions panel
     loadingPredictions: 'پیشگوئیاں لوڈ ہو رہی ہیں…',
-    cantLoadPredictions: 'پیشگوئیاں لوڈ نہیں ہو سکیں — کیا بیک اینڈ چل رہا ہے؟',
     howPredictionsDid: 'ہماری پیشگوئیاں کیسی رہیں',
     howAppDoing: 'ایپ کتنی اچھی کارکردگی دکھا رہی ہے؟',
     averageError: 'اوسط غلطی',
@@ -9154,7 +9344,6 @@ export const translations = {
     tomorrowBadge: 'کل',
     basedOnNDays: '{n} {weekday} کے ریکارڈ کی بنیاد پر',
     loadingHourlyData: 'گھنٹہ وار ڈیٹا لوڈ ہو رہا ہے…',
-    couldntLoadHourly: 'گھنٹہ وار ڈیٹا لوڈ نہیں ہو سکا — کیا بیک اینڈ چل رہا ہے؟',
     marginalNoteLabel: 'عملہ شامل یا کم کرنا:',
 
     // ProductForecastPanel — strings missing translation (identified in audit)
@@ -9447,7 +9636,6 @@ export const translations = {
     insightsNoAccuracy: 'اپنی پیشگوئیوں کی درستگی دیکھنے کے لیے چند ہفتوں کا ڈیٹا درج کریں۔',
     insightsNotEnoughDays: 'پیٹرن دکھانے کے لیے کم از کم 7 دن کا ڈیٹا درکار ہے۔',
     insightsLoading: 'بصیرتیں لوڈ ہو رہی ہیں…',
-    insightsLoadError: 'بصیرتیں لوڈ نہیں ہو سکیں — کیا بیک اینڈ چل رہا ہے؟',
     insightsSectionTrends: 'آپ کا کاروبار بدل رہا ہے',
     insightsTrendGrowing: 'پچھلے 3 مہینوں میں {weekday} کے دن {pct}% اضافہ ہوا ہے',
     insightsTrendDeclining: 'پچھلے 3 مہینوں میں {weekday} کے دن {pct}% کمی آئی ہے',
@@ -9550,7 +9738,7 @@ export const translations = {
     tourInsightsHoursTitle: 'آپ کے عروج کے اوقات',
     tourInsightsHoursBody: 'چند ہفتوں تک "فروخت ریکارڈ کریں" استعمال کرنے کے بعد، Ope دن کے آپ کے سب سے زیادہ اور سب سے کم مصروف اوقات دکھاتا ہے۔ اسے تیاری کے وقت، عملے کے وقفوں کی منصوبہ بندی، یا یہ جاننے کے لیے استعمال کریں کہ آپ کو کب سب ہاتھوں کی ضرورت ہو گی۔',
     tourInsightsYoYTitle: 'سال بہ سال موازنہ',
-    tourInsightsYoYBody: 'ایک سال کا ریکارڈ ہونے کے بعد، Ope اس مہینے کا پچھلے سال کے اسی مہینے سے موازنہ کرتا ہے — تاکہ آپ خود حساب لگائے بغیر جان سکیں کہ آپ کا کاروبار بڑھ رہا ہے، مستحکم ہے، یا کم ہو رہا ہے۔ یہ آپ کو پہلے سے خبردار بھی کرتا ہے اگر تاریخی طور پر مصروف موسم آنے والا ہو۔',
+    tourInsightsYoYBody: 'جب Ope کے پاس یہ مہینہ اور ایک سال پہلے کا وہی مہینہ موازنے کے لیے ہوگا — یعنی ایک سال سے کچھ زیادہ کا ریکارڈ — تو یہ بتائے گا کہ آپ کا کاروبار بڑھ رہا ہے، برقرار ہے یا کم ہو رہا ہے، بغیر آپ کے حساب لگائے۔ پہلے جو موسم مصروف رہا ہو، اس کے دوبارہ آنے سے پہلے بھی خبردار کرے گا۔',
     tourInsightsAccuracyTitle: 'وقت کے ساتھ پیشگوئی کی درستگی',
     tourInsightsAccuracyBody: 'یہ دکھاتا ہے کہ آپ کی پیشگوئیاں کتنی درست ہوتی جا رہی ہیں۔ Ope عام طور پر موٹے اندازے سے شروع ہوتا ہے اور جیسے جیسے یہ آپ کے پیٹرن سیکھتا ہے بہتر ہوتا جاتا ہے — آپ یہاں یہ بہتری ایک حقیقی فیصد کے طور پر دیکھیں گے۔ غلطی جتنی کم ہو گی، آپ آرڈرنگ اور اسٹافنگ کے فیصلوں کے لیے پیشگوئی پر اتنا ہی زیادہ اعتماد کر سکتے ہیں۔',
     tourInsightsTrendsTitle: 'قابل توجہ تبدیلیاں',
@@ -9604,7 +9792,6 @@ export const translations = {
     // Premium / billing page
     premiumBilling: 'پریمیم اور بلنگ',
     tabPremium: 'پریمیم اور بلنگ',
-    premiumLoadingError: 'سبسکرپشن کی معلومات لوڈ نہیں ہو سکیں — کیا بیک اینڈ چل رہا ہے؟',
     premiumStatusBadgeTrial: 'مفت ٹرائل',
     premiumStatusBadgePremium: 'پریمیم',
     premiumStatusBadgeFree: 'مفت',
@@ -9648,6 +9835,28 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'Nyalakan atau matikan kartu, dan gunakan panah untuk mengubah urutannya.',
+    moveUpLabel: 'Naikkan {name}',
+    moveDownLabel: 'Turunkan {name}',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'sekitar {qty} tersisa sekarang',
+    lastCountedOn: 'ini perkiraan kami — Anda menghitung {qty} pada {date}',
+    lastCountedNoDate: 'ini perkiraan kami — terakhir Anda menghitung {qty}',
+    onTheWayNotCounted: 'Ini belum menghitung {qty} yang sudah dalam perjalanan — dasarnya adalah stok di rak Anda sekarang. Kalau kiriman itu tiba sebelum stok habis, Anda bisa memesan lebih sedikit.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'Kami belum bisa menghubungi Ope saat ini',
+    loadFailedBody: 'Periksa koneksi Anda lalu coba lagi.',
+    loadFailedServerTitle: 'Ope mengalami masalah',
+    loadFailedServerBody: 'Ada yang salah di pihak kami, bukan Anda. Coba lagi sebentar lagi.',
+    loadFailedDataSafe: 'Tidak ada yang hilang — semua data Anda aman.',
+    tryAgainBtn: 'Coba lagi',
+    stillTryingMsg: 'Masih mencoba menghubungi Ope — setelah lama tidak dipakai ini bisa sampai satu menit.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'Zona waktu Anda',
+    timeZoneDesc: 'Ini menentukan arti "hari ini" bagi usaha Anda — penjualan dicatat pada hari apa, dan kapan hari berakhir. Setel sesuai tempat Anda benar-benar berdagang.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'Hari ini — {date}',
     toolboxOffline: 'Belum bisa dihitung sekarang — Ope tidak dapat dihubungi. Periksa koneksi Anda; angka Anda masih tersimpan.',
     toolboxWorking: 'Sedang menghitung…',
     tourSettingsAppointmentsTitle: 'Apakah Anda menerima pemesanan?',
@@ -9769,7 +9978,7 @@ export const translations = {
     customizeTitle: 'Sesuaikan beranda Anda',
     resetDefault: 'Kembalikan ke default',
     done: 'Selesai',
-    toggleAndDrag: 'Aktifkan/nonaktifkan kartu dan seret untuk mengatur urutan.',
+    
 
     // Record a Regular panel
     recordRegularTitle: 'Catat kunjungan pelanggan tetap',
@@ -9925,7 +10134,6 @@ export const translations = {
 
     // Trends view
     trendsLoading: 'Memuat tren…',
-    trendsLoadingError: 'Tidak dapat memuat tren — apakah server sedang berjalan?',
     trendsNoHistoryTitle: 'Belum ada riwayat',
     trendsNoHistoryMsg: 'Tambahkan jumlah pelanggan harian di "Catat Hari Ini" atau "Tambah Hari Sebelumnya" dan tren bulanan Anda akan muncul di sini.',
     momTitle: 'Bulan ke bulan',
@@ -10050,7 +10258,6 @@ export const translations = {
     todayAlreadyLoggedMsg: 'Hari ini sudah tercatat — cari di Hari Sebelumnya untuk mengeditnya.',
 
     // DayList
-    failedToLoadData: 'Gagal memuat data. Apakah server sedang berjalan?',
     deleteDayConfirm: 'Hapus hari ini beserta penjualannya?',
     loadingYourDays: 'Memuat hari-hari Anda…',
     noDaysLoggedYet: 'Belum ada hari yang tercatat — dan itu titik awal yang bagus! Beralih ke {addToday} untuk mencatat hari pertama Anda.',
@@ -10140,7 +10347,6 @@ export const translations = {
 
     // Predictions panel
     loadingPredictions: 'Memuat prediksi…',
-    cantLoadPredictions: 'Tidak dapat memuat prediksi — apakah server sedang berjalan?',
     howPredictionsDid: 'Seberapa akurat prediksi kami',
     howAppDoing: 'Seberapa baik performa aplikasi ini?',
     averageError: 'Rata-rata kesalahan',
@@ -10249,7 +10455,6 @@ export const translations = {
     tomorrowBadge: 'besok',
     basedOnNDays: 'Berdasarkan {n} catatan {weekday}',
     loadingHourlyData: 'Memuat data per jam…',
-    couldntLoadHourly: 'Tidak dapat memuat data per jam — apakah server sedang berjalan?',
     marginalNoteLabel: 'Menambah atau mengurangi staf:',
 
     // ProductForecastPanel — strings missing translation (identified in audit)
@@ -10542,7 +10747,6 @@ export const translations = {
     insightsNoAccuracy: 'Catat beberapa minggu data untuk melihat seberapa akurat perkiraan Anda.',
     insightsNotEnoughDays: 'Perlu setidaknya 7 hari data untuk menampilkan pola.',
     insightsLoading: 'Memuat wawasan…',
-    insightsLoadError: 'Tidak dapat memuat wawasan — apakah server sedang berjalan?',
     insightsSectionTrends: 'Bisnis Anda sedang berubah',
     insightsTrendGrowing: '{weekday} naik {pct}% selama 3 bulan terakhir',
     insightsTrendDeclining: '{weekday} turun {pct}% selama 3 bulan terakhir',
@@ -10645,7 +10849,7 @@ export const translations = {
     tourInsightsHoursTitle: 'Jam puncak Anda',
     tourInsightsHoursBody: "Setelah Anda menggunakan 'Catat Penjualan' selama beberapa minggu, Ope akan menampilkan jam paling ramai dan paling sepi Anda dalam sehari. Gunakan ini untuk merencanakan waktu persiapan, istirahat staf, atau mengetahui kapan Anda membutuhkan semua tenaga.",
     tourInsightsYoYTitle: 'Perbandingan tahun ke tahun',
-    tourInsightsYoYBody: 'Setelah Anda memiliki riwayat satu tahun, Ope membandingkan bulan ini dengan bulan yang sama tahun lalu — sehingga Anda tahu apakah bisnis Anda sedang tumbuh, stabil, atau menurun, tanpa perlu menghitung sendiri. Ope juga memperingatkan Anda lebih awal jika musim ramai biasanya akan datang.',
+    tourInsightsYoYBody: 'Begitu Ope punya bulan ini dan bulan yang sama setahun lalu untuk dibandingkan — jadi sedikit lebih dari setahun riwayat — ia menunjukkan apakah usaha Anda tumbuh, stabil, atau menurun, tanpa Anda menghitung. Ope juga memberi tahu lebih awal saat musim yang dulu ramai akan datang lagi.',
     tourInsightsAccuracyTitle: 'Akurasi perkiraan dari waktu ke waktu',
     tourInsightsAccuracyBody: 'Ini menunjukkan seberapa akurat perkiraan Anda selama ini. Ope biasanya mulai dari perkiraan kasar dan membaik seiring mempelajari pola Anda — Anda akan melihat peningkatannya di sini sebagai persentase nyata. Semakin rendah kesalahannya, semakin Anda bisa mengandalkan perkiraan untuk keputusan pemesanan dan staf.',
     tourInsightsTrendsTitle: 'Perubahan yang patut diperhatikan',
@@ -10699,7 +10903,6 @@ export const translations = {
     // Premium / billing page
     premiumBilling: 'Premium & Penagihan',
     tabPremium: 'Premium & Penagihan',
-    premiumLoadingError: 'Tidak dapat memuat info langganan — apakah server sedang berjalan?',
     premiumStatusBadgeTrial: 'Uji Coba Gratis',
     premiumStatusBadgePremium: 'Premium',
     premiumStatusBadgeFree: 'Gratis',
@@ -10743,6 +10946,28 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'Karten ein- oder ausschalten und die Reihenfolge mit den Pfeilen ändern.',
+    moveUpLabel: '{name} nach oben',
+    moveDownLabel: '{name} nach unten',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'noch etwa {qty} übrig',
+    lastCountedOn: 'unsere Schätzung — Sie haben am {date} {qty} gezählt',
+    lastCountedNoDate: 'unsere Schätzung — zuletzt haben Sie {qty} gezählt',
+    onTheWayNotCounted: 'Die {qty} bereits unterwegs sind hier nicht mitgezählt — gerechnet wird mit dem, was jetzt im Regal steht. Treffen sie ein, bevor es knapp wird, können Sie weniger bestellen.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'Wir konnten Ope gerade nicht erreichen',
+    loadFailedBody: 'Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    loadFailedServerTitle: 'Bei Ope ist ein Problem aufgetreten',
+    loadFailedServerBody: 'Der Fehler liegt bei uns, nicht bei Ihnen. Versuchen Sie es gleich noch einmal.',
+    loadFailedDataSafe: 'Nichts ist verloren — Ihre Daten sind alle sicher.',
+    tryAgainBtn: 'Erneut versuchen',
+    stillTryingMsg: 'Wir versuchen weiter, Ope zu erreichen — nach einer Ruhephase kann das bis zu einer Minute dauern.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'Ihre Zeitzone',
+    timeZoneDesc: 'Das legt fest, was "heute" für Ihren Betrieb bedeutet — an welchem Tag ein Verkauf verbucht wird und wann der Tag zu Ende ist. Stellen Sie ein, wo Sie tatsächlich arbeiten.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'Heute — {date}',
     toolboxOffline: 'Das ließ sich gerade nicht berechnen — Ope war nicht erreichbar. Prüfen Sie Ihre Verbindung; Ihre Zahlen sind noch da.',
     toolboxWorking: 'Wird berechnet…',
     tourSettingsAppointmentsTitle: 'Nehmen Sie Termine an?',
@@ -10864,7 +11089,7 @@ export const translations = {
     customizeTitle: 'Passen Sie Ihre Startseite an',
     resetDefault: 'Auf Standard zurücksetzen',
     done: 'Fertig',
-    toggleAndDrag: 'Karten ein-/ausblenden und zum Neuanordnen ziehen.',
+    
 
     // Record a Regular panel
     recordRegularTitle: 'Besuch eines Stammkunden erfassen',
@@ -11020,7 +11245,6 @@ export const translations = {
 
     // Trends view
     trendsLoading: 'Trends werden geladen…',
-    trendsLoadingError: 'Trends konnten nicht geladen werden — läuft der Server?',
     trendsNoHistoryTitle: 'Noch kein Verlauf',
     trendsNoHistoryMsg: 'Fügen Sie tägliche Kundenzahlen unter „Heute eintragen" oder „Vergangenen Tag hinzufügen" hinzu, und Ihre Monatstrends erscheinen hier.',
     momTitle: 'Monat für Monat',
@@ -11145,7 +11369,6 @@ export const translations = {
     todayAlreadyLoggedMsg: 'Heute ist bereits erfasst — Sie finden es unter Vergangene Tage zum Bearbeiten.',
 
     // DayList
-    failedToLoadData: 'Daten konnten nicht geladen werden. Läuft der Server?',
     deleteDayConfirm: 'Diesen Tag und seine Verkäufe löschen?',
     loadingYourDays: 'Ihre Tage werden geladen…',
     noDaysLoggedYet: 'Noch keine Tage erfasst — ein guter Ausgangspunkt! Wechseln Sie zu {addToday}, um Ihren ersten Tag zu erfassen.',
@@ -11235,7 +11458,6 @@ export const translations = {
 
     // Predictions panel
     loadingPredictions: 'Prognosen werden geladen…',
-    cantLoadPredictions: 'Prognosen konnten nicht geladen werden — läuft der Server?',
     howPredictionsDid: 'Wie unsere Prognosen waren',
     howAppDoing: 'Wie gut schneidet die App ab?',
     averageError: 'Durchschnittlicher Fehler',
@@ -11344,7 +11566,6 @@ export const translations = {
     tomorrowBadge: 'morgen',
     basedOnNDays: 'Basierend auf {n} {weekday}-Erfassung{s}',
     loadingHourlyData: 'Stündliche Daten werden geladen…',
-    couldntLoadHourly: 'Stündliche Daten konnten nicht geladen werden — läuft der Server?',
     marginalNoteLabel: 'Personal hinzufügen oder entfernen:',
 
     // ProductForecastPanel — strings missing translation (identified in audit)
@@ -11637,7 +11858,6 @@ export const translations = {
     insightsNoAccuracy: 'Erfassen Sie ein paar Wochen an Daten, um zu sehen, wie genau Ihre Prognosen sind.',
     insightsNotEnoughDays: 'Es werden mindestens 7 Tage an Daten benötigt, um Muster anzuzeigen.',
     insightsLoading: 'Einblicke werden geladen…',
-    insightsLoadError: 'Einblicke konnten nicht geladen werden — läuft der Server?',
     insightsSectionTrends: 'Ihr Geschäft verändert sich',
     insightsTrendGrowing: '{weekday}e sind in den letzten 3 Monaten um {pct} % gestiegen',
     insightsTrendDeclining: '{weekday}e sind in den letzten 3 Monaten um {pct} % gesunken',
@@ -11740,7 +11960,7 @@ export const translations = {
     tourInsightsHoursTitle: 'Ihre Spitzenzeiten',
     tourInsightsHoursBody: 'Sobald Sie „Verkauf erfassen" ein paar Wochen genutzt haben, zeigt Ope Ihre geschäftigsten und ruhigsten Stunden des Tages. Nutzen Sie das, um Vorbereitungszeit, Personalpausen zu planen oder zu wissen, wann Sie alle Hände an Deck brauchen.',
     tourInsightsYoYTitle: 'Jahresvergleich',
-    tourInsightsYoYBody: 'Sobald Sie ein Jahr an Verlauf haben, vergleicht Ope diesen Monat mit dem gleichen Monat letztes Jahr — damit Sie wissen, ob Ihr Geschäft wächst, stabil bleibt oder nachlässt, ohne selbst rechnen zu müssen. Es warnt Sie auch im Voraus, wenn eine historisch geschäftige Saison bevorsteht.',
+    tourInsightsYoYBody: 'Sobald Ope diesen Monat und denselben Monat ein Jahr zuvor vergleichen kann — also gut ein Jahr Verlauf — zeigt es, ob Ihr Geschäft wächst, gleich bleibt oder nachlässt, ganz ohne Rechnen. Es warnt Sie auch vorab, wenn eine früher starke Saison wiederkommt.',
     tourInsightsAccuracyTitle: 'Prognosegenauigkeit im Zeitverlauf',
     tourInsightsAccuracyBody: 'Dies zeigt, wie genau Ihre Prognosen im Laufe der Zeit geworden sind. Ope startet typischerweise grob und verbessert sich, während es Ihre Muster lernt — Sie sehen die Verbesserung hier als tatsächlichen Prozentsatz. Je geringer der Fehler, desto mehr können Sie sich bei Bestell- und Personalentscheidungen auf die Prognose verlassen.',
     tourInsightsTrendsTitle: 'Bemerkenswerte Veränderungen',
@@ -11794,7 +12014,6 @@ export const translations = {
     // Premium / billing page
     premiumBilling: 'Premium & Abrechnung',
     tabPremium: 'Premium & Abrechnung',
-    premiumLoadingError: 'Abonnementinformationen konnten nicht geladen werden — läuft der Server?',
     premiumStatusBadgeTrial: 'Kostenlose Testversion',
     premiumStatusBadgePremium: 'Premium',
     premiumStatusBadgeFree: 'Kostenlos',
@@ -11838,6 +12057,28 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'カードのオン・オフを切り替え、矢印で並び順を変えられます。',
+    moveUpLabel: '{name} を上へ',
+    moveDownLabel: '{name} を下へ',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: '今およそ {qty} 残り',
+    lastCountedOn: '当方の推定です。{date} に {qty} と数えられました',
+    lastCountedNoDate: '当方の推定です。前回は {qty} と数えられました',
+    onTheWayNotCounted: 'これは、すでに配送中の {qty} を含めていません。いま棚にある分だけで計算しています。品切れ前に届くなら、注文量を減らせます。',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'ただいま Ope に接続できませんでした',
+    loadFailedBody: '接続を確認して、もう一度お試しください。',
+    loadFailedServerTitle: 'Ope で問題が起きました',
+    loadFailedServerBody: '問題は当方で起きています。少ししてからもう一度お試しください。',
+    loadFailedDataSafe: '失われたものはありません。データはすべて安全です。',
+    tryAgainBtn: 'もう一度',
+    stillTryingMsg: 'Ope に接続を試みています。しばらく使われていなかった場合、1分ほどかかることがあります。',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'タイムゾーン',
+    timeZoneDesc: 'これはお店にとっての「今日」を決めます。売上がどの日に記録されるか、いつ一日が終わるかです。実際に営業している場所に設定してください。',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: '今日 — {date}',
     toolboxOffline: 'いま計算できませんでした — Ope に接続できません。接続をご確認ください。入力した数値はそのまま残っています。',
     toolboxWorking: '計算しています…',
     tourSettingsAppointmentsTitle: '予約を受けていますか？',
@@ -11959,7 +12200,7 @@ export const translations = {
     customizeTitle: 'ホーム画面をカスタマイズ',
     resetDefault: '初期設定に戻す',
     done: '完了',
-    toggleAndDrag: 'カードのオン/オフを切り替え、ドラッグで並べ替えできます。',
+    
 
     // Record a Regular panel
     recordRegularTitle: '常連客の来店を記録',
@@ -12115,7 +12356,6 @@ export const translations = {
 
     // Trends view
     trendsLoading: 'トレンドを読み込み中…',
-    trendsLoadingError: 'トレンドを読み込めませんでした — サーバーは起動していますか？',
     trendsNoHistoryTitle: 'まだ履歴がありません',
     trendsNoHistoryMsg: '「今日を記録」または「過去の日を追加」で日々の来店客数を追加すると、月次トレンドがここに表示されます。',
     momTitle: '前月比',
@@ -12240,7 +12480,6 @@ export const translations = {
     todayAlreadyLoggedMsg: '今日はすでに記録済みです — 「過去の日」から編集してください。',
 
     // DayList
-    failedToLoadData: 'データの読み込みに失敗しました。サーバーは起動していますか？',
     deleteDayConfirm: 'この日とその販売記録を削除しますか？',
     loadingYourDays: '記録を読み込み中…',
     noDaysLoggedYet: 'まだ記録がありません — ここから始めましょう！{addToday}に切り替えて最初の日を記録してください。',
@@ -12330,7 +12569,6 @@ export const translations = {
 
     // Predictions panel
     loadingPredictions: '予測を読み込み中…',
-    cantLoadPredictions: '予測を読み込めませんでした — サーバーは起動していますか？',
     howPredictionsDid: '予測の的中率',
     howAppDoing: 'アプリの精度はどのくらいですか？',
     averageError: '平均誤差',
@@ -12439,7 +12677,6 @@ export const translations = {
     tomorrowBadge: '明日',
     basedOnNDays: '{n}回の{weekday}の記録に基づく',
     loadingHourlyData: '時間帯別データを読み込み中…',
-    couldntLoadHourly: '時間帯別データを読み込めませんでした — サーバーは起動していますか？',
     marginalNoteLabel: 'スタッフの増減：',
 
     // ProductForecastPanel — strings missing translation (identified in audit)
@@ -12732,7 +12969,6 @@ export const translations = {
     insightsNoAccuracy: '予測の精度を確認するには、数週間分のデータを記録してください。',
     insightsNotEnoughDays: 'パターンを表示するには少なくとも7日分のデータが必要です。',
     insightsLoading: 'インサイトを読み込み中…',
-    insightsLoadError: 'インサイトを読み込めませんでした — サーバーは起動していますか？',
     insightsSectionTrends: 'ビジネスが変化しています',
     insightsTrendGrowing: '過去3か月で{weekday}が{pct}%増加しています',
     insightsTrendDeclining: '過去3か月で{weekday}が{pct}%減少しています',
@@ -12835,7 +13071,7 @@ export const translations = {
     tourInsightsHoursTitle: 'ピーク時間帯',
     tourInsightsHoursBody: '「販売を記録」を数週間使用すると、Opeが1日の中で最も忙しい・静かな時間帯を表示します。準備時間の計画、スタッフの休憩、総動員が必要なタイミングを知るのに役立ちます。',
     tourInsightsYoYTitle: '前年比の比較',
-    tourInsightsYoYBody: '1年分の履歴が揃うと、Opeは今月を前年の同月と比較します — 自分で計算しなくても、ビジネスが成長しているか、横ばいか、落ち込んでいるかがわかります。歴史的に忙しい季節が近づいている場合は、事前に警告もします。',
+    tourInsightsYoYBody: '今月と一年前の同じ月をくらべられるようになると（1年より少し長い記録が必要です）、売上が伸びているか、横ばいか、落ちているかを計算なしでお知らせします。以前忙しかった時期が近づくと、前もって知らせます。',
     tourInsightsAccuracyTitle: '時間経過による予測精度',
     tourInsightsAccuracyBody: 'これは予測の精度がどのように向上してきたかを示します。Opeは通常、最初は大まかですが、あなたのパターンを学ぶにつれて改善します — その改善を実際のパーセンテージとして確認できます。誤差が小さいほど、発注やスタッフ配置の判断で予測をより信頼できます。',
     tourInsightsTrendsTitle: '注目すべき変化',
@@ -12889,7 +13125,6 @@ export const translations = {
     // Premium / billing page
     premiumBilling: 'プレミアム・請求',
     tabPremium: 'プレミアム・請求',
-    premiumLoadingError: 'サブスクリプション情報を読み込めませんでした — サーバーは起動していますか？',
     premiumStatusBadgeTrial: '無料トライアル',
     premiumStatusBadgePremium: 'プレミアム',
     premiumStatusBadgeFree: '無料',
@@ -12933,6 +13168,28 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    // Reordering the home cards — works with a finger, not only a mouse
+    toggleAndReorder: 'Kartları açıp kapatın, sırayı oklarla değiştirin.',
+    moveUpLabel: '{name} yukarı taşı',
+    moveDownLabel: '{name} aşağı taşı',
+    // Stock we estimated vs stock the owner counted — never presented as the same thing
+    estimatedLeftNow: 'şu anda yaklaşık {qty} kaldı',
+    lastCountedOn: 'bu bizim tahminimiz — {date} tarihinde {qty} saymıştınız',
+    lastCountedNoDate: 'bu bizim tahminimiz — en son {qty} saymıştınız',
+    onTheWayNotCounted: 'Bu, yolda olan {qty} ürünü saymıyor — hesap şu anda rafınızdakine göre. Stok bitmeden gelirlerse daha az sipariş verebilirsiniz.',
+    // One honest failure state — never an empty state, never a raw error
+    loadFailedTitle: 'Şu anda Ope’ye ulaşamadık',
+    loadFailedBody: 'Bağlantınızı kontrol edip tekrar deneyin.',
+    loadFailedServerTitle: 'Ope bir sorunla karşılaştı',
+    loadFailedServerBody: 'Sorun bizde, sizde değil. Birazdan tekrar deneyin.',
+    loadFailedDataSafe: 'Hiçbir şey kaybolmadı — tüm verileriniz güvende.',
+    tryAgainBtn: 'Tekrar dene',
+    stillTryingMsg: 'Ope’ye ulaşmaya çalışıyoruz — bir süre kullanılmadıysa bu bir dakikayı bulabilir.',
+    // The business own clock — what "today" means here
+    timeZoneLabel: 'Saat diliminiz',
+    timeZoneDesc: 'Bu, işletmeniz için "bugün"ün ne olduğunu belirler — bir satışın hangi güne işlendiğini ve günün ne zaman bittiğini. Gerçekte çalıştığınız yeri seçin.',
+    // The day the server filed today's taps under — the business's own day
+    todayIs: 'Bugün — {date}',
     toolboxOffline: 'Şu anda hesaplanamadı — Ope\'ye ulaşılamadı. Bağlantınızı kontrol edin; girdiğiniz sayılar duruyor.',
     toolboxWorking: 'Hesaplanıyor…',
     tourSettingsAppointmentsTitle: 'Randevu alıyor musunuz?',
@@ -13054,7 +13311,7 @@ export const translations = {
     customizeTitle: 'Anasayfanızı özelleştirin',
     resetDefault: 'Varsayılana sıfırla',
     done: 'Bitti',
-    toggleAndDrag: 'Kartları açıp kapatın ve yeniden sıralamak için sürükleyin.',
+    
 
     // Record a Regular panel
     recordRegularTitle: "Bir müdavimin ziyaretini kaydedin",
@@ -13215,7 +13472,6 @@ export const translations = {
 
     // Trends view
     trendsLoading: 'Trendler yükleniyor…',
-    trendsLoadingError: "Trendler yüklenemedi — sunucu çalışıyor mu?",
     trendsNoHistoryTitle: 'Henüz geçmiş yok',
     trendsNoHistoryMsg: '"Bugünü Kaydet" veya "Geçmiş Gün Ekle" ile günlük müşteri sayılarını ekleyin, aylık trendleriniz burada görünecek.',
     momTitle: 'Aydan aya',
@@ -13340,7 +13596,6 @@ export const translations = {
     todayAlreadyLoggedMsg: "Bugün zaten kaydedildi — düzenlemek için Geçmiş Günler'de bulun.",
 
     // DayList
-    failedToLoadData: "Veri yüklenemedi. Sunucu çalışıyor mu?",
     deleteDayConfirm: 'Bu gün ve satışları silinsin mi?',
     loadingYourDays: 'Günleriniz yükleniyor…',
     noDaysLoggedYet: "Henüz kaydedilmiş gün yok — başlamak için harika bir nokta! İlk gününüzü kaydetmek için {addToday}'a geçin.",
@@ -13439,7 +13694,6 @@ export const translations = {
 
     // Predictions panel
     loadingPredictions: 'Tahminler yükleniyor…',
-    cantLoadPredictions: "Tahminler yüklenemedi — sunucu çalışıyor mu?",
     howPredictionsDid: 'Tahminlerimiz nasıl gerçekleşti',
     howAppDoing: 'Uygulama ne kadar iyi çalışıyor?',
     averageError: 'Ortalama hata',
@@ -13548,7 +13802,6 @@ export const translations = {
     tomorrowBadge: 'yarın',
     basedOnNDays: '{n} {weekday} kaydı{s} baz alınarak',
     loadingHourlyData: 'Saatlik veri yükleniyor…',
-    couldntLoadHourly: "Saatlik veri yüklenemedi — sunucu çalışıyor mu?",
     marginalNoteLabel: 'Personel eklemek veya çıkarmak:',
 
     // ProductForecastPanel — strings missing translation (identified in audit)
@@ -13841,7 +14094,6 @@ export const translations = {
     insightsNoAccuracy: 'Tahminlerinizin ne kadar doğru olduğunu görmek için birkaç haftalık veri kaydedin.',
     insightsNotEnoughDays: 'Desenleri göstermek için en az 7 günlük veriye ihtiyaç var.',
     insightsLoading: 'İçgörüler yükleniyor…',
-    insightsLoadError: "İçgörüler yüklenemedi — sunucu çalışıyor mu?",
     insightsSectionTrends: 'İşletmeniz değişiyor',
     insightsTrendGrowing: '{weekday} günleri son 3 ayda %{pct} arttı',
     insightsTrendDeclining: '{weekday} günleri son 3 ayda %{pct} azaldı',
@@ -13944,7 +14196,7 @@ export const translations = {
     tourInsightsHoursTitle: 'Zirve saatleriniz',
     tourInsightsHoursBody: "Birkaç hafta 'Satış Kaydet'i kullandıktan sonra, Ope günün en yoğun ve en sakin saatlerini gösterir. Bunu hazırlık zamanını, personel molalarını planlamak veya tüm ekibe ne zaman ihtiyacınız olacağını bilmek için kullanın.",
     tourInsightsYoYTitle: 'Yıldan yıla karşılaştırma',
-    tourInsightsYoYBody: "Bir yıllık geçmişiniz olduğunda, Ope bu ayı geçen yılın aynı ayıyla karşılaştırır — böylece hesaplamayı kendiniz yapmadan işletmenizin büyüyüp büyümediğini, sabit kalıp kalmadığını veya gerilediğini bilirsiniz. Ayrıca tarihsel olarak yoğun bir sezon yaklaşıyorsa sizi önceden uyarır.",
+    tourInsightsYoYBody: 'Ope’nin bu ayı ve bir yıl önceki aynı ayı karşılaştırabildiği anda — yani bir yıldan biraz fazla geçmişle — işletmenizin büyüdüğünü, sabit kaldığını ya da gerilediğini siz hesap yapmadan gösterir. Daha önce yoğun geçen bir sezon yaklaştığında da önceden uyarır.',
     tourInsightsAccuracyTitle: 'Zaman içinde tahmin doğruluğu',
     tourInsightsAccuracyBody: "Bu, tahminlerinizin ne kadar doğru hale geldiğini gösterir. Ope genellikle kaba başlar ve desenlerinizi öğrendikçe gelişir — gelişimi burada gerçek bir yüzde olarak göreceksiniz. Hata ne kadar düşükse, sipariş ve personel kararları için tahmine o kadar güvenebilirsiniz.",
     tourInsightsTrendsTitle: 'Fark edilmeye değer değişiklikler',
@@ -13998,7 +14250,6 @@ export const translations = {
     // Premium / billing page
     premiumBilling: 'Premium ve Faturalandırma',
     tabPremium: 'Premium ve Faturalandırma',
-    premiumLoadingError: "Abonelik bilgisi yüklenemedi — sunucu çalışıyor mu?",
     premiumStatusBadgeTrial: 'Ücretsiz Deneme',
     premiumStatusBadgePremium: 'Premium',
     premiumStatusBadgeFree: 'Ücretsiz',

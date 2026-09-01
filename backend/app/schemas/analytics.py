@@ -108,8 +108,11 @@ class OrderingRow(BaseModel):
     lead_time_days: int
     safety_stock_units: float
     reorder_point: float
-    current_stock: Optional[float] = None
+    current_stock: Optional[float] = None       # the last figure the OWNER counted
     projected_stock: Optional[float] = None   # dynamically computed; None when untracked
+    # When the owner last counted. Sent so the client can say "about N left now,
+    # last counted M on <date>" rather than presenting an estimate as a fact.
+    stock_as_of_date: Optional[str] = None
     stock_untracked: bool = False              # no baseline set; stock can't be projected
     approaching_reorder: bool = False          # heads-up before hitting the reorder point
     order_now: bool
@@ -224,8 +227,11 @@ class ProductForecastItem(BaseModel):
     safety_stock_units: float = 0.0
     reorder_point: float = 0.0
     suggested_order_qty: float = 0.0      # EOQ if costs known, else ROP-based
-    current_stock: Optional[float] = None
+    current_stock: Optional[float] = None       # the last figure the OWNER counted
     projected_stock: Optional[float] = None   # dynamically computed; None when untracked
+    # When the owner last counted. Sent so the client can say "about N left now,
+    # last counted M on <date>" rather than presenting an estimate as a fact.
+    stock_as_of_date: Optional[str] = None
     stock_untracked: bool = False              # no baseline set; stock can't be projected
     approaching_reorder: bool = False          # heads-up before hitting the reorder point
     order_now: bool = False

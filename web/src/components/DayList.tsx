@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { dayRecords, products as productsApi, sales as salesApi } from '../api/client'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { DayRecordRead, ProductRead, SaleRead } from '../api/types'
 
@@ -18,7 +19,7 @@ export default function DayList({ refreshKey }: Props) {
   const [allSales, setAllSales] = useState<SaleRead[]>([])
   const [productList, setProductList] = useState<ProductRead[]>([])
   const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState('')
+  const [error, setError]       = useState<unknown>(null)
 
   // Edit state
   const [editId, setEditId]           = useState<number | null>(null)
@@ -38,14 +39,14 @@ export default function DayList({ refreshKey }: Props) {
       setDays([...d].reverse())
       setAllSales(s)
       setProductList(p)
-    } catch {
-      setError(t('failedToLoadData'))
+    } catch (e) {
+      setError(e)
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { load() }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load() }, [refreshKey])
 
   function startEdit(day: DayRecordRead) {
     setEditId(day.id)
@@ -109,7 +110,7 @@ export default function DayList({ refreshKey }: Props) {
   }
 
   if (loading) return <p className="text-teal-500 text-sm animate-pulse">{t('loadingYourDays')}</p>
-  if (error)   return <p className="text-red-700 text-sm bg-red-50 rounded-xl p-3">{error}</p>
+  if (error)   return <LoadError error={error} onRetry={load} />
   if (!days.length) return (
     <div className="py-12 text-center">
       <div className="w-14 h-14 mb-4 mx-auto rounded-full bg-teal-50 flex items-center justify-center">

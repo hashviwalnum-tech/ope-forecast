@@ -10,6 +10,7 @@ import TapSellPanel from './TapSellPanel'
 import TrendsView from './TrendsView'
 import { businesses as businessesApi, dayRecords as dayRecordsApi, products as productsApi, regulars as regularsApi, saleEvents } from '../api/client'
 import { useCurrency } from '../contexts/CurrencyContext'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { RegularRead } from '../api/types'
 import type { TranslationKey } from '../i18n'
@@ -158,13 +159,9 @@ interface Props {
   onGoToProducts?: () => void
 }
 
-function localToday(): string {
-  const d = new Date()
-  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
-}
-
 export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Props) {
   const { t, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
+  const { today: localToday, hour: bizHour } = useBusinessTime()
   const [showSell, setShowSell]       = useState(false)
   const [showLog, setShowLog]         = useState(false)
   const [showRegular, setShowRegular] = useState(false)
@@ -195,12 +192,14 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
         const settings = bizData.settings || {}
         const closingHour = typeof settings.closing_hour === 'number' ? settings.closing_hour : null
         if (closingHour === null) return
-        if (new Date().getHours() < closingHour) return
+        if (bizHour < closingHour) return
         const [summary, records] = await Promise.all([
           saleEvents.today(),
           dayRecordsApi.list(),
         ])
-        const todayStr = localToday()
+        // Compare against the day the SERVER filed those taps under, not a day
+        // this client worked out for itself.
+        const todayStr = summary.date || localToday
         const alreadyLogged = records.some((r: { date: string }) => r.date === todayStr)
         setTapRollover(summary.total_taps > 0 && !alreadyLogged)
       } catch {
@@ -208,7 +207,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
       }
     }
     checkRollover()
-  }, [refreshKey])
+  }, [refreshKey, bizHour, localToday])
 
   function handleSaved() {
     setShowLog(false)
@@ -240,6 +239,24 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
     })
     dragIdx.current = null
     setDragOver(null)
+  }
+
+  /** Move a card one place up or down.
+   *
+   *  The panel used to say "drag to reorder" while offering only HTML5
+   *  drag-and-drop, which mobile browsers do not implement — so on the device
+   *  most owners use, the instruction was impossible to follow. These buttons
+   *  work with a finger, a mouse and a keyboard alike.
+   */
+  function moveCard(idx: number, delta: number) {
+    setLayout(prev => {
+      const to = idx + delta
+      if (to < 0 || to >= prev.length) return prev
+      const arr = [...prev]
+      const [item] = arr.splice(idx, 1)
+      arr.splice(to, 0, item)
+      return arr
+    })
   }
 
   function doneCustomizing() {
@@ -512,8 +529,8 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
               </button>
             </div>
           </div>
-          <p className="text-xs text-teal-600 dark:text-teal-400">
-            {t('toggleAndDrag')}
+          <p className="text-xs text-teal-700 dark:text-teal-300">
+            {t('toggleAndReorder')}
           </p>
 
           <div className="space-y-2">
@@ -531,11 +548,35 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
                               ? 'border-teal-400 dark:border-teal-500 bg-teal-50 dark:bg-teal-900/30'
                               : 'border-slate-100 dark:border-slate-600'}`}
               >
-                {/* Drag handle */}
-                <svg className="w-4 h-4 shrink-0 text-slate-300 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M4 8h16M4 16h16" />
-                </svg>
+                {/* Move up / down — the reorder control that works on a phone. */}
+                <div className="flex flex-col shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => moveCard(idx, -1)}
+                    disabled={idx === 0}
+                    aria-label={t('moveUpLabel', { name: t(card.labelKey as TranslationKey) })}
+                    className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-300
+                               hover:bg-teal-50 dark:hover:bg-slate-600 disabled:opacity-30 disabled:hover:bg-transparent
+                               focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveCard(idx, 1)}
+                    disabled={idx === layout.length - 1}
+                    aria-label={t('moveDownLabel', { name: t(card.labelKey as TranslationKey) })}
+                    className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-300
+                               hover:bg-teal-50 dark:hover:bg-slate-600 disabled:opacity-30 disabled:hover:bg-transparent
+                               focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
 
                 <span className={`flex-1 text-sm font-medium ${card.visible ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500 line-through'}`}>
                   {t(card.labelKey as TranslationKey)}

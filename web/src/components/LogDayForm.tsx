@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react'
 import { businesses, dayRecords, products, sales } from '../api/client'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { BusinessRead, ProductRead, SaleRead } from '../api/types'
-
-function localToday(): string {
-  const d = new Date()
-  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
-}
 
 function fmtHour(h: number, lang: string): string {
   if (lang === 'he') return `${h}:00`
@@ -20,6 +16,7 @@ interface Props { onSaved: () => void }
 
 export default function LogDayForm({ onSaved }: Props) {
   const { t, lang } = useLanguage()
+  const { today: localToday, hour: bizHour } = useBusinessTime()
   const [customers, setCustomers] = useState('')
   const [productList, setProductList] = useState<ProductRead[]>([])
   const [biz, setBiz]             = useState<BusinessRead | null>(null)
@@ -40,7 +37,7 @@ export default function LogDayForm({ onSaved }: Props) {
     const oh = biz.settings.opening_hour
     const ch = biz.settings.closing_hour
     if (typeof oh !== 'number' || typeof ch !== 'number') return null
-    const now = new Date().getHours()
+    const now = bizHour
     if (now >= ch) return null  // day is finished — allow
     if (now < oh) {
       return t('todayNotStarted', { opens: fmtHour(oh, lang), closes: fmtHour(ch, lang) })
@@ -66,7 +63,7 @@ export default function LogDayForm({ onSaved }: Props) {
     setWarning(null)
     setOverwriteId(null)
     try {
-      const day = await dayRecords.create({ date: localToday(), customers: cust })
+      const day = await dayRecords.create({ date: localToday, customers: cust })
       for (const p of productList) {
         const val = parseFloat(unitsSold[p.id] ?? '')
         if (!isNaN(val) && val > 0) {
@@ -83,7 +80,7 @@ export default function LogDayForm({ onSaved }: Props) {
       if (raw.toLowerCase().includes('already exists')) {
         try {
           const records = await dayRecords.list()
-          const existing = records.find(r => r.date === localToday())
+          const existing = records.find(r => r.date === localToday)
           if (existing) {
             setOverwriteId(existing.id)
           } else {

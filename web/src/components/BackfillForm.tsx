@@ -1,18 +1,8 @@
 import { useEffect, useState } from 'react'
 import { businesses, dayRecords, products, sales, saleEvents } from '../api/client'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { BackfillPreviewResponse, BusinessRead, ProductRead, SaleRead } from '../api/types'
-
-function localToday(): string {
-  const d = new Date()
-  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
-}
-
-function localYesterday(): string {
-  const d = new Date()
-  d.setDate(d.getDate() - 1)
-  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
-}
 
 function fmtHour(h: number, lang: string): string {
   if (lang === 'he') return `${h}:00`
@@ -24,27 +14,9 @@ function fmtHour(h: number, lang: string): string {
 
 interface Props { onSaved: () => void }
 
-function isTodayLocked(biz: BusinessRead | null): boolean {
-  if (!biz) return false
-  const ch = biz.settings.closing_hour
-  if (typeof ch !== 'number') return false
-  return new Date().getHours() < ch
-}
-
-// Returns true if the date falls on a day not in the business's opening_days.
-// opening_days uses 0=Mon...6=Sun; JS getDay() returns 0=Sun...6=Sat.
-function isNonWorkingDay(dateStr: string, biz: BusinessRead | null): boolean {
-  if (!biz) return false
-  const opening_days = biz.settings.opening_days as number[] | undefined
-  if (!Array.isArray(opening_days) || opening_days.length === 0) return false
-  const [y, m, d] = dateStr.split('-').map(Number)
-  const jsDay = new Date(y, m - 1, d).getDay()   // 0=Sun...6=Sat
-  const appDay = (jsDay + 6) % 7                  // 0=Mon...6=Sun
-  return !opening_days.includes(appDay)
-}
-
 export default function BackfillForm({ onSaved }: Props) {
   const { t, lang } = useLanguage()
+  const { today: localToday, yesterday: localYesterday, beforeClosing, isNonWorkingDay } = useBusinessTime()
   const [date, setDate]           = useState(localYesterday)
   const [customers, setCustomers] = useState('')
   const [productList, setProductList] = useState<ProductRead[]>([])
@@ -81,8 +53,10 @@ export default function BackfillForm({ onSaved }: Props) {
     return () => { cancelled = true; setExisting(null) }
   }, [date, showHourly])
 
-  const locked = isTodayLocked(biz)
-  const nonWorking = isNonWorkingDay(date, biz)
+  // "Locked" means today's numbers are not final yet — judged on the
+  // BUSINESS's clock, not the device's.
+  const locked = beforeClosing
+  const nonWorking = isNonWorkingDay(date)
 
   // Compute the set of open hours from business settings (null = all hours allowed)
   const openHours: Set<number> | null = (() => {
@@ -251,7 +225,7 @@ export default function BackfillForm({ onSaved }: Props) {
         <input
           type="date" required
           value={date}
-          max={locked ? localYesterday() : localToday()}
+          max={locked ? localYesterday : localToday}
           onChange={e => { setDate(e.target.value); setFeedback(null) }}
           className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-3
                      text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700

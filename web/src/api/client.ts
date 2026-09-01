@@ -65,10 +65,31 @@ const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 const RETRY_MAX = 6
 const RETRY_DELAY_MS = 8_000
 
-let _wakingUpListener: ((waking: boolean) => void) | null = null
-export function setWakingUpListener(fn: ((waking: boolean) => void) | null): void {
-  _wakingUpListener = fn
+/**
+ * Who wants to know we are still retrying.
+ *
+ * This used to be a single listener, which App claimed for its first load — so
+ * a retry on any OTHER screen showed nothing at all, and the owner watched
+ * "Loading…" for the full ~48 seconds with no explanation. It is a set now, so
+ * the app-wide banner and any screen can both listen.
+ */
+const _wakingUpListeners = new Set<(waking: boolean) => void>()
+
+export function onWakingUp(fn: (waking: boolean) => void): () => void {
+  _wakingUpListeners.add(fn)
+  return () => { _wakingUpListeners.delete(fn) }
 }
+
+/** How many requests are mid-retry right now. */
+let _retrying = 0
+
+function announceWaking(waking: boolean): void {
+  _retrying = Math.max(0, _retrying + (waking ? 1 : -1))
+  const anyWaiting = _retrying > 0
+  for (const fn of _wakingUpListeners) fn(anyWaiting)
+}
+
+const _wakingUpListener = { call: announceWaking }
 
 function isNetworkError(err: unknown): boolean {
   return err instanceof TypeError && /failed to fetch|network request failed|networkerror/i.test((err as TypeError).message)
@@ -78,11 +99,16 @@ async function fetchWithRetry(input: string, init: RequestInit): Promise<Respons
   for (let attempt = 0; attempt <= RETRY_MAX; attempt++) {
     try {
       const res = await fetch(input, init)
-      if (attempt > 0) _wakingUpListener?.(false)
+      if (attempt > 0) _wakingUpListener.call(false)
       return res
     } catch (err) {
-      if (!isNetworkError(err) || attempt === RETRY_MAX) throw err
-      if (attempt === 0) _wakingUpListener?.(true)
+      if (!isNetworkError(err) || attempt === RETRY_MAX) {
+        // Give up: clear this request's share of the "still trying" banner,
+        // otherwise it would hang there for the rest of the session.
+        if (attempt > 0) _wakingUpListener.call(false)
+        throw err
+      }
+      if (attempt === 0) _wakingUpListener.call(true)
       await new Promise<void>(resolve => setTimeout(resolve, RETRY_DELAY_MS))
     }
   }
@@ -195,13 +221,18 @@ export const planning = {
 export const businesses = {
   list:   ()             => GET<BusinessRead[]>('/businesses'),
   me:     ()             => GET<BusinessRead>('/businesses/me'),
-  create: (name: string) => POST<BusinessRead>('/businesses', { name }),
+  /** `timezone` is the device's IANA zone, so the server's "today" and the
+   *  screen's "today" agree from the first day. */
+  create: (name: string, timezone?: string) =>
+    POST<BusinessRead>('/businesses', timezone ? { name, timezone } : { name }),
   copyFrom: (sourceId: number, name: string) =>
     POST<BusinessRead>(`/businesses/${sourceId}/copy`, { name }),
   updateSettings: (settings: {
     opening_days?: number[]
     opening_hour?: number
     closing_hour?: number
+    /** IANA zone name — the business's own clock. */
+    timezone?: string
     avg_service_time_minutes?: number
     staffing_max_wait_minutes?: number | null
     staffing_max_queue_length?: number | null

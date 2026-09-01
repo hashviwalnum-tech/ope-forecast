@@ -23,6 +23,7 @@ import RegularsPanel from './components/RegularsPanel'
 import ProductStatusPanel from './components/ProductStatusPanel'
 import PremiumPage from './components/PremiumPage'
 import { useAuth } from './contexts/AuthContext'
+import { BusinessTimeProvider } from './contexts/BusinessTimeContext'
 import { CurrencyProvider } from './contexts/CurrencyContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
 import { LANG_LABELS, type Lang } from './i18n'
@@ -61,10 +62,7 @@ function AppInner() {
   const [showTour, setShowTour]               = useState(false)
   const [subInfo, setSubInfo]                 = useState<SubscriptionRead | null>(null)
 
-  useEffect(() => {
-    api.setWakingUpListener(setWaking)
-    return () => api.setWakingUpListener(null)
-  }, [])
+  useEffect(() => api.onWakingUp(setWaking), [])
 
   const [tab, setTab]               = useState<Tab>('home')
   const [refreshKey, setRefreshKey] = useState(0)
@@ -278,7 +276,7 @@ function AppInner() {
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{t('wakingUpMsg')}</p>
           </div>
         ) : (
-          <p className="text-teal-600 dark:text-teal-400 text-sm">Loading…</p>
+          <p className="text-teal-600 dark:text-teal-400 text-sm">{t('loadingLabel')}</p>
         )}
       </div>
     )
@@ -327,6 +325,10 @@ function AppInner() {
        toolbox — and an owner with two locations in different currencies must
        see each one's own. */
     <CurrencyProvider currency={activeBusiness.settings?.currency as string | undefined}>
+    {/* And every "today" comes from THIS business's own clock — never the
+        device's, which is how a New York shop at 8pm used to be filed under
+        tomorrow. */}
+    <BusinessTimeProvider settings={activeBusiness.settings}>
     <div className="min-h-screen bg-teal-50 dark:bg-slate-900" dir={dir}>
 
       {/* ── Header ──────────────────────────────────────────────────── */}
@@ -564,6 +566,21 @@ function AppInner() {
         </button>
       </header>
 
+      {/* Still trying to reach Ope. Shown on EVERY screen, not just the first
+          load — a retry runs for up to ~48 seconds, and saying nothing looked
+          like the app had simply stopped. */}
+      {waking && (
+        <div role="status" aria-live="polite"
+             className="bg-teal-50 dark:bg-slate-800 border-b border-teal-200 dark:border-slate-700 px-6 py-2
+                        flex items-center justify-center gap-2 text-sm text-teal-800 dark:text-teal-200">
+          <svg className="w-4 h-4 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span>{t('stillTryingMsg')}</span>
+        </div>
+      )}
+
       {/* ── Trial banner ─────────────────────────────────────────────── */}
       {subInfo &&
         subInfo.effective_tier === 'premium' &&
@@ -672,6 +689,7 @@ function AppInner() {
       )}
 
     </div>
+    </BusinessTimeProvider>
     </CurrencyProvider>
   )
 }

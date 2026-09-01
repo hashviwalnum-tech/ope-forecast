@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import CurrencyPicker from './CurrencyPicker'
 import { businesses, nudges as nudgesApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
+import { deviceTimeZone, isValidTimeZone } from '../lib/businessTime'
 import { useTheme } from '../contexts/ThemeContext'
 import TelegramConnectPanel from './TelegramConnectPanel'
 import FeedbackPanel from './FeedbackPanel'
@@ -10,6 +11,21 @@ interface Props {
   onTierChanged?: () => void
   onReplayTour?: () => void
 }
+
+/** Every zone the browser knows, with the device's own always present. */
+function allTimeZones(): string[] {
+  let zones: string[] = []
+  try {
+    const supported = (Intl as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf
+    if (supported) zones = supported('timeZone')
+  } catch { /* older browsers: fall through to the short list below */ }
+  if (zones.length === 0) zones = ['UTC']
+  const device = deviceTimeZone()
+  if (isValidTimeZone(device) && !zones.includes(device)) zones = [device, ...zones]
+  return zones
+}
+
+const timeZoneOptions = allTimeZones()
 
 function dayKey(i: number): string {
   return ['dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat', 'daySun'][i]
@@ -26,6 +42,10 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
   const [maxWaitMinutes,  setMaxWaitMinutes]  = useState<number>(5)
   const [maxQueueLength,  setMaxQueueLength]  = useState<number>(3)
   const [currency,        setCurrency]        = useState('')
+  // The business's own clock. Unset means we have been falling back to the
+  // device's zone, which is how the screen and the server came to disagree
+  // about which day a sale belonged to.
+  const [timeZone,        setTimeZone]        = useState('')
   const [saving,          setSaving]          = useState(false)
   const [feedback,        setFeedback]        = useState<{ ok: boolean; msg: string } | null>(null)
 
@@ -55,6 +75,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       if (Array.isArray(s.opening_days))             setOpenDays(s.opening_days as number[])
       if (typeof s.opening_hour === 'number')        setOpeningHour(s.opening_hour)
       if (typeof s.closing_hour === 'number')        setClosingHour(s.closing_hour)
+      setTimeZone(typeof s.timezone === 'string' && s.timezone ? s.timezone : deviceTimeZone())
       if (typeof s.avg_service_time_minutes === 'number') setAvgServiceTime(s.avg_service_time_minutes)
       if (typeof s.staffing_max_wait_minutes === 'number') {
         setThresholdType('wait')
@@ -118,6 +139,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         opening_days: openDays,
         opening_hour: openingHour,
         closing_hour: closingHour,
+        ...(timeZone ? { timezone: timeZone } : {}),
         avg_service_time_minutes: avgServiceTime,
         staffing_max_wait_minutes:  thresholdType === 'wait'  ? maxWaitMinutes  : null,
         staffing_max_queue_length: thresholdType === 'queue' ? maxQueueLength  : null,
@@ -203,6 +225,33 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
             ))}
           </select>
         </div>
+      </div>
+
+      {/* Time zone — what "today" means for this business. Nested in the
+          schedule block on purpose: it is the same question as opening hours,
+          not a new top-level choice. */}
+      <div>
+        <label
+          htmlFor="settings-timezone"
+          className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+        >
+          {t('timeZoneLabel')}
+        </label>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+          {t('timeZoneDesc')}
+        </p>
+        <select
+          id="settings-timezone"
+          value={timeZone}
+          onChange={e => setTimeZone(e.target.value)}
+          className="w-full max-w-xs border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5 min-h-11
+                     text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-700 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-teal-500"
+        >
+          {timeZoneOptions.map(tz => (
+            <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
+          ))}
+        </select>
       </div>
 
       </div>{/* end settings-schedule */}

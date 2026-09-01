@@ -273,8 +273,12 @@ export interface OrderingRow {
   lead_time_days: number
   safety_stock_units: number
   reorder_point: number
+  /** The last figure the OWNER counted. */
   current_stock?: number
+  /** Our estimate of what is on the shelf now: last count, less sales, plus arrivals. */
   projected_stock?: number | null
+  /** When the owner last counted, so an estimate can be shown as one. */
+  stock_as_of_date?: string | null
   stock_untracked?: boolean
   approaching_reorder?: boolean
   order_now: boolean
@@ -639,8 +643,9 @@ export interface ProductForecastItem {
   safety_stock_units: number
   reorder_point: number
   suggested_order_qty: number
-  current_stock?: number | null
+  current_stock?: number | null        // the last figure the OWNER counted
   projected_stock?: number | null      // dynamically computed; null when untracked
+  stock_as_of_date?: string | null     // when the owner last counted
   stock_untracked?: boolean            // true = no baseline set; can't track
   approaching_reorder?: boolean        // heads-up before hitting the reorder point
   order_now: boolean

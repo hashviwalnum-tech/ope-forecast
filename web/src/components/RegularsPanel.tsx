@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { regulars as api } from '../api/client'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useTheme } from '../contexts/ThemeContext'
@@ -194,6 +195,7 @@ export default function RegularsPanel() {
   const { money, symbol, step } = useCurrency()
   const [rows, setRows]         = useState<RegularRead[]>([])
   const [loading, setLoading]   = useState(true)
+  const [loadError, setLoadError] = useState<unknown>(null)
   const [adding, setAdding]     = useState(false)
   const [editing, setEditing]   = useState<RegularRead | null>(null)
   const [saving, setSaving]     = useState(false)
@@ -227,6 +229,7 @@ export default function RegularsPanel() {
 
   async function load() {
     setLoading(true)
+    setLoadError(null)
     try {
       const data = await api.list()
       setRows(data)
@@ -243,7 +246,11 @@ export default function RegularsPanel() {
         if (res.status === 'fulfilled') newProfMap[data[i].id] = res.value
       })
       setProfMap(newProfMap)
-    } catch { /* ignore */ }
+    } catch (e) {
+      // Never fall through to the empty state: an owner with eight regulars
+      // being told "No regulars yet" reads as their data having vanished.
+      setLoadError(e)
+    }
     finally { setLoading(false) }
   }
 
@@ -490,7 +497,9 @@ export default function RegularsPanel() {
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500">{t('savingLabel')}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{t('loadingLabel')}</p>
+      ) : loadError ? (
+        <LoadError error={loadError} onRetry={load} />
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-teal-200 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 p-8 text-center">
           <p className="text-sm text-teal-600 dark:text-teal-400 font-medium">{t('noRegularsEmptyTitle')}</p>

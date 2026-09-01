@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import * as api from '../api/client'
 import type { SubscriptionRead } from '../api/types'
@@ -27,7 +28,7 @@ export default function PremiumPage() {
 
   const [sub, setSub] = useState<SubscriptionRead | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
   const [checkingOut, setCheckingOut] = useState<'monthly' | 'annual' | null>(null)
   const [testComplete, setTestComplete] = useState(false)
 
@@ -38,11 +39,11 @@ export default function PremiumPage() {
       const data = await api.subscription.get()
       setSub(data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('premiumLoadingError'))
+      setError(e)
     } finally {
       setLoading(false)
     }
-  }, [t])
+  }, [])
 
   useEffect(() => { loadSub() }, [loadSub])
 
@@ -83,7 +84,7 @@ export default function PremiumPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-4">
-        <p className="text-slate-600 dark:text-slate-300 text-sm">{error}</p>
+        <LoadError error={error} onRetry={loadSub} variant="inline" />
         <button
           onClick={loadSub}
           className="px-4 py-2 rounded-xl text-sm font-medium bg-teal-600 text-white hover:bg-teal-700 transition-colors"

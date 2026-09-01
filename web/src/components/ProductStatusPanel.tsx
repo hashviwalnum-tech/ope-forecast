@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { analytics, orders as ordersApi, products as productsApi } from '../api/client'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
+import LoadError from './LoadError'
+import { describeStock } from '../lib/stockLabel'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { OrderingResponse, OrderRecordRead, OrderingRow, ProductRead } from '../api/types'
 
@@ -115,10 +118,12 @@ export default function ProductStatusPanel() {
   const [ordering, setOrdering] = useState<OrderingResponse | null>(null)
   const [allOrders, setAllOrders] = useState<OrderRecordRead[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<unknown>(null)
 
-  const today = new Date().toISOString().slice(0, 10)
+  const { today } = useBusinessTime()
 
   async function load() {
+    setLoadError(null)
     try {
       const [prods, ord, orders] = await Promise.all([
         productsApi.list(),
@@ -128,7 +133,9 @@ export default function ProductStatusPanel() {
       setProducts(prods)
       setOrdering(ord)
       setAllOrders(orders.filter(o => o.status !== 'cancelled'))
-    } catch { /* ignore */ }
+    } catch (e) {
+      setLoadError(e)
+    }
     finally { setLoading(false) }
   }
 
@@ -160,10 +167,12 @@ export default function ProductStatusPanel() {
   if (loading) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
-        <p className="text-sm text-slate-400 animate-pulse">{t('loadingLabel')}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 animate-pulse">{t('loadingLabel')}</p>
       </div>
     )
   }
+
+  if (loadError) return <LoadError error={loadError} onRetry={load} />
 
   return (
     <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
@@ -176,8 +185,15 @@ export default function ProductStatusPanel() {
         <div className="space-y-3">
           {stockedProducts.map(prod => {
             const ord = orderingMap.get(prod.id)
-            const displayStock = ord?.projected_stock ?? prod.current_stock
-            const stockUntracked = ord?.stock_untracked ?? prod.current_stock == null
+            // Counted or estimated — labelled as whichever it is.
+            const stock = describeStock({
+              current_stock: prod.current_stock,
+              projected_stock: ord?.projected_stock,
+              stock_as_of_date: prod.stock_as_of_date,
+              stock_untracked: ord?.stock_untracked ?? prod.current_stock == null,
+            })
+            const displayStock = stock.kind === 'untracked' ? null : stock.qty
+            const stockUntracked = stock.kind === 'untracked'
             const uMode = prod.unit_mode ?? 'whole'
             const activeOrder = ordersByProduct.get(prod.id) ?? null
 
@@ -205,8 +221,15 @@ export default function ProductStatusPanel() {
                       {prod.name}
                     </p>
                     <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
-                      {displayStock != null && !stockUntracked && (
-                        <span>{t('inStock')}: <strong className="text-slate-700 dark:text-slate-200">{fmtQtyVal(displayStock, uMode)} {prod.unit}</strong></span>
+                      {stock.kind === 'counted' && (
+                        <span>{t('inStock')}: <strong className="text-slate-700 dark:text-slate-200">{fmtQtyVal(stock.qty, uMode)} {prod.unit}</strong></span>
+                      )}
+                      {stock.kind === 'estimated' && (
+                        <span title={stock.countedOn
+                          ? t('lastCountedOn', { qty: `${fmtQtyVal(stock.counted, uMode)} ${prod.unit}`, date: stock.countedOn })
+                          : t('lastCountedNoDate', { qty: `${fmtQtyVal(stock.counted, uMode)} ${prod.unit}` })}>
+                          {t('estimatedLeftNow', { qty: `${fmtQtyVal(stock.qty, uMode)} ${prod.unit}` })}
+                        </span>
                       )}
                       {stockUntracked && (
                         <span className="text-slate-400 dark:text-slate-500 italic">{t('setStartingStockHint')}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -9,6 +9,9 @@ import {
   YAxis,
 } from 'recharts'
 import { analytics, orders as ordersApi } from '../api/client'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
+import LoadError from './LoadError'
+import { describeStock } from '../lib/stockLabel'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { Lang, TranslationKey } from '../i18n'
@@ -68,16 +71,22 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
   const [recentOrder, setRecentOrder]     = useState<OrderRecordRead | null>(null)
   const [arriving, setArriving]           = useState(false)
 
-  const today = new Date().toISOString().slice(0, 10)
-  // Use projected stock (dynamic) when available, fall back to raw current_stock
-  const stockUntracked = item.stock_untracked ?? false
-  const displayStock = item.projected_stock ?? item.current_stock
+  const { today } = useBusinessTime()
+  // Counted or estimated — say which. Rendering `projected ?? current` under
+  // the words "in stock" told an owner who had counted 1,375 that they had 393.
+  const stock = describeStock(item)
+  const stockUntracked = stock.kind === 'untracked'
 
-  const haveNow = stockUntracked
+  const haveNow = stock.kind === 'untracked'
     ? t('setStartingStockHint')
-    : displayStock != null
-      ? t('haveNow', { qty: fmtQty(displayStock, uMode, unit) })
-      : t('trackStockAlerts')
+    : stock.kind === 'counted'
+      ? t('haveNow', { qty: fmtQty(stock.qty, uMode, unit) })
+      : t('estimatedLeftNow', { qty: fmtQty(stock.qty, uMode, unit) })
+
+  const stockFootnote = stock.kind !== 'estimated' ? null
+    : stock.countedOn
+      ? t('lastCountedOn', { qty: fmtQty(stock.counted, uMode, unit), date: stock.countedOn })
+      : t('lastCountedNoDate', { qty: fmtQty(stock.counted, uMode, unit) })
 
   async function submitOrder() {
     let q = parseFloat(orderQty)
@@ -85,7 +94,6 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
     if (uMode === 'whole') q = Math.round(q)
     setSubmitting(true)
     try {
-      const today = new Date().toISOString().slice(0, 10)
       const order = await ordersApi.create({ product_id: item.product_id, ordered_date: today, quantity: q })
       setRecentOrder(order)
       setShowOrderForm(false)
@@ -142,7 +150,7 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
             <span className="px-2.5 py-1 bg-red-500 text-white rounded-full text-xs font-bold">
               {t('orderNowBadge', { qty: fmtQty(qty, uMode, unit) })}
             </span>
-          ) : displayStock != null && !stockUntracked ? (
+          ) : !stockUntracked ? (
             <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-semibold">
               {t('youreGood')}
             </span>
@@ -153,7 +161,10 @@ function OrderCard({ item }: { item: ProductForecastItem }) {
         <div className="px-4 py-3">
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{t('reorderWhenBelow')}</p>
           <p className="text-base font-bold tabular-nums text-slate-800 dark:text-slate-100">{fmtQty(item.reorder_point, uMode, unit)}</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{haveNow}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{haveNow}</p>
+          {stockFootnote && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{stockFootnote}</p>
+          )}
         </div>
         <div className="px-4 py-3">
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{t('safetyBufferLabel')}</p>
@@ -296,14 +307,20 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
   const [products, setProducts]   = useState<ProductForecastResponse | null>(null)
   const [selected, setSelected]   = useState<'customers' | number>('customers')
   const [loading, setLoading]     = useState(true)
+  const [loadError, setLoadError] = useState<unknown>(null)
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setLoading(true)
+    setLoadError(null)
     Promise.all([analytics.forecast(), analytics.productForecast()])
       .then(([f, p]) => { setForecast(f); setProducts(p) })
-      .catch(() => {})
+      // A swallowed failure here fell through to "Keep logging days to see your
+      // forecast" — an outage dressed up as an empty account.
+      .catch(setLoadError)
       .finally(() => setLoading(false))
-  }, [refreshKey])
+  }, [])
+
+  useEffect(() => { reload() }, [refreshKey, reload])
 
   if (loading) {
     return (
@@ -312,6 +329,15 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
         {/* This is a READ, not a write — 'Saving…' told the owner the app was
             writing something when it was only fetching the forecast. */}
         <p className="text-sm text-slate-400 animate-pulse">{t('loadingLabel')}</p>
+      </section>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-3">{t('demandForecast')}</h2>
+        <LoadError error={loadError} onRetry={reload} />
       </section>
     )
   }

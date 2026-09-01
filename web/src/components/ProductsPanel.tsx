@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { products as productsApi } from '../api/client'
 import { useCurrency } from '../contexts/CurrencyContext'
+import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { ProductRead, ServiceConsumableCreate, ServiceConsumableRead } from '../api/types'
 
@@ -994,12 +995,15 @@ function StarButton({ isFavorite, onToggle }: { isFavorite: boolean; onToggle: (
 export default function ProductsPanel() {
   const { t } = useLanguage()
   const [productList, setProductList] = useState<ProductRead[]>([])
+  const [listError, setListError] = useState<unknown>(null)
 
   async function load() {
     try {
       setProductList(await productsApi.list())
-    } catch {
-      // non-critical; leave list empty
+      setListError(null)
+    } catch (e) {
+      // An outage must not read as "you have no products yet".
+      setListError(e)
     }
   }
 
@@ -1052,9 +1056,11 @@ export default function ProductsPanel() {
             ))}
           </div>
         </section>
+      ) : listError ? (
+        <LoadError error={listError} onRetry={load} />
       ) : (
         <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
-          <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed max-w-xs mx-auto">
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
             {t('noProductsYet')}
           </p>
         </section>
