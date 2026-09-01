@@ -122,6 +122,28 @@ def reorder_point(
 TARGET_COVER_LEAD_TIMES = 1.0
 
 
+def inventory_position(on_hand: float, on_order: float = 0.0) -> float:
+    """What you effectively have: stock on the shelf plus stock already ordered.
+
+    The reorder decision is made against the inventory *position*, not against
+    what is on the shelf. Comparing on-hand alone to the reorder point tells an
+    owner to order again every day until a delivery lands — the app once advised
+    ordering 2,107 cups while 2,961 were already in transit, because the two
+    numbers never met.
+
+    Anything already paid for and on its way covers demand exactly as shelf
+    stock does, once it arrives; the reorder point is sized to cover the lead
+    time precisely so that it does.
+
+    Args:
+        on_hand: units physically in stock (may be negative after a stockout).
+        on_order: units ordered and not yet arrived.
+    """
+    if on_order < 0:
+        raise ValueError("on_order must be non-negative")
+    return on_hand + on_order
+
+
 def order_up_to_target(
     avg_daily_demand: float,
     lead_time_days: int,

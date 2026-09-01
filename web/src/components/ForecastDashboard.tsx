@@ -373,7 +373,8 @@ function OrderingProductCard({
   const stock = describeStock(p)
   const stockUntracked = stock.kind === 'untracked'
   const displayStock = stock.kind === 'untracked' ? null : stock.qty
-  const onTheWay = pendingArrivalQty(ordersByProduct.get(p.product_id))
+  // The server states what it counted, so the card and the decision cannot drift apart.
+  const onTheWay = p.on_order_qty ?? pendingArrivalQty(ordersByProduct.get(p.product_id))
   const isFav = (p as OrderingRow & { is_favorite?: boolean }).is_favorite
   const uMode = p.unit_mode ?? 'whole'
 
@@ -467,8 +468,8 @@ function OrderingProductCard({
           </span>
         )}
       </div>
-      {/* "Order 2,107" beside "in transit: 2,961" reads as a mistake unless the
-          card says the advice goes by what is on the shelf, not what is coming. */}
+      {/* Still advising an order while a delivery is coming is now a real
+          shortfall, not a double-count — say so, or it reads as a mistake. */}
       {p.order_now && onTheWay > 0 && (
         <p className="px-4 py-2 text-xs text-slate-600 dark:text-slate-300 leading-snug
                       border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">

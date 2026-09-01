@@ -279,6 +279,8 @@ export interface OrderingRow {
   projected_stock?: number | null
   /** When the owner last counted, so an estimate can be shown as one. */
   stock_as_of_date?: string | null
+  /** Units ordered and not yet arrived — counted towards the reorder decision. */
+  on_order_qty?: number
   stock_untracked?: boolean
   approaching_reorder?: boolean
   order_now: boolean
@@ -646,6 +648,7 @@ export interface ProductForecastItem {
   current_stock?: number | null        // the last figure the OWNER counted
   projected_stock?: number | null      // dynamically computed; null when untracked
   stock_as_of_date?: string | null     // when the owner last counted
+  on_order_qty?: number                // ordered, not yet arrived — counts towards the decision
   stock_untracked?: boolean            // true = no baseline set; can't track
   approaching_reorder?: boolean        // heads-up before hitting the reorder point
   order_now: boolean

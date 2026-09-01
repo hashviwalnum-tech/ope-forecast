@@ -51,6 +51,7 @@ from app.engine.ordering import (
     compute_current_projected_stock,
     economic_order_quantity,
     fifo_deplete,
+    inventory_position,
     projected_stock_timeline,
     order_up_to_target,
     reorder_point,
@@ -252,6 +253,36 @@ def _compute_projected_stock(
         prod.current_stock, sales_since, arrivals_since
     )
     return projected, False
+
+
+def _on_order_qty(
+    db: Session,
+    biz_id: int,
+    prod: Product,
+    today: date,
+    assume_on_time: bool,
+) -> float:
+    """Units ordered and not yet arrived.
+
+    Mirrors `orders._effective_status`: when the owner has asked us to assume
+    deliveries land on time, a pending order whose date has passed is already
+    counted as stock, so it must not be counted as on its way as well.
+    """
+    rows = (
+        db.query(OrderRecord)
+        .filter(
+            OrderRecord.business_id == biz_id,
+            OrderRecord.product_id == prod.id,
+            OrderRecord.status == "pending",
+        )
+        .all()
+    )
+    total = 0.0
+    for o in rows:
+        if assume_on_time and o.expected_arrival_date <= today:
+            continue          # already counted as arrived stock
+        total += float(o.quantity)
+    return total
 
 
 # ── batch FIFO advice helper ───────────────────────────────────────────────
@@ -1525,25 +1556,36 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
         proj_stock, stock_untracked = _compute_projected_stock(db, biz.id, prod, today, assume_on_time=assume_on_time)
         effective_stock = proj_stock if proj_stock is not None else prod.current_stock
 
+        # The decision is made against the inventory POSITION — what is on the
+        # shelf plus what is already on its way. Judging it on shelf stock alone
+        # told the owner to order again every day until the delivery landed.
+        on_order = _on_order_qty(db, biz.id, prod, today, assume_on_time)
+        position = (
+            inventory_position(effective_stock, on_order)
+            if effective_stock is not None else None
+        )
+
         # Order UP TO a target level rather than ordering the trigger amount.
         # Sizing every order to the reorder point replenishes back to the reorder
         # point, so stock hovers at the trigger for ever and never recovers from
         # a bad week.
         target_level, base_qty = order_up_to_target(
             avg_daily, prod.lead_time_days, rop,
-            effective_stock if effective_stock is not None else 0.0,
+            position if position is not None else 0.0,
             storage_capacity=prod.storage_capacity,
         )
 
         constrained_qty, cap_notes, cap_codes = apply_order_constraints(
             base_qty,
             storage_capacity=prod.storage_capacity,
-            current_stock=effective_stock,
+            # What is coming will need shelf space too, so it counts against the
+            # storage cap exactly as stock on hand does.
+            current_stock=position,
             shelf_life_days=prod.shelf_life_days,
             avg_daily_demand=avg_daily,
         )
         suggested_qty = _round_qty(constrained_qty, unit_mode)
-        order_now = effective_stock is not None and not stock_untracked and effective_stock <= rop
+        order_now = position is not None and not stock_untracked and position <= rop
         # Never tell the owner to "order now" and then suggest zero units — that
         # is a contradiction they cannot act on.  When storage leaves no room,
         # the note explains that instead.
@@ -1567,9 +1609,9 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             }})
         approaching_reorder = (
             not stock_untracked and
-            effective_stock is not None and
-            effective_stock > rop and
-            effective_stock <= rop + avg_daily * prod.lead_time_days
+            position is not None and
+            position > rop and
+            position <= rop + avg_daily * prod.lead_time_days
         )
 
         fifo_n, older_w, spoil_a = _batch_fifo_advice(db, biz.id, prod, today, prod.lead_time_days)
@@ -1587,6 +1629,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
             current_stock=prod.current_stock,
             stock_as_of_date=prod.stock_as_of_date.isoformat() if prod.stock_as_of_date else None,
             projected_stock=_round_qty(proj_stock, unit_mode) if proj_stock is not None else None,
+            on_order_qty=_round_qty(on_order, unit_mode),
             stock_untracked=stock_untracked,
             approaching_reorder=approaching_reorder,
             order_now=order_now,
@@ -2101,27 +2144,33 @@ def get_product_forecast(
         proj_stock, stock_untracked = _compute_projected_stock(
             db, biz.id, prod, today, tap_by_prod_date, assume_on_time=assume_on_time
         )
-        _eff_for_target = proj_stock if proj_stock is not None else prod.current_stock
+        effective_stock = proj_stock if proj_stock is not None else prod.current_stock
+        # Same inventory-position rule as /ordering: stock on the shelf plus
+        # stock already on its way.
+        on_order = _on_order_qty(db, biz.id, prod, today, assume_on_time)
+        position = (
+            inventory_position(effective_stock, on_order)
+            if effective_stock is not None else None
+        )
         # Same order-up-to policy as /ordering, using the forecast-driven trigger.
         target_level, base_qty = order_up_to_target(
             avg_forecast, prod.lead_time_days, rop,
-            _eff_for_target if _eff_for_target is not None else 0.0,
+            position if position is not None else 0.0,
             storage_capacity=prod.storage_capacity,
         )
-        effective_stock = proj_stock if proj_stock is not None else prod.current_stock
 
         constrained_qty, cap_notes, cap_codes = apply_order_constraints(
             base_qty,
             storage_capacity=prod.storage_capacity,
-            current_stock=effective_stock,
+            current_stock=position,
             shelf_life_days=prod.shelf_life_days,
             avg_daily_demand=avg_daily,
         )
         suggested_qty = _round_qty(constrained_qty, unit_mode)
         order_now = (
             not stock_untracked and
-            effective_stock is not None and
-            effective_stock <= rop
+            position is not None and
+            position <= rop
         )
         if order_now and suggested_qty <= 0:
             order_now = False   # see /ordering: never "order now" for zero units
@@ -2140,9 +2189,9 @@ def get_product_forecast(
             }})
         approaching_reorder = (
             not stock_untracked and
-            effective_stock is not None and
-            effective_stock > rop and
-            effective_stock <= rop + avg_daily * prod.lead_time_days
+            position is not None and
+            position > rop and
+            position <= rop + avg_daily * prod.lead_time_days
         )
 
         # ── projected stock runout warning (future projection) ────────────────
@@ -2182,6 +2231,7 @@ def get_product_forecast(
             current_stock=prod.current_stock,
             stock_as_of_date=prod.stock_as_of_date.isoformat() if prod.stock_as_of_date else None,
             projected_stock=rounded_proj,
+            on_order_qty=_round_qty(on_order, unit_mode),
             stock_untracked=stock_untracked,
             approaching_reorder=approaching_reorder,
             order_now=order_now,

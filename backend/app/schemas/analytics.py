@@ -113,6 +113,9 @@ class OrderingRow(BaseModel):
     # When the owner last counted. Sent so the client can say "about N left now,
     # last counted M on <date>" rather than presenting an estimate as a fact.
     stock_as_of_date: Optional[str] = None
+    # Units ordered and not yet arrived. The reorder decision counts these, so
+    # the card can say so rather than looking like it double-orders.
+    on_order_qty: float = 0.0
     stock_untracked: bool = False              # no baseline set; stock can't be projected
     approaching_reorder: bool = False          # heads-up before hitting the reorder point
     order_now: bool
@@ -232,6 +235,9 @@ class ProductForecastItem(BaseModel):
     # When the owner last counted. Sent so the client can say "about N left now,
     # last counted M on <date>" rather than presenting an estimate as a fact.
     stock_as_of_date: Optional[str] = None
+    # Units ordered and not yet arrived. The reorder decision counts these, so
+    # the card can say so rather than looking like it double-orders.
+    on_order_qty: float = 0.0
     stock_untracked: bool = False              # no baseline set; stock can't be projected
     approaching_reorder: bool = False          # heads-up before hitting the reorder point
     order_now: bool = False

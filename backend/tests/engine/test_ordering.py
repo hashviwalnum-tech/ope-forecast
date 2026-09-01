@@ -7,6 +7,7 @@ from app.engine.ordering import (
     apply_order_constraints,
     compute_current_projected_stock,
     demand_over_lead_time,
+    inventory_position,
     projected_stock_timeline,
     safety_stock,
     reorder_point,
@@ -500,3 +501,36 @@ def test_a_workable_configuration_is_not_flagged():
 
 def test_a_product_with_no_storage_limit_is_never_flagged():
     assert reorder_point_exceeds_capacity(9999.0, None) is False
+
+
+# ---------------------------------------------------------------------------
+# inventory_position — what the reorder decision is actually made against
+# ---------------------------------------------------------------------------
+
+def test_inventory_position_adds_what_is_already_on_the_way():
+    # The case from the review: 393 on the shelf, 1,642 + 1,319 in transit.
+    assert inventory_position(393.0, 2961.0) == pytest.approx(3354.0)
+
+
+def test_inventory_position_with_nothing_on_order_is_just_the_shelf():
+    assert inventory_position(457.0) == pytest.approx(457.0)
+    assert inventory_position(457.0, 0.0) == pytest.approx(457.0)
+
+
+def test_inventory_position_survives_a_stockout():
+    # Projected stock can go negative after a stockout; a delivery on the way
+    # still counts towards covering it.
+    assert inventory_position(-40.0, 100.0) == pytest.approx(60.0)
+
+
+def test_inventory_position_rejects_a_negative_order():
+    with pytest.raises(ValueError):
+        inventory_position(10.0, -1.0)
+
+
+def test_a_delivery_in_transit_lifts_you_over_the_reorder_point():
+    """The whole point: stock on the way stops a duplicate recommendation."""
+    rop = reorder_point(avg_daily_demand=290.0, lead_time_days=4, z=1.65, sigma_over_lead_time=120.0)
+    on_hand = 393.0
+    assert on_hand <= rop                                    # would order on shelf stock alone
+    assert inventory_position(on_hand, 2961.0) > rop         # but not once the delivery counts

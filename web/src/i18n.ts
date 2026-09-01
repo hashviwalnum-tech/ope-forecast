@@ -17,7 +17,7 @@ export const translations = {
     estimatedLeftNow: 'about {qty} left now',
     lastCountedOn: 'our estimate — you counted {qty} on {date}',
     lastCountedNoDate: 'our estimate — you last counted {qty}',
-    onTheWayNotCounted: 'This doesn\'t count the {qty} already on the way — it goes by what is on your shelf now. If those arrive before you run low, you can order less.',
+    onTheWayNotCounted: 'This already counts the {qty} on the way. You still need more to cover the wait for your next delivery.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'We couldn\'t reach Ope just now',
     loadFailedBody: 'Check your connection and try again.',
@@ -1129,7 +1129,7 @@ export const translations = {
     estimatedLeftNow: 'נשארו בערך {qty} עכשיו',
     lastCountedOn: 'ההערכה שלנו — ספרת {qty} בתאריך {date}',
     lastCountedNoDate: 'ההערכה שלנו — לאחרונה ספרת {qty}',
-    onTheWayNotCounted: 'זה לא כולל את {qty} שכבר בדרך — החישוב מבוסס על מה שיש על המדף עכשיו. אם הם יגיעו לפני שתיגמר לך הסחורה, אפשר להזמין פחות.',
+    onTheWayNotCounted: 'זה כבר כולל את {qty} שבדרך. עדיין חסר לך כדי לכסות את ההמתנה למשלוח הבא.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'לא הצלחנו להגיע ל-Ope כרגע',
     loadFailedBody: 'בדוק את החיבור שלך ונסה שוב.',
@@ -2241,7 +2241,7 @@ export const translations = {
     estimatedLeftNow: '目前大约还剩 {qty}',
     lastCountedOn: '这是我们的估算 — 您在 {date} 清点为 {qty}',
     lastCountedNoDate: '这是我们的估算 — 您上次清点为 {qty}',
-    onTheWayNotCounted: '这没有算上已经在路上的 {qty}，只按您货架上现有的数量计算。如果它们在您用完之前到货，可以少订一些。',
+    onTheWayNotCounted: '这已经算上了在路上的 {qty}。要撑到下次到货，您仍然需要再补一些。',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: '暂时无法连接到 Ope',
     loadFailedBody: '请检查网络连接后重试。',
@@ -2879,7 +2879,7 @@ export const translations = {
     estimatedLeftNow: 'quedan unos {qty} ahora',
     lastCountedOn: 'es nuestra estimación: contaste {qty} el {date}',
     lastCountedNoDate: 'es nuestra estimación: la última vez contaste {qty}',
-    onTheWayNotCounted: 'Esto no cuenta los {qty} que ya vienen en camino: se basa en lo que tienes ahora en la estantería. Si llegan antes de quedarte corto, puedes pedir menos.',
+    onTheWayNotCounted: 'Esto ya cuenta los {qty} que vienen en camino. Aun así necesitas más para cubrir la espera hasta la próxima entrega.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'No pudimos conectar con Ope ahora mismo',
     loadFailedBody: 'Comprueba tu conexión e inténtalo de nuevo.',
@@ -3569,7 +3569,7 @@ export const translations = {
     estimatedLeftNow: 'अभी लगभग {qty} बचे हैं',
     lastCountedOn: 'यह हमारा अनुमान है — आपने {date} को {qty} गिने थे',
     lastCountedNoDate: 'यह हमारा अनुमान है — पिछली बार आपने {qty} गिने थे',
-    onTheWayNotCounted: 'इसमें रास्ते में पहले से आ रहे {qty} शामिल नहीं हैं — यह अभी शेल्फ़ पर मौजूद माल पर आधारित है। अगर वे स्टॉक खत्म होने से पहले आ जाएँ, तो आप कम मंगा सकते हैं।',
+    onTheWayNotCounted: 'इसमें रास्ते में आ रहे {qty} पहले से गिने गए हैं। अगली डिलीवरी तक का इंतज़ार पूरा करने के लिए फिर भी और चाहिए।',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'अभी हम Ope तक नहीं पहुँच सके',
     loadFailedBody: 'अपना कनेक्शन जाँचें और फिर कोशिश करें।',
@@ -4217,7 +4217,7 @@ export const translations = {
     estimatedLeftNow: 'يتبقى نحو {qty} الآن',
     lastCountedOn: 'هذا تقديرنا — لقد أحصيت {qty} في {date}',
     lastCountedNoDate: 'هذا تقديرنا — آخر مرة أحصيت {qty}',
-    onTheWayNotCounted: 'هذا لا يحتسب الـ {qty} القادمة بالفعل — الحساب يعتمد على ما لديك على الرف الآن. إن وصلت قبل أن ينفد مخزونك، يمكنك طلب كمية أقل.',
+    onTheWayNotCounted: 'هذا يحتسب بالفعل الـ {qty} القادمة في الطريق. ومع ذلك تحتاج المزيد لتغطية الانتظار حتى التسليم التالي.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'لم نتمكن من الوصول إلى Ope الآن',
     loadFailedBody: 'تحقق من اتصالك وحاول مرة أخرى.',
@@ -5162,7 +5162,7 @@ export const translations = {
     estimatedLeftNow: 'restam cerca de {qty} agora',
     lastCountedOn: 'é a nossa estimativa — contou {qty} em {date}',
     lastCountedNoDate: 'é a nossa estimativa — da última vez contou {qty}',
-    onTheWayNotCounted: 'Isto não conta os {qty} que já vêm a caminho — baseia-se no que tem agora na prateleira. Se chegarem antes de ficar sem stock, pode encomendar menos.',
+    onTheWayNotCounted: 'Isto já conta os {qty} que vêm a caminho. Mesmo assim precisa de mais para cobrir a espera até à próxima entrega.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'Não conseguimos ligar ao Ope neste momento',
     loadFailedBody: 'Verifique a sua ligação e tente novamente.',
@@ -5837,7 +5837,7 @@ export const translations = {
     estimatedLeftNow: 'сейчас осталось примерно {qty}',
     lastCountedOn: 'это наша оценка — вы насчитали {qty} {date}',
     lastCountedNoDate: 'это наша оценка — в прошлый раз вы насчитали {qty}',
-    onTheWayNotCounted: 'Здесь не учтены {qty}, которые уже в пути — расчёт идёт по тому, что сейчас на полке. Если они придут до того, как запас кончится, можно заказать меньше.',
+    onTheWayNotCounted: 'Здесь уже учтены {qty} в пути. Всё равно нужно больше, чтобы покрыть ожидание до следующей поставки.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'Сейчас не удалось связаться с Ope',
     loadFailedBody: 'Проверьте подключение и попробуйте снова.',
@@ -6510,7 +6510,7 @@ export const translations = {
     estimatedLeftNow: 'environ {qty} restants',
     lastCountedOn: 'c\'est notre estimation — vous aviez compté {qty} le {date}',
     lastCountedNoDate: 'c\'est notre estimation — vous aviez compté {qty} la dernière fois',
-    onTheWayNotCounted: 'Ceci ne compte pas les {qty} déjà en route — le calcul se base sur ce qui est en rayon maintenant. S\'ils arrivent avant la rupture, vous pouvez commander moins.',
+    onTheWayNotCounted: 'Les {qty} en route sont déjà comptés. Il vous en faut tout de même davantage pour tenir jusqu\'à la prochaine livraison.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'Nous n\'avons pas pu joindre Ope à l\'instant',
     loadFailedBody: 'Vérifiez votre connexion et réessayez.',
@@ -7621,7 +7621,7 @@ export const translations = {
     estimatedLeftNow: 'এখন প্রায় {qty} বাকি',
     lastCountedOn: 'এটি আমাদের অনুমান — আপনি {date}-এ {qty} গুনেছিলেন',
     lastCountedNoDate: 'এটি আমাদের অনুমান — শেষবার আপনি {qty} গুনেছিলেন',
-    onTheWayNotCounted: 'এতে ইতিমধ্যে পথে থাকা {qty} ধরা হয়নি — হিসাবটি এখন তাকে যা আছে তার ভিত্তিতে। সেগুলো ফুরিয়ে যাওয়ার আগে পৌঁছালে আপনি কম অর্ডার করতে পারেন।',
+    onTheWayNotCounted: 'পথে থাকা {qty} ইতিমধ্যেই এখানে ধরা হয়েছে। তবু পরের চালান আসা পর্যন্ত চালাতে আরও লাগবে।',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'এই মুহূর্তে আমরা Ope-তে পৌঁছাতে পারিনি',
     loadFailedBody: 'আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।',
@@ -8732,7 +8732,7 @@ export const translations = {
     estimatedLeftNow: 'اب تقریباً {qty} باقی ہیں',
     lastCountedOn: 'یہ ہمارا اندازہ ہے — آپ نے {date} کو {qty} گنے تھے',
     lastCountedNoDate: 'یہ ہمارا اندازہ ہے — پچھلی بار آپ نے {qty} گنے تھے',
-    onTheWayNotCounted: 'اس میں پہلے سے راستے میں موجود {qty} شامل نہیں ہیں — حساب اس پر ہے جو ابھی شیلف پر ہے۔ اگر وہ اسٹاک ختم ہونے سے پہلے پہنچ جائیں تو آپ کم منگوا سکتے ہیں۔',
+    onTheWayNotCounted: 'راستے میں موجود {qty} پہلے ہی شمار ہو چکے ہیں۔ پھر بھی اگلی ترسیل تک کے انتظار کو پورا کرنے کے لیے مزید درکار ہے۔',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'ابھی ہم Ope تک نہیں پہنچ سکے',
     loadFailedBody: 'اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
@@ -9843,7 +9843,7 @@ export const translations = {
     estimatedLeftNow: 'sekitar {qty} tersisa sekarang',
     lastCountedOn: 'ini perkiraan kami — Anda menghitung {qty} pada {date}',
     lastCountedNoDate: 'ini perkiraan kami — terakhir Anda menghitung {qty}',
-    onTheWayNotCounted: 'Ini belum menghitung {qty} yang sudah dalam perjalanan — dasarnya adalah stok di rak Anda sekarang. Kalau kiriman itu tiba sebelum stok habis, Anda bisa memesan lebih sedikit.',
+    onTheWayNotCounted: 'Ini sudah menghitung {qty} yang dalam perjalanan. Anda tetap perlu tambahan untuk menutup masa tunggu kiriman berikutnya.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'Kami belum bisa menghubungi Ope saat ini',
     loadFailedBody: 'Periksa koneksi Anda lalu coba lagi.',
@@ -10954,7 +10954,7 @@ export const translations = {
     estimatedLeftNow: 'noch etwa {qty} übrig',
     lastCountedOn: 'unsere Schätzung — Sie haben am {date} {qty} gezählt',
     lastCountedNoDate: 'unsere Schätzung — zuletzt haben Sie {qty} gezählt',
-    onTheWayNotCounted: 'Die {qty} bereits unterwegs sind hier nicht mitgezählt — gerechnet wird mit dem, was jetzt im Regal steht. Treffen sie ein, bevor es knapp wird, können Sie weniger bestellen.',
+    onTheWayNotCounted: 'Die {qty} unterwegs sind hier bereits mitgezählt. Trotzdem brauchen Sie mehr, um die Wartezeit bis zur nächsten Lieferung zu überbrücken.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'Wir konnten Ope gerade nicht erreichen',
     loadFailedBody: 'Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
@@ -12065,7 +12065,7 @@ export const translations = {
     estimatedLeftNow: '今およそ {qty} 残り',
     lastCountedOn: '当方の推定です。{date} に {qty} と数えられました',
     lastCountedNoDate: '当方の推定です。前回は {qty} と数えられました',
-    onTheWayNotCounted: 'これは、すでに配送中の {qty} を含めていません。いま棚にある分だけで計算しています。品切れ前に届くなら、注文量を減らせます。',
+    onTheWayNotCounted: '配送中の {qty} はすでに数に入れています。それでも次の入荷までをまかなうには追加が必要です。',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'ただいま Ope に接続できませんでした',
     loadFailedBody: '接続を確認して、もう一度お試しください。',
@@ -13176,7 +13176,7 @@ export const translations = {
     estimatedLeftNow: 'şu anda yaklaşık {qty} kaldı',
     lastCountedOn: 'bu bizim tahminimiz — {date} tarihinde {qty} saymıştınız',
     lastCountedNoDate: 'bu bizim tahminimiz — en son {qty} saymıştınız',
-    onTheWayNotCounted: 'Bu, yolda olan {qty} ürünü saymıyor — hesap şu anda rafınızdakine göre. Stok bitmeden gelirlerse daha az sipariş verebilirsiniz.',
+    onTheWayNotCounted: 'Yolda olan {qty} zaten hesaba katıldı. Yine de bir sonraki teslimata kadar idare etmek için daha fazlası gerekiyor.',
     // One honest failure state — never an empty state, never a raw error
     loadFailedTitle: 'Şu anda Ope’ye ulaşamadık',
     loadFailedBody: 'Bağlantınızı kontrol edip tekrar deneyin.',
