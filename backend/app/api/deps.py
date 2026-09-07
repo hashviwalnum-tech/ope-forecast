@@ -41,6 +41,13 @@ def get_current_user(request: Request) -> str:
             signing_key.key,
             algorithms=["ES256"],
             audience="authenticated",
+            # Supabase issues tokens on its own clock; when it runs a second or
+            # two ahead of this process a freshly-minted token's `iat`/`nbf` is
+            # briefly in the future and verification throws ImmatureSignatureError
+            # for no real reason. RFC 7519 explicitly allows a small leeway for
+            # exactly this — 60s is the usual figure and still far tighter than
+            # the token's 1-hour lifetime.
+            leeway=60,
         )
         return payload["sub"]
     except Exception as e:
