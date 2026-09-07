@@ -43,7 +43,7 @@ export default function BusinessSetup({
     try {
       let biz: BusinessRead
       if (mode === 'copy' && copySourceId) {
-        biz = await api.businesses.copyFrom(copySourceId, name.trim())
+        biz = await api.businesses.copyFrom(copySourceId, name.trim(), deviceTimeZone())
       } else {
         biz = await api.businesses.create(name.trim(), deviceTimeZone())
       }

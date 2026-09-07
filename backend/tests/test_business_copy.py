@@ -129,3 +129,58 @@ def test_free_account_cannot_copy(copy_client, db):
     r = copy_client.post(f"/businesses/{biz.id}/copy", json={"name": "Second Cafe"})
     assert r.status_code == 403
     assert "premium" in r.json()["detail"].lower()
+
+
+# ── the copy must never be created without a timezone ────────────────────────
+
+def test_a_copy_inherits_the_sources_timezone(copy_client, db, premium_spa):
+    """A second branch is usually in the same place as the first."""
+    biz, _, _ = premium_spa
+    r = copy_client.post(f"/businesses/{biz.id}/copy",
+                         json={"name": "Riverside", "timezone": "America/New_York"})
+    assert r.status_code == 201, r.text
+    assert r.json()["settings"]["timezone"] == "Europe/London"
+
+
+def test_a_copy_of_a_zoneless_business_takes_the_devices_zone(copy_client, db, premium_spa):
+    """Otherwise the copy is created with no zone and falls back to UTC.
+
+    Inheriting nothing is how a brand-new business ends up broken in exactly the
+    way the backfill exists to repair — so the client's device zone fills the
+    gap when, and only when, the source has none of its own.
+    """
+    biz, _, _ = premium_spa
+    biz.settings = {k: v for k, v in biz.settings.items() if k != "timezone"}
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(biz, "settings")
+    db.commit()
+
+    r = copy_client.post(f"/businesses/{biz.id}/copy",
+                         json={"name": "Riverside", "timezone": "America/New_York"})
+    assert r.status_code == 201, r.text
+    assert r.json()["settings"]["timezone"] == "America/New_York"
+
+
+def test_a_copy_with_no_zone_anywhere_is_left_unset_not_guessed(copy_client, db, premium_spa):
+    """No source zone and no client zone — better unset than invented."""
+    biz, _, _ = premium_spa
+    biz.settings = {k: v for k, v in biz.settings.items() if k != "timezone"}
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(biz, "settings")
+    db.commit()
+
+    r = copy_client.post(f"/businesses/{biz.id}/copy", json={"name": "Riverside"})
+    assert r.status_code == 201, r.text
+    assert "timezone" not in r.json()["settings"]
+
+
+def test_creating_a_business_stores_the_timezone_the_client_sent(copy_client, db):
+    r = copy_client.post("/businesses", json={"name": "New", "timezone": "Asia/Jerusalem"})
+    assert r.status_code == 201, r.text
+    assert r.json()["settings"]["timezone"] == "Asia/Jerusalem"
+
+
+def test_creating_a_business_refuses_a_zone_that_is_not_real(copy_client, db):
+    """A typo must be rejected, not stored — every 'today' hangs off this."""
+    r = copy_client.post("/businesses", json={"name": "New", "timezone": "Mars/Olympus"})
+    assert r.status_code == 422

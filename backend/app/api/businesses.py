@@ -5,11 +5,14 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
+from app.api.business_cascade import delete_business as cascade_delete_business
 from app.api.deps import get_business, get_current_user, get_tier, require_admin_key, resolve_tier
 from app.engine import currency as currency_engine
 from app.engine.limits import FREE, PREMIUM, Tier
 from app.db import get_db
-from app.models import BookedCount, Business, DayRecord, ForecastRun, Period, Product, RecurringPattern, Regular, SaleEvent, SaleRecord, ServiceBookedCount
+# The child models this file used to delete by hand now live behind
+# business_cascade; only these two are still referenced directly.
+from app.models import Business, Product
 from app import clock
 
 FREE_BUSINESS_LIMIT = 1  # §10: free = one location; premium = more
@@ -223,6 +226,12 @@ def copy_business(
         )
 
     new_settings = dict(source.settings or {})
+    # The copy inherits the source's zone, which is the right default for a
+    # second branch. But if the SOURCE never had one, the copy would be created
+    # without one too and fall straight back to UTC — so the client's device
+    # zone fills the gap rather than leaving a brand-new business broken.
+    if not str(new_settings.get("timezone") or "").strip() and body.timezone:
+        new_settings["timezone"] = body.timezone
     new_biz = Business(name=body.name.strip(), user_id=user_id, settings=new_settings)
     db.add(new_biz)
     db.flush()
@@ -289,21 +298,9 @@ def delete_business(
     if not biz:
         raise HTTPException(404, "Location not found")
 
-    # Cascade-delete all business data manually (SQLite doesn't enforce FK cascades)
-    day_ids = [r.id for r in db.query(DayRecord).filter_by(business_id=business_id).all()]
-    if day_ids:
-        db.query(SaleRecord).filter(SaleRecord.day_record_id.in_(day_ids)).delete(synchronize_session=False)
-    db.query(DayRecord).filter_by(business_id=business_id).delete()
-    db.query(SaleEvent).filter_by(business_id=business_id).delete()
-    db.query(Period).filter_by(business_id=business_id).delete()
-    db.query(RecurringPattern).filter_by(business_id=business_id).delete()
-    db.query(Regular).filter_by(business_id=business_id).delete()
-    db.query(Product).filter_by(business_id=business_id).delete()
-    db.query(ForecastRun).filter_by(business_id=business_id).delete()
-    db.query(BookedCount).filter_by(business_id=business_id).delete()
-    db.query(ServiceBookedCount).filter_by(business_id=business_id).delete()
-    db.delete(biz)
-    db.commit()
+    # Every child table is derived from the schema — see app/api/business_cascade.
+    # The hand-written list this replaces had missed seven tables.
+    cascade_delete_business(db, biz)
 
 
 @router.patch("/me/tier", response_model=BusinessRead)

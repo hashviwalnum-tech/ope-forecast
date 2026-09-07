@@ -26,6 +26,7 @@ from app.models.service_consumable import ServiceConsumable  # noqa: F401 — en
 from app.models.subscription import Subscription  # noqa: F401 — ensure table is registered
 from app.api import businesses, day_records, orders, products, sale_events, sales, periods, analytics, recurring_patterns, regulars, booked_counts
 from app.api import telegram as telegram_api
+from app.api import timezone_backfill
 from app.api import bot as bot_api
 from app.api import feedback as feedback_api
 from app.api import nudges as nudges_api
@@ -225,6 +226,9 @@ async def lifespan(app: FastAPI):
     _migrate_sqlite_telegram_links(engine)
     _migrate_sqlite_stock_batches(engine)
     _migrate_sqlite_subscriptions(engine)
+    # Businesses created before the timezone field existed have none, and fall
+    # back to UTC for every "today". Idempotent, and never guesses.
+    timezone_backfill.run_on_startup(engine)
     dev_catchup_api.maybe_catchup_on_startup()  # DEV-ONLY: no-op unless DEV_CATCHUP_ENABLED=true
     yield
 

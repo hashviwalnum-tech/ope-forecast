@@ -75,3 +75,46 @@ Lets owners log sales and ask for forecasts/orders in plain language. It's an **
 - Web charting library (Recharts vs Chart.js) — minor; Recharts assumed.
 - Exact free-tier limits and premium price point.
 - **Wrong-forecast handling:** when actuals diverge from predictions, the self-correcting ensemble should down-weight the models that missed and the tracking signal should flag sustained bias. Worth explicitly testing this behaves well once there's real data — simulate a demand shift and confirm the weights and intervals adapt sensibly.
+
+
+---
+
+## A business's timezone, and what happens without one
+
+Every "today", "now" and entry-timing check in the backend comes from
+`business.settings["timezone"]` (`app/clock.py`). With no zone it falls back to
+**UTC**, which quietly moves an owner's day: east of London the evening's takings
+are filed under tomorrow, west of it the late night lands on yesterday, and the
+busy-hours chart is shifted by the whole offset.
+
+**Every creation path sets it.** Web (`BusinessSetup`) and mobile onboarding both
+send the device's IANA zone at creation, and the backend refuses a zone it cannot
+resolve rather than storing a typo. Copying a location inherits the source's zone;
+if the source has none, the client's device zone fills the gap so the new business
+is never born broken.
+
+**Existing businesses are backfilled at startup** — `app/api/timezone_backfill.py`,
+run from the lifespan beside the other migrations. It is idempotent, never
+overwrites a zone the owner chose, and re-examines anything it could not resolve
+on the next boot.
+
+**It does not guess.** `engine/timezone_inference.py` answers only from:
+
+1. **the currency**, where that is decisive — ILS is Asia/Jerusalem, JPY is
+   Asia/Tokyo. EUR is deliberately absent: twenty countries, four zones;
+2. **the business's own trading hours** — sale events are stored in UTC, so the
+   zone that puts the most taps inside the stated opening hours is the likely
+   one. This narrows a wide currency (USD spans six zones) and can answer alone.
+
+Where neither decides, it returns **nothing**, and the business keeps no zone.
+That is the deliberate outcome: a wrong zone is worse than an absent one, because
+absent is visibly unset and can be asked about, while wrong silently misfiles a
+day's takings. The refusal thresholds — enough events, a good enough fit, and a
+clear enough margin over the runner-up — are in that module with their reasoning.
+
+**What the owner sees when it cannot be determined:** the web app says so, in the
+two places it matters. Settings shows that the zone is not set yet and that the
+figure in the picker is only the device's guess; the busy-hours card says the
+hours may be shifted and where to fix it. Both are driven by
+`BusinessTime.isConfigured`, which distinguishes "the business has a zone" from
+"we fell back to this device's".

@@ -47,6 +47,9 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
   // device's zone, which is how the screen and the server came to disagree
   // about which day a sale belonged to.
   const [timeZone,        setTimeZone]        = useState('')
+  // Whether the BUSINESS has a zone, as opposed to the device one prefilled
+  // into the select below. Without this the field looks answered when it is not.
+  const [timeZoneConfigured, setTimeZoneConfigured] = useState(true)
   const [saving,          setSaving]          = useState(false)
   const [feedback,        setFeedback]        = useState<{ ok: boolean; msg: string } | null>(null)
 
@@ -76,7 +79,9 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       if (Array.isArray(s.opening_days))             setOpenDays(s.opening_days as number[])
       if (typeof s.opening_hour === 'number')        setOpeningHour(s.opening_hour)
       if (typeof s.closing_hour === 'number')        setClosingHour(s.closing_hour)
-      setTimeZone(typeof s.timezone === 'string' && s.timezone ? s.timezone : deviceTimeZone())
+      const savedZone = typeof s.timezone === 'string' ? s.timezone.trim() : ''
+      setTimeZoneConfigured(savedZone !== '')
+      setTimeZone(savedZone || deviceTimeZone())
       if (typeof s.avg_service_time_minutes === 'number') setAvgServiceTime(s.avg_service_time_minutes)
       if (typeof s.staffing_max_wait_minutes === 'number') {
         setThresholdType('wait')
@@ -151,6 +156,8 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         // Only sent once chosen — never store a currency the owner did not pick.
         ...(currency ? { currency } : {}),
       })
+      // The zone is stored now, so the "not set yet" note must go with it.
+      if (timeZone) setTimeZoneConfigured(true)
       setFeedback({ ok: true, msg: t('settingsSavedOk') })
     } catch {
       setFeedback({ ok: false, msg: t('settingsSaveError') })
@@ -250,6 +257,18 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-relaxed">
           {t('timeZoneDesc')}
         </p>
+        {/* A business created before this field existed has no zone, and the
+            backend then falls back to UTC for every "today". The backfill sets
+            one where it can work it out; where it cannot, saying so is the only
+            honest option — a silent UTC fallback looks like a working setting. */}
+        {!timeZoneConfigured && (
+          <p role="status" className="text-xs leading-relaxed mb-3 rounded-xl px-3 py-2.5
+                                     text-amber-800 dark:text-amber-300
+                                     bg-amber-50 dark:bg-amber-900/20
+                                     border border-amber-100 dark:border-amber-900/40">
+            {t('timeZoneUnsetWarning')}
+          </p>
+        )}
         <select
           id="settings-timezone"
           value={timeZone}

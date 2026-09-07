@@ -226,8 +226,10 @@ export const businesses = {
    *  screen's "today" agree from the first day. */
   create: (name: string, timezone?: string) =>
     POST<BusinessRead>('/businesses', timezone ? { name, timezone } : { name }),
-  copyFrom: (sourceId: number, name: string) =>
-    POST<BusinessRead>(`/businesses/${sourceId}/copy`, { name }),
+  /** `timezone` is only used when the SOURCE has none — the copy inherits the
+   *  source's zone otherwise. */
+  copyFrom: (sourceId: number, name: string, timezone?: string) =>
+    POST<BusinessRead>(`/businesses/${sourceId}/copy`, timezone ? { name, timezone } : { name }),
   updateSettings: (settings: {
     opening_days?: number[]
     opening_hour?: number

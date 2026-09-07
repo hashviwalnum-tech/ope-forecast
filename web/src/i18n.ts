@@ -9,6 +9,9 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'Your time zone isn\'t set yet, so Ope is guessing from this device. Pick it below and save — until you do, busy hours and "today" can be off by several hours.',
+    timeZoneUnsetHours: 'These hours may be shifted: your time zone isn\'t set. Set it in Settings to line them up.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'What Ope has learned about your bookings',
     bookingLearnedLearning: 'Still learning — {n} of {needed} days so far with both a booked count and a real total. Ope won\'t guess a no-show rate until it has enough to stand behind.',
@@ -1175,6 +1178,9 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'אזור הזמן שלך עדיין לא הוגדר, ולכן Ope מנחש לפי המכשיר הזה. בחר אותו למטה ושמור — עד אז שעות העומס ו"היום" עלולים לסטות בכמה שעות.',
+    timeZoneUnsetHours: 'ייתכן שהשעות האלה מוסטות: אזור הזמן שלך לא הוגדר. הגדר אותו בהגדרות כדי ליישר אותן.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'מה Ope למד על ההזמנות שלך',
     bookingLearnedLearning: 'עדיין לומד — {n} מתוך {needed} ימים עם גם מספר הזמנות וגם סך אמיתי. Ope לא ינחש שיעור אי-הגעה עד שיהיה לו מספיק בסיס.',
@@ -2341,6 +2347,9 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: '你还没有设置时区，Ope 目前按这台设备推测。请在下方选择并保存 — 在此之前，繁忙时段和「今天」可能相差几个小时。',
+    timeZoneUnsetHours: '这些时段可能有偏移：你尚未设置时区。请在设置中填写以对齐。',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Ope 从你的预约中学到了什么',
     bookingLearnedLearning: '仍在学习中 — 目前有 {n} / {needed} 天同时记录了预约数和实际总数。在依据足够之前，Ope 不会猜测失约率。',
@@ -3033,6 +3042,9 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'Aún no has configurado tu zona horaria, así que Ope la deduce de este dispositivo. Elígela abajo y guarda: hasta entonces, las horas punta y el "hoy" pueden desviarse varias horas.',
+    timeZoneUnsetHours: 'Estas horas pueden estar desplazadas: falta tu zona horaria. Configúrala en Ajustes para cuadrarlas.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Lo que Ope ha aprendido sobre tus reservas',
     bookingLearnedLearning: 'Todavía aprendiendo: {n} de {needed} días con reservas y total real. Ope no calculará una tasa de ausencias hasta tener base suficiente.',
@@ -3777,6 +3789,9 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'आपका समय क्षेत्र अभी तय नहीं है, इसलिए Ope इस डिवाइस से अंदाज़ा लगा रहा है। नीचे चुनकर सहेजें — तब तक व्यस्त घंटे और "आज" कई घंटे तक खिसक सकते हैं।',
+    timeZoneUnsetHours: 'ये घंटे खिसके हो सकते हैं: आपका समय क्षेत्र तय नहीं है। इन्हें सही करने के लिए सेटिंग्स में सेट करें।',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Ope ने आपकी बुकिंग के बारे में क्या सीखा',
     bookingLearnedLearning: 'अभी सीख रहा है — अब तक {needed} में से {n} दिन ऐसे हैं जिनमें बुकिंग संख्या और असली कुल दोनों हैं। पर्याप्त आधार मिलने तक Ope नो-शो दर का अनुमान नहीं लगाएगा।',
@@ -4479,6 +4494,9 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'لم تُحدَّد منطقتك الزمنية بعد، فيخمّنها Ope من هذا الجهاز. اخترها بالأسفل واحفظ — وإلى أن تفعل، قد تنزاح ساعات الذروة و"اليوم" بعدة ساعات.',
+    timeZoneUnsetHours: 'قد تكون هذه الساعات منزاحة: منطقتك الزمنية غير محددة. حدّدها من الإعدادات لضبطها.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'ما تعلّمه Ope عن حجوزاتك',
     bookingLearnedLearning: 'ما زال يتعلّم — {n} من {needed} يوماً حتى الآن فيها عدد الحجوزات والإجمالي الفعلي معاً. لن يخمّن Ope نسبة عدم الحضور قبل أن يملك أساساً كافياً.',
@@ -5478,6 +5496,9 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'O seu fuso horário ainda não está definido, por isso o Ope está a deduzi-lo deste dispositivo. Escolha-o abaixo e guarde — até lá, as horas de pico e o "hoje" podem desviar-se várias horas.',
+    timeZoneUnsetHours: 'Estas horas podem estar desviadas: falta o seu fuso horário. Defina-o nas Definições para as alinhar.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'O que o Ope aprendeu sobre as suas reservas',
     bookingLearnedLearning: 'Ainda a aprender — {n} de {needed} dias até agora com contagem de reservas e total real. O Ope não vai adivinhar uma taxa de faltas sem base suficiente.',
@@ -6207,6 +6228,9 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'Часовой пояс ещё не задан, поэтому Ope берёт его с этого устройства. Выберите его ниже и сохраните — до тех пор часы пик и «сегодня» могут смещаться на несколько часов.',
+    timeZoneUnsetHours: 'Эти часы могут быть смещены: часовой пояс не задан. Укажите его в настройках, чтобы они совпали.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Что Ope узнал о ваших записях',
     bookingLearnedLearning: 'Ещё учится — пока {n} из {needed} дней, где есть и число записей, и реальный итог. Ope не станет угадывать долю неявок, пока данных недостаточно.',
@@ -6934,6 +6958,9 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'Votre fuseau horaire n\'est pas encore défini, alors Ope le déduit de cet appareil. Choisissez-le ci-dessous et enregistrez : d\'ici là, les heures de pointe et le « aujourd\'hui » peuvent être décalés de plusieurs heures.',
+    timeZoneUnsetHours: 'Ces heures peuvent être décalées : votre fuseau horaire n\'est pas défini. Renseignez-le dans les Réglages pour les aligner.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Ce qu\'Ope a appris de vos réservations',
     bookingLearnedLearning: 'Toujours en apprentissage : {n} jours sur {needed} avec à la fois un nombre de réservations et un total réel. Ope ne devinera pas un taux d\'absence sans base suffisante.',
@@ -8099,6 +8126,9 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'আপনার সময় অঞ্চল এখনও ঠিক করা হয়নি, তাই Ope এই ডিভাইস দেখে অনুমান করছে। নিচে বেছে নিয়ে সংরক্ষণ করুন — তার আগে ব্যস্ত সময় ও "আজ" কয়েক ঘণ্টা সরে যেতে পারে।',
+    timeZoneUnsetHours: 'এই সময়গুলো সরে থাকতে পারে: আপনার সময় অঞ্চল ঠিক করা নেই। মেলাতে সেটিংসে ঠিক করুন।',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'আপনার বুকিং সম্পর্কে Ope যা শিখেছে',
     bookingLearnedLearning: 'এখনও শিখছে — এ পর্যন্ত {needed}-এর মধ্যে {n} দিনে বুকিং সংখ্যা ও প্রকৃত মোট দুটোই আছে। যথেষ্ট ভিত্তি না পাওয়া পর্যন্ত Ope নো-শো হার অনুমান করবে না।',
@@ -9264,6 +9294,9 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'آپ کا ٹائم زون ابھی طے نہیں، اس لیے Ope اسی ڈیوائس سے اندازہ لگا رہا ہے۔ نیچے منتخب کر کے محفوظ کریں — تب تک مصروف اوقات اور "آج" کئی گھنٹے تک کھسک سکتے ہیں۔',
+    timeZoneUnsetHours: 'یہ اوقات کھسکے ہو سکتے ہیں: آپ کا ٹائم زون طے نہیں۔ انہیں درست کرنے کے لیے ترتیبات میں طے کریں۔',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Ope نے آپ کی بکنگ کے بارے میں کیا سیکھا',
     bookingLearnedLearning: 'ابھی سیکھ رہا ہے — اب تک {needed} میں سے {n} دن ایسے ہیں جن میں بکنگ کی تعداد اور اصل کل دونوں موجود ہیں۔ کافی بنیاد ملنے تک Ope نو-شو شرح کا اندازہ نہیں لگائے گا۔',
@@ -10429,6 +10462,9 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'Zona waktu Anda belum diatur, jadi Ope menebaknya dari perangkat ini. Pilih di bawah lalu simpan — sampai itu, jam sibuk dan "hari ini" bisa meleset beberapa jam.',
+    timeZoneUnsetHours: 'Jam-jam ini mungkin bergeser: zona waktu Anda belum diatur. Aturlah di Pengaturan agar sesuai.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Yang Ope pelajari tentang pemesanan Anda',
     bookingLearnedLearning: 'Masih belajar — sejauh ini {n} dari {needed} hari punya jumlah pemesanan sekaligus total sebenarnya. Ope tidak akan menebak angka ketidakhadiran sebelum dasarnya cukup.',
@@ -11594,6 +11630,9 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'Ihre Zeitzone ist noch nicht gesetzt, also leitet Ope sie von diesem Gerät ab. Wählen Sie sie unten und speichern Sie — bis dahin können Stoßzeiten und das „heute“ um mehrere Stunden verschoben sein.',
+    timeZoneUnsetHours: 'Diese Zeiten können verschoben sein: Ihre Zeitzone ist nicht gesetzt. Tragen Sie sie in den Einstellungen ein, damit sie stimmen.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Was Ope über Ihre Buchungen gelernt hat',
     bookingLearnedLearning: 'Lernt noch — bisher {n} von {needed} Tagen mit sowohl einer Buchungszahl als auch einem echten Gesamtwert. Ope rät keine Nichterscheinen-Quote, bevor die Grundlage reicht.',
@@ -12759,6 +12798,9 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'タイムゾーンがまだ設定されていないため、Ope はこの端末から推測しています。下で選んで保存してください。それまでは混雑時間や「今日」が数時間ずれることがあります。',
+    timeZoneUnsetHours: 'この時間帯はずれている可能性があります：タイムゾーンが未設定です。設定で指定すると揃います。',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Ope があなたの予約から学んだこと',
     bookingLearnedLearning: 'まだ学習中です — 予約数と実際の合計の両方がそろった日は現在 {needed} 日中 {n} 日。十分な根拠がそろうまで、Ope は無断キャンセル率を推測しません。',
@@ -13924,6 +13966,9 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    // Timezone not set: say so where it actually shows, rather than silently using UTC
+    timeZoneUnsetWarning: 'Saat diliminiz henüz ayarlanmadı, bu yüzden Ope onu bu cihazdan tahmin ediyor. Aşağıdan seçip kaydedin — o zamana kadar yoğun saatler ve "bugün" birkaç saat kayabilir.',
+    timeZoneUnsetHours: 'Bu saatler kaymış olabilir: saat diliminiz ayarlı değil. Hizalamak için Ayarlar\'dan belirleyin.',
     // Booking: what the model learned, said plainly and only once it has learned it
     bookingLearnedTitle: 'Ope rezervasyonlarınız hakkında ne öğrendi',
     bookingLearnedLearning: 'Hâlâ öğreniyor — şimdiye dek {needed} günün {n} tanesinde hem rezervasyon sayısı hem gerçek toplam var. Yeterli dayanak oluşana kadar Ope gelmeme oranını tahmin etmeyecek.',

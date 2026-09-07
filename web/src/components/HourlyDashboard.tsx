@@ -154,6 +154,7 @@ function TomorrowPanel({
   const { t, lang } = useLanguage()
   const fmtNote = (slot: WeekdayHourlySlot) => formatMarginalNote(slot, t, lang)
   const { isDark } = useTheme()
+  const { isConfigured } = useBusinessTime()
   const busiest = [...slots].sort((a, b) => b.avg_taps - a.avg_taps)[0]
   const chartData = slots.map(h => ({
     name: fmtHour(h.hour, lang),
@@ -201,6 +202,16 @@ function TomorrowPanel({
         <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
           {t('avgCustomersHourOn', { dayType: isFallback ? t('tomorrowTypical').toLowerCase() : dayName })}
         </p>
+        {/* Said here, not only in Settings: this is the screen the missing zone
+            actually distorts, so this is where an owner can see that it does. */}
+        {!isConfigured && (
+          <p role="status" className="text-xs leading-relaxed mb-4 rounded-xl px-3 py-2.5
+                                     text-amber-800 dark:text-amber-300
+                                     bg-amber-50 dark:bg-amber-900/20
+                                     border border-amber-100 dark:border-amber-900/40">
+            {t('timeZoneUnsetHours')}
+          </p>
+        )}
         <ChartFigure
           caption={t('chartTableCaption').replace('{title}', t('busyHoursTomorrow'))}
           columns={[t('hourLabel'), t('avgCustomersTooltip'), t('staffNeededTooltip')]}
