@@ -1,0 +1,16 @@
+{
+  // Tests run under Node (`npm test` -> `node --test`), not on a device, so
+  // they need Node's types and the .ts import extensions that node's type
+  // stripping requires. The app project deliberately has neither.
+  //
+  // Mirrors web/tsconfig.test.json, so a test that does not compile fails the
+  // type-check rather than sitting broken until someone runs it.
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": ["src/**/*.test.ts"]
+}
