@@ -9,6 +9,14 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'What Ope has learned about your bookings',
+    bookingLearnedLearning: 'Still learning — {n} of {needed} days so far with both a booked count and a real total. Ope won\'t guess a no-show rate until it has enough to stand behind.',
+    bookingNoShowLine: 'About 1 in {k} booked appointments don\'t show up.',
+    bookingNoShowNone: 'Almost everyone who books turns up.',
+    bookingWalkInsLine: 'Plus roughly {n} walk-ins a day, on top of your bookings.',
+    bookingWalkInsNone: 'Hardly anyone arrives without booking first.',
+    bookingPartialNote: 'On {n} of your dates you entered a whole-business total and only part of the per-service breakdown. Ope uses the bigger of the two — your whole-business total — so no bookings go missing.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'Ad',
     adSlotLeft: 'Advertisement, left of the page',
@@ -1167,6 +1175,14 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'מה Ope למד על ההזמנות שלך',
+    bookingLearnedLearning: 'עדיין לומד — {n} מתוך {needed} ימים עם גם מספר הזמנות וגם סך אמיתי. Ope לא ינחש שיעור אי-הגעה עד שיהיה לו מספיק בסיס.',
+    bookingNoShowLine: 'בערך אחד מכל {k} תורים שנקבעו לא מגיע.',
+    bookingNoShowNone: 'כמעט כל מי שקובע תור מגיע.',
+    bookingWalkInsLine: 'בנוסף, בערך {n} לקוחות ללא תור ביום, מעבר להזמנות.',
+    bookingWalkInsNone: 'כמעט אף אחד לא מגיע בלי לקבוע תור מראש.',
+    bookingPartialNote: 'ב-{n} מהתאריכים שלך הזנת סך כולל לעסק וגם רק חלק מהפירוט לפי שירות. Ope משתמש בגדול מבין השניים — הסך הכולל — כך שלא הולכות לאיבוד הזמנות.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'פרסומת',
     adSlotLeft: 'פרסומת, בצד ימין של העמוד',
@@ -2325,6 +2341,14 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Ope 从你的预约中学到了什么',
+    bookingLearnedLearning: '仍在学习中 — 目前有 {n} / {needed} 天同时记录了预约数和实际总数。在依据足够之前，Ope 不会猜测失约率。',
+    bookingNoShowLine: '大约每 {k} 个预约中有 1 个不会到店。',
+    bookingNoShowNone: '几乎所有预约的客人都会到店。',
+    bookingWalkInsLine: '此外，每天大约还有 {n} 位未预约的顾客。',
+    bookingWalkInsNone: '几乎没有人不预约就上门。',
+    bookingPartialNote: '有 {n} 个日期你既填写了整店总数，又只填写了部分服务的明细。Ope 采用两者中较大的数字 — 你的整店总数 — 以免遗漏预约。',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: '广告',
     adSlotLeft: '广告，页面左侧',
@@ -3009,6 +3033,14 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Lo que Ope ha aprendido sobre tus reservas',
+    bookingLearnedLearning: 'Todavía aprendiendo: {n} de {needed} días con reservas y total real. Ope no calculará una tasa de ausencias hasta tener base suficiente.',
+    bookingNoShowLine: 'Aproximadamente 1 de cada {k} citas reservadas no se presenta.',
+    bookingNoShowNone: 'Casi todo el mundo que reserva acude.',
+    bookingWalkInsLine: 'Además, unos {n} clientes sin cita al día, aparte de tus reservas.',
+    bookingWalkInsNone: 'Casi nadie llega sin haber reservado.',
+    bookingPartialNote: 'En {n} de tus fechas introdujiste un total para todo el negocio y solo parte del desglose por servicio. Ope usa el mayor de los dos — tu total — para que no se pierda ninguna reserva.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'Anuncio',
     adSlotLeft: 'Anuncio, a la izquierda de la página',
@@ -3745,6 +3777,14 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Ope ने आपकी बुकिंग के बारे में क्या सीखा',
+    bookingLearnedLearning: 'अभी सीख रहा है — अब तक {needed} में से {n} दिन ऐसे हैं जिनमें बुकिंग संख्या और असली कुल दोनों हैं। पर्याप्त आधार मिलने तक Ope नो-शो दर का अनुमान नहीं लगाएगा।',
+    bookingNoShowLine: 'हर {k} बुक की गई अपॉइंटमेंट में से लगभग 1 नहीं आती।',
+    bookingNoShowNone: 'बुकिंग करने वाले लगभग सभी लोग आते हैं।',
+    bookingWalkInsLine: 'इसके अलावा, रोज़ लगभग {n} बिना बुकिंग वाले ग्राहक आते हैं।',
+    bookingWalkInsNone: 'बिना बुकिंग के शायद ही कोई आता है।',
+    bookingPartialNote: 'आपकी {n} तारीखों पर आपने पूरे व्यवसाय का कुल और सेवा-वार विवरण का केवल एक हिस्सा भरा। Ope दोनों में से बड़ा आंकड़ा — आपका कुल — इस्तेमाल करता है, ताकि कोई बुकिंग छूटे नहीं।',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'विज्ञापन',
     adSlotLeft: 'विज्ञापन, पृष्ठ के बाईं ओर',
@@ -4439,6 +4479,14 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'ما تعلّمه Ope عن حجوزاتك',
+    bookingLearnedLearning: 'ما زال يتعلّم — {n} من {needed} يوماً حتى الآن فيها عدد الحجوزات والإجمالي الفعلي معاً. لن يخمّن Ope نسبة عدم الحضور قبل أن يملك أساساً كافياً.',
+    bookingNoShowLine: 'نحو موعد واحد من كل {k} موعد محجوز لا يحضر.',
+    bookingNoShowNone: 'يحضر تقريباً كل من يحجز.',
+    bookingWalkInsLine: 'إضافةً إلى ذلك، نحو {n} زبون بلا حجز يومياً.',
+    bookingWalkInsNone: 'نادراً ما يأتي أحد دون حجز مسبق.',
+    bookingPartialNote: 'في {n} من تواريخك أدخلت إجمالياً للنشاط كله وجزءاً فقط من التفصيل حسب الخدمة. يستخدم Ope الأكبر من الرقمين — إجماليك — حتى لا تضيع أي حجوزات.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'إعلان',
     adSlotLeft: 'إعلان، على يمين الصفحة',
@@ -5430,6 +5478,14 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'O que o Ope aprendeu sobre as suas reservas',
+    bookingLearnedLearning: 'Ainda a aprender — {n} de {needed} dias até agora com contagem de reservas e total real. O Ope não vai adivinhar uma taxa de faltas sem base suficiente.',
+    bookingNoShowLine: 'Cerca de 1 em cada {k} marcações não aparece.',
+    bookingNoShowNone: 'Quase toda a gente que marca aparece.',
+    bookingWalkInsLine: 'Além disso, cerca de {n} clientes sem marcação por dia.',
+    bookingWalkInsNone: 'Quase ninguém chega sem marcação.',
+    bookingPartialNote: 'Em {n} das suas datas introduziu um total para todo o negócio e apenas parte da divisão por serviço. O Ope usa o maior dos dois — o seu total — para não perder reservas.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'Anúncio',
     adSlotLeft: 'Anúncio, à esquerda da página',
@@ -6151,6 +6207,14 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Что Ope узнал о ваших записях',
+    bookingLearnedLearning: 'Ещё учится — пока {n} из {needed} дней, где есть и число записей, и реальный итог. Ope не станет угадывать долю неявок, пока данных недостаточно.',
+    bookingNoShowLine: 'Примерно 1 запись из {k} не приходит.',
+    bookingNoShowNone: 'Почти все, кто записался, приходят.',
+    bookingWalkInsLine: 'Плюс примерно {n} посетителей в день без записи.',
+    bookingWalkInsNone: 'Почти никто не приходит без записи.',
+    bookingPartialNote: 'В {n} ваших датах указан общий итог по бизнесу и лишь часть разбивки по услугам. Ope берёт большее из двух — ваш общий итог — чтобы записи не потерялись.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'Реклама',
     adSlotLeft: 'Реклама, слева от страницы',
@@ -6870,6 +6934,14 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Ce qu\'Ope a appris de vos réservations',
+    bookingLearnedLearning: 'Toujours en apprentissage : {n} jours sur {needed} avec à la fois un nombre de réservations et un total réel. Ope ne devinera pas un taux d\'absence sans base suffisante.',
+    bookingNoShowLine: 'Environ 1 rendez-vous réservé sur {k} ne se présente pas.',
+    bookingNoShowNone: 'Presque tous ceux qui réservent viennent.',
+    bookingWalkInsLine: 'En plus, environ {n} clients sans rendez-vous par jour.',
+    bookingWalkInsNone: 'Presque personne ne vient sans avoir réservé.',
+    bookingPartialNote: 'Sur {n} de vos dates, vous avez saisi un total pour tout l\'établissement et seulement une partie du détail par prestation. Ope retient le plus grand des deux — votre total — pour ne perdre aucune réservation.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'Publicité',
     adSlotLeft: 'Publicité, à gauche de la page',
@@ -8027,6 +8099,14 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'আপনার বুকিং সম্পর্কে Ope যা শিখেছে',
+    bookingLearnedLearning: 'এখনও শিখছে — এ পর্যন্ত {needed}-এর মধ্যে {n} দিনে বুকিং সংখ্যা ও প্রকৃত মোট দুটোই আছে। যথেষ্ট ভিত্তি না পাওয়া পর্যন্ত Ope নো-শো হার অনুমান করবে না।',
+    bookingNoShowLine: 'প্রতি {k}টি বুক করা অ্যাপয়েন্টমেন্টের মধ্যে প্রায় ১টি আসে না।',
+    bookingNoShowNone: 'যাঁরা বুক করেন তাঁদের প্রায় সবাই আসেন।',
+    bookingWalkInsLine: 'এছাড়া দিনে প্রায় {n} জন বুকিং ছাড়াই আসেন।',
+    bookingWalkInsNone: 'বুকিং ছাড়া প্রায় কেউই আসেন না।',
+    bookingPartialNote: 'আপনার {n}টি তারিখে আপনি পুরো ব্যবসার মোট এবং পরিষেবা-ভিত্তিক বিভাজনের কেবল একাংশ দিয়েছেন। Ope দুটির মধ্যে বড়টি — আপনার মোট — ব্যবহার করে, যাতে কোনো বুকিং হারিয়ে না যায়।',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'বিজ্ঞাপন',
     adSlotLeft: 'বিজ্ঞাপন, পৃষ্ঠার বাঁ দিকে',
@@ -9184,6 +9264,14 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Ope نے آپ کی بکنگ کے بارے میں کیا سیکھا',
+    bookingLearnedLearning: 'ابھی سیکھ رہا ہے — اب تک {needed} میں سے {n} دن ایسے ہیں جن میں بکنگ کی تعداد اور اصل کل دونوں موجود ہیں۔ کافی بنیاد ملنے تک Ope نو-شو شرح کا اندازہ نہیں لگائے گا۔',
+    bookingNoShowLine: 'ہر {k} بک شدہ اپائنٹمنٹ میں سے تقریباً ایک نہیں آتی۔',
+    bookingNoShowNone: 'بکنگ کرانے والے تقریباً سب آ جاتے ہیں۔',
+    bookingWalkInsLine: 'اس کے علاوہ روزانہ تقریباً {n} گاہک بغیر بکنگ کے آتے ہیں۔',
+    bookingWalkInsNone: 'بغیر بکنگ کے شاید ہی کوئی آتا ہے۔',
+    bookingPartialNote: 'آپ کی {n} تاریخوں پر آپ نے پورے کاروبار کا کل اور سروس کے حساب سے تفصیل کا صرف ایک حصہ درج کیا۔ Ope دونوں میں سے بڑا عدد — آپ کا کل — استعمال کرتا ہے تاکہ کوئی بکنگ ضائع نہ ہو۔',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'اشتہار',
     adSlotLeft: 'اشتہار، صفحے کے دائیں جانب',
@@ -10341,6 +10429,14 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Yang Ope pelajari tentang pemesanan Anda',
+    bookingLearnedLearning: 'Masih belajar — sejauh ini {n} dari {needed} hari punya jumlah pemesanan sekaligus total sebenarnya. Ope tidak akan menebak angka ketidakhadiran sebelum dasarnya cukup.',
+    bookingNoShowLine: 'Sekitar 1 dari {k} janji yang dipesan tidak datang.',
+    bookingNoShowNone: 'Hampir semua yang memesan datang.',
+    bookingWalkInsLine: 'Ditambah sekitar {n} pelanggan tanpa pesan per hari.',
+    bookingWalkInsNone: 'Hampir tidak ada yang datang tanpa memesan dulu.',
+    bookingPartialNote: 'Pada {n} tanggal Anda mengisi total seluruh usaha dan hanya sebagian rincian per layanan. Ope memakai yang lebih besar — total Anda — agar tidak ada pemesanan yang hilang.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'Iklan',
     adSlotLeft: 'Iklan, di kiri halaman',
@@ -11498,6 +11594,14 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Was Ope über Ihre Buchungen gelernt hat',
+    bookingLearnedLearning: 'Lernt noch — bisher {n} von {needed} Tagen mit sowohl einer Buchungszahl als auch einem echten Gesamtwert. Ope rät keine Nichterscheinen-Quote, bevor die Grundlage reicht.',
+    bookingNoShowLine: 'Etwa 1 von {k} gebuchten Terminen erscheint nicht.',
+    bookingNoShowNone: 'Fast alle, die buchen, kommen auch.',
+    bookingWalkInsLine: 'Dazu kommen etwa {n} Laufkunden pro Tag, zusätzlich zu Ihren Buchungen.',
+    bookingWalkInsNone: 'Kaum jemand kommt ohne Buchung.',
+    bookingPartialNote: 'An {n} Ihrer Termine haben Sie eine Gesamtzahl für den ganzen Betrieb und nur einen Teil der Aufschlüsselung je Leistung eingetragen. Ope nimmt den größeren der beiden Werte — Ihre Gesamtzahl — damit keine Buchungen verloren gehen.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'Anzeige',
     adSlotLeft: 'Anzeige, links neben der Seite',
@@ -12655,6 +12759,14 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Ope があなたの予約から学んだこと',
+    bookingLearnedLearning: 'まだ学習中です — 予約数と実際の合計の両方がそろった日は現在 {needed} 日中 {n} 日。十分な根拠がそろうまで、Ope は無断キャンセル率を推測しません。',
+    bookingNoShowLine: '予約 {k} 件のうち約 1 件は来店しません。',
+    bookingNoShowNone: '予約した方はほぼ全員来店します。',
+    bookingWalkInsLine: 'さらに 1 日あたり約 {n} 人が予約なしで来店します。',
+    bookingWalkInsNone: '予約なしで来る方はほとんどいません。',
+    bookingPartialNote: '{n} 件の日付で、店舗全体の合計とサービス別内訳の一部だけが入力されています。Ope は大きい方 — あなたの合計 — を使うので、予約が失われることはありません。',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: '広告',
     adSlotLeft: '広告、ページの左側',
@@ -13812,6 +13924,14 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    // Booking: what the model learned, said plainly and only once it has learned it
+    bookingLearnedTitle: 'Ope rezervasyonlarınız hakkında ne öğrendi',
+    bookingLearnedLearning: 'Hâlâ öğreniyor — şimdiye dek {needed} günün {n} tanesinde hem rezervasyon sayısı hem gerçek toplam var. Yeterli dayanak oluşana kadar Ope gelmeme oranını tahmin etmeyecek.',
+    bookingNoShowLine: 'Rezervasyonlu randevuların yaklaşık {k} tanesinden biri gelmiyor.',
+    bookingNoShowNone: 'Rezervasyon yapanların neredeyse tamamı geliyor.',
+    bookingWalkInsLine: 'Ayrıca günde yaklaşık {n} randevusuz müşteri geliyor.',
+    bookingWalkInsNone: 'Randevusuz gelen neredeyse yok.',
+    bookingPartialNote: '{n} tarihinizde hem tüm işletme toplamını hem de hizmet bazlı dökümün yalnızca bir kısmını girdiniz. Ope ikisinden büyüğünü — toplamınızı — kullanır, böylece rezervasyon kaybolmaz.',
     // Ad slots and the actions column: named, so a landmark list and a table header are not blank
     adLabel: 'Reklam',
     adSlotLeft: 'Reklam, sayfanın solunda',

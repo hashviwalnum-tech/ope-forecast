@@ -540,6 +540,55 @@ def _booking_forecast_for_date(
     return booking_forecast(booked_by_date[target_date], slope, intercept)
 
 
+
+def _merge_booked_counts(db: Session, biz: Business) -> tuple[dict[date, int], dict[date, str]]:
+    """Reconcile the whole-business booked count with any per-service breakdown.
+
+    A date can carry both: a total the owner typed for the whole business, and
+    a per-service figure for some (not necessarily all) of their services.
+
+    This used to let the per-service sum REPLACE the whole-business figure
+    outright, which silently undercounted whenever the breakdown was partial —
+    a spa with 30 booked and a single "Massage: 8" entry told the forecast it
+    had 8 appointments. The booking model then fitted on a number that was not
+    the day's booked load at all.
+
+    The rule now is the one the app already applies to hourly counts versus the
+    daily total (spec section 9): the more detailed figure wins only when it is
+    at least as large. A per-service sum that exceeds the typed total means the
+    breakdown is the fuller picture and the total was low; a per-service sum
+    BELOW the total means the breakdown is partial, and the total stays the
+    truth. Neither reading can ever lose bookings.
+
+    Returns the merged counts and, per date, which figure was used —
+    "business", "services", or "services_partial" when a partial breakdown was
+    set aside in favour of the total. The owner is shown that distinction
+    rather than left to wonder which number the forecast believed.
+    """
+    whole: dict[date, int] = {
+        r.date: r.booked_count
+        for r in db.query(BookedCount).filter_by(business_id=biz.id).all()
+    }
+    svc_sum: dict[date, int] = {}
+    for r in db.query(ServiceBookedCount).filter_by(business_id=biz.id).all():
+        svc_sum[r.date] = svc_sum.get(r.date, 0) + r.booked_count
+
+    merged: dict[date, int] = {}
+    source: dict[date, str] = {}
+    for d in set(whole) | set(svc_sum):
+        w = whole.get(d)
+        s = svc_sum.get(d)
+        if w is None:
+            merged[d], source[d] = s, "services"
+        elif s is None:
+            merged[d], source[d] = w, "business"
+        elif s >= w:
+            merged[d], source[d] = s, "services"
+        else:
+            merged[d], source[d] = w, "services_partial"
+    return merged, source
+
+
 def _holdout_errors(
     obs: list[float],
     wds: list[int],
@@ -945,19 +994,9 @@ def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     # counts into the ensemble like every other model, weighted by its own
     # holdout accuracy so it only earns influence once it's proven itself.
     booked_by_date: dict[date, int] = {}
+    booked_source_by_date: dict[date, str] = {}
     if (biz.settings or {}).get("appointment_based"):
-        booked_by_date = {
-            r.date: r.booked_count
-            for r in db.query(BookedCount).filter_by(business_id=biz.id).all()
-        }
-        # Per-service detail is more granular than the whole-business total —
-        # when a date has any per-service entries, sum them across services and
-        # prefer that sum over the whole-business figure for that date (avoids
-        # double-counting; falls back to the whole-business entry otherwise).
-        svc_sum_by_date: dict[date, int] = {}
-        for r in db.query(ServiceBookedCount).filter_by(business_id=biz.id).all():
-            svc_sum_by_date[r.date] = svc_sum_by_date.get(r.date, 0) + r.booked_count
-        booked_by_date.update(svc_sum_by_date)
+        booked_by_date, booked_source_by_date = _merge_booked_counts(db, biz)
 
     # A longer holdout window than the ensemble weights use.  The MAE weighting
     # only needs the most recent behaviour, but telling a genuine systematic lag

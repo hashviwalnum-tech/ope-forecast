@@ -226,6 +226,25 @@ export interface BookedCountRead {
   product_id: number | null  // null = whole-business total; set = a specific service
 }
 
+/**
+ * What the booking model has learned from this business's own history.
+ *
+ * `status` is 'off' when appointments are turned off, 'learning' until there
+ * are enough (booked, actual) pairs to fit — in which case every figure is
+ * null and the UI must say so rather than show a percentage it cannot stand
+ * behind.
+ */
+export interface BookingModelRead {
+  status: 'off' | 'learning' | 'ok'
+  pairs: number
+  pairs_needed: number
+  no_show_rate: number | null       // 0.14 = about 1 in 7 booked appointments don't show
+  walk_ins_per_day: number | null   // unbooked arrivals on a typical day
+  show_up_rate: number | null
+  partial_service_dates: string[]   // dates where a partial per-service breakdown was
+                                    // set aside in favour of the whole-business total
+}
+
 export interface ForecastResponse {
   // 'ok' | 'learning' (early, deliberately wide range) | 'not_enough_data'
   status: string

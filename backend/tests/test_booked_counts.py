@@ -185,3 +185,111 @@ def test_product_forecast_surfaces_booked_count_for_service(bk_client):
     assert item["status"] == "ok"
     day = next(d for d in item["days"] if d["date"] == str(target))
     assert day["booked_count"] == 6
+
+
+# ── whole-business total vs a PARTIAL per-service breakdown ──────────────────
+
+def _turn_appointments_on(bk_client):
+    r = bk_client.patch("/businesses/me/settings", json={"appointment_based": True})
+    assert r.status_code == 200
+
+
+def _seed_history(bk_client, days: int = 20):
+    """Enough logged days for GET /forecast to return any days at all."""
+    today = date.today()
+    for i in range(days, 0, -1):
+        d = today - timedelta(days=i)
+        bk_client.post("/day-records", json={"date": str(d), "customers": 20 + i})
+        bk_client.put(f"/booked-counts/{d}", json={"booked_count": 18 + i})
+
+
+def test_a_partial_service_breakdown_does_not_replace_the_whole_business_total(bk_client):
+    """The sharp edge: 30 booked, one service broken out at 8, forecast saw 8.
+
+    A spa can enter a whole-business total AND a per-service count for only
+    some of its services. The per-service sum used to replace the total
+    outright, so a partial breakdown silently threw away most of the day's
+    bookings. The rule now matches the one for hourly counts versus the daily
+    total: the breakdown wins only when it is at least as large.
+    """
+    _turn_appointments_on(bk_client)
+    _seed_history(bk_client)
+    massage = _create_service(bk_client, "Massage")
+    target = date.today() + timedelta(days=2)
+
+    bk_client.put(f"/booked-counts/{target}", json={"booked_count": 30})
+    bk_client.put(f"/booked-counts/{target}?product_id={massage}", json={"booked_count": 8})
+
+    r = bk_client.get("/forecast")
+    day = next(d for d in r.json()["days"] if d["date"] == str(target))
+    assert day["booked_count"] == 30, (
+        "a partial per-service breakdown overrode the whole-business total"
+    )
+
+    model = bk_client.get("/booked-counts/model").json()
+    assert str(target) in model["partial_service_dates"], (
+        "the owner is not told which dates had a partial breakdown set aside"
+    )
+
+
+def test_a_fuller_service_breakdown_does_win(bk_client):
+    """The other direction: the breakdown exceeds the total, so it is fuller."""
+    _turn_appointments_on(bk_client)
+    _seed_history(bk_client)
+    massage = _create_service(bk_client, "Massage")
+    facial = _create_service(bk_client, "Facial")
+    target = date.today() + timedelta(days=2)
+
+    bk_client.put(f"/booked-counts/{target}", json={"booked_count": 12})
+    bk_client.put(f"/booked-counts/{target}?product_id={massage}", json={"booked_count": 9})
+    bk_client.put(f"/booked-counts/{target}?product_id={facial}", json={"booked_count": 7})
+
+    r = bk_client.get("/forecast")
+    day = next(d for d in r.json()["days"] if d["date"] == str(target))
+    assert day["booked_count"] == 16
+    assert bk_client.get("/booked-counts/model").json()["partial_service_dates"] == []
+
+
+# ── what the model learned ───────────────────────────────────────────────────
+
+def test_booking_model_is_off_when_appointments_are_off(bk_client):
+    body = bk_client.get("/booked-counts/model").json()
+    assert body["status"] == "off"
+    assert body["no_show_rate"] is None
+
+
+def test_booking_model_says_learning_before_it_can_fit(bk_client):
+    """No confident percentage from three days — the same rule the forecast uses."""
+    _turn_appointments_on(bk_client)
+    today = date.today()
+    for i in range(3, 0, -1):
+        d = today - timedelta(days=i)
+        bk_client.post("/day-records", json={"date": str(d), "customers": 20})
+        bk_client.put(f"/booked-counts/{d}", json={"booked_count": 20})
+
+    body = bk_client.get("/booked-counts/model").json()
+    assert body["status"] == "learning"
+    assert body["pairs"] == 3
+    assert body["pairs_needed"] >= 5
+    assert body["no_show_rate"] is None
+    assert body["walk_ins_per_day"] is None
+
+
+def test_booking_model_reports_the_no_show_rate_and_walk_ins_once_fitted(bk_client):
+    """20 booked days where 80% show up and 4 walk in: ~20% no-shows, ~4 walk-ins."""
+    _turn_appointments_on(bk_client)
+    today = date.today()
+    for i in range(20, 0, -1):
+        d = today - timedelta(days=i)
+        booked = 10 + i
+        bk_client.post("/day-records", json={
+            "date": str(d), "customers": round(0.8 * booked) + 4,
+        })
+        bk_client.put(f"/booked-counts/{d}", json={"booked_count": booked})
+
+    body = bk_client.get("/booked-counts/model").json()
+    assert body["status"] == "ok"
+    assert body["pairs"] == 20
+    assert body["no_show_rate"] == pytest.approx(0.20, abs=0.03)
+    assert body["walk_ins_per_day"] == pytest.approx(4.0, abs=0.7)
+    assert body["show_up_rate"] == pytest.approx(0.80, abs=0.03)

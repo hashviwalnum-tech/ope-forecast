@@ -24,6 +24,7 @@ docs/simulation/REPORT.md):
 """
 from __future__ import annotations
 
+import math
 import random
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -396,3 +397,168 @@ def simulate_year(
 
 def open_days(outcomes: list[DayOutcome]) -> list[DayOutcome]:
     return [o for o in outcomes if o.is_open]
+
+
+# ── Appointment businesses (§ booking-aware demand) ───────────────────────────
+#
+# The burger shop above has no diary. A barber, spa or clinic does, and Ope's
+# booking model claims to use it: it fits `actual = slope * booked + intercept`
+# and calls the slope a show-up rate and the intercept a walk-in baseline.
+#
+# That claim was untested against data. What follows generates an appointment
+# business so it can be — a SEPARATE world, additive, touching nothing above:
+# `simulate_day` and `simulate_year` are unchanged, so the year-long release
+# test produces exactly the numbers it did before.
+#
+# THE ANSWER KEY, and the rules that keep it honest:
+#
+#   * A day's demand is generated the way an appointment business actually
+#     works — the diary is filled in advance, some of those bookings turn up,
+#     and some people walk in unbooked:
+#
+#         customers = (bookings that showed up) + (walk-ins)
+#
+#     Nothing computes `slope * booked + intercept`. The linear relationship
+#     the engine fits is an EMERGENT property of that process, not something
+#     handed to it — a binomial thinning has expectation `p * n`, so a correct
+#     fit should recover the show-up rate, and a Poisson walk-in count has
+#     expectation `lambda`, so it should recover the walk-in mean. If the
+#     engine ever agrees exactly, that is suspicious, not reassuring.
+#
+#   * Nothing under `backend/app/` may import this module, and no engine
+#     constant may be tuned to match one defined here. The engine is never told
+#     the show-up rate or the walk-in mean; recovering them is the test.
+#
+#   * The diary is NOT a restatement of the weekday pattern. Bookings carry a
+#     weekly shape (so seasonal-naive has real signal and the comparison is
+#     fair), but they also carry week-to-week swings the weekday pattern cannot
+#     see — a quiet fortnight, a fully-booked run. Without those, booking would
+#     "win" only by duplicating what the other models already know, and the
+#     backtest would prove nothing.
+
+
+APPT_YEAR_START = date(2025, 3, 3)          # a Monday
+APPT_CLOSED_WEEKDAY = 6                     # closed Sundays
+
+
+@dataclass(frozen=True)
+class AppointmentProfile:
+    """How one appointment business's diary turns into customers.
+
+    show_up_rate  fraction of booked appointments that actually turn up; the
+                  no-show rate is 1 - this. Ope should recover it as the slope.
+    walk_in_mean  average unbooked arrivals on an open day (Poisson mean). Ope
+                  should recover it as the intercept.
+    base_bookings typical diary size on an average open day.
+    weekday_shape multiplier per weekday (0=Mon), the recurring pattern any
+                  day-of-week model can also learn.
+    week_swing    how much a whole week's diary drifts from its weekday norm —
+                  the part ONLY the booking model can see.
+    """
+    show_up_rate: float
+    walk_in_mean: float
+    base_bookings: float
+    weekday_shape: tuple[float, ...] = (1.0, 0.9, 1.0, 1.1, 1.25, 1.35, 0.0)
+    week_swing: float = 0.22
+    label: str = "appointments"
+
+
+# Two businesses with genuinely different behaviour, so a test cannot pass by
+# accidentally hard-coding one of them.
+BARBER = AppointmentProfile(
+    show_up_rate=0.86,      # ~1 in 7 no-shows
+    walk_in_mean=5.0,       # a steady trickle off the street
+    base_bookings=24.0,
+    label="barber",
+)
+
+CLINIC = AppointmentProfile(
+    show_up_rate=0.72,      # appointment-heavy, no-show-prone
+    walk_in_mean=1.2,       # almost nobody walks into a clinic
+    base_bookings=32.0,
+    weekday_shape=(1.2, 1.1, 1.05, 1.0, 0.85, 0.5, 0.0),
+    week_swing=0.30,
+    label="clinic",
+)
+
+
+@dataclass(frozen=True)
+class AppointmentDay:
+    day: date
+    index: int
+    is_open: bool
+    booked: int         # what the diary said, known in advance
+    showed_up: int      # how many of them actually turned up
+    walk_ins: int       # unbooked arrivals
+    customers: int      # showed_up + walk_ins — the only number Ope ever sees
+
+
+def simulate_appointment_day(
+    profile: AppointmentProfile,
+    day: date,
+    index: int,
+    seed: str = DEFAULT_SEED,
+) -> AppointmentDay:
+    """Roll one day of an appointment business.
+
+    Deliberately generative: fill a diary, thin it by the show-up rate, add
+    walk-ins. The regression Ope fits is never evaluated here.
+    """
+    if day.weekday() == APPT_CLOSED_WEEKDAY:
+        return AppointmentDay(day, index, False, 0, 0, 0, 0)
+
+    rng = _day_rng(seed, day, f"appt-{profile.label}")
+
+    # The diary. A weekly shape everyone can learn, plus a whole-week drift and
+    # a day-level wobble that only the booked count itself reveals.
+    week_rng = _day_rng(seed, day - timedelta(days=day.weekday()), f"week-{profile.label}")
+    week_factor = 1.0 + week_rng.uniform(-profile.week_swing, profile.week_swing)
+    shape = profile.weekday_shape[day.weekday()]
+    booked = max(0, int(round(
+        profile.base_bookings * shape * week_factor * rng.uniform(0.88, 1.12)
+    )))
+
+    # Who turns up. Each booking is an independent coin flip, so the count is
+    # binomial — its mean is show_up_rate * booked, but any single day scatters
+    # around that, exactly as a real diary does.
+    showed_up = sum(1 for _ in range(booked) if rng.random() < profile.show_up_rate)
+
+    # Who arrives without a booking. Poisson, via the standard Knuth method —
+    # `random` has no poissonvariate.
+    walk_ins = _poisson(rng, profile.walk_in_mean)
+
+    return AppointmentDay(
+        day=day,
+        index=index,
+        is_open=True,
+        booked=booked,
+        showed_up=showed_up,
+        walk_ins=walk_ins,
+        customers=showed_up + walk_ins,
+    )
+
+
+def _poisson(rng: random.Random, lam: float) -> int:
+    """A Poisson draw (Knuth). Fine for the small means used here."""
+    if lam <= 0:
+        return 0
+    target = math.exp(-lam)
+    k, p = 0, 1.0
+    while True:
+        p *= rng.random()
+        if p <= target:
+            return k
+        k += 1
+
+
+def simulate_appointment_series(
+    profile: AppointmentProfile,
+    days: int,
+    start: date = APPT_YEAR_START,
+    seed: str = DEFAULT_SEED,
+) -> list[AppointmentDay]:
+    """`days` consecutive calendar days, closed days included (is_open=False)."""
+    return [
+        simulate_appointment_day(profile, start + timedelta(days=i), i, seed)
+        for i in range(days)
+    ]

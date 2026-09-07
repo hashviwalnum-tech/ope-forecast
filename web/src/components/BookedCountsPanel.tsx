@@ -3,9 +3,71 @@ import { bookedCounts as api, products as productsApi } from '../api/client'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
-import type { BookedCountRead, ProductRead } from '../api/types'
+import type { BookedCountRead, BookingModelRead, ProductRead } from '../api/types'
 
 type Target = 'business' | number
+
+/**
+ * What Ope has worked out about this business's diary, in words.
+ *
+ * The fit already drove the forecast; `no_show_rate_from_slope` had no caller
+ * at all, so the owner was never told any of it. Nothing is claimed before the
+ * fit exists — under the model's minimum this shows a plain "still learning"
+ * line, the same way the forecast's first fortnight does, rather than a
+ * confident percentage built on three days.
+ */
+function LearnedCard() {
+  const { t } = useLanguage()
+  const [model, setModel] = useState<BookingModelRead | null>(null)
+
+  useEffect(() => {
+    api.model().then(setModel).catch(() => {})
+  }, [])
+
+  if (!model || model.status === 'off') return null
+
+  const partial = model.partial_service_dates.length
+
+  if (model.status === 'learning') {
+    return (
+      <section className="rounded-2xl border border-amber-100 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-900/15 px-4 py-3">
+        <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t('bookingLearnedTitle')}</h3>
+        <p className="mt-1 text-xs leading-relaxed text-amber-700/90 dark:text-amber-200/80">
+          {t('bookingLearnedLearning', { n: String(model.pairs), needed: String(model.pairs_needed) })}
+        </p>
+      </section>
+    )
+  }
+
+  const noShow = model.no_show_rate ?? 0
+  const walkIns = model.walk_ins_per_day ?? 0
+
+  // "1 in 7" reads better than "14%" for an owner who is not counting in
+  // percentages. Below ~3% there is no honest denominator to quote, so the
+  // sentence changes shape instead of rounding to a meaningless "1 in 40".
+  const noShowLine = noShow < 0.03
+    ? t('bookingNoShowNone')
+    : t('bookingNoShowLine', { k: String(Math.round(1 / noShow)) })
+
+  const walkInLine = walkIns < 0.5
+    ? t('bookingWalkInsNone')
+    : t('bookingWalkInsLine', { n: String(Math.round(walkIns)) })
+
+  return (
+    <section className="rounded-2xl border border-teal-100 dark:border-teal-800 bg-white dark:bg-slate-800 px-4 py-3 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('bookingLearnedTitle')}</h3>
+      <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+        {noShowLine} {walkInLine}
+      </p>
+      {partial > 0 && (
+        <p className="mt-2 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
+          {t('bookingPartialNote', { n: String(partial) })}
+        </p>
+      )}
+    </section>
+  )
+}
+
 
 export default function BookedCountsPanel() {
   const fieldId = useId()
@@ -70,6 +132,8 @@ export default function BookedCountsPanel() {
       <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800 px-4 py-3 text-sm text-teal-700 dark:text-teal-300">
         <strong>{t('bookingsIntroTitle')}</strong> {t('bookingsIntroDesc')}
       </div>
+
+      <LearnedCard />
 
       {services.length > 0 && (
         <div>

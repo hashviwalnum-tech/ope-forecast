@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase'
 import type {
   AccuracyResponse,
   BookedCountRead,
+  BookingModelRead,
   BusinessRead,
   CheckoutResponse,
   CurrencyListResponse,
@@ -340,6 +341,8 @@ export const bookedCounts = {
     ),
   delete: (date: string, productId?: number) =>
     DELETE(`/booked-counts/${date}${productId != null ? `?product_id=${productId}` : ''}`),
+  /** What Ope has worked out about this business's diary — no-show rate, walk-ins. */
+  model: () => GET<BookingModelRead>('/booked-counts/model'),
 }
 
 export const regulars = {

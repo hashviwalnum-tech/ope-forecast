@@ -5,10 +5,68 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_business
 from app.db import get_db
-from app.models import BookedCount, Business, ServiceBookedCount
-from app.schemas.booked_count import BookedCountRead, BookedCountUpsert
+from app.engine.booking import (
+    MIN_BOOKING_PAIRS,
+    fit_booking_regression,
+    no_show_rate_from_slope,
+)
+from app.models import BookedCount, Business, DayRecord, ServiceBookedCount
+from app.schemas.booked_count import BookedCountRead, BookedCountUpsert, BookingModelRead
 
 router = APIRouter(prefix="/booked-counts", tags=["Booked Counts"])
+@router.get("/model", response_model=BookingModelRead, tags=["Booked Counts"])
+def get_booking_model(
+    db: Session = Depends(get_db),
+    biz: Business = Depends(get_business),
+):
+    """What the booking model has learned, in figures the owner can read.
+
+    The fit itself already existed and drove the forecast; `no_show_rate_from_slope`
+    had no caller at all, so the owner was never told what Ope had worked out
+    about their diary. This exposes it.
+
+    Nothing is claimed before the fit exists. Under MIN_BOOKING_PAIRS days of
+    paired history the status is 'learning' and every figure is null — a
+    confident "14% no-shows" derived from three days would be worse than
+    silence, and the forecast behaves the same way in its own first fortnight.
+    """
+    from app.api.analytics import _merge_booked_counts  # local: avoids a cycle
+
+    if not (biz.settings or {}).get("appointment_based"):
+        return BookingModelRead(status="off", pairs=0, pairs_needed=MIN_BOOKING_PAIRS)
+
+    booked_by_date, source_by_date = _merge_booked_counts(db, biz)
+    actual_by_date = {
+        r.date: float(r.customers)
+        for r in db.query(DayRecord).filter_by(business_id=biz.id).all()
+    }
+
+    paired = sorted(set(booked_by_date) & set(actual_by_date))
+    partial = sorted(d for d, src in source_by_date.items() if src == "services_partial")
+
+    fit = fit_booking_regression(
+        [float(booked_by_date[d]) for d in paired],
+        [actual_by_date[d] for d in paired],
+    )
+    if fit is None:
+        return BookingModelRead(
+            status="learning",
+            pairs=len(paired),
+            pairs_needed=MIN_BOOKING_PAIRS,
+            partial_service_dates=partial,
+        )
+
+    slope, intercept = fit
+    return BookingModelRead(
+        status="ok",
+        pairs=len(paired),
+        pairs_needed=MIN_BOOKING_PAIRS,
+        no_show_rate=round(no_show_rate_from_slope(slope), 4),
+        show_up_rate=round(min(1.0, slope), 4),
+        walk_ins_per_day=round(intercept, 2),
+        partial_service_dates=partial,
+    )
+
 
 
 def _to_read(row: BookedCount | ServiceBookedCount, product_id: int | None) -> BookedCountRead:
