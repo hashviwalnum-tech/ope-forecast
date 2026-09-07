@@ -1,0 +1,31 @@
+{
+  // The accessibility suite (playwright.config.ts + tests/a11y/**) was not
+  // covered by any tsconfig, so `npm run build` never type-checked it and it
+  // could rot silently between runs. It is a project now, built alongside the
+  // others, so a suite that does not compile fails the build.
+  //
+  // It needs Node's types (it reads files, spawns servers) and the DOM lib
+  // (the specs run page.evaluate callbacks against real document/window).
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.a11y.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["playwright.config.ts", "tests/**/*.ts"]
+}

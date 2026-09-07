@@ -135,6 +135,7 @@ function RecentTapsList({
 // ── hourly chart ──────────────────────────────────────────────────────────────
 
 function HourlyChart({ hours, salesByHourLabel }: { hours: HourSlot[]; salesByHourLabel: string }) {
+  const { t } = useLanguage()
   if (hours.length === 0) return null
 
   const data = hours.map(h => ({
@@ -145,8 +146,12 @@ function HourlyChart({ hours, salesByHourLabel }: { hours: HourSlot[]; salesByHo
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-5 shadow-sm">
       <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4">{salesByHourLabel}</h3>
+      {/* Hidden from screen readers on purpose: HourlyTable, directly below
+          this card, already carries every number in the chart (and more). A
+          second sr-only copy would just be read out twice. */}
+      <div aria-hidden="true">
       <ResponsiveContainer width="100%" height={160}>
-        <BarChart data={data} barSize={28}>
+        <BarChart data={data} accessibilityLayer={false} barSize={28}>
           <XAxis
             dataKey="name"
             tick={{ fontSize: 12, fill: '#45556c' }}
@@ -163,11 +168,12 @@ function HourlyChart({ hours, salesByHourLabel }: { hours: HourSlot[]; salesByHo
           <Tooltip
             contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
             labelStyle={{ color: '#334155', fontWeight: 600 }}
-            formatter={(v) => [typeof v === 'number' ? v : 0, 'taps']}
+            formatter={(v) => [typeof v === 'number' ? v : 0, t('tapsLabel')]}
           />
           <Bar dataKey="taps" fill="#4e8b87" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
+      </div>
     </div>
   )
 }

@@ -11,6 +11,7 @@ import {
 import { analytics, orders as ordersApi } from '../api/client'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import ChartFigure from './ChartFigure'
 import type { OrderRecordRead, ProductForecastItem, ProductForecastResponse } from '../api/types'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -40,8 +41,13 @@ function DemandChart({ item }: { item: ProductForecastItem }) {
   }
 
   return (
+    <ChartFigure
+      caption={t('chartTableCaption').replace('{title}', `${item.name} — ${t('demandForecast')}`)}
+      columns={[t('dayColLabel'), `${t('expectedLabel')} (${item.unit})`, t('likelyRange')]}
+      rows={chartData.map(d => [d.fullDay, d.predicted, `${d.low} – ${d.high}`])}
+    >
     <ResponsiveContainer width="100%" height={200}>
-      <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+      <BarChart data={chartData} accessibilityLayer={false} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f2f8f7" vertical={false} />
         <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
         <YAxis
@@ -70,6 +76,7 @@ function DemandChart({ item }: { item: ProductForecastItem }) {
         <Bar dataKey="predicted" fill="#3a7470" radius={[5, 5, 0, 0]} maxBarSize={52} />
       </BarChart>
     </ResponsiveContainer>
+    </ChartFigure>
   )
 }
 

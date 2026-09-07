@@ -12,6 +12,7 @@ import { analytics, businesses } from '../api/client'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { shiftIso, weekdayMon0 } from '../lib/businessTime'
 import LoadError from './LoadError'
+import ChartFigure from './ChartFigure'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { WeekdayHourlyEntry, WeekdayHourlyResponse, WeekdayHourlySlot } from '../api/types'
@@ -200,8 +201,13 @@ function TomorrowPanel({
         <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
           {t('avgCustomersHourOn', { dayType: isFallback ? t('tomorrowTypical').toLowerCase() : dayName })}
         </p>
+        <ChartFigure
+          caption={t('chartTableCaption').replace('{title}', t('busyHoursTomorrow'))}
+          columns={[t('hourLabel'), t('avgCustomersTooltip'), t('staffNeededTooltip')]}
+          rows={chartData.map(h => [h.name, Math.round(h.avg), h.staff])}
+        >
         <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+          <BarChart data={chartData} accessibilityLayer={false} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} vertical={false} />
             <XAxis dataKey="name" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#45556c' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#45556c' }} width={36} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -221,6 +227,7 @@ function TomorrowPanel({
             <Bar dataKey="avg" fill="#4e8b87" radius={[4, 4, 0, 0]} maxBarSize={44} />
           </BarChart>
         </ResponsiveContainer>
+        </ChartFigure>
 
         {/* Staffing rows */}
         <div className="mt-4 space-y-2">

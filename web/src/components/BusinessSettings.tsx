@@ -160,7 +160,14 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
   }
 
   return (
-    <form onSubmit={handleSave} className="space-y-8 max-w-sm">
+    /* The settings FORM stops after its Save button. Everything below it —
+       plan, Telegram, feedback, the tour replay, the privacy link — is not a
+       settings field, and FeedbackPanel has a <form> of its own. A form nested
+       inside another form is invalid HTML: the browser drops the inner one, so
+       pressing Enter in the feedback box submitted the SETTINGS form instead
+       of sending the feedback. React warned about it on every render. */
+    <div className="space-y-8 max-w-sm">
+    <form onSubmit={handleSave} className="space-y-8">
 
       <div className="bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800 rounded-xl px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
         {t('settingsHelpText')}
@@ -533,6 +540,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       >
         {saving ? t('savingLabel') : t('saveSettings')}
       </button>
+    </form>
 
       {/* ── Plan / tier ─────────────────────────────────────────────── */}
       <div data-tour="settings-plan" className="border-t border-slate-100 dark:border-slate-700 pt-6">
@@ -611,6 +619,6 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
           {t('privacyPolicy')}
         </a>
       </div>
-    </form>
+    </div>
   )
 }

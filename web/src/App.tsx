@@ -648,10 +648,13 @@ function AppInner() {
 
         {/* Left ad slot — wide screens only */}
         {SHOW_ADS && (
-          <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
+          <aside
+            aria-label={t('adSlotLeft')}
+            className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start"
+          >
             <div className="w-full min-h-[600px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
                             flex items-center justify-center">
-              <span className="text-xs text-teal-700 dark:text-teal-300 tracking-widest uppercase select-none">Ad</span>
+              <span className="text-xs text-teal-700 dark:text-teal-300 tracking-widest uppercase select-none">{t('adLabel')}</span>
             </div>
           </aside>
         )}
@@ -704,10 +707,13 @@ function AppInner() {
 
         {/* Right ad slot — wide screens only */}
         {SHOW_ADS && (
-          <aside className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start">
+          <aside
+            aria-label={t('adSlotRight')}
+            className="hidden xl:flex flex-col w-44 shrink-0 pt-8 px-3 sticky top-20 self-start"
+          >
             <div className="w-full min-h-[600px] bg-teal-50/70 dark:bg-slate-800/60 border border-teal-100 dark:border-slate-700 rounded-xl
                             flex items-center justify-center">
-              <span className="text-xs text-teal-700 dark:text-teal-300 tracking-widest uppercase select-none">Ad</span>
+              <span className="text-xs text-teal-700 dark:text-teal-300 tracking-widest uppercase select-none">{t('adLabel')}</span>
             </div>
           </aside>
         )}
@@ -717,10 +723,13 @@ function AppInner() {
       {/* Bottom ad banner — narrow screens only. Sits ABOVE the tab bar below
           1024px so the two never overlap, and never over content. */}
       {SHOW_ADS && (
-        <div className="fixed bottom-14 lg:bottom-0 inset-x-0 xl:hidden h-14 bg-teal-50/90 dark:bg-slate-800/90 backdrop-blur-sm
-                        border-t border-teal-100 dark:border-slate-700 flex items-center justify-center z-10">
-          <span className="text-xs text-teal-700 dark:text-teal-300 tracking-widest uppercase select-none">Ad</span>
-        </div>
+        <aside
+          aria-label={t('adSlotBottom')}
+          className="fixed bottom-14 lg:bottom-0 inset-x-0 xl:hidden h-14 bg-teal-50/90 dark:bg-slate-800/90 backdrop-blur-sm
+                     border-t border-teal-100 dark:border-slate-700 flex items-center justify-center z-10"
+        >
+          <span className="text-xs text-teal-700 dark:text-teal-300 tracking-widest uppercase select-none">{t('adLabel')}</span>
+        </aside>
       )}
 
       {/* Phone and tablet navigation */}

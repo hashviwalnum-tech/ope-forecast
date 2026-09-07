@@ -4,12 +4,29 @@
  * accessibility specs run so the main screens render real content (forecasts,
  * ordering advice, regulars, history) rather than empty "not enough data" states.
  *
- * Everything is scoped to the signed-up test user; nothing here touches the DB
- * directly.
+ * Everything is scoped to the test user; nothing here touches the DB directly.
+ *
+ * ## Why one fixed account, not a fresh signup
+ *
+ * This used to mint `a11y+<timestamp>@example.com` on every run. Supabase has no
+ * throwaway project here — that is the real one — so each run left another dead
+ * user behind in production auth, for ever, growing with every run.
+ *
+ * So there is exactly ONE account, reused: signed up the first time it is ever
+ * needed, signed into every run after. Its data does not accumulate, because the
+ * business data lives in the suite's own SQLite file, which playwright.config.ts
+ * deletes before each run.
+ *
+ * Override the credentials with A11Y_EMAIL / A11Y_PASSWORD if you would rather
+ * not have a known-password account on the project.
  */
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? 'https://nyktzxkkoworphvnurrp.supabase.co'
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? ''
 const ANON = process.env.VITE_SUPABASE_ANON_KEY ?? ''
-const API = process.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
+const API = process.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8100'
+
+/** The single reusable test identity. Not a real person; owns no real data. */
+const TEST_EMAIL = process.env.A11Y_EMAIL ?? 'ope-a11y-suite@example.com'
+const TEST_PASSWORD = process.env.A11Y_PASSWORD ?? 'A11ySuite!2026'
 
 export interface SeedResult {
   email: string
@@ -31,18 +48,37 @@ async function sb(path: string, body: unknown) {
 }
 
 export async function seed(): Promise<SeedResult> {
-  const email = `a11y+${Date.now()}@example.com`
-  const password = 'Testpass123!'
+  const email = TEST_EMAIL
+  const password = TEST_PASSWORD
 
-  let auth: any
+  // Sign IN first, and only sign up if that fails — so the very first run ever
+  // creates the account and no later run creates anything.
+  let auth: Record<string, string>
   try {
-    auth = await sb('/signup', { email, password })
-  } catch {
     auth = await sb('/token?grant_type=password', { email, password })
+  } catch (signInError) {
+    try {
+      auth = await sb('/signup', { email, password })
+    } catch (signUpError) {
+      throw new Error(
+        `Could not sign in as ${email}, and could not create it either.\n` +
+        `  sign-in: ${String(signInError)}\n` +
+        `  sign-up: ${String(signUpError)}\n` +
+        'If the account exists with a different password, set A11Y_EMAIL / ' +
+        'A11Y_PASSWORD, or delete the user in the Supabase dashboard.',
+        { cause: signUpError },
+      )
+    }
   }
-  const token: string = auth.access_token
-  const refresh: string = auth.refresh_token
-  if (!token) throw new Error('no access token from supabase')
+  const token = auth.access_token
+  const refresh = auth.refresh_token
+  if (!token) {
+    throw new Error(
+      'Supabase returned no access token. If the account was just created, email ' +
+      'confirmation is probably ON for this project — turn it off, or confirm the ' +
+      'address once by hand.',
+    )
+  }
 
   const H = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
   const api = async (method: string, path: string, body?: unknown) => {
@@ -103,13 +139,14 @@ export async function seed(): Promise<SeedResult> {
     const noise = 1 + (rand() - 0.5) * 0.22
     const customers = Math.max(1, Math.round(BASE_BY_WD[wd] * trend * noise))
 
-    let day: any
+    let day: { id: number } | null
     try {
       day = await api('POST', '/day-records', { date: iso, customers })
-    } catch (e) {
+    } catch {
       // A closed-day / duplicate rejection shouldn't abort the whole seed.
       continue
     }
+    if (!day) continue
     for (const p of products) {
       const units = Math.max(
         0,

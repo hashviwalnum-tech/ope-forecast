@@ -5,6 +5,7 @@ import {
 } from 'recharts'
 import { regulars as api } from '../api/client'
 import LoadError from './LoadError'
+import ChartFigure from './ChartFigure'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useTheme } from '../contexts/ThemeContext'
@@ -95,8 +96,13 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
         <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
           {t('profitabilityTitle', { name: data.name })}
         </p>
+        <ChartFigure
+          caption={t('chartTableCaption').replace('{title}', t('profitabilityTitle', { name: data.name }))}
+          columns={[t('periodColLabel'), t('amountColLabel')]}
+          rows={chartData.map(d => [d.label, fmt(d.value)])}
+        >
         <ResponsiveContainer width="100%" height={120}>
-          <BarChart data={chartData} margin={{ top: 4, right: 8, left: 4, bottom: 4 }}>
+          <BarChart data={chartData} accessibilityLayer={false} margin={{ top: 4, right: 8, left: 4, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
             <XAxis
               dataKey="label"
@@ -127,6 +133,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        </ChartFigure>
         {data.first_visit_date && (
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
             {t('firstVisitLabel', { date: fmtDate(data.first_visit_date, lang) ?? '' })}
@@ -145,8 +152,13 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
               ⚠ {t('churnDecliningNote')}
             </p>
           )}
+          <ChartFigure
+            caption={t('chartTableCaption').replace('{title}', t('churnChartTitle'))}
+            columns={[t('monthColLabel'), t('churnTooltipVisits')]}
+            rows={churnData.map(d => [d.label, d.visits])}
+          >
           <ResponsiveContainer width="100%" height={90}>
-            <LineChart data={churnData} margin={{ top: 4, right: 8, left: -24, bottom: 4 }}>
+            <LineChart data={churnData} accessibilityLayer={false} margin={{ top: 4, right: 8, left: -24, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
               <XAxis
                 dataKey="label"
@@ -182,6 +194,7 @@ function ProfitabilityChart({ regularId }: { regularId: number }) {
               />
             </LineChart>
           </ResponsiveContainer>
+          </ChartFigure>
         </div>
       )}
     </div>

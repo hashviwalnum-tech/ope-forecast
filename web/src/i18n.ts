@@ -9,6 +9,17 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'Ad',
+    adSlotLeft: 'Advertisement, left of the page',
+    adSlotRight: 'Advertisement, right of the page',
+    adSlotBottom: 'Advertisement, bottom of the screen',
+    actionsColLabel: 'Actions',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — the same numbers as a table',
+    unitsColLabel: 'Units',
+    amountColLabel: 'Amount',
+    periodColLabel: 'Period',
     gettingLowBadge: 'Getting low',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Worth about {amount}',
@@ -1156,6 +1167,17 @@ export const translations = {
     premiumPaidItem6: 'Priority support',
   },
   he: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'פרסומת',
+    adSlotLeft: 'פרסומת, בצד ימין של העמוד',
+    adSlotRight: 'פרסומת, בצד שמאל של העמוד',
+    adSlotBottom: 'פרסומת, בתחתית המסך',
+    actionsColLabel: 'פעולות',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — אותם המספרים בטבלה',
+    unitsColLabel: 'יחידות',
+    amountColLabel: 'סכום',
+    periodColLabel: 'תקופה',
     gettingLowBadge: 'המלאי מתמעט',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'שווה בערך {amount}',
@@ -1819,7 +1841,7 @@ export const translations = {
     productSelectorDesc: 'בחר מוצר כדי לראות כמה תצטרך השבוע ומתי להזמין. אדום = הזמן עכשיו · ירוק = מלאי בסדר · אפור = אין מספיק נתונים.',
     noOpenDaysWeek: 'אין ימי פתיחה ב-7 הימים הבאים שמתאימים ללוח הזמנים שלך.',
     forecastDemandWhileWaiting: 'ביקוש חזוי במהלך המתנה למלאי',
-    expectedOverNDays: 'צפוי על פני {n} יום{s}',
+    expectedOverNDays: 'צפוי על פני {n} ימים',
     reorderPointForecastNote: 'נקודת ההזמנה מחדש משתמשת בביקוש החזוי, לא רק בממוצע.',
     basedOnAvgDays: 'מבוסס על שימוש של כ-{qty} ביום ({n} ימים מתועדים).',
 
@@ -1863,8 +1885,8 @@ export const translations = {
     csvMoreRows: '…ועוד {n} שורות',
     csvImportBtn: 'ייבוא {n} שורות',
     csvImportingLabel: 'מייבא…',
-    csvImportSuccess: '{ok} שורה{s} יובאו בהצלחה',
-    csvImportPartial: '{ok} שורה{s} יובאו בהצלחה, {skipped} דולגו',
+    csvImportSuccess: '{ok} שורות יובאו בהצלחה',
+    csvImportPartial: '{ok} שורות יובאו בהצלחה, {skipped} דולגו',
     csvImportSkipped: 'לא ניתן לייבא (כבר מתועד או לא תקין): {dates}',
 
     // Telegram Connect
@@ -2160,7 +2182,7 @@ export const translations = {
     allProductsTitle: 'כל המוצרים',
 
     // Reorder window — focused view
-    fullyStockedNote: '{n} מוצר{s} אחר{s} מלאי בסדר — ראה סטטוס מוצרים בניהול לתצוגה מלאה.',
+    fullyStockedNote: '{n} מוצרים אחרים במלאי מלא — ראה סטטוס מוצרים בניהול לתצוגה מלאה.',
     nothingToOrder: 'כל המוצרים מלאים — אין מה להזמין כרגע.',
 
     // Regulars — first visit date
@@ -2279,7 +2301,7 @@ export const translations = {
     premiumTestComplete: 'תשלום בדיקה הושלם! המנוי שלך פעיל.',
     premiumFreeFeatures: 'תמיד חינמי — לנצח',
     premiumPremiumFeatures: 'פרמיום מפתח',
-    premiumTrialBannerMsg: 'הניסיון החינם שלך מסתיים בעוד {n} יום{ים} — שדרג כדי לשמור על תכונות הפרמיום.',
+    premiumTrialBannerMsg: 'הניסיון החינם שלך מסתיים בעוד {n} יום — שדרג כדי לשמור על תכונות הפרמיום.',
     premiumTrialBannerUpgrade: 'שדרג',
     premiumRenewalDate: 'מתחדש {date}',
     premiumManageBilling: 'נהל חיוב',
@@ -2303,6 +2325,17 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
   },
   zh: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: '广告',
+    adSlotLeft: '广告，页面左侧',
+    adSlotRight: '广告，页面右侧',
+    adSlotBottom: '广告，屏幕底部',
+    actionsColLabel: '操作',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — 同样的数据，以表格呈现',
+    unitsColLabel: '数量',
+    amountColLabel: '金额',
+    periodColLabel: '时段',
     gettingLowBadge: '库存将尽',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: '大约价值 {amount}',
@@ -2976,6 +3009,17 @@ export const translations = {
     premiumPaidItem5: '高级分析和自动调整', premiumPaidItem6: '优先支持',
   },
   es: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'Anuncio',
+    adSlotLeft: 'Anuncio, a la izquierda de la página',
+    adSlotRight: 'Anuncio, a la derecha de la página',
+    adSlotBottom: 'Anuncio, al pie de la pantalla',
+    actionsColLabel: 'Acciones',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title}: los mismos números en forma de tabla',
+    unitsColLabel: 'Unidades',
+    amountColLabel: 'Importe',
+    periodColLabel: 'Periodo',
     gettingLowBadge: 'Se está acabando',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Vale unos {amount}',
@@ -3701,6 +3745,17 @@ export const translations = {
     premiumPaidItem5: 'Análisis avanzados y autoajuste', premiumPaidItem6: 'Soporte prioritario',
   },
   hi: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'विज्ञापन',
+    adSlotLeft: 'विज्ञापन, पृष्ठ के बाईं ओर',
+    adSlotRight: 'विज्ञापन, पृष्ठ के दाईं ओर',
+    adSlotBottom: 'विज्ञापन, स्क्रीन के नीचे',
+    actionsColLabel: 'कार्रवाइयाँ',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — वही आंकड़े तालिका के रूप में',
+    unitsColLabel: 'इकाइयाँ',
+    amountColLabel: 'राशि',
+    periodColLabel: 'अवधि',
     gettingLowBadge: 'कम हो रहा है',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'लगभग {amount} का',
@@ -4384,6 +4439,17 @@ export const translations = {
     premiumPaidItem5: 'उन्नत विश्लेषण और स्व-समायोजन', premiumPaidItem6: 'प्राथमिकता सहायता',
   },
   ar: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'إعلان',
+    adSlotLeft: 'إعلان، على يمين الصفحة',
+    adSlotRight: 'إعلان، على يسار الصفحة',
+    adSlotBottom: 'إعلان، أسفل الشاشة',
+    actionsColLabel: 'إجراءات',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — نفس الأرقام في جدول',
+    unitsColLabel: 'الوحدات',
+    amountColLabel: 'المبلغ',
+    periodColLabel: 'الفترة',
     gettingLowBadge: 'يوشك على النفاد',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'يساوي نحو {amount}',
@@ -5364,6 +5430,17 @@ export const translations = {
     premiumPaidItem6: 'دعم أولوية',
   },
   pt: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'Anúncio',
+    adSlotLeft: 'Anúncio, à esquerda da página',
+    adSlotRight: 'Anúncio, à direita da página',
+    adSlotBottom: 'Anúncio, no fundo do ecrã',
+    actionsColLabel: 'Ações',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — os mesmos números em tabela',
+    unitsColLabel: 'Unidades',
+    amountColLabel: 'Valor',
+    periodColLabel: 'Período',
     gettingLowBadge: 'A acabar',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Vale cerca de {amount}',
@@ -6074,6 +6151,17 @@ export const translations = {
     premiumPaidItem5: 'Análises avançadas e autoajuste', premiumPaidItem6: 'Suporte prioritário',
   },
   ru: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'Реклама',
+    adSlotLeft: 'Реклама, слева от страницы',
+    adSlotRight: 'Реклама, справа от страницы',
+    adSlotBottom: 'Реклама, внизу экрана',
+    actionsColLabel: 'Действия',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — те же числа в виде таблицы',
+    unitsColLabel: 'Единицы',
+    amountColLabel: 'Сумма',
+    periodColLabel: 'Период',
     gettingLowBadge: 'Заканчивается',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Примерно на {amount}',
@@ -6782,6 +6870,17 @@ export const translations = {
     premiumPaidItem5: 'Расширенная аналитика и самонастройка', premiumPaidItem6: 'Приоритетная поддержка',
   },
   fr: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'Publicité',
+    adSlotLeft: 'Publicité, à gauche de la page',
+    adSlotRight: 'Publicité, à droite de la page',
+    adSlotBottom: 'Publicité, en bas de l\'écran',
+    actionsColLabel: 'Actions',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — les mêmes chiffres sous forme de tableau',
+    unitsColLabel: 'Unités',
+    amountColLabel: 'Montant',
+    periodColLabel: 'Période',
     gettingLowBadge: 'Bientôt épuisé',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Vaut environ {amount}',
@@ -7928,6 +8027,17 @@ export const translations = {
     premiumPaidItem6: 'Support prioritaire',
   },
   bn: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'বিজ্ঞাপন',
+    adSlotLeft: 'বিজ্ঞাপন, পৃষ্ঠার বাঁ দিকে',
+    adSlotRight: 'বিজ্ঞাপন, পৃষ্ঠার ডান দিকে',
+    adSlotBottom: 'বিজ্ঞাপন, পর্দার নীচে',
+    actionsColLabel: 'কাজ',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — একই সংখ্যাগুলি সারণি আকারে',
+    unitsColLabel: 'একক',
+    amountColLabel: 'পরিমাণ',
+    periodColLabel: 'সময়কাল',
     gettingLowBadge: 'কমে আসছে',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'প্রায় {amount} মূল্যের',
@@ -9074,6 +9184,17 @@ export const translations = {
     premiumPaidItem6: 'অগ্রাধিকার সহায়তা',
   },
   ur: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'اشتہار',
+    adSlotLeft: 'اشتہار، صفحے کے دائیں جانب',
+    adSlotRight: 'اشتہار، صفحے کے بائیں جانب',
+    adSlotBottom: 'اشتہار، اسکرین کے نیچے',
+    actionsColLabel: 'اعمال',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — وہی اعداد جدول کی صورت میں',
+    unitsColLabel: 'اکائیاں',
+    amountColLabel: 'رقم',
+    periodColLabel: 'مدت',
     gettingLowBadge: 'کم ہو رہا ہے',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'تقریباً {amount} کے برابر',
@@ -10220,6 +10341,17 @@ export const translations = {
     premiumPaidItem6: 'ترجیحی معاونت',
   },
   id: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'Iklan',
+    adSlotLeft: 'Iklan, di kiri halaman',
+    adSlotRight: 'Iklan, di kanan halaman',
+    adSlotBottom: 'Iklan, di bagian bawah layar',
+    actionsColLabel: 'Tindakan',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — angka yang sama dalam bentuk tabel',
+    unitsColLabel: 'Unit',
+    amountColLabel: 'Jumlah',
+    periodColLabel: 'Periode',
     gettingLowBadge: 'Mulai menipis',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Bernilai sekitar {amount}',
@@ -11366,6 +11498,17 @@ export const translations = {
     premiumPaidItem6: 'Dukungan prioritas',
   },
   de: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'Anzeige',
+    adSlotLeft: 'Anzeige, links neben der Seite',
+    adSlotRight: 'Anzeige, rechts neben der Seite',
+    adSlotBottom: 'Anzeige, am unteren Bildschirmrand',
+    actionsColLabel: 'Aktionen',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — dieselben Zahlen als Tabelle',
+    unitsColLabel: 'Einheiten',
+    amountColLabel: 'Betrag',
+    periodColLabel: 'Zeitraum',
     gettingLowBadge: 'Wird knapp',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Etwa {amount} wert',
@@ -11553,7 +11696,7 @@ export const translations = {
     goToRegulars: 'Gehen Sie zu Verwalten → Meine Stammkunden, um Ihre treuen Kunden hinzuzufügen.',
     amountDefaultsSpend: 'Der Betrag entspricht standardmäßig ihrem üblichen Ausgabewert — ändern Sie ihn, falls heute anders bezahlt wurde.',
     recordVisit: 'Besuch erfassen',
-    visitsLogged: '{n} Besuch{s} erfasst',
+    visitsLogged: '{n} Besuche erfasst',
 
     // Tap sell screen
     tapTitle: 'Bei jedem Verkauf tippen',
@@ -11629,7 +11772,7 @@ export const translations = {
 
     // Demand forecast / MergedForecastPanel
     demandForecast: 'Bedarfsprognose',
-    needsOrdering: '{n} Produkt{s} muss/müssen bestellt werden',
+    needsOrdering: '{n} Produkte zu bestellen',
     customersLabel: 'Kunden',
     orderingAdvice: 'Bestellempfehlung',
     reorderWhenBelow: 'Mehr bestellen, wenn Sie unter',
@@ -11645,7 +11788,7 @@ export const translations = {
     haveNow: 'haben jetzt {qty}',
     keepLoggingForecast: 'Tragen Sie weiter Tage ein, um Ihre Prognose zu sehen.',
     logMoreProductSales: 'Erfassen Sie mehr Verkäufe von {name}, um eine Prognose zu sehen.',
-    daysRecordedSoFar: '{n} Tag{s} bisher erfasst',
+    daysRecordedSoFar: '{n} Tage bisher erfasst',
     expectedLabel: 'Erwartet',
     likelyRange: 'Wahrscheinlicher Bereich',
     orderNowBadge: '~{qty} bestellen',
@@ -12019,7 +12162,7 @@ export const translations = {
     peakHoursByDay: 'Spitzenzeiten nach Tag',
     busiestHourEachDay: 'Ihre geschäftigste Stunde für jeden Wochentag.',
     tomorrowBadge: 'morgen',
-    basedOnNDays: 'Basierend auf {n} {weekday}-Erfassung{s}',
+    basedOnNDays: 'Basierend auf {n} {weekday}-Erfassungen',
     loadingHourlyData: 'Stündliche Daten werden geladen…',
     marginalNoteLabel: 'Personal hinzufügen oder entfernen:',
 
@@ -12029,14 +12172,14 @@ export const translations = {
     productSelectorDesc: 'Wählen Sie ein Produkt, um zu sehen, wie viel Sie diese Woche brauchen und wann Sie nachbestellen sollten. Rot = jetzt bestellen · Grün = Bestand in Ordnung · Grau = noch nicht genug Daten.',
     noOpenDaysWeek: 'Kein geöffneter Tag in den nächsten 7 Tagen passt zu Ihrem Zeitplan.',
     forecastDemandWhileWaiting: 'Bedarf während der Wartezeit auf Bestand prognostizieren',
-    expectedOverNDays: 'Erwartet über {n} Tag{s}',
+    expectedOverNDays: 'Erwartet über {n} Tage',
     reorderPointForecastNote: 'Der Nachbestellpunkt nutzt die prognostizierte Nachfrage, nicht nur den Durchschnitt.',
     basedOnAvgDays: 'Basierend darauf, dass Sie etwa {qty} pro Tag verbrauchen ({n} Tage erfasst).',
 
     // CSV Import — product column confirmation step
     csvConfirmProductColsTitle: 'Welche Produktspalten sollen importiert werden?',
     csvConfirmProductColsDesc: 'Wir haben Spalten gefunden, die zu Ihren Produkten passen. Aktivieren Sie die, die Sie importieren möchten — deaktivieren Sie alle, die Sie nicht absichtlich ausgefüllt haben.',
-    csvConfirmProductColsBtn: 'Bestätigen und Vorschau anzeigen ({n} Produkt{s} ausgewählt)',
+    csvConfirmProductColsBtn: 'Bestätigen und Vorschau anzeigen ({n} Produkte ausgewählt)',
     csvNoProductsSelectedNote: 'Keine Produkte ausgewählt — es werden nur Daten und Kundenzahlen importiert.',
 
     // CSV Import page — all strings go through translation so Hebrew works
@@ -12073,8 +12216,8 @@ export const translations = {
     csvMoreRows: '…und {n} weitere Zeilen',
     csvImportBtn: '{n} Zeilen importieren',
     csvImportingLabel: 'Wird importiert…',
-    csvImportSuccess: '{ok} Zeile{s} erfolgreich importiert',
-    csvImportPartial: '{ok} Zeile{s} erfolgreich importiert, {skipped} übersprungen',
+    csvImportSuccess: '{ok} Zeilen erfolgreich importiert',
+    csvImportPartial: '{ok} Zeilen erfolgreich importiert, {skipped} übersprungen',
     csvImportSkipped: 'Konnte nicht importiert werden (bereits erfasst oder ungültig): {dates}',
 
     // Telegram Connect
@@ -12196,11 +12339,11 @@ export const translations = {
     toolboxChecklistEmpty: 'Ihre Liste ist leer. Fügen Sie etwas hinzu, um zu starten.',
     toolboxAddTaskPlaceholder: 'Aufgabe hinzufügen…',
     toolboxAddTaskBtn: 'Hinzufügen',
-    toolboxClearDone: '{n} erledigte{s} Eintrag/Einträge löschen',
+    toolboxClearDone: '{n} erledigte Einträge löschen',
 
     // Regulars — churn tracking chart
     churnChartTitle: 'Besuchshäufigkeit — letzte 12 Monate',
-    churnChartVisits: 'Besuch{s}',
+    churnChartVisits: 'Besuche',
     churnChartMonthLabel: '{month} {year}',
     churnNoVisits: '—',
     churnDecliningNote: 'Die Besuche gehen zurück — eine Kontaktaufnahme lohnt sich.',
@@ -12369,7 +12512,7 @@ export const translations = {
     allProductsTitle: 'Alle Produkte',
 
     // Reorder window — focused view
-    fullyStockedNote: '{n} weitere Produkt{s} vollständig auf Lager — siehe Produktstatus unter Verwalten für die gesamte Übersicht.',
+    fullyStockedNote: '{n} weitere Produkte vollständig auf Lager — siehe Produktstatus unter Verwalten für die gesamte Übersicht.',
     nothingToOrder: 'Alle Produkte sind vollständig auf Lager — momentan nichts zu bestellen.',
 
     // Regulars — first visit date
@@ -12472,7 +12615,7 @@ export const translations = {
     premiumStatusBadgeTrial: 'Kostenlose Testversion',
     premiumStatusBadgePremium: 'Premium',
     premiumStatusBadgeFree: 'Kostenlos',
-    premiumTrialEndsIn: 'Ihre kostenlose Testversion endet in {n} Tag{s}',
+    premiumTrialEndsIn: 'Ihre kostenlose Testversion endet in {n} Tagen',
     premiumTrialEnded: 'Ihre kostenlose Testversion ist abgelaufen',
     premiumTrialActive: 'Sie haben während Ihrer kostenlosen Testversion vollen Zugriff auf alle Funktionen.',
     premiumActiveSubscription: 'Sie haben ein aktives Premium-Abonnement.',
@@ -12488,7 +12631,7 @@ export const translations = {
     premiumTestComplete: 'Test-Checkout abgeschlossen! Ihr Abonnement ist aktiv.',
     premiumFreeFeatures: 'Immer kostenlos — für immer',
     premiumPremiumFeatures: 'Premium schaltet frei',
-    premiumTrialBannerMsg: 'Ihre kostenlose Testversion endet in {n} Tag{s} — upgraden Sie, um Premium-Funktionen zu behalten.',
+    premiumTrialBannerMsg: 'Ihre kostenlose Testversion endet in {n} Tagen — upgraden Sie, um Premium-Funktionen zu behalten.',
     premiumTrialBannerUpgrade: 'Upgraden',
     premiumRenewalDate: 'Verlängerung am {date}',
     premiumManageBilling: 'Abrechnung verwalten',
@@ -12512,6 +12655,17 @@ export const translations = {
     premiumPaidItem6: 'Bevorzugter Support',
   },
   ja: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: '広告',
+    adSlotLeft: '広告、ページの左側',
+    adSlotRight: '広告、ページの右側',
+    adSlotBottom: '広告、画面の下部',
+    actionsColLabel: '操作',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — 同じ数値を表で表示',
+    unitsColLabel: '数量',
+    amountColLabel: '金額',
+    periodColLabel: '期間',
     gettingLowBadge: '残り少なめ',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'およそ {amount} 相当',
@@ -13658,6 +13812,17 @@ export const translations = {
     premiumPaidItem6: '優先サポート',
   },
   tr: {
+    // Ad slots and the actions column: named, so a landmark list and a table header are not blank
+    adLabel: 'Reklam',
+    adSlotLeft: 'Reklam, sayfanın solunda',
+    adSlotRight: 'Reklam, sayfanın sağında',
+    adSlotBottom: 'Reklam, ekranın altında',
+    actionsColLabel: 'İşlemler',
+    // Screen-reader tables carrying the numbers each chart draws
+    chartTableCaption: '{title} — aynı sayılar tablo olarak',
+    unitsColLabel: 'Birim',
+    amountColLabel: 'Tutar',
+    periodColLabel: 'Dönem',
     gettingLowBadge: 'Azalıyor',
     // Regulars and service time — the last English left in a Hebrew screen
     worthAboutLabel: 'Yaklaşık {amount} değerinde',
@@ -13845,7 +14010,7 @@ export const translations = {
     goToRegulars: 'Sadık müşterilerinizi eklemek için Yönet → Müdavimlerim bölümüne gidin.',
     amountDefaultsSpend: 'Tutar, olağan harcamalarına göre otomatik ayarlanır — bugün farklı ödediyse düzenleyin.',
     recordVisit: 'Ziyareti kaydet',
-    visitsLogged: '{n} ziyaret{s} kaydedildi',
+    visitsLogged: '{n} ziyaret kaydedildi',
 
     // Tap sell screen
     tapTitle: 'Her satış yaptığınızda dokunun',
@@ -13921,7 +14086,7 @@ export const translations = {
 
     // Demand forecast / MergedForecastPanel
     demandForecast: 'Talep tahmini',
-    needsOrdering: '{n} ürün{s} sipariş gerektiriyor',
+    needsOrdering: '{n} ürün sipariş gerektiriyor',
     customersLabel: 'Müşteriler',
     orderingAdvice: 'Sipariş önerisi',
     reorderWhenBelow: 'Şu miktarın altına düştüğünde daha fazla sipariş verin',
@@ -13937,7 +14102,7 @@ export const translations = {
     haveNow: 'şu anda {qty} var',
     keepLoggingForecast: 'Tahmininizi görmek için günleri kaydetmeye devam edin.',
     logMoreProductSales: 'Bir tahmin görmek için daha fazla {name} satışı kaydedin.',
-    daysRecordedSoFar: 'Şimdiye kadar {n} gün{s} kaydedildi',
+    daysRecordedSoFar: 'Şimdiye kadar {n} gün kaydedildi',
     expectedLabel: 'Beklenen',
     likelyRange: 'Olası aralık',
     orderNowBadge: '~{qty} sipariş ver',
@@ -14325,7 +14490,7 @@ export const translations = {
     peakHoursByDay: 'Güne göre zirve saatler',
     busiestHourEachDay: 'Haftanın her günü için en yoğun saatiniz.',
     tomorrowBadge: 'yarın',
-    basedOnNDays: '{n} {weekday} kaydı{s} baz alınarak',
+    basedOnNDays: '{n} {weekday} kaydı baz alınarak',
     loadingHourlyData: 'Saatlik veri yükleniyor…',
     marginalNoteLabel: 'Personel eklemek veya çıkarmak:',
 
@@ -14335,14 +14500,14 @@ export const translations = {
     productSelectorDesc: 'Bu hafta ne kadar ihtiyacınız olacağını ve ne zaman yeniden sipariş vereceğinizi görmek için bir ürün seçin. Kırmızı = şimdi sipariş ver · Yeşil = stok yeterli · Gri = henüz yeterli veri yok.',
     noOpenDaysWeek: 'Önümüzdeki 7 günde programınıza uyan açık gün yok.',
     forecastDemandWhileWaiting: 'stok beklenirken talep tahmini',
-    expectedOverNDays: '{n} gün{s} için beklenen',
+    expectedOverNDays: '{n} gün için beklenen',
     reorderPointForecastNote: 'Yeniden sipariş noktası, sadece ortalamayı değil, tahmin edilen talebi kullanır.',
     basedOnAvgDays: 'Günde yaklaşık {qty} kullandığınıza dayanarak ({n} gün kaydedildi).',
 
     // CSV Import — product column confirmation step
     csvConfirmProductColsTitle: 'Hangi ürün sütunları içe aktarılmalı?',
     csvConfirmProductColsDesc: 'Ürünlerinizle eşleşen sütunlar bulduk. İçe aktarmak istediklerinizi işaretleyin — kasıtlı olarak doldurmadıklarınızın işaretini kaldırın.',
-    csvConfirmProductColsBtn: 'Onayla ve önizle ({n} ürün{s} seçildi)',
+    csvConfirmProductColsBtn: 'Onayla ve önizle ({n} ürün seçildi)',
     csvNoProductsSelectedNote: 'Ürün seçilmedi — yalnızca tarihler ve müşteri sayıları içe aktarılacak.',
 
     // CSV Import page — all strings go through translation so Hebrew works
@@ -14379,8 +14544,8 @@ export const translations = {
     csvMoreRows: '…ve {n} satır daha',
     csvImportBtn: '{n} satırı içe aktar',
     csvImportingLabel: 'İçe aktarılıyor…',
-    csvImportSuccess: '{ok} satır{s} başarıyla içe aktarıldı',
-    csvImportPartial: '{ok} satır{s} başarıyla içe aktarıldı, {skipped} atlandı',
+    csvImportSuccess: '{ok} satır başarıyla içe aktarıldı',
+    csvImportPartial: '{ok} satır başarıyla içe aktarıldı, {skipped} atlandı',
     csvImportSkipped: "İçe aktarılamadı (zaten kaydedilmiş veya geçersiz): {dates}",
 
     // Telegram Connect
@@ -14502,11 +14667,11 @@ export const translations = {
     toolboxChecklistEmpty: 'Listeniz boş. Başlamak için bir şey ekleyin.',
     toolboxAddTaskPlaceholder: 'Görev ekle…',
     toolboxAddTaskBtn: 'Ekle',
-    toolboxClearDone: 'Tamamlanan {n} öğe{s} temizle',
+    toolboxClearDone: 'Tamamlanan {n} öğe temizle',
 
     // Regulars — churn tracking chart
     churnChartTitle: 'Ziyaret sıklığı — son 12 ay',
-    churnChartVisits: 'ziyaret{s}',
+    churnChartVisits: 'ziyaret',
     churnChartMonthLabel: '{month} {year}',
     churnNoVisits: '—',
     churnDecliningNote: 'Ziyaretler azalıyor — iletişime geçmeye değer.',
@@ -14778,7 +14943,7 @@ export const translations = {
     premiumStatusBadgeTrial: 'Ücretsiz Deneme',
     premiumStatusBadgePremium: 'Premium',
     premiumStatusBadgeFree: 'Ücretsiz',
-    premiumTrialEndsIn: 'Ücretsiz deneminiz {n} gün{s} içinde sona eriyor',
+    premiumTrialEndsIn: 'Ücretsiz deneminiz {n} gün içinde sona eriyor',
     premiumTrialEnded: 'Ücretsiz deneminiz sona erdi',
     premiumTrialActive: 'Ücretsiz deneminiz boyunca tüm özelliklere tam erişiminiz var.',
     premiumActiveSubscription: 'Aktif bir premium aboneliğiniz var.',
@@ -14794,7 +14959,7 @@ export const translations = {
     premiumTestComplete: 'Test ödemesi tamamlandı! Aboneliğiniz aktif.',
     premiumFreeFeatures: 'Her zaman ücretsiz — sonsuza kadar',
     premiumPremiumFeatures: "Premium'un açtıkları",
-    premiumTrialBannerMsg: 'Ücretsiz deneminiz {n} gün{s} içinde sona eriyor — premium özellikleri korumak için yükseltin.',
+    premiumTrialBannerMsg: 'Ücretsiz deneminiz {n} gün içinde sona eriyor — premium özellikleri korumak için yükseltin.',
     premiumTrialBannerUpgrade: 'Yükselt',
     premiumRenewalDate: 'Yenileme: {date}',
     premiumManageBilling: 'Faturalandırmayı yönet',

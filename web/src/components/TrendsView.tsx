@@ -10,6 +10,7 @@ import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { MonthlyResponse, MonthSummary } from '../api/types'
 import { addCardToHome, isCardOnHome, removeCardFromHome } from '../lib/homeLayout'
+import ChartFigure from './ChartFigure'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -263,8 +264,13 @@ export default function TrendsView() {
         <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 leading-relaxed">
           {t('avgCustomersMonthDesc')}
         </p>
+        <ChartFigure
+          caption={t('chartTableCaption').replace('{title}', t('customersByMonth'))}
+          columns={[t('monthColLabel'), t('avgPerDayCol'), t('totalCol'), t('daysLoggedCol')]}
+          rows={barData.map(m => [m.name, m.avg.toFixed(1), m.total, m.days])}
+        >
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={barData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+          <BarChart data={barData} accessibilityLayer={false} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
             <XAxis
               dataKey="name"
@@ -298,6 +304,7 @@ export default function TrendsView() {
             <Bar dataKey="avg" fill="#4e8b87" radius={[4, 4, 0, 0]} maxBarSize={56} />
           </BarChart>
         </ResponsiveContainer>
+        </ChartFigure>
       </section>
 
       {/* ── Full history line chart ── */}
@@ -309,8 +316,13 @@ export default function TrendsView() {
           <p className="text-xs text-slate-600 dark:text-slate-400 mb-5 leading-relaxed">
             {t('fullHistoryDesc')}
           </p>
+          <ChartFigure
+            caption={t('chartTableCaption').replace('{title}', t('fullCustomerHistory'))}
+            columns={[t('dateColLabel'), t('customersLabel')]}
+            rows={lineData.map(p => [p.label, p.customers])}
+          >
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={lineData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+            <AreaChart data={lineData} accessibilityLayer={false} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
               <defs>
                 <linearGradient id="histGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%"  stopColor="#4e8b87" stopOpacity={0.3} />
@@ -356,6 +368,7 @@ export default function TrendsView() {
               />
             </AreaChart>
           </ResponsiveContainer>
+          </ChartFigure>
         </section>
       )}
 

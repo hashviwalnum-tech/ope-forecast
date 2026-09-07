@@ -11,6 +11,7 @@ import {
 import { analytics, orders as ordersApi } from '../api/client'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import LoadError from './LoadError'
+import ChartFigure from './ChartFigure'
 import { describeStock } from '../lib/stockLabel'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
@@ -383,6 +384,12 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
     yLabel = activeProduct.unit
   }
 
+  // The chart's own name, for the screen-reader table's caption: whichever
+  // series the owner has selected, not the panel's fixed heading.
+  const seriesName = selected === 'customers'
+    ? t('customersLabel')
+    : (activeProduct?.name ?? t('demandForecast'))
+
   const noData = chartData.length === 0
   const noDataMsg = selected === 'customers'
     ? (forecast?.message ?? t('keepLoggingForecast'))
@@ -474,8 +481,13 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
           <p className="text-sm text-center max-w-xs leading-relaxed text-slate-600 dark:text-slate-400">{noDataMsg}</p>
         </div>
       ) : (
+        <ChartFigure
+          caption={t('chartTableCaption').replace('{title}', `${t('demandForecast')} — ${seriesName}`)}
+          columns={[t('dayColLabel'), `${t('expectedLabel')} (${yLabel})`, t('likelyRange')]}
+          rows={chartData.map(d => [d.fullDay, d.predicted, `${d.low} – ${d.high}`])}
+        >
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+          <BarChart data={chartData} accessibilityLayer={false} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} vertical={false} />
             <XAxis dataKey="name" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#45556c' }} axisLine={false} tickLine={false} />
             <YAxis
@@ -504,6 +516,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
             <Bar dataKey="predicted" fill="#3a7470" radius={[6, 6, 0, 0]} maxBarSize={56} />
           </BarChart>
         </ResponsiveContainer>
+        </ChartFigure>
       )}
 
       {/* What the range on the chart actually means. It covers ~80% of days, so

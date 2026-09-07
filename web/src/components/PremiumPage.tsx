@@ -168,9 +168,12 @@ export default function PremiumPage() {
 
         {/* Free features */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
-          <h3 className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-4">
+          {/* h2, not h3: the page's h1 is the tab title in App, and jumping
+              straight to h3 leaves a screen reader's heading list with a gap
+              where the two plan columns should sit. */}
+          <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-4">
             {t('premiumFreeFeatures')}
-          </h3>
+          </h2>
           <ul className="space-y-2.5">
             {FREE_FEATURES.map(key => (
               <li key={key} className="flex items-start gap-2.5">
@@ -189,9 +192,9 @@ export default function PremiumPage() {
             ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
             : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
         }`}>
-          <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wide mb-4">
+          <h2 className="text-sm font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wide mb-4">
             {t('premiumPremiumFeatures')}
-          </h3>
+          </h2>
           <ul className="space-y-2.5">
             {PREMIUM_FEATURES.map(key => (
               <li key={key} className="flex items-start gap-2.5">

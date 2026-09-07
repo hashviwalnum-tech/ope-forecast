@@ -11,6 +11,7 @@ import {
 import { analytics, orders as ordersApi } from '../api/client'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import LoadError from './LoadError'
+import ChartFigure from './ChartFigure'
 import { describeStock, pendingArrivalQty } from '../lib/stockLabel'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
@@ -91,8 +92,13 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
       <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
         {t('predMixNote')}
       </p>
+      <ChartFigure
+        caption={t('chartTableCaption').replace('{title}', t('weekPredictionTitle'))}
+        columns={[t('dayColLabel'), `${t('expectedLabel')} (${t('customersLabel')})`, t('likelyRange')]}
+        rows={chartData.map(d => [d.fullDay, d.predicted, `${d.low} – ${d.high}`])}
+      >
       <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+        <BarChart data={chartData} accessibilityLayer={false} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
           <XAxis dataKey="name" tick={{ fontSize: 12, fill: tickFill }} axisLine={false} tickLine={false} />
           <YAxis tick={{ fontSize: 12, fill: tickFill }} width={36} axisLine={false} tickLine={false} />
@@ -113,6 +119,7 @@ function ForecastChart({ data }: { data: ForecastResponse }) {
           <Bar dataKey="predicted" fill="#3a7470" radius={[6, 6, 0, 0]} maxBarSize={56} />
         </BarChart>
       </ResponsiveContainer>
+      </ChartFigure>
       <div className="mt-3 flex flex-wrap gap-2">
         {data.days.map(d => {
           const top = topModel(d.model_weights)

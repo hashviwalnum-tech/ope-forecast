@@ -285,7 +285,10 @@ export default function DayList({ refreshKey }: Props) {
                 {p.name} <span className="font-normal text-slate-600 dark:text-slate-300">({p.unit})</span>
               </th>
             ))}
-            <th className="py-2"></th>
+            {/* The row-actions column. It shows no visible label, but a blank
+                <th> leaves a screen reader announcing an unnamed column for
+                every row — so the name is there, just not on screen. */}
+            <th className="py-2"><span className="sr-only">{t('actionsColLabel')}</span></th>
           </tr>
         </thead>
         <tbody>

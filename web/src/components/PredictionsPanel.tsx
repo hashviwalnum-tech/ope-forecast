@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { analytics } from '../api/client'
 import LoadError from './LoadError'
+import ChartFigure from './ChartFigure'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { AccuracyResponse, ForecastHistoryResponse } from '../api/types'
@@ -149,8 +150,13 @@ export default function PredictionsPanel() {
 
       <Card title={t('howPredictionsDid')}>
         {histData ? (
+          <ChartFigure
+            caption={t('chartTableCaption').replace('{title}', t('howPredictionsDid'))}
+            columns={[t('dateColLabel'), t('chartActual'), t('chartPredicted')]}
+            rows={histData.map(h => [h.name, h.actual, h.predicted])}
+          >
           <ResponsiveContainer width="100%" height={240}>
-            <ComposedChart data={histData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+            <ComposedChart data={histData} accessibilityLayer={false} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: tickFill }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: tickFill }} width={36} axisLine={false} tickLine={false} />
@@ -183,6 +189,7 @@ export default function PredictionsPanel() {
                 strokeDasharray="5 4" dot={false} name={t('chartPredicted')} />
             </ComposedChart>
           </ResponsiveContainer>
+          </ChartFigure>
         ) : (
           <p className="text-sm text-slate-600 dark:text-slate-400 text-center leading-relaxed py-4">
             {t('forecastHistoryBuilding')}

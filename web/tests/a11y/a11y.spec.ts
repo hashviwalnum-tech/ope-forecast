@@ -1,11 +1,20 @@
 import { test, expect, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { translations, type Lang } from '../../src/i18n'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
+/**
+ * Every scan's full violation list, at every severity, one file per scan.
+ *
+ * Under test-results/, NOT playwright-report/: the HTML reporter wipes its own
+ * output folder when it writes at the end of a run, which silently deleted
+ * these (and, before that, the JSON reporter's results.json). test-results is
+ * cleared at the START of a run instead, which is exactly the behaviour wanted.
+ */
+const FINDINGS_DIR = resolve(HERE, '..', '..', 'test-results', 'a11y-findings')
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Accessibility suite
@@ -133,6 +142,21 @@ async function scan(page: Page) {
     .analyze()
 }
 
+/**
+ * axe's "best-practice" rules — `region`, `heading-order`, `landmark-*`,
+ * `page-has-heading-one` and friends.
+ *
+ * These are NOT WCAG failures and carry no legal or conformance weight; they
+ * are house-style advice, and some of it argues with itself on an app shell
+ * (every rule that wants content inside a landmark also wants no landmark
+ * nested in another). The WCAG scan above is what the suite FAILS on. This one
+ * only records, so that "we leave the region advisories alone" is a measured
+ * decision with a number attached rather than a rule quietly filtered out.
+ */
+async function scanBestPractice(page: Page) {
+  return new AxeBuilder({ page }).withTags(['best-practice']).analyze()
+}
+
 type Sev = 'critical' | 'serious' | 'moderate' | 'minor'
 function summarise(violations: Awaited<ReturnType<typeof scan>>['violations']) {
   const bySev: Record<Sev, string[]> = { critical: [], serious: [], moderate: [], minor: [] }
@@ -156,11 +180,28 @@ for (const theme of THEMES) {
 
           const { violations } = await scan(page)
           const bySev = summarise(violations)
+          const bestPractice = (await scanBestPractice(page)).violations
 
+          const record = {
+            screen: s.id, theme, lang, project: testInfo.project.name,
+            bySev, violations,
+            bestPracticeBySev: summarise(bestPractice),
+            bestPractice,
+          }
           await testInfo.attach(`${s.id}-${theme}-${lang}-violations.json`, {
-            body: JSON.stringify({ screen: s.id, theme, lang, project: testInfo.project.name, bySev, violations }, null, 2),
+            body: JSON.stringify(record, null, 2),
             contentType: 'application/json',
           })
+          // Also write it to a plain, predictable path. An attachment lives
+          // inside the HTML report and can only be read by clicking through it
+          // one scan at a time — useless for "what did all 96 scans find at
+          // every severity", which is exactly the question the moderate/minor
+          // sweep asks. These files make that one grep.
+          mkdirSync(FINDINGS_DIR, { recursive: true })
+          writeFileSync(
+            resolve(FINDINGS_DIR, `${testInfo.project.name}-${s.id}-${theme}-${lang}.json`),
+            JSON.stringify(record, null, 2),
+          )
           // Shown on pass too (Playwright lists annotations), so a screen with
           // only moderate/minor findings is not silently green. The full list at
           // every severity is in the attached JSON above.
@@ -277,7 +318,7 @@ test.describe('Manage sheet', () => {
       })
       if (outside) { leaked = true; break }
     }
-    testInfo.annotations.push({ type: 'note', text: leaked ? 'focus escaped the aria-modal sheet' : 'sheet contained focus' })
+    testInfo.annotations.push({ type: 'note', description: leaked ? 'focus escaped the aria-modal sheet' : 'sheet contained focus' })
     expect(leaked, 'Tab reached the page behind an aria-modal="true" sheet').toBe(false)
   })
 })
@@ -346,4 +387,59 @@ test('a form validation error is exposed as role="alert"', async ({ page }) => {
   await submit.click()
   await expect(page.locator('[role="alert"]').first()).toBeVisible({ timeout: 8_000 })
   await expect(page.locator('[role="alert"]').first()).not.toBeEmpty()
+})
+
+// ── charts carry their numbers in a table a screen reader can read ────────
+
+/**
+ * Recharts draws series values as SVG, which is unreadable without sight and
+ * which axe cannot judge — it checks markup, not meaning. Every chart is now
+ * paired with a visually-hidden <table> holding the same numbers.
+ *
+ * This asserts the pairing holds on the screens that matter most, and that the
+ * tables carry actual digits rather than empty cells — a table of blanks would
+ * pass a markup check and tell the owner nothing.
+ */
+const CHART_SCREENS = ['home', 'predictions_home', 'trends'] as const
+
+for (const id of CHART_SCREENS) {
+  test(`${id}: every chart has a screen-reader table with real numbers`, async ({ page }) => {
+    await primePage(page, 'en', 'light')
+    await goHomeReady(page)
+    await gotoScreen(page, SCREENS.find(s => s.id === id)!, 'en')
+
+    // A chart is present as an <svg class="recharts-surface">; each one must
+    // sit inside an aria-hidden wrapper that also carries a table.
+    const charts = page.locator('main .recharts-surface')
+    const chartCount = await charts.count()
+    expect(chartCount, `no chart rendered on ${id} — the seed should give it data`).toBeGreaterThan(0)
+
+    const hiddenCharts = page.locator('main [aria-hidden="true"] .recharts-surface')
+    expect(await hiddenCharts.count(), `charts on ${id} not hidden from assistive tech`)
+      .toBe(chartCount)
+
+    const tables = page.locator('main table.sr-only')
+    expect(await tables.count(), `no screen-reader table beside the charts on ${id}`)
+      .toBeGreaterThan(0)
+
+    // Every such table needs a caption and at least one row of digits.
+    for (let i = 0; i < await tables.count(); i++) {
+      const tbl = tables.nth(i)
+      await expect(tbl.locator('caption')).not.toBeEmpty()
+      const body = await tbl.locator('tbody').innerText()
+      expect(body, `table ${i} on ${id} has no numbers in it`).toMatch(/\d/)
+    }
+  })
+}
+
+test('the chart tables are translated, not left in English', async ({ page }) => {
+  await primePage(page, 'he', 'light')
+  await goHomeReady(page)
+
+  const caption = page.locator('main table.sr-only caption').first()
+  await expect(caption).toBeVisible({ visible: false })
+  const text = await caption.innerText()
+  // Hebrew screens must not fall back to the English caption wording.
+  expect(text).not.toContain('the same numbers as a table')
+  expect(text, 'the Hebrew caption has no Hebrew in it').toMatch(/[֐-׿]/)
 })
