@@ -46,6 +46,21 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
       const biz = list[0]
       api.setActiveBusinessId(biz.id)
       setBusiness(biz)
+
+      // A business with no timezone makes the backend fall back to UTC for
+      // every "today" and entry-timing check — which, east of London, rejects
+      // the evening's numbers as "you're still open" and buckets a post-midnight
+      // tap onto the wrong day. Businesses created on the web never had a zone
+      // set; on a phone the device zone is the right answer, so adopt it once.
+      if (!(biz.settings as Record<string, unknown> | undefined)?.timezone) {
+        try {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+          if (tz) {
+            const updated = await api.businesses.updateSettings({ timezone: tz })
+            setBusiness(updated)
+          }
+        } catch { /* non-blocking — correctable in Settings */ }
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load business.')
     } finally {

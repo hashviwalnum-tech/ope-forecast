@@ -81,6 +81,17 @@ const WEEKDAY_SHORT: Record<string, string> = {
   Friday: 'Fri', Saturday: 'Sat', Sunday: 'Sun',
 }
 
+// Backend weekday name ("Monday") → the app's own translated short label.
+const WEEKDAY_KEY: Record<string, TranslationKey> = {
+  Monday: 'mon', Tuesday: 'tue', Wednesday: 'wed', Thursday: 'thu',
+  Friday: 'fri', Saturday: 'sat', Sunday: 'sun',
+}
+
+function wdShort(weekday: string, t: TFn): string {
+  const key = WEEKDAY_KEY[weekday]
+  return key ? t(key) : (WEEKDAY_SHORT[weekday] ?? weekday)
+}
+
 function fmt12(hour: number): string {
   if (hour === 0) return '12am'
   if (hour < 12) return `${hour}am`
@@ -265,7 +276,7 @@ export default function ForecastScreen() {
 
   // Build the switcher items
   const switcherItems: Array<{ key: 'customers' | number; label: string }> = [
-    { key: 'customers', label: 'Customers' },
+    { key: 'customers', label: t('customers') },
     ...productForecasts.map(p => ({ key: p.product_id as 'customers' | number, label: p.name })),
   ]
 
@@ -337,7 +348,7 @@ export default function ForecastScreen() {
               <View key={day.date} style={[styles.forecastRow, { backgroundColor: c.card }]}>
                 <View style={styles.dayCol}>
                   <Text style={[styles.dayName, { color: c.primaryDark }]}>
-                    {WEEKDAY_SHORT[day.weekday] ?? day.weekday}
+                    {wdShort(day.weekday, t)}
                   </Text>
                   <Text style={[styles.dayDate, { color: c.textMuted }]}>{day.date.slice(5)}</Text>
                 </View>
@@ -379,7 +390,7 @@ export default function ForecastScreen() {
               <View key={day.date} style={styles.forecastRow}>
                 <View style={styles.dayCol}>
                   <Text style={styles.dayName}>
-                    {WEEKDAY_SHORT[day.weekday] ?? day.weekday}
+                    {wdShort(day.weekday, t)}
                   </Text>
                   <Text style={styles.dayDate}>{day.date.slice(5)}</Text>
                 </View>
@@ -486,7 +497,7 @@ export default function ForecastScreen() {
                 {(hourly?.weekdays ?? []).map(entry => (
                   <View key={entry.weekday_idx} style={[styles.weekdayPeakRow, { borderBottomColor: c.border }]}>
                     <Text style={[styles.weekdayPeakDay, { color: c.primaryDark }]}>
-                      {WEEKDAY_SHORT[entry.weekday] ?? entry.weekday}
+                      {wdShort(entry.weekday, t)}
                     </Text>
                     <Text style={[styles.weekdayPeakTime, { color: c.text }]}>
                       {fmt12(entry.peak_hour)}

@@ -1,7 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, useContext, useEffect, useState } from 'react'
-import { I18nManager } from 'react-native'
+import { Alert, I18nManager } from 'react-native'
 import { type Lang, type TranslationKey, makeT, translations, RTL_LANGS } from '../lib/i18n'
+
+// Native layout mirroring is opt-in and, once changed, only takes effect on the
+// next app launch — React Native cannot re-mirror a running UI. allowRTL must be
+// enabled before any forceRTL call has an effect.
+I18nManager.allowRTL(true)
 
 const VALID_LANGS = new Set<string>(['en','he','zh','es','hi','ar','pt','ru','fr','bn','ur','id','de','ja','tr'])
 
@@ -35,7 +40,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then(saved => {
-      if (VALID_LANGS.has(saved ?? '')) setLangState(saved as Lang)
+      if (VALID_LANGS.has(saved ?? '')) {
+        const l = saved as Lang
+        setLangState(l)
+        // Keep the native mirroring flag in step with the stored language, so a
+        // relaunch comes up in the right direction even if it was last set on a
+        // build where forceRTL had not run yet.
+        const wantRtl = RTL_LANGS.has(l)
+        if (I18nManager.isRTL !== wantRtl) I18nManager.forceRTL(wantRtl)
+      }
     }).catch(() => {})
     AsyncStorage.getItem(SIMPLE_MODE_KEY).then(saved => {
       if (saved === '1') {
@@ -52,7 +65,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   function setLang(l: Lang) {
     setLangState(l)
     AsyncStorage.setItem(STORAGE_KEY, l).catch(() => {})
-    I18nManager.forceRTL(RTL_LANGS.has(l))
+    const wantRtl = RTL_LANGS.has(l)
+    if (I18nManager.isRTL !== wantRtl) {
+      // Text and translations swap immediately; the physical left/right mirroring
+      // only lands after a full restart. Tell the owner rather than leaving a
+      // half-flipped screen with no explanation.
+      I18nManager.forceRTL(wantRtl)
+      const tt = makeT(l, simpleMode)
+      Alert.alert(tt('rtlRestartTitle'), tt('rtlRestartBody'))
+    }
   }
 
   function setSimpleMode(v: boolean) {

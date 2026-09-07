@@ -11,8 +11,10 @@ import {
   ScrollView,
 } from 'react-native'
 import { supabase } from '../lib/supabase'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function LoginScreen() {
+  const c = useTheme()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -37,37 +39,39 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.root}
+      style={[styles.root, { backgroundColor: c.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <View style={styles.card}>
-          <Text style={styles.logo}>Ope</Text>
-          <Text style={styles.slogan}>Know Tomorrow, Today.</Text>
+        <View style={[styles.card, { backgroundColor: c.card }]}>
+          <Text style={[styles.logo, { color: c.primary }]}>Ope</Text>
+          <Text style={[styles.slogan, { color: c.textSub }]}>Know Tomorrow, Today.</Text>
 
-          {error !== null && <Text style={styles.errorText}>{error}</Text>}
+          {error !== null && (
+            <Text style={[styles.errorText, { color: c.danger, backgroundColor: c.dangerBg }]}>{error}</Text>
+          )}
 
-          <Text style={styles.label}>Email</Text>
+          <Text style={[styles.label, { color: c.text }]}>Email</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: c.text, backgroundColor: c.bg, borderColor: c.border }]}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
             autoComplete="email"
             placeholder="you@example.com"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={c.textMuted}
           />
 
-          <Text style={styles.label}>Password</Text>
+          <Text style={[styles.label, { color: c.text }]}>Password</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: c.text, backgroundColor: c.bg, borderColor: c.border }]}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
             autoComplete="current-password"
             placeholder="••••••••"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={c.textMuted}
           />
 
           <TouchableOpacity style={styles.button} onPress={signIn} disabled={loading}>

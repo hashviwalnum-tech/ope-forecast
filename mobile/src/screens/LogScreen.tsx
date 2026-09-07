@@ -30,7 +30,7 @@ const tapKey = (productId: number | null) =>
 export default function LogScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
-  const { t, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
+  const { t, lang, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
   const { symbol, amount } = useCurrency()
   const navigation = useNavigation()
   const { width: screenWidth } = useWindowDimensions()
@@ -186,9 +186,19 @@ export default function LogScreen() {
     (summary?.total_taps ?? 0) + Object.values(pending).reduce((s, v) => s + v, 0)
 
   const today = new Date()
-  const dateLabel = today.toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric',
-  })
+  // Follow the app language, not a hardcoded en-US — otherwise a Hebrew screen
+  // shows an English date in the header. Bare language subtags are valid BCP-47.
+  const dateLabel = (() => {
+    try {
+      return today.toLocaleDateString(lang, {
+        weekday: 'long', month: 'long', day: 'numeric',
+      })
+    } catch {
+      return today.toLocaleDateString('en-US', {
+        weekday: 'long', month: 'long', day: 'numeric',
+      })
+    }
+  })()
 
   if (bizLoading || (initialLoading && !summary)) {
     return (

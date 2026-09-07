@@ -28,6 +28,25 @@ function fmt12(h: number): string {
   return `${h - 12}:00 pm`
 }
 
+/**
+ * The phone's own IANA zone (e.g. "Asia/Jerusalem").
+ *
+ * A business created here must carry a timezone: the backend derives every
+ * "today", "now" and entry-timing check from business.settings.timezone and
+ * falls back to UTC when it is absent — which, for anyone east of London, hands
+ * back yesterday's date after midnight and rejects the evening's numbers as
+ * "you're still open". On a phone the device zone is the right answer and needs
+ * no asking. Returns undefined only if the runtime somehow has no Intl.
+ */
+function deviceTimeZone(): string | undefined {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    return tz && tz.length > 0 ? tz : undefined
+  } catch {
+    return undefined
+  }
+}
+
 interface Props {
   onComplete: (biz: BusinessRead) => void
 }
@@ -77,6 +96,13 @@ export default function OnboardingScreen({ onComplete }: Props) {
       const biz = await api.businesses.create(trimmed)
       setCreatedBiz(biz)
       api.setActiveBusinessId(biz.id)
+      // Pin the business to the phone's timezone straight away, so it is set
+      // even if the owner skips the hours step. Best-effort — a failure here
+      // must never block onboarding; it can be corrected in Settings.
+      const tz = deviceTimeZone()
+      if (tz) {
+        try { await api.businesses.updateSettings({ timezone: tz }) } catch { /* non-blocking */ }
+      }
       setStep(2)
     } catch (e: unknown) {
       setCreateError(e instanceof Error ? e.message : t('failedToSave'))
@@ -92,10 +118,12 @@ export default function OnboardingScreen({ onComplete }: Props) {
     setSavingHours(true)
     setHoursError(null)
     try {
+      const tz = deviceTimeZone()
       await api.businesses.updateSettings({
         opening_days: openDays,
         opening_hour: openHour,
         closing_hour: closeHour,
+        ...(tz ? { timezone: tz } : {}),
         // Only sent once confirmed — never store a currency the owner did not pick.
         ...(currency ? { currency } : {}),
       })
