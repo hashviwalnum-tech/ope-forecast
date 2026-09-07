@@ -80,7 +80,7 @@ export default function PremiumModal({ business, onClose, onUpdated }: Props) {
   const setTier = (tier: 'free' | 'premium') => {
     Alert.alert(
       tier === 'premium' ? t('premiumUpgradeToPremium') : t('premiumDowngradeToFree'),
-      tier === 'premium' ? 'Set this account to premium tier?' : 'Downgrade to the free tier?',
+      tier === 'premium' ? t('setPremiumBody') : t('setFreeBody'),
       [
         { text: t('cancel'), style: 'cancel' },
         {
@@ -93,7 +93,7 @@ export default function PremiumModal({ business, onClose, onUpdated }: Props) {
               onUpdated(updated)
               await loadSub()
             } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : 'Failed to change tier.')
+              Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToChangeTier'))
             } finally {
               setUpgrading(false)
             }

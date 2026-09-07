@@ -19,14 +19,10 @@ import type { PeriodCreate, PeriodRead, ProductRead } from '../../api/types'
 import { useCurrency } from '../../contexts/CurrencyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useBusinessTime } from '../../contexts/BusinessTimeContext'
 import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
-
-function todayStr(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
 
 function isValidDate(s: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false
@@ -37,6 +33,8 @@ export default function PeriodsModal({ onClose }: Props) {
   const { symbol, parseNumber } = useCurrency()
   const c = useTheme()
   const { t } = useLanguage()
+  // The business's today, not the device's — see BusinessTimeContext.
+  const { today: todayStr } = useBusinessTime()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [periods, setPeriods] = useState<PeriodRead[]>([])
@@ -48,8 +46,8 @@ export default function PeriodsModal({ onClose }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [label, setLabel] = useState('')
   const [type, setType] = useState<'event' | 'ad'>('event')
-  const [startDate, setStartDate] = useState(todayStr())
-  const [endDate, setEndDate] = useState(todayStr())
+  const [startDate, setStartDate] = useState(todayStr)
+  const [endDate, setEndDate] = useState(todayStr)
   const [cost, setCost] = useState('')
   const [targetProductId, setTargetProductId] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
@@ -74,8 +72,8 @@ export default function PeriodsModal({ onClose }: Props) {
   const openAdd = () => {
     setLabel('')
     setType('event')
-    setStartDate(todayStr())
-    setEndDate(todayStr())
+    setStartDate(todayStr)
+    setEndDate(todayStr)
     setCost('')
     setTargetProductId(null)
     setSaveError(null)
@@ -132,7 +130,7 @@ export default function PeriodsModal({ onClose }: Props) {
               await api.periods.delete(id)
               setPeriods(ps => ps.filter(p => p.id !== id))
             } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : t('failedToDelete'))
+              Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToDelete'))
             }
           },
         },

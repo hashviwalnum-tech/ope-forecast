@@ -19,14 +19,10 @@ import * as api from '../../api/client'
 import type { OrderRecordRead, ProductRead } from '../../api/types'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useBusinessTime } from '../../contexts/BusinessTimeContext'
 import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
-
-function todayStr(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'Pending',
@@ -37,6 +33,8 @@ const STATUS_LABELS: Record<string, string> = {
 export default function OrdersModal({ onClose }: Props) {
   const c = useTheme()
   const { t } = useLanguage()
+  // The business's today, not the device's — see BusinessTimeContext.
+  const { today: todayStr } = useBusinessTime()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [orderRecords, setOrderRecords] = useState<OrderRecordRead[]>([])
@@ -96,7 +94,7 @@ export default function OrdersModal({ onClose }: Props) {
     try {
       const created = await api.orders.create({
         product_id: selectedProductId,
-        ordered_date: todayStr(),
+        ordered_date: todayStr,
         quantity: qty,
       })
       setOrderRecords(rs => [created, ...rs])
@@ -114,7 +112,7 @@ export default function OrdersModal({ onClose }: Props) {
       setOrderRecords(rs => rs.map(r => r.id === id ? updated : r))
       emitOrderChange()
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to update.')
+      Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToUpdate'))
     }
   }
 
@@ -132,7 +130,7 @@ export default function OrdersModal({ onClose }: Props) {
 
   const saveEdit = async () => {
     const qty = parseFloat(editQty)
-    if (isNaN(qty) || qty <= 0) { setEditError('Quantity must be greater than 0.'); return }
+    if (isNaN(qty) || qty <= 0) { setEditError(t('qtyMustBePositive')); return }
     setEditSaving(true)
     setEditError(null)
     try {
@@ -141,7 +139,7 @@ export default function OrdersModal({ onClose }: Props) {
       setEditingId(null)
       emitOrderChange()
     } catch (e) {
-      setEditError(e instanceof Error ? e.message : 'Could not update.')
+      setEditError(e instanceof Error ? e.message : t('couldNotUpdate'))
     } finally {
       setEditSaving(false)
     }
@@ -149,18 +147,18 @@ export default function OrdersModal({ onClose }: Props) {
 
   const cancelOrder = (id: number) => {
     Alert.alert(
-      'Cancel Order',
-      'Mark this order as cancelled?',
+      t('cancelOrderTitle'),
+      t('cancelOrderBody'),
       [
-        { text: 'Keep', style: 'cancel' },
+        { text: t('keepLabel'), style: 'cancel' },
         {
-          text: 'Cancel Order', style: 'destructive',
+          text: t('cancelOrderTitle'), style: 'destructive',
           onPress: async () => {
             try {
               await api.orders.cancel(id)
               setOrderRecords(rs => rs.filter(r => r.id !== id))
             } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : 'Failed to cancel.')
+              Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToCancel'))
             }
           },
         },

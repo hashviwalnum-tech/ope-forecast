@@ -15,6 +15,7 @@ import { LanguageProvider } from './src/contexts/LanguageContext'
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext'
 import { SettingsProvider } from './src/contexts/SettingsContext'
 import { CurrencyProvider } from './src/contexts/CurrencyContext'
+import { BusinessTimeProvider } from './src/contexts/BusinessTimeContext'
 
 function AppRoot() {
   const c = useTheme()
@@ -46,11 +47,14 @@ function AppRoot() {
       <StatusBar style="auto" />
       {session ? (
         <BusinessProvider>
-          {/* Inside BusinessProvider: the currency comes from the business. */}
+          {/* Inside BusinessProvider: the currency AND the clock both come
+              from the business, not from the device. */}
           <CurrencyProvider>
-            <SettingsProvider>
-              <AppNavigator />
-            </SettingsProvider>
+            <BusinessTimeProvider>
+              <SettingsProvider>
+                <AppNavigator />
+              </SettingsProvider>
+            </BusinessTimeProvider>
           </CurrencyProvider>
         </BusinessProvider>
       ) : (

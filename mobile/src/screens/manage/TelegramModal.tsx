@@ -15,12 +15,14 @@ import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { TelegramLinkCodeResponse, TelegramLinkStatus } from '../../api/types'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
 
 export default function TelegramModal({ onClose }: Props) {
   const c = useTheme()
+  const { t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [status, setStatus] = useState<TelegramLinkStatus | null>(null)
@@ -60,12 +62,12 @@ export default function TelegramModal({ onClose }: Props) {
 
   const revoke = () => {
     Alert.alert(
-      'Disconnect Telegram',
-      'This will unlink your Telegram bot. You can reconnect any time.',
+      t('disconnectTelegramTitle'),
+      t('disconnectTelegramBody'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Disconnect', style: 'destructive',
+          text: t('disconnectLabel'), style: 'destructive',
           onPress: async () => {
             setRevoking(true)
             try {
@@ -73,7 +75,7 @@ export default function TelegramModal({ onClose }: Props) {
               setStatus({ linked: false, chat_id: null, has_pending_code: false })
               setCode(null)
             } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : 'Failed to disconnect.')
+              Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToDisconnect'))
             } finally {
               setRevoking(false)
             }

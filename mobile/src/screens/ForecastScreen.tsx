@@ -28,6 +28,8 @@ import type {
 import { useBusiness } from '../contexts/BusinessContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
+import { shiftIso, weekdayMon0 } from '../lib/businessTime'
 import type { TranslationKey } from '../lib/i18n'
 
 // ── staffing marginal-note i18n helper ───────────────────────────────────────
@@ -99,22 +101,23 @@ function fmt12(hour: number): string {
   return `${hour - 12}pm`
 }
 
-function tomorrowWeekdayIdx(): number {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  const js = d.getDay()
-  return js === 0 ? 6 : js - 1
-}
-
-function todayStr(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+/**
+ * Tomorrow's weekday index (0 = Monday), for the BUSINESS.
+ *
+ * This read the device clock, so an owner whose phone had rolled past midnight
+ * while the shop's own day had not (or the reverse) was shown the wrong day's
+ * busy hours. It takes the business's today now, like everything else.
+ */
+function tomorrowWeekdayIdx(businessToday: string): number {
+  return weekdayMon0(shiftIso(businessToday, 1))
 }
 
 export default function ForecastScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
   const { t, lang } = useLanguage()
+  // The business's today, not the device's — see BusinessTimeContext.
+  const { today: todayStr } = useBusinessTime()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [forecast, setForecast] = useState<ForecastDay[]>([])
@@ -193,7 +196,7 @@ export default function ForecastScreen() {
     if (!logOrderProduct) return
     let qty = parseFloat(logOrderQty)
     if (isNaN(qty) || qty <= 0) {
-      Alert.alert('Invalid quantity', 'Enter a number greater than 0.')
+      Alert.alert(t('invalidQuantityTitle'), t('invalidQuantityBody'))
       return
     }
     if ((logOrderProduct.unit_mode ?? 'whole') === 'whole') qty = Math.round(qty)
@@ -201,23 +204,22 @@ export default function ForecastScreen() {
     try {
       await api.orders.create({
         product_id: logOrderProduct.product_id,
-        ordered_date: todayStr(),
+        ordered_date: todayStr,
         quantity: qty,
       })
       setLogOrderProduct(null)
       setLogOrderQty('')
       emitOrderChange()
       void loadData()
-      Alert.alert('Order logged!', `${qty} ${logOrderProduct.unit} of ${logOrderProduct.name} recorded.`)
+      Alert.alert(t('orderLoggedTitle'), t('orderLoggedBody', {
+        qty: String(qty), unit: logOrderProduct.unit, name: logOrderProduct.name,
+      }))
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Failed to log order.'
+      const msg = e instanceof Error ? e.message : t('failedToLogOrder')
       if (msg.includes('already have an order')) {
-        Alert.alert(
-          'Already ordered today',
-          'You placed an order for this product today. Go to Orders to edit the quantity.',
-        )
+        Alert.alert(t('alreadyOrderedTitle'), t('alreadyOrderedBody'))
       } else {
-        Alert.alert('Error', msg)
+        Alert.alert(t('errorTitle'), msg)
       }
     } finally {
       setLogOrderSaving(false)
@@ -250,7 +252,7 @@ export default function ForecastScreen() {
     )
   }
 
-  const tomorrowIdx = tomorrowWeekdayIdx()
+  const tomorrowIdx = tomorrowWeekdayIdx(todayStr)
   const tomorrowEntry: WeekdayHourlyEntry | undefined =
     hourly?.weekdays.find(w => w.weekday_idx === tomorrowIdx)
   const busyHours = tomorrowEntry?.hours.filter(h => h.avg_taps > 0) ?? []

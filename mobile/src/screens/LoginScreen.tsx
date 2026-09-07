@@ -12,29 +12,72 @@ import {
 } from 'react-native'
 import { supabase } from '../lib/supabase'
 import { useTheme } from '../contexts/ThemeContext'
+import { useLanguage } from '../contexts/LanguageContext'
 
+/**
+ * Sign in, or create an account.
+ *
+ * The app had no way to sign UP: a new owner had to find the web app, register
+ * there, and only then log in on their phone. For this product's audience —
+ * small-business owners who mostly have a phone — that is the realistic first
+ * step being missing, and onboarding was unreachable without it.
+ *
+ * One screen, one toggle. The fields are identical either way, so a separate
+ * screen would only add a place to get lost.
+ */
 export default function LoginScreen() {
   const c = useTheme()
+  const { t } = useLanguage()
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
-  const signIn = async () => {
-    if (!email || !password) {
-      setError('Please enter your email and password.')
+  const submit = async () => {
+    if (!email.trim() || !password) {
+      setError(t('loginFillFields'))
+      return
+    }
+    if (mode === 'signup' && password.length < 6) {
+      setError(t('signUpPasswordShort'))
       return
     }
     setLoading(true)
     setError(null)
+    setNotice(null)
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
+      if (mode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(), password,
+        })
+        if (error) throw error
+        // With email confirmation ON, Supabase returns a user but no session —
+        // the owner has to confirm before signing in. Saying so beats a screen
+        // that appears to do nothing.
+        if (!data.session) {
+          setNotice(t('signUpCheckEmail'))
+          setMode('signin')
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(), password,
+        })
+        if (error) throw error
+      }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Login failed. Please try again.')
+      const fallback = mode === 'signup' ? t('signUpFailed') : t('loginFailed')
+      setError(e instanceof Error ? e.message : fallback)
     } finally {
       setLoading(false)
     }
+  }
+
+  const switchMode = () => {
+    setMode(m => (m === 'signin' ? 'signup' : 'signin'))
+    setError(null)
+    setNotice(null)
   }
 
   return (
@@ -45,13 +88,18 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={[styles.card, { backgroundColor: c.card }]}>
           <Text style={[styles.logo, { color: c.primary }]}>Ope</Text>
-          <Text style={[styles.slogan, { color: c.textSub }]}>Know Tomorrow, Today.</Text>
+          <Text style={[styles.slogan, { color: c.textSub }]}>{t('loginSlogan')}</Text>
 
           {error !== null && (
             <Text style={[styles.errorText, { color: c.danger, backgroundColor: c.dangerBg }]}>{error}</Text>
           )}
+          {notice !== null && (
+            <Text style={[styles.noticeText, { color: c.primaryDark, backgroundColor: c.primaryBg }]}>
+              {notice}
+            </Text>
+          )}
 
-          <Text style={[styles.label, { color: c.text }]}>Email</Text>
+          <Text style={[styles.label, { color: c.text }]}>{t('loginEmailLabel')}</Text>
           <TextInput
             style={[styles.input, { color: c.text, backgroundColor: c.bg, borderColor: c.border }]}
             value={email}
@@ -63,23 +111,31 @@ export default function LoginScreen() {
             placeholderTextColor={c.textMuted}
           />
 
-          <Text style={[styles.label, { color: c.text }]}>Password</Text>
+          <Text style={[styles.label, { color: c.text }]}>{t('loginPasswordLabel')}</Text>
           <TextInput
             style={[styles.input, { color: c.text, backgroundColor: c.bg, borderColor: c.border }]}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            autoComplete="current-password"
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             placeholder="••••••••"
             placeholderTextColor={c.textMuted}
           />
 
-          <TouchableOpacity style={styles.button} onPress={signIn} disabled={loading}>
+          <TouchableOpacity style={styles.button} onPress={submit} disabled={loading}>
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Sign In</Text>
+              <Text style={styles.buttonText}>
+                {mode === 'signup' ? t('loginSignUp') : t('loginSignIn')}
+              </Text>
             )}
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.switchLink} onPress={switchMode} disabled={loading}>
+            <Text style={[styles.switchText, { color: c.primary }]}>
+              {mode === 'signup' ? t('loginHaveAccount') : t('loginNeedAccount')}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -113,37 +169,58 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 28,
   },
+  errorText: {
+    color: '#b91c1c',
+    backgroundColor: '#fef2f2',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 14,
+  },
+  noticeText: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 14,
+  },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: '#334155',
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: '#cbd5e1',
     borderRadius: 10,
-    paddingVertical: 12,
     paddingHorizontal: 14,
+    minHeight: 48,
     fontSize: 16,
-    color: '#1e293b',
-    backgroundColor: '#f8fafc',
-    marginBottom: 16,
+    marginBottom: 18,
+    backgroundColor: '#fff',
   },
   button: {
     backgroundColor: '#0d9488',
     borderRadius: 10,
-    paddingVertical: 14,
+    minHeight: 52,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 4,
   },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  errorText: {
-    color: '#dc2626',
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 16,
-    fontSize: 14,
+  buttonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  switchLink: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  switchText: {
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 })

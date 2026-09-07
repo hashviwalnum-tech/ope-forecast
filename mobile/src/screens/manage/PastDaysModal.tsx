@@ -17,14 +17,11 @@ import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { DayRecordRead, ProductRead, SaleRead } from '../../api/types'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { useBusinessTime } from '../../contexts/BusinessTimeContext'
 import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
-
-function todayStr(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
 
 function isValidDate(s: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false
@@ -119,6 +116,9 @@ function parseCSVRows(
 
 export default function PastDaysModal({ onClose }: Props) {
   const c = useTheme()
+  const { t } = useLanguage()
+  // The business's today, not the device's — see BusinessTimeContext.
+  const { today: todayStr } = useBusinessTime()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [records, setRecords] = useState<DayRecordRead[]>([])
@@ -171,7 +171,7 @@ export default function PastDaysModal({ onClose }: Props) {
 
   const openAdd = () => {
     setEditId(null)
-    setDate(todayStr())
+    setDate(todayStr)
     setCustomers('')
     setUnitsSold({})
     setExistingSales([])
@@ -215,19 +215,19 @@ export default function PastDaysModal({ onClose }: Props) {
     }
     const cust = parseInt(customers, 10)
     if (isNaN(cust) || cust < 0) {
-      setSaveError('Customers must be 0 or more.')
+      setSaveError(t('customersZeroOrMore'))
       return
     }
 
     const existing = records.find(r => r.date === date && r.id !== editId)
     if (existing) {
       Alert.alert(
-        'Record already exists',
-        `A record for ${date} already exists (${existing.customers} customers). Overwrite it?`,
+        t('recordExistsTitle'),
+        t('recordExistsBody', { date, n: String(existing.customers) }),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('cancel'), style: 'cancel' },
           {
-            text: 'Overwrite', style: 'destructive',
+            text: t('overwriteLabel'), style: 'destructive',
             onPress: async () => {
               // Load existing sales before overwrite so we can update/delete them
               try {
@@ -297,18 +297,18 @@ export default function PastDaysModal({ onClose }: Props) {
 
   const deleteRecord = (id: number, dateStr: string) => {
     Alert.alert(
-      'Delete Record',
-      `Delete the record for ${dateStr}? This cannot be undone.`,
+      t('deleteRecordTitle'),
+      t('deleteRecordBody', { date: dateStr }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Delete', style: 'destructive',
+          text: t('delete'), style: 'destructive',
           onPress: async () => {
             try {
               await api.dayRecords.delete(id)
               setRecords(rs => rs.filter(r => r.id !== id))
             } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : 'Failed to delete.')
+              Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToDelete'))
             }
           },
         },

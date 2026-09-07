@@ -19,6 +19,7 @@ import * as api from '../../api/client'
 import type { ProductRead } from '../../api/types'
 import { useCurrency } from '../../contexts/CurrencyContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import type { Theme } from '../../lib/theme'
 
 interface Props {
@@ -33,6 +34,7 @@ const EMPTY_FORM = {
 export default function ProductsModal({ onClose }: Props) {
   const { symbol, parseNumber } = useCurrency()
   const c = useTheme()
+  const { t } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [products, setProducts] = useState<ProductRead[]>([])
@@ -134,18 +136,18 @@ export default function ProductsModal({ onClose }: Props) {
 
   const deleteProduct = (id: number, name: string) => {
     Alert.alert(
-      'Delete Product',
-      `Delete "${name}"? This cannot be undone.`,
+      t('deleteProductTitle'),
+      t('deleteProductBody', { name }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Delete', style: 'destructive',
+          text: t('delete'), style: 'destructive',
           onPress: async () => {
             try {
               await api.products.delete(id)
               setProducts(ps => ps.filter(p => p.id !== id))
             } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : 'Failed to delete.')
+              Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToDelete'))
             }
           },
         },

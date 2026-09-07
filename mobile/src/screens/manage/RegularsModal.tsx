@@ -18,6 +18,7 @@ import * as api from '../../api/client'
 import type { RegularProfitabilityRead, RegularRead } from '../../api/types'
 import { useCurrency } from '../../contexts/CurrencyContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
@@ -33,6 +34,7 @@ const MONTH_NAMES = [
 
 export default function RegularsModal({ onClose }: Props) {
   const c = useTheme()
+  const { t } = useLanguage()
   // Bound to the business's currency: this screen used to hardcode a dollar
   // sign and two decimal places in six places.
   const { money } = useCurrency()
@@ -136,18 +138,18 @@ export default function RegularsModal({ onClose }: Props) {
 
   const deleteRegular = (id: number, name: string) => {
     Alert.alert(
-      'Delete Regular',
-      `Delete "${name}"? Their history will be lost.`,
+      t('deleteRegular'),
+      t('deleteRegularConfirm', { name }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Delete', style: 'destructive',
+          text: t('delete'), style: 'destructive',
           onPress: async () => {
             try {
               await api.regulars.delete(id)
               setRegulars(rs => rs.filter(r => r.id !== id))
             } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : 'Failed to delete.')
+              Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToDelete'))
             }
           },
         },
@@ -174,7 +176,7 @@ export default function RegularsModal({ onClose }: Props) {
       setVisitRegularId(null)
       setVisitAmount('')
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to record visit.')
+      Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToRecordVisit'))
     } finally {
       setRecordingVisit(false)
     }

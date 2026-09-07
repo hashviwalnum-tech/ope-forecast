@@ -20,6 +20,7 @@ import { useBusiness } from '../contexts/BusinessContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import type { Theme } from '../lib/theme'
 import AppHeader from '../components/AppHeader'
 
@@ -31,6 +32,8 @@ export default function LogScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
   const { t, lang, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
+  // The business's today, not the device's — see BusinessTimeContext.
+  const { today: businessToday } = useBusinessTime()
   const { symbol, amount } = useCurrency()
   const navigation = useNavigation()
   const { width: screenWidth } = useWindowDimensions()
@@ -185,7 +188,9 @@ export default function LogScreen() {
   const headerTotal =
     (summary?.total_taps ?? 0) + Object.values(pending).reduce((s, v) => s + v, 0)
 
-  const today = new Date()
+  // The business's own today, built at midday so no timezone offset can shift
+  // the date when the label is formatted.
+  const today = new Date(`${businessToday}T12:00:00`)
   // Follow the app language, not a hardcoded en-US — otherwise a Hebrew screen
   // shows an English date in the header. Bare language subtags are valid BCP-47.
   const dateLabel = (() => {

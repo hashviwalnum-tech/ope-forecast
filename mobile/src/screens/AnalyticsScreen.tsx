@@ -24,6 +24,20 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { TranslationKey } from '../lib/i18n'
+
+/**
+ * The backend returns weekday names in English ("Monday"). Printing them
+ * straight put an English day into every other language's Insights.
+ */
+function wdFull(
+  weekday: string,
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string,
+): string {
+  const key = `weekdayFull_${weekday}` as TranslationKey
+  const out = t(key)
+  // t() returns the key itself when it knows nothing about it.
+  return out === key ? weekday : out
+}
 import type { Theme } from '../lib/theme'
 import AppHeader from '../components/AppHeader'
 
@@ -519,7 +533,7 @@ function InsightsSection({
                 <Text style={styles.insightRowLabel}>
                   {t('insightsBusiestDay')}:{' '}
                   <Text style={{ color: c.primaryDark, fontWeight: '700' }}>
-                    {insights.busiest_day!.weekday}
+                    {wdFull(insights.busiest_day!.weekday, t)}
                   </Text>
                 </Text>
                 <Text style={styles.insightRowSub}>
@@ -538,7 +552,7 @@ function InsightsSection({
                 <Text style={styles.insightRowLabel}>
                   {t('insightsSlowestDay')}:{' '}
                   <Text style={{ color: c.textSub, fontWeight: '700' }}>
-                    {insights.slowest_day!.weekday}
+                    {wdFull(insights.slowest_day!.weekday, t)}
                   </Text>
                 </Text>
                 <Text style={styles.insightRowSub}>
@@ -555,9 +569,9 @@ function InsightsSection({
               <View style={styles.insightHighlight}>
                 <Text style={styles.insightHighlightText}>
                   {t('insightsBusiestVsSlowest', {
-                    busiest: insights.busiest_day!.weekday,
+                    busiest: wdFull(insights.busiest_day!.weekday, t),
                     pct: Math.round(insights.pct_diff_busiest_slowest),
-                    slowest: insights.slowest_day!.weekday,
+                    slowest: wdFull(insights.slowest_day!.weekday, t),
                   })}
                 </Text>
               </View>
