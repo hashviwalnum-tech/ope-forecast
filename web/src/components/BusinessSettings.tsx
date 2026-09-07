@@ -203,6 +203,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         <div className="flex items-center gap-3">
           <span className="text-sm text-slate-600 dark:text-slate-400 w-16">{t('opensLabel')}</span>
           <select
+            aria-label={`${t('openingHoursLabel')} — ${t('opensLabel')}`}
             value={openingHour}
             onChange={e => setOpeningHour(Number(e.target.value))}
             className="border border-slate-300 dark:border-slate-600 rounded-xl px-3 min-h-11 text-slate-900 dark:text-slate-100
@@ -216,6 +217,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         <div className="flex items-center gap-3">
           <span className="text-sm text-slate-600 dark:text-slate-400 w-16">{t('closesLabel')}</span>
           <select
+            aria-label={`${t('openingHoursLabel')} — ${t('closesLabel')}`}
             value={closingHour}
             onChange={e => setClosingHour(Number(e.target.value))}
             className="border border-slate-300 dark:border-slate-600 rounded-xl px-3 min-h-11 text-slate-900 dark:text-slate-100
@@ -287,6 +289,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
             type="number"
             min={1}
             max={120}
+            aria-label={`${t('avgServiceTimeLabel')} (${t('minPerCustomer')})`}
             value={avgServiceTime}
             onChange={e => setAvgServiceTime(Math.max(1, Number(e.target.value)))}
             className="w-24 px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
@@ -330,6 +333,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
               type="number"
               min={1}
               max={60}
+              aria-label={`${t('staffingGoalLabel')} — ${t('minutesMaxWait')}`}
               value={maxWaitMinutes}
               onChange={e => setMaxWaitMinutes(Math.max(1, Number(e.target.value)))}
               className="w-24 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100
@@ -345,6 +349,7 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
               type="number"
               min={1}
               max={50}
+              aria-label={`${t('staffingGoalLabel')} — ${t('peopleMaxInLine')}`}
               value={maxQueueLength}
               onChange={e => setMaxQueueLength(Math.max(1, Number(e.target.value)))}
               className="w-24 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100

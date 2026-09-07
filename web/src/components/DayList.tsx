@@ -272,11 +272,11 @@ export default function DayList({ refreshKey }: Props) {
       </ul>
 
       {/* ── Wider screens: the table, scrolling inside its own box ── */}
-      <div className="hidden sm:block overflow-x-auto max-w-full">
+      <div className="hidden sm:block overflow-x-auto max-w-full" role="region" aria-label={t('pastDays')} tabIndex={0}>
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="border-b-2 border-slate-200 text-left text-xs font-semibold
-                         text-slate-600 uppercase tracking-wider">
+          <tr className="border-b-2 border-slate-200 dark:border-slate-700 text-left text-xs font-semibold
+                         text-slate-600 dark:text-slate-300 uppercase tracking-wider">
             <th className="py-2 pr-4 whitespace-nowrap">{t('dateColLabel')}</th>
             <th className="py-2 pr-4">{t('dayColLabel')}</th>
             <th className="py-2 pr-4">{t('customersLabel')}</th>

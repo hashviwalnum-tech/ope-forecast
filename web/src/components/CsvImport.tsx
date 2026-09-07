@@ -445,7 +445,12 @@ export default function CsvImport({ onImported }: Props) {
           <h3 className="text-sm font-semibold text-slate-700 mb-2 dark:text-slate-200">
             {t('csvPreviewTitle', { n: String(preview.length) })}
           </h3>
-          <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-600">
+          <div
+            className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-600"
+            role="region"
+            aria-label={t('csvPreviewTitle', { n: String(preview.length) })}
+            tabIndex={0}
+          >
             <table className="w-full text-sm border-collapse">
               <thead className="bg-slate-50 dark:bg-slate-800">
                 <tr className="text-left text-xs font-semibold text-slate-600 uppercase tracking-wide dark:text-slate-300">

@@ -200,6 +200,37 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
     onDone()
   }
 
+  // Modal focus behaviour: pull focus into the card on open, keep Tab inside it
+  // (it is aria-modal, so a keyboard/SR user must not land on the page behind),
+  // and let Escape leave the tour like every other dismissable layer.
+  useEffect(() => {
+    popRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); finish(); return }
+      if (e.key !== 'Tab') return
+      const card = popRef.current
+      if (!card) return
+      const items = card.querySelectorAll<HTMLElement>(
+        'button, [href], select, input, [tabindex]:not([tabindex="-1"])',
+      )
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      if (e.shiftKey && (active === first || active === card)) {
+        e.preventDefault(); last.focus()
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault(); first.focus()
+      } else if (active && !card.contains(active)) {
+        e.preventDefault(); first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+    // finish is stable enough for this; re-binding per step is unnecessary.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function next() {
     if (isLastStep) { finish(); return }
     if (stepIdx < section.steps.length - 1) {
@@ -314,6 +345,7 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label={t(step.titleKey)}
+        tabIndex={-1}
         dir={dir}
         onClick={stopProp}
       >

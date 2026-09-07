@@ -87,14 +87,31 @@ export default function MobileNav({
   const sheetRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
 
-  // Escape closes the sheet, and opening it moves focus inside — otherwise a
-  // keyboard user is left tabbing through the page behind it.
+  // Escape closes the sheet, opening it moves focus inside, and Tab is kept
+  // within it — it is aria-modal, so focus must not reach the page behind.
   useEffect(() => {
     if (!sheetOpen) return
     closeRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSheetOpen(false) }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setSheetOpen(false); return }
+      if (e.key !== 'Tab') return
+      const panel = sheetRef.current
+      if (!panel) return
+      const items = panel.querySelectorAll<HTMLElement>(
+        'button, [href], select, input, [tabindex]:not([tabindex="-1"])',
+      )
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      if (e.shiftKey && (active === first || !panel.contains(active))) {
+        e.preventDefault(); last.focus()
+      } else if (!e.shiftKey && (active === last || !panel.contains(active))) {
+        e.preventDefault(); first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
   }, [sheetOpen, setSheetOpen])
 
   function pick(id: string) {

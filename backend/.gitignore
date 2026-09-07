@@ -1,2 +1,6 @@
 .env
 ops_forecast.db
+
+# local a11y-suite test database
+a11y.db
+dev_langcheck.db

@@ -374,7 +374,7 @@ function AppInner() {
           <img src={logo} alt="Ope logo" className="logo-img h-9 lg:h-11 w-auto" />
           <div className="leading-tight">
             <span className="block text-lg lg:text-xl font-bold text-teal-700 dark:text-teal-300 tracking-tight">Ope</span>
-            <span className="hidden lg:block text-xs text-teal-600 dark:text-teal-300 font-medium">{t('slogan')}</span>
+            <span className="hidden lg:block text-xs text-teal-700 dark:text-teal-300 font-medium">{t('slogan')}</span>
           </div>
         </button>
 
