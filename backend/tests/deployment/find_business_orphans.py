@@ -34,14 +34,17 @@ def _load_models():
     os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
     os.environ.setdefault("SUPABASE_URL", "https://unused.invalid")
     os.environ.setdefault("BOT_SERVICE_KEY", "unused")
-    from app.api.business_cascade import INDIRECT, business_scoped_models
-    return business_scoped_models(), INDIRECT
+    from app.api.business_cascade import INDIRECT, deletion_order
+    # deletion_order, not business_scoped_models: a table has to be emptied
+    # before whatever it points at, or Postgres refuses the transaction.
+    return deletion_order(), INDIRECT
 
 
 def build_sql() -> str:
     """SQL that reports, then deletes, every orphan — safe to paste and read."""
     direct, indirect = _load_models()
-    direct_names = sorted(m.__tablename__ for m in direct)
+    ordered_names = [m.__tablename__ for m in direct]      # dependents first
+    direct_names = sorted(ordered_names)                   # the report reads better sorted
 
     lines = [
         "-- Rows left behind by the old DELETE /businesses/{id}, which missed",
@@ -77,7 +80,7 @@ def build_sql() -> str:
             "DELETE FROM %s WHERE %s NOT IN (SELECT id FROM %s);"
             % (child.__tablename__, fk, parent.__tablename__)
         )
-    for t in direct_names:
+    for t in ordered_names:
         lines.append(
             "DELETE FROM %s WHERE business_id NOT IN (SELECT id FROM businesses);" % t
         )
@@ -108,7 +111,7 @@ def build_purge_sql(business_ids: list[int]) -> str:
             "DELETE FROM %s WHERE %s IN (SELECT id FROM %s WHERE business_id IN %s);"
             % (child.__tablename__, fk, parent.__tablename__, f"({ids})")
         )
-    for t in sorted(m.__tablename__ for m in direct):
+    for t in (m.__tablename__ for m in direct):     # already dependents-first
         lines.append(f"DELETE FROM {t} WHERE business_id IN ({ids});")
     lines += [f"DELETE FROM businesses WHERE id IN ({ids});", "COMMIT;", ""]
     return "\n".join(lines)
@@ -137,7 +140,7 @@ def run(delete: bool) -> int:
             if delete and n:
                 db.query(child).filter(cond).delete(synchronize_session=False)
 
-        for model in sorted(direct, key=lambda m: m.__tablename__):
+        for model in direct:                       # dependents first, see _load_models
             cond = model.business_id.notin_(live_ids)
             n = db.scalar(select(func.count()).select_from(model).where(cond)) or 0
             print(f"{model.__tablename__:<24} {n:>8}")
