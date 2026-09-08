@@ -12,6 +12,7 @@ test the field could quietly report "live" unconditionally and still pass.
 """
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 
 import pytest
@@ -27,6 +28,13 @@ def test_health_reports_a_live_clock():
     body = client.get("/health").json()
     assert body["status"] == "ok"
     assert body["clock"] == "live"
+
+
+def test_health_says_whether_errors_are_reported_anywhere():
+    """A boolean, never the DSN itself — the DSN is a credential."""
+    body = client.get("/health").json()
+    assert isinstance(body["error_reporting"], bool)
+    assert "SENTRY" not in json.dumps(body).upper()
 
 
 def test_health_server_time_is_the_real_time():

@@ -196,6 +196,15 @@ def main() -> int:
                 "the backend's clock agrees with real time",
                 f"{drift:.0f}s apart" if drift is not None else "unreadable")
 
+    reporting = health.get("error_reporting") if isinstance(health, dict) else None
+    if reporting is False:
+        r.note("SENTRY_DSN is not set on this deployment: crashes are logged to "
+               "the console and reported nowhere. A beta user hitting one gives "
+               "up quietly and no one finds out.")
+    elif reporting is True:
+        r.check(True, "errors are reported to the monitoring service",
+                "SENTRY_DSN is set")
+
     # -- how signup actually behaves on this project ------------------------
     _, settings = request(f"{supabase}/auth/v1/settings", headers={"apikey": anon})
     if isinstance(settings, dict):

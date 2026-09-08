@@ -295,4 +295,9 @@ def health():
         "status": "ok",
         "clock": "simulated" if (clock.simulation_enabled() or clock.is_frozen()) else "live",
         "server_time": clock.now_utc().isoformat(),
+        # Whether errors are being reported anywhere. Not the DSN — just whether
+        # one was configured, so a deployment silently swallowing every crash is
+        # visible from outside instead of being discovered by a beta user
+        # giving up quietly.
+        "error_reporting": bool(_sentry_dsn),
     }
