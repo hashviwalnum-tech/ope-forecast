@@ -11,6 +11,7 @@ Always-loaded spine (auto-included below):
 - `docs/FEATURES.md` — design language, UI features, staffing/queueing, premium gating
 - `docs/MOBILE.md` — Phase 4 mobile detail, Phase 4.5 beta readiness
 - `docs/OPERATIONS.md` — deploy, auth, Telegram, billing, engineering conventions
+- `docs/VERIFICATION.md` — **what has actually been checked and what has not**, and which gaps block a pilot rather than a launch. Read it before claiming anything works end to end.
 
 ## How to work with me (important)
 I am not a programmer and cannot debug or fill in gaps — do the whole job and verify it yourself.

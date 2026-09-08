@@ -116,12 +116,21 @@ Neither reading can lose bookings. Dates where a partial breakdown was set aside
 are returned in `partial_service_dates` and shown to the owner, so they are told
 which number the forecast believed rather than left to guess.
 
+## Mobile
+
+Reached parity: the setting, a booked-counts screen with per-service targeting
+and the learned-rate card, and booked-vs-predicted under both the customer and
+the per-service forecast. The Manage row appears only when the owner has said
+they take appointments, matching the web tab. The strings were lifted verbatim
+from the web i18n rather than translated a second time, so both front-ends say
+the same thing in all fifteen languages. The backend needed nothing new.
+
+Not yet seen on a phone — see [VERIFICATION.md](VERIFICATION.md).
+
 ## Deliberately not done yet
 
 Noted, scoped, and left for later slices:
 
-- **Mobile parity.** Booking is web-only. The mobile app has no way to enter a
-  booked count or see the learned rate. The backend needs nothing new for it.
 - **Calendar / POS auto-import.** Reading the diary straight from Google
   Calendar or a booking system instead of typing it. **Held pending a real pilot
   business** — building an integration before anyone has asked for it risks

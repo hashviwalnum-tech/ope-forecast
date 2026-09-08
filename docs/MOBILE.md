@@ -67,3 +67,5 @@ An in-app "Send feedback" form (web + mobile) — fields: **name, business, mess
 ### Error Monitoring
 
 Confirm Sentry catches errors on web AND mobile so beta bugs surface to the developer rather than users silently giving up.
+
+**Not currently working:** `GET /health` reports `error_reporting: false` — `SENTRY_DSN` is not set on the Render service, so backend crashes are reported nowhere. See [VERIFICATION.md](VERIFICATION.md).

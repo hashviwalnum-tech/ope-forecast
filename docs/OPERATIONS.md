@@ -25,16 +25,27 @@
 - Frontend: `https://ope-forecast-bngx.vercel.app`
 - Backend health: `https://ope-forecast-dj78.onrender.com/health`
 
+`/health` reports more than liveness: whether the test-only simulated clock is
+off (`clock`), and which optional integrations this deployment can actually
+perform (`configured`) — error reporting, feedback email, the Telegram bot, the
+bot service key, the admin key, and how many CORS origins are allowed. Booleans
+only, never the values. Recreating the Render service dropped `ALLOWED_ORIGINS`
+and `SENTRY_DSN` without anything failing; this is how that becomes visible.
+
+**What is and is not verified lives in one place: [VERIFICATION.md](VERIFICATION.md).**
+
 ---
 
 ## Phase 3.5 — Monetization
 
 **Subscription billing** (Stripe on web) layered onto the premium-limit gating. **Ad placement** — slots already reserved in the design (see [FEATURES.md](FEATURES.md#ad-slots)). For mobile, App Store / Play in-app purchases are usually **required** for digital subscriptions (15–30% cut, own rules) — design the premium flow with that in mind.
 
+**Load and concurrency testing** is deferred to here too. Every test to date has been one user at a time, and one pilot business will not find what several concurrent ones would. See [VERIFICATION.md](VERIFICATION.md).
+
 ### Security Hardening (deferred to coincide with billing, lower-risk-later)
 
 - **Premium tier granting:** pre-beta, the self-serve free-upgrade hole is closed (no open `PATCH /tier`). When billing lands, a verified payment becomes the legitimate way premium is granted (replacing any manual/admin path).
-- **Supabase Row-Level Security (RLS):** deferred from pre-beta because app-layer isolation is already solid (audit-confirmed) and RLS is fiddly + fail-closed risky (wrong policies/missing user-context can block legitimate queries). Add it here as defence-in-depth, carefully and tested separately, since the data/stakes are higher once monetized. Requires passing per-user identity to the DB connection (or Supabase auth-aware connection) so policies can scope rows; test that legitimate backend access still works before/after.
+- **Supabase Row-Level Security (RLS):** ~~deferred~~ **done, and confirmed against the live project.** `migrations/001_enable_rls_all_tables.sql` enables it on every table, and `python -m tests.deployment.probe_rls` asks the deployed project — using the published anon key, from outside — whether any table is reachable. All 19 refuse. Re-run it after adding a table; the probe's table list must be kept in step with `app/models/`.
 
 ---
 
