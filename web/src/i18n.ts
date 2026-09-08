@@ -2361,7 +2361,7 @@ export const translations = {
     premiumPaidItem6: 'תמיכה מועדפת',
     loginBackToSignIn: 'חזרה להתחברות',
     loginCheckEmailBody: 'שלחנו לכם קישור אישור. לחצו עליו וחזרו להתחבר.',
-    loginCheckEmailTitle: 'בדקו את הדוא\"ל',
+    loginCheckEmailTitle: 'בדקו את הדוא"ל',
     loginEmailLabel: 'אימייל',
     loginFailed: 'לא הצלחנו לחבר אותך. בדוק את האימייל והסיסמה ונסה שוב.',
     loginHaveAccount: 'כבר יש לך חשבון? התחבר',
