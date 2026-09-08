@@ -1,9 +1,11 @@
 import { useState, type FormEvent, useId } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import logo from '../assets/logo.png'
 
 export default function LoginPage() {
   const fieldId = useId()
+  const { t } = useLanguage()
   const { signIn, signUp } = useAuth()
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
@@ -24,7 +26,7 @@ export default function LoginPage() {
         setSignedUp(true)
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setError(err instanceof Error ? err.message : t('loginFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -44,32 +46,32 @@ export default function LoginPage() {
           <img src={logo} alt="Ope logo" className="logo-img h-12 w-auto" />
           <div className="leading-tight">
             <span className="block text-2xl font-bold text-teal-700 dark:text-teal-300">Ope</span>
-            <span className="block text-sm text-teal-700 dark:text-teal-300">Know Tomorrow, Today.</span>
+            <span className="block text-sm text-teal-700 dark:text-teal-300">{t('loginSlogan')}</span>
           </div>
         </div>
 
         {signedUp ? (
           <div className="text-center">
-            <p className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">Check your email</p>
+            <p className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">{t('loginCheckEmailTitle')}</p>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-              We sent you a confirmation link. Click it, then come back to sign in.
+              {t('loginCheckEmailBody')}
             </p>
             <button
               className="text-teal-600 dark:text-teal-300 underline text-sm"
               onClick={() => { setSignedUp(false); setMode('signin') }}
             >
-              Back to sign in
+              {t('loginBackToSignIn')}
             </button>
           </div>
         ) : (
           <>
             <h1 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-6">
-              {mode === 'signin' ? 'Sign in to your account' : 'Create an account'}
+              {mode === 'signin' ? t('loginSignIn') : t('loginSignUp')}
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor={`${fieldId}-f1`}>Email</label>
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor={`${fieldId}-f1`}>{t('loginEmailLabel')}</label>
                 <input id={`${fieldId}-f1`}
                   type="email"
                   required
@@ -82,7 +84,7 @@ export default function LoginPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor={`${fieldId}-f2`}>Password</label>
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor={`${fieldId}-f2`}>{t('loginPasswordLabel')}</label>
                 <input id={`${fieldId}-f2`}
                   type="password"
                   required
@@ -105,14 +107,16 @@ export default function LoginPage() {
                 className="w-full py-3 rounded-xl bg-teal-600 text-white font-semibold
                            hover:bg-teal-700 disabled:opacity-60 transition-colors"
               >
-                {submitting ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+                {submitting ? t('loadingLabel') : mode === 'signin' ? t('loginSignIn') : t('loginSignUp')}
               </button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
-              {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
+            {/* One whole sentence, not a fragment either side of a button:
+                a split sentence cannot be reordered by a translator, and three
+                of the fifteen languages read right to left. */}
+            <p className="mt-6 text-center text-sm">
               <button onClick={switchMode} className="text-teal-600 dark:text-teal-300 font-medium underline">
-                {mode === 'signin' ? 'Create one' : 'Sign in'}
+                {mode === 'signin' ? t('loginNeedAccount') : t('loginHaveAccount')}
               </button>
             </p>
           </>

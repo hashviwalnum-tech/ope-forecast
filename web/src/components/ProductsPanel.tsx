@@ -103,7 +103,7 @@ function ConsumablePicker({
                          bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100
                          focus:outline-none focus:ring-2 focus:ring-teal-400"
             >
-              <option value="">— select —</option>
+              <option value="">{t('consumableChoosePrompt')}</option>
               {stocked.map(p => (
                 <option key={p.id} value={p.id}>{p.name} ({p.unit})</option>
               ))}

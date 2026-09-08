@@ -245,7 +245,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
               onClick={() => setStep(1)}
               className="text-sm text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors dark:text-slate-300"
             >
-              ← Back
+              {t('tourBack')}
             </button>
             <button
               onClick={() => setStep(3)}
@@ -283,7 +283,7 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
               onClick={() => setStep(2)}
               className="text-sm text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-colors dark:text-slate-300"
             >
-              ← Back
+              {t('tourBack')}
             </button>
             <button
               onClick={dismiss}
