@@ -85,6 +85,35 @@ def build_sql() -> str:
     return "\n".join(lines)
 
 
+def build_purge_sql(business_ids: list[int]) -> str:
+    """SQL that removes whole businesses, children first.
+
+    For clearing throwaway rows — the ones ``probe_tenancy`` cannot delete
+    through the API because an account may not delete its last location. The
+    order is the cascade's own: rows reached through a parent, then rows
+    carrying ``business_id``, then the businesses themselves. Nothing here
+    relies on ``ON DELETE CASCADE``, which the schema mostly does not declare.
+    """
+    direct, indirect = _load_models()
+    ids = ", ".join(str(i) for i in business_ids)
+    scope = f"(SELECT id FROM businesses WHERE id IN ({ids}))"
+
+    lines = [
+        f"-- Remove businesses {ids} and everything belonging to them.",
+        "-- Children first: the schema does not declare ON DELETE CASCADE.",
+        "BEGIN;",
+    ]
+    for child, fk, parent in indirect:
+        lines.append(
+            "DELETE FROM %s WHERE %s IN (SELECT id FROM %s WHERE business_id IN %s);"
+            % (child.__tablename__, fk, parent.__tablename__, f"({ids})")
+        )
+    for t in sorted(m.__tablename__ for m in direct):
+        lines.append(f"DELETE FROM {t} WHERE business_id IN ({ids});")
+    lines += [f"DELETE FROM businesses WHERE id IN ({ids});", "COMMIT;", ""]
+    return "\n".join(lines)
+
+
 def run(delete: bool) -> int:
     from sqlalchemy import func, select
     from app.db import SessionLocal
@@ -135,8 +164,22 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--delete", action="store_true", help="remove the orphans it finds")
     ap.add_argument("--sql", action="store_true", help="print SQL instead of connecting")
+    ap.add_argument("--purge-businesses", metavar="IDS",
+                    help="print SQL removing these business ids and all their rows "
+                         "(comma-separated) — for clearing throwaway test rows")
     args = ap.parse_args()
 
+    if args.purge_businesses:
+        try:
+            ids = [int(x) for x in args.purge_businesses.split(",") if x.strip()]
+        except ValueError:
+            print("--purge-businesses takes comma-separated numbers.", file=sys.stderr)
+            return 2
+        if not ids:
+            print("--purge-businesses needs at least one id.", file=sys.stderr)
+            return 2
+        print(build_purge_sql(ids))
+        return 0
     if args.sql:
         print(build_sql())
         return 0

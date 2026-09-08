@@ -24,6 +24,7 @@ DEFAULT_ORIGINS = "http://localhost:5173,https://ope-forecast-bngx.vercel.app"
 _origins = os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS)
 ALLOWED_ORIGINS = [o.strip() for o in _origins.split(",") if o.strip()]
 
+from app import clock
 from app.db import engine
 from app.models import Base, StockBatch  # noqa: F401 — ensure table is registered
 from app.models.service_consumable import ServiceConsumable  # noqa: F401 — ensure table is registered
@@ -282,4 +283,16 @@ app.include_router(planning_api.router)
 
 @app.get("/health", tags=["Health"])
 def health():
-    return {"status": "ok"}
+    """Liveness, plus the one fact about this process worth checking from outside.
+
+    ``clock`` reports whether the test-only simulated clock is in force.  The
+    guards live in ``app.clock`` and are pinned by unit tests, but a unit test
+    proves the code refuses — not that *this* running deployment refuses.  A
+    deployment answering anything but ``"live"`` is serving invented dates, and
+    that would otherwise be invisible until the forecasts looked wrong.
+    """
+    return {
+        "status": "ok",
+        "clock": "simulated" if (clock.simulation_enabled() or clock.is_frozen()) else "live",
+        "server_time": clock.now_utc().isoformat(),
+    }
