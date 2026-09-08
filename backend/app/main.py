@@ -295,9 +295,22 @@ def health():
         "status": "ok",
         "clock": "simulated" if (clock.simulation_enabled() or clock.is_frozen()) else "live",
         "server_time": clock.now_utc().isoformat(),
-        # Whether errors are being reported anywhere. Not the DSN — just whether
-        # one was configured, so a deployment silently swallowing every crash is
-        # visible from outside instead of being discovered by a beta user
-        # giving up quietly.
+        # Which optional integrations this deployment can actually perform.
+        #
+        # Booleans, never the values: these are all credentials. Recreating the
+        # Render service dropped ALLOWED_ORIGINS and SENTRY_DSN without anything
+        # failing — CORS quietly refused the live frontend, and crashes went
+        # nowhere — and the only way to notice was to go looking. Each of these
+        # fails the same way: silently, and only for a real user.
+        "configured": {
+            "error_reporting": bool(_sentry_dsn),
+            "feedback_email": bool(os.environ.get("FEEDBACK_FROM_EMAIL")
+                                   and os.environ.get("FEEDBACK_FROM_PASSWORD")),
+            "telegram_bot": bool(os.environ.get("TELEGRAM_BOT_TOKEN")),
+            "bot_service_key": bool(os.environ.get("BOT_SERVICE_KEY")),
+            "admin_key": bool(os.environ.get("ADMIN_KEY")),
+            "cors_origins": len(ALLOWED_ORIGINS),
+        },
+        # Kept alongside `configured` because probe_tenancy reads it by name.
         "error_reporting": bool(_sentry_dsn),
     }

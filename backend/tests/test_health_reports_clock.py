@@ -37,6 +37,32 @@ def test_health_says_whether_errors_are_reported_anywhere():
     assert "SENTRY" not in json.dumps(body).upper()
 
 
+def test_health_reports_every_optional_integration_as_a_boolean(monkeypatch):
+    """Recreating the service drops env vars silently. This is how that shows."""
+    body = client.get("/health").json()
+    configured = body["configured"]
+    for name in ("error_reporting", "feedback_email", "telegram_bot",
+                 "bot_service_key", "admin_key"):
+        assert isinstance(configured[name], bool), name
+    assert isinstance(configured["cors_origins"], int)
+
+
+def test_health_never_leaks_the_values_it_reports_on(monkeypatch):
+    """Every one of these is a credential; only their presence may be said."""
+    secrets = {
+        "SENTRY_DSN": "https://public@o1.ingest.sentry.io/2",
+        "FEEDBACK_FROM_PASSWORD": "hunter2-app-password",
+        "TELEGRAM_BOT_TOKEN": "123456:AAtelegram-secret",
+        "BOT_SERVICE_KEY": "bot-service-secret",
+        "ADMIN_KEY": "admin-secret",
+    }
+    for k, v in secrets.items():
+        monkeypatch.setenv(k, v)
+    body = json.dumps(client.get("/health").json())
+    for v in secrets.values():
+        assert v not in body
+
+
 def test_health_server_time_is_the_real_time():
     body = client.get("/health").json()
     reported = datetime.fromisoformat(body["server_time"])

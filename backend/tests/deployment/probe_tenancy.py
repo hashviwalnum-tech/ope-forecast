@@ -196,14 +196,24 @@ def main() -> int:
                 "the backend's clock agrees with real time",
                 f"{drift:.0f}s apart" if drift is not None else "unreadable")
 
-    reporting = health.get("error_reporting") if isinstance(health, dict) else None
-    if reporting is False:
-        r.note("SENTRY_DSN is not set on this deployment: crashes are logged to "
-               "the console and reported nowhere. A beta user hitting one gives "
-               "up quietly and no one finds out.")
-    elif reporting is True:
-        r.check(True, "errors are reported to the monitoring service",
-                "SENTRY_DSN is set")
+    configured = health.get("configured") if isinstance(health, dict) else None
+    if isinstance(configured, dict):
+        missing = {
+            "error_reporting": "SENTRY_DSN — crashes are reported nowhere",
+            "feedback_email": "FEEDBACK_FROM_EMAIL/PASSWORD — the in-app "
+                              "feedback form answers 503",
+            "telegram_bot": "TELEGRAM_BOT_TOKEN — the bot cannot reply",
+            "bot_service_key": "BOT_SERVICE_KEY — the bot cannot call the API",
+            "admin_key": "ADMIN_KEY — no manual tier grant until billing exists",
+        }
+        absent = [why for name, why in missing.items() if configured.get(name) is False]
+        r.check(not absent, "every optional integration is configured",
+                f"{len(absent)} missing" if absent else "")
+        for why in absent:
+            r.note(f"Not configured: {why}")
+        r.check(bool(configured.get("cors_origins")),
+                "the CORS allow-list is not empty",
+                f"{configured.get('cors_origins')} origin(s)")
 
     # -- how signup actually behaves on this project ------------------------
     _, settings = request(f"{supabase}/auth/v1/settings", headers={"apikey": anon})
