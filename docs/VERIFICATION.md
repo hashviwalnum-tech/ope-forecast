@@ -23,15 +23,14 @@ strangers. **Neither** means it is a known gap that costs nothing yet.
 | Gap | Status | Blocks |
 |---|---|---|
 | The live web app cannot reach its backend | **Broken now** | **A pilot** |
-| Error monitoring is not receiving anything | **Not configured** | **A pilot** |
-| No email confirmation on signup | **Off by design of the current settings** | **A launch** |
+| Every optional Render variable is unset — Sentry, feedback email, Telegram, admin key | **Broken now** | **A pilot** |
+| No email confirmation on signup | **Off by the project's current settings** | **A launch** |
 | Real screen-reader behaviour | Unverified | A launch |
 | ~6,500 machine-translated strings, no native review | Unverified | A launch |
 | Real-device mobile behaviour | Partly verified | A launch |
 | The guided tour in the other 13 languages | Unverified | A launch |
 | Load and concurrency | Unverified | A launch |
 | Billing and payments | Stub only | Neither (yet) |
-| Telegram bot, feedback email, admin key on the new service | Unknown | See below |
 
 ---
 
@@ -58,19 +57,31 @@ Two guards were added, and neither fixes the deployment:
 **To fix:** set `VITE_API_BASE_URL` to `https://ope-forecast-dj78.onrender.com`
 in Vercel → Settings → Environment Variables (Production), then redeploy.
 
-### Error monitoring is not receiving anything — **blocks a pilot**
+### Every optional Render environment variable is unset — **blocks a pilot**
 
-`GET /health` reports `error_reporting: false`: `SENTRY_DSN` is not set on the
-new Render service. Every crash is written to the Render log and nowhere else,
-so a beta user who hits one gives up quietly and nobody finds out. Sentry's
-integration is wired correctly in `app/main.py` and starts working the moment
-the DSN is present — the code is fine, the deployment is not.
+Recreating the Render service dropped all of them. Only `DATABASE_URL` and
+`SUPABASE_URL` survived, because the app will not boot without them. Nothing
+failed loudly; each of these breaks quietly, and only when someone tries to use
+it. `GET /health` now reports them:
 
-This is the same accident as the CORS allow-list: recreating the Render service
-dropped its environment variables, and nothing failed loudly. `/health` now
-reports every optional integration as a boolean for exactly this reason.
+```json
+"configured": {
+  "error_reporting": false, "feedback_email": false, "telegram_bot": false,
+  "bot_service_key": false, "admin_key": false, "cors_origins": 2
+}
+```
 
-**To fix:** set `SENTRY_DSN` on Render, then re-check `/health`.
+| Variable | What is broken right now |
+|---|---|
+| `SENTRY_DSN` | Crashes go to the Render log and nowhere else. A beta user who hits one gives up quietly and nobody finds out. The integration in `app/main.py` is correct and starts working the moment the DSN is present — the code is fine, the deployment is not |
+| `FEEDBACK_FROM_EMAIL` / `_PASSWORD` | The in-app feedback form answers 503. That is the one channel a beta user has for telling you something is wrong |
+| `TELEGRAM_BOT_TOKEN` | The bot cannot reply at all |
+| `BOT_SERVICE_KEY` | The bot cannot call the API |
+| `ADMIN_KEY` | No manual tier grant, which is the only way to grant premium until billing exists |
+| `ALLOWED_ORIGINS` | Nothing, for now. `cors_origins: 2` is the built-in default added after the allow-list was found empty and CORS was silently refusing the live frontend. Set it anyway — the default is a safety net, not configuration |
+
+**To fix:** set them on Render, then re-check `/health` or run `probe_tenancy`,
+which prints which are missing and what stops working.
 
 ---
 
@@ -181,25 +192,6 @@ instantly and **no confirmation email is ever sent**, so:
 
 Signup and login themselves were verified end to end against the live project
 (`probe_tenancy` creates real accounts through the real endpoint every run).
-
-### The other integrations on the new service — unknown until checked
-
-`ALLOWED_ORIGINS` and `SENTRY_DSN` were both lost when the Render service was
-recreated. The same accident would silently disable these, with no sign until
-someone tried to use them:
-
-| Variable | What stops working |
-|---|---|
-| `FEEDBACK_FROM_EMAIL` / `_PASSWORD` | The in-app feedback form answers 503 |
-| `TELEGRAM_BOT_TOKEN` | The bot cannot reply |
-| `BOT_SERVICE_KEY` | The bot cannot call the API |
-| `ADMIN_KEY` | No manual tier grant until billing exists |
-
-`GET /health` now reports each as a boolean under `configured`, and
-`probe_tenancy` prints which are missing and what breaks. Run it and the answer
-is on one line.
-
----
 
 ## Re-running these checks
 
