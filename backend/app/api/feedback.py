@@ -1,17 +1,28 @@
 """
-Feedback endpoint — delivers an in-app message to hashvi2906@gmail.com
-via Gmail SMTP (Python stdlib smtplib, no extra dependency).
+Feedback endpoint — delivers an in-app message to hashvi2906@gmail.com by SMTP
+(Python stdlib smtplib, no extra dependency).
+
+This is the app's ONLY outbound email. Everything a user receives — signup
+confirmation, password recovery, email-change — is sent by Supabase through the
+SMTP server configured in its own dashboard, not from here. The two are wholly
+separate: Supabase never reads these variables, and this never reads Supabase's.
+Pointing both at the same provider is a good idea (see docs/EMAIL.md) but it is
+two pieces of configuration either way, and forgetting one leaves that half
+silently dead.
 
 Required env vars on the backend host (Render):
-  FEEDBACK_FROM_EMAIL    — the Gmail address used to send (e.g. ope.noreply@gmail.com)
-  FEEDBACK_FROM_PASSWORD — a Gmail App Password for that account
-                           (Account → Security → 2-Step Verification → App passwords)
+  FEEDBACK_FROM_EMAIL    — the address to send from
+  FEEDBACK_FROM_PASSWORD — its SMTP password
 
-How it reaches the inbox:
-  smtplib connects to smtp.gmail.com:587, upgrades to TLS with STARTTLS,
-  authenticates with the App Password, and sends a plain-text email.
-  The message arrives in hashvi2906@gmail.com's inbox with the owner's name,
-  business name and their message in the body.
+Optional, to use something other than Gmail:
+  FEEDBACK_SMTP_HOST     — default smtp.gmail.com
+  FEEDBACK_SMTP_PORT     — default 587 (STARTTLS)
+
+The default is Gmail with an App Password, which works but is the weakest link
+here: Google expires App Passwords, disables them when account settings change,
+and rate-limits programmatic sending. A transactional provider (Resend, Brevo)
+is steadier, and with the host/port above it is a configuration change rather
+than a code change.
 
 Authentication: caller must be a logged-in user (get_current_user).
 """
@@ -29,6 +40,9 @@ from app.api.deps import get_current_user
 log = logging.getLogger(__name__)
 
 FEEDBACK_TO = "hashvi2906@gmail.com"
+
+DEFAULT_SMTP_HOST = "smtp.gmail.com"
+DEFAULT_SMTP_PORT = 587
 
 router = APIRouter(prefix="/feedback", tags=["Feedback"])
 
@@ -75,21 +89,30 @@ def submit_feedback(
     msg["Reply-To"] = from_email
     msg.attach(MIMEText(text_body, "plain", "utf-8"))
 
+    host = os.environ.get("FEEDBACK_SMTP_HOST") or DEFAULT_SMTP_HOST
     try:
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
+        port = int(os.environ.get("FEEDBACK_SMTP_PORT") or DEFAULT_SMTP_PORT)
+    except ValueError:
+        log.error("FEEDBACK_SMTP_PORT is not a number; falling back to %s",
+                  DEFAULT_SMTP_PORT)
+        port = DEFAULT_SMTP_PORT
+
+    try:
+        with smtplib.SMTP(host, port, timeout=10) as smtp:
             smtp.ehlo()
             smtp.starttls()
             smtp.ehlo()
             smtp.login(from_email, from_password)
             smtp.sendmail(from_email, FEEDBACK_TO, msg.as_string())
     except smtplib.SMTPAuthenticationError:
-        log.error("Feedback SMTP authentication failed — check FEEDBACK_FROM_PASSWORD")
+        log.error("Feedback SMTP authentication failed at %s:%s — check "
+                  "FEEDBACK_FROM_EMAIL and FEEDBACK_FROM_PASSWORD", host, port)
         raise HTTPException(
             status_code=503,
             detail="Could not send feedback — please try again later.",
         )
     except Exception as exc:
-        log.error("Failed to send feedback email: %s", exc)
+        log.error("Failed to send feedback email via %s:%s: %s", host, port, exc)
         raise HTTPException(
             status_code=503,
             detail="Could not send feedback — please try again later.",

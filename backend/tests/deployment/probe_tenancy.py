@@ -156,6 +156,12 @@ def main() -> int:
                     help="file holding SUPABASE_URL and ANON_KEY")
     ap.add_argument("--keep", action="store_true",
                     help="skip cleanup (leaves the throwaway businesses behind)")
+    ap.add_argument("--confirmed-accounts", metavar="E:P,E:P",
+                    help="two already-confirmed accounts as email:password pairs. "
+                         "Needed once email confirmation is on, because the probe "
+                         "cannot read a mailbox to confirm accounts it creates. "
+                         "Both must be throwaway: the run writes day records into "
+                         "the first and deletes what it can afterwards.")
     args = ap.parse_args()
     api = args.api.rstrip("/")
 
@@ -222,17 +228,61 @@ def main() -> int:
             r.note("Supabase has mailer_autoconfirm ON: signups are confirmed "
                    "instantly and NO confirmation email is sent. Anyone can "
                    "register an address they do not own.")
+        else:
+            r.check(True, "signups require a confirmed email address",
+                    "mailer_autoconfirm is off")
         if settings.get("disable_signup"):
             r.note("Signup is disabled on this project.")
 
     a = Tenant(supabase, anon, "a")
     b = Tenant(supabase, anon, "b")
 
+    if args.confirmed_accounts:
+        pairs = [p.split(":", 1) for p in args.confirmed_accounts.split(",")]
+        if len(pairs) != 2 or any(len(p) != 2 for p in pairs):
+            print("--confirmed-accounts needs two email:password pairs, comma-separated.")
+            return 2
+        for t, (email, password) in zip((a, b), pairs):
+            t.email, t.password = email.strip(), password.strip()
+            status, _ = t.log_in()
+            if not r.check(status == 200 and bool(t.token),
+                           f"tenant {t.label}: signed in as {t.email}", str(status)):
+                return 1
+        try:
+            return run_checks(r, api, a, b)
+        finally:
+            if not args.keep:
+                cleanup(r, api, a, b)
+            _summarise(r)
+
+    confirms_by_email = isinstance(settings, dict) and not settings.get("mailer_autoconfirm")
+
     for t in (a, b):
         status, body = t.sign_up()
         if not r.check(status in (200, 201), f"tenant {t.label}: signup accepted",
                        f"{status} {str(body)[:80]}"):
             return 1
+
+        if confirms_by_email:
+            # The whole point of turning confirmation on: an address nobody has
+            # proved they own must not get in. Signing up returns a user but no
+            # session, and the password must be refused until the link is
+            # clicked. This probe cannot read a mailbox, so it checks the half
+            # that matters for security and stops.
+            no_session = isinstance(body, dict) and not body.get("access_token")
+            r.check(no_session, f"tenant {t.label}: signup grants no session yet",
+                    "waiting on the confirmation email")
+            status, err = t.log_in()
+            r.check(status != 200,
+                    f"tenant {t.label}: an unconfirmed address cannot sign in",
+                    f"{status} {str(err)[:70]}")
+            r.note("Confirmation is on, so this probe cannot go further on its "
+                   "own: it has no mailbox to click the link in. Re-run with "
+                   "--confirmed-accounts a@x.com:pw,b@x.com:pw to carry on with "
+                   "the isolation checks as two accounts you confirmed by hand.")
+            _summarise(r)
+            return 1 if r.failures else 0
+
         status, _ = t.log_in()
         if not r.check(status == 200 and bool(t.token),
                        f"tenant {t.label}: login returns a token", str(status)):
@@ -243,16 +293,20 @@ def main() -> int:
     finally:
         if not args.keep:
             cleanup(r, api, a, b)
+        _summarise(r)
+
+
+def _summarise(r: Report) -> None:
+    print()
+    if r.failures:
+        print(f"{len(r.failures)} check(s) FAILED: " + ", ".join(r.failures))
+    else:
+        print("Every isolation check held.")
+    if r.notes:
         print()
-        if r.failures:
-            print(f"{len(r.failures)} check(s) FAILED: " + ", ".join(r.failures))
-        else:
-            print("Every isolation check held.")
-        if r.notes:
-            print()
-            print("Worth knowing:")
-            for n in r.notes:
-                print(f"  - {n}")
+        print("Worth knowing:")
+        for n in r.notes:
+            print(f"  - {n}")
 
 
 def run_checks(r: Report, api: str, a: Tenant, b: Tenant) -> int:

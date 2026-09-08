@@ -11,6 +11,8 @@ Always-loaded spine (auto-included below):
 - `docs/FEATURES.md` — design language, UI features, staffing/queueing, premium gating
 - `docs/MOBILE.md` — Phase 4 mobile detail, Phase 4.5 beta readiness
 - `docs/OPERATIONS.md` — deploy, auth, Telegram, billing, engineering conventions
+- `docs/EMAIL.md` — the two separate outbound-email paths, SMTP setup, and why
+  password reset does not exist yet
 - `docs/VERIFICATION.md` — **what has actually been checked and what has not**, and which gaps block a pilot rather than a launch. Read it before claiming anything works end to end.
 
 ## How to work with me (important)

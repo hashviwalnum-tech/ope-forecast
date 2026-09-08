@@ -25,6 +25,7 @@ strangers. **Neither** means it is a known gap that costs nothing yet.
 | The live web app cannot reach its backend | **Broken now** | **A pilot** |
 | Every optional Render variable is unset — Sentry, feedback email, Telegram, admin key | **Broken now** | **A pilot** |
 | No email confirmation on signup | **Off by the project's current settings** | **A launch** |
+| Password reset does not exist at all | **Never built** | **A launch** |
 | Real screen-reader behaviour | Unverified | A launch |
 | ~6,500 machine-translated strings, no native review | Unverified | A launch |
 | Real-device mobile behaviour | Partly verified | A launch |
@@ -190,6 +191,20 @@ tested; only the processor is absent, behind an interface, as designed.
 This blocks taking money and nothing else. Free-tier limits are enforced
 server-side and read the live tier.
 
+### Password reset does not exist — blocks a launch
+
+Not "untested" — absent. There is no "forgot password" link on either sign-in
+screen, nothing calls `resetPasswordForEmail`, and nothing handles a recovery
+link if someone arrives on one. The Supabase client takes the token out of the
+URL by itself, so a recovery link signs the person in and shows them the
+ordinary app, with no prompt to set a new password and no sign anything
+happened.
+
+An owner who forgets their password has no way back to their data. Turning on
+email confirmation makes it worse, because they can no longer just register the
+same address again. Setting up SMTP is a prerequisite for building it, not a
+substitute. See [EMAIL.md](EMAIL.md).
+
 ### Signup has no email confirmation — blocks a launch
 
 The Supabase project reports `mailer_autoconfirm: true`. Signups are confirmed
@@ -203,6 +218,12 @@ instantly and **no confirmation email is ever sent**, so:
 
 Signup and login themselves were verified end to end against the live project
 (`probe_tenancy` creates real accounts through the real endpoint every run).
+
+[EMAIL.md](EMAIL.md) has the setup: which provider, whether a domain is needed,
+what to change in the Supabase dashboard and in what order, and how to prove a
+real signup works for someone who is not the owner. `probe_tenancy` now checks
+the confirmation gate — that a signup grants no session and an unconfirmed
+address cannot sign in — the moment `mailer_autoconfirm` goes off.
 
 ## Re-running these checks
 

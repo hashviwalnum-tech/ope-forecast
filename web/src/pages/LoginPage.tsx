@@ -22,8 +22,12 @@ export default function LoginPage() {
       if (mode === 'signin') {
         await signIn(email, password)
       } else {
-        await signUp(email, password)
-        setSignedUp(true)
+        // Only say "check your email" when there is actually an email coming.
+        // This used to be set unconditionally and was right only by accident:
+        // with the project auto-confirming signups, the session arrived first
+        // and re-rendered the whole page before the message could be seen.
+        const active = await signUp(email, password)
+        if (!active) setSignedUp(true)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('loginFailed'))

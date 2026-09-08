@@ -6,7 +6,9 @@ interface AuthContextValue {
   session: Session | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
+  /** Resolves true when the account is live immediately, false when Supabase
+      is waiting on a confirmation email. */
+  signUp: (email: string, password: string) => Promise<boolean>
   signOut: () => Promise<void>
 }
 
@@ -33,8 +35,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        // Where the confirmation link sends them back to. Without this Supabase
+        // falls back to the project's single "Site URL", so a link mailed to a
+        // real owner would land wherever that happened to be set — localhost,
+        // during development. Sending the current origin means the deployed app
+        // and a dev server each get their own visitors back, with no dashboard
+        // change between them. The origin must be in Supabase's Redirect URLs
+        // allow-list or the link is refused.
+        emailRedirectTo: window.location.origin,
+      },
+    })
     if (error) throw error
+    // A session here means the project confirms signups itself and the account
+    // is already usable. No session means an email is on its way, and telling
+    // the owner to go and read it is the only correct thing to say.
+    return data.session !== null
   }
 
   const signOut = async () => {
