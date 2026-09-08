@@ -97,6 +97,8 @@ These were run against Render + Supabase Postgres, not a local SQLite file.
 | The simulated clock is off in production | `GET /health` → `clock: "live"` | Confirmed on the running process, not just in the source |
 | The backend's clock is the real clock | `/health` `server_time` vs local | Within seconds |
 | Deleting a location works on Postgres | `probe_postgres_parity` cleanup | Fixed — see below |
+| Signup → login → onboarding → first data entry, through the real UI | Driven in a browser against the live backend and Supabase | Works. Run from a local dev server, because the deployed bundle cannot reach the backend — so Vercel's hosting is the one layer still unproven |
+| The year-long simulation still scores identically | `run_year --to 365` then `score` | Byte-identical to the committed `docs/simulation/score.json` |
 
 The parity probe found a real bug on its first run: the delete cascade emptied
 its tables in mapper-registry order, which SQLite tolerates (it does not enforce
@@ -133,6 +135,14 @@ languages, plus the web set, and no native speaker has read any of them. The
 booking strings added to mobile were lifted verbatim from the web i18n rather
 than translated twice, so the two front-ends at least say the same thing.
 
+Running the app in Russian for ten minutes found two screens that were never
+translated at all: the whole sign-in page, and both "Back" buttons in the
+onboarding wizard. Both are fixed, and `web/src/lib/noHardcodedText.test.ts`
+now fails on literal text between JSX tags so that class of gap is caught by a
+test rather than by someone happening to switch language. It does not cover
+text passed as a prop (`placeholder`, `aria-label`), strings built in
+JavaScript, or Recharts label props — those still need an eye.
+
 `REVIEW_TRANSLATIONS.md` at the repo root lists the trust-critical subset —
 ordering, stock and money terms where a wrong verb makes an owner order the
 wrong quantity. That is the list to send to a native speaker first; nothing on
@@ -153,6 +163,7 @@ run separately.
 
 **Verified:** the tour's strings exist in all 15 languages and the i18n tests
 prove none is missing. Focus trapping and Escape are covered by the a11y suite.
+Its first step was seen rendering correctly in Russian during the live UI check.
 
 **Unverified:** nobody has walked the tour end to end in anything but English.
 A tour is where translation problems show worst — a step whose text overflows its
