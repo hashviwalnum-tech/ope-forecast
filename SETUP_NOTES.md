@@ -7,9 +7,9 @@ https://github.com/omrienglander-tech/ope-forecast
 
 ## Backend — Render (Web Service)
 
-**Live URL:** https://ope-forecast.onrender.com
-**Health check:** https://ope-forecast.onrender.com/health → `{"status":"ok"}`
-**API docs:** https://ope-forecast.onrender.com/docs
+**Live URL:** https://ope-forecast-dj78.onrender.com
+**Health check:** https://ope-forecast-dj78.onrender.com/health → `{"status":"ok"}`
+**API docs:** https://ope-forecast-dj78.onrender.com/docs
 
 | Setting | Value |
 |---|---|
@@ -50,7 +50,7 @@ https://github.com/omrienglander-tech/ope-forecast
 
 | Variable | Required | Where to get the value |
 |---|---|---|
-| `VITE_API_BASE_URL` | Yes | The Render backend URL (`https://ope-forecast.onrender.com`) |
+| `VITE_API_BASE_URL` | Yes | The Render backend URL (`https://ope-forecast-dj78.onrender.com`) |
 | `VITE_SUPABASE_URL` | Yes | Supabase → Settings → API → Project URL |
 | `VITE_SUPABASE_ANON_KEY` | Yes | Supabase → Settings → API → Project API keys → anon / public |
 
@@ -77,4 +77,4 @@ Local `.env` files are gitignored and never uploaded — keep them on this machi
 1. Push changes to `main` on GitHub — both Render and Vercel redeploy automatically.
 2. If the frontend URL changes, update `ALLOWED_ORIGINS` on Render.
 3. If Supabase credentials change, update them on both Render and Vercel.
-4. Health check after any backend redeploy: https://ope-forecast.onrender.com/health
+4. Health check after any backend redeploy: https://ope-forecast-dj78.onrender.com/health

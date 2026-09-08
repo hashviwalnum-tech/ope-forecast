@@ -40,7 +40,7 @@ import type {
   WeekdayHourlyResponse,
 } from './types'
 
-const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://ope-forecast.onrender.com'
+const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://ope-forecast-dj78.onrender.com'
 
 // Render free tier sleeps after ~15 min. Retry up to 6× at 8-second intervals
 // (~48 s total) to cover Render's ~45 s cold-start window.
