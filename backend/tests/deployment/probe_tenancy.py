@@ -377,8 +377,9 @@ def cleanup(r: Report, api: str, *tenants: Tenant) -> None:
     if left_behind:
         ids = ", ".join(str(i) for i in left_behind)
         r.note(f"Empty placeholder business(es) {ids} remain — the API will not "
-               f"delete an account's last location. To remove them: "
-               f"DELETE FROM businesses WHERE id IN ({ids});")
+               f"delete an account's last location. For the SQL that removes "
+               f"them: python -m tests.deployment.find_business_orphans "
+               f"--purge-businesses {','.join(str(i) for i in left_behind)}")
     r.note("The throwaway Supabase users remain (deleting a user needs the "
            "service-role key). They own no data.")
 

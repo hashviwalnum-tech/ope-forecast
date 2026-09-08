@@ -67,6 +67,18 @@ const RETRY_MAX = 6
 const RETRY_DELAY_MS = 8_000
 
 /**
+ * How long one attempt may hang before it counts as a failure.
+ *
+ * Without this, a backend that accepts the connection and then never answers
+ * leaves the app on "Loading…" for ever: `fetch` does not time out on its own,
+ * the retry below only fires on a network *error*, and a hang is not an error.
+ * That is exactly what a retired Render host does — it neither answers nor
+ * refuses. Anything past ~30 s is a dead backend rather than a slow one; the
+ * cold-start case is covered by retrying, not by waiting longer.
+ */
+const REQUEST_TIMEOUT_MS = 30_000
+
+/**
  * Who wants to know we are still retrying.
  *
  * This used to be a single listener, which App claimed for its first load — so
@@ -93,13 +105,22 @@ function announceWaking(waking: boolean): void {
 const _wakingUpListener = { call: announceWaking }
 
 function isNetworkError(err: unknown): boolean {
+  if (isTimeout(err)) return true
   return err instanceof TypeError && /failed to fetch|network request failed|networkerror/i.test((err as TypeError).message)
+}
+
+/** A request abandoned by REQUEST_TIMEOUT_MS, not by the user. */
+function isTimeout(err: unknown): boolean {
+  return err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')
 }
 
 async function fetchWithRetry(input: string, init: RequestInit): Promise<Response> {
   for (let attempt = 0; attempt <= RETRY_MAX; attempt++) {
     try {
-      const res = await fetch(input, init)
+      const res = await fetch(input, {
+        ...init,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      })
       if (attempt > 0) _wakingUpListener.call(false)
       return res
     } catch (err) {

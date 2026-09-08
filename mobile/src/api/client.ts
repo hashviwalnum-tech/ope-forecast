@@ -49,17 +49,38 @@ const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://ope-forecast-dj78.
 const RETRY_MAX = 6
 const RETRY_DELAY_MS = 8_000
 
+/**
+ * How long one attempt may hang before it counts as a failure.
+ *
+ * Without this, a backend that accepts the connection and then never answers
+ * leaves the app loading for ever: `fetch` does not time out on its own, and
+ * the retry below only fires on a network *error* — a hang is not an error.
+ * That is exactly what a retired Render host does. Anything past ~30 s is a
+ * dead backend rather than a slow one; the cold start is covered by retrying.
+ */
+const REQUEST_TIMEOUT_MS = 30_000
+
 function isNetworkError(err: unknown): boolean {
+  if (isTimeout(err)) return true
   return (
     err instanceof TypeError &&
     /failed to fetch|network request failed|networkerror/i.test((err as TypeError).message)
   )
 }
 
+/** A request abandoned by REQUEST_TIMEOUT_MS, not by the caller. */
+function isTimeout(err: unknown): boolean {
+  const name = (err as { name?: string } | null)?.name
+  return name === 'TimeoutError' || name === 'AbortError'
+}
+
 async function fetchWithRetry(input: string, init: RequestInit): Promise<Response> {
   for (let attempt = 0; attempt <= RETRY_MAX; attempt++) {
     try {
-      return await fetch(input, init)
+      return await fetch(input, {
+        ...init,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      })
     } catch (err) {
       if (!isNetworkError(err) || attempt === RETRY_MAX) throw err
       await new Promise<void>((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
