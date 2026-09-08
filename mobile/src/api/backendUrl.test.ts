@@ -23,14 +23,25 @@ function read(...parts: string[]): string {
   return readFileSync(join(MOBILE_DIR, ...parts), 'utf8')
 }
 
-/** Every https:// host named as EXPO_PUBLIC_API_BASE_URL in a chunk of text. */
-function apiHosts(text: string): string[] {
+/**
+ * Every https:// host assigned to a named variable in a chunk of text.
+ *
+ * One matcher for both `.env` (`NAME=url`) and `eas.json` (`"NAME": "url"`),
+ * because the point is that those two and the compiled-in fallback agree.
+ */
+function hostsFor(pattern: RegExp, text: string): string[] {
   const out: string[] = []
-  const re = /EXPO_PUBLIC_API_BASE_URL["']?\s*[:=]\s*["']?(https:\/\/[^"'\s,}]+)/g
+  const re = new RegExp(pattern.source, 'g')
   let m: RegExpExecArray | null
   while ((m = re.exec(text)) !== null) out.push(m[1].replace(/\/$/, ''))
   return out
 }
+
+const API_URL = /EXPO_PUBLIC_API_BASE_URL["']?\s*[:=]\s*["']?(https:\/\/[^"'\s,}]+)/
+const WEB_URL = /EXPO_PUBLIC_WEB_APP_URL["']?\s*[:=]\s*["']?(https:\/\/[^"'\s,}]+)/
+
+const apiHosts = (text: string) => hostsFor(API_URL, text)
+const webHosts = (text: string) => hostsFor(WEB_URL, text)
 
 test('.env, eas.json and the client fallback all name one backend', () => {
   const fallback = read('src', 'api', 'client.ts').match(
@@ -46,6 +57,25 @@ test('.env, eas.json and the client fallback all name one backend', () => {
 
   assert.ok(found.length >= 4, `expected .env, both eas profiles and the fallback, got ${found.length}`)
   assert.equal(new Set(found).size, 1, `these disagree about the backend: ${[...new Set(found)].join(' vs ')}`)
+})
+
+test('.env, eas.json and the urls fallback agree on the web app', () => {
+  // The phone sends people to the web app for one thing only — setting a new
+  // password after a recovery link, which cannot usefully come back to a phone.
+  // A wrong address here strands anyone who forgets their password.
+  const fallback = read('src', 'lib', 'urls.ts').match(
+    /EXPO_PUBLIC_WEB_APP_URL\s*\?\?\s*'(https:\/\/[^']+)'/,
+  )
+  assert.ok(fallback, 'urls.ts has no https fallback URL to check')
+
+  const found = [
+    ...webHosts(read('.env')),
+    ...webHosts(read('eas.json')),
+    fallback[1].replace(/\/$/, ''),
+  ]
+
+  assert.ok(found.length >= 4, `expected .env, both eas profiles and the fallback, got ${found.length}`)
+  assert.equal(new Set(found).size, 1, `these disagree about the web app: ${[...new Set(found)].join(' vs ')}`)
 })
 
 test('no file still names the retired Render service', () => {

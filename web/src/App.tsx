@@ -30,6 +30,7 @@ import { LANG_LABELS, type Lang, type TranslationKey } from './i18n'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import MobileNav from './components/MobileNav'
 import LoginPage from './pages/LoginPage'
+import SetPasswordPage from './pages/SetPasswordPage'
 import * as api from './api/client'
 import type { BusinessRead, SubscriptionRead } from './api/types'
 
@@ -49,7 +50,7 @@ const GROUP_TAB_IDS: Record<NavGroup, Tab[]> = {
 
 
 function AppInner() {
-  const { session, loading: authLoading, signOut } = useAuth()
+  const { session, loading: authLoading, signOut, recovering } = useAuth()
   const { lang, setLang, t, dir } = useLanguage()
   const { isDark, toggleTheme } = useTheme()
 
@@ -287,6 +288,13 @@ function AppInner() {
     stock:            t('tabStockStatus'),
     premium:          t('tabPremium'),
   }
+
+  // Ahead of the loading gate on purpose. Someone on a recovery link is already
+  // signed in — Supabase reads the token out of the URL before any of this runs
+  // — and choosing a new password needs no business data. Below the gate they
+  // would wait through the businesses fetch first, and a backend that was down
+  // would show them "server unreachable" instead of the screen they came for.
+  if (!authLoading && recovering) return <SetPasswordPage />
 
   if (authLoading || (session && !bizLoaded)) {
     return (

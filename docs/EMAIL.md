@@ -200,27 +200,40 @@ business with `python -m tests.deployment.find_business_orphans
 
 ---
 
-## Password reset does not exist
+## Password reset
 
-Worth being blunt about, because it is easy to assume it comes with the auth
-provider. Supabase can send the recovery email; nothing in Ope ever asks it to.
+Built, on both clients, and waiting on the SMTP above — Supabase will accept
+the request and send nothing until a mail server is configured.
 
-* There is no "forgot password" link on either sign-in screen.
-* Nothing calls `resetPasswordForEmail`, on web or mobile.
-* Nothing handles a recovery link when someone arrives on one. The Supabase
-  client picks the token out of the URL automatically, so a recovery link would
-  sign the person in and then show them the ordinary app, with no prompt to set
-  a new password and no sign anything had happened.
+**Web:** "Forgot your password?" under the sign-in form asks for an address and
+nothing else. The reply says only that *if* an account exists a link is on its
+way — confirming the account would turn the form into a way of finding out who
+has one. Clicking the link lands on `SetPasswordPage`, which is shown ahead of
+everything else while `recovering` is true. That ordering matters: the Supabase
+client reads the token out of the URL and signs the person in before any of our
+code runs, so without it the app would simply open and the link would go
+unspent.
 
-So today an owner who forgets their password has no way back into their account
-and their data, and no error message explaining why. That is worse once
-confirmation is on, because they cannot simply register again with the same
-address.
+**Mobile:** the phone asks for the link; the new password is set in a browser.
+Catching a recovery link on the phone would mean a URL scheme registered with
+both stores and a development build to test it on — a lot of moving parts for a
+screen someone may see once. The notice says so in the language the owner
+picked, so nobody is left waiting for something to happen in the app.
 
-Configuring SMTP is a prerequisite for fixing it, not a fix. The missing pieces
-are a "forgot password" link and screen on both clients, a screen that handles
-the recovery link and takes a new password, and the strings for both in fifteen
-languages.
+**Two things to know about the link:**
+
+* It expires in an hour, and Supabase's default rate limit applies to recovery
+  emails as well as confirmations.
+* Supabase validates the address on this endpoint more strictly than on signup.
+  An `@example.com` address can be registered but never recovered — worth
+  knowing when you make throwaway accounts.
+
+Verified in a browser against the live project: the request form, the "check
+your email" reply, the rejection of an undeliverable address, and the
+set-password screen, all in Russian to confirm the layout survives a language
+that is not English. What could not be tested is the part that needs a mailbox —
+the link itself — because no SMTP server is configured yet. That is step one of
+the test plan above.
 
 ---
 

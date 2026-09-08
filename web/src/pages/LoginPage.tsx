@@ -6,20 +6,24 @@ import logo from '../assets/logo.png'
 export default function LoginPage() {
   const fieldId = useId()
   const { t } = useLanguage()
-  const { signIn, signUp } = useAuth()
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const { signIn, signUp, requestPasswordReset } = useAuth()
+  const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [signedUp, setSignedUp] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
     setSubmitting(true)
     try {
-      if (mode === 'signin') {
+      if (mode === 'reset') {
+        await requestPasswordReset(email)
+        setResetSent(true)
+      } else if (mode === 'signin') {
         await signIn(email, password)
       } else {
         // Only say "check your email" when there is actually an email coming.
@@ -41,6 +45,17 @@ export default function LoginPage() {
     setError(null)
   }
 
+  function goToReset() {
+    setMode('reset')
+    setError(null)
+  }
+
+  function backToSignIn() {
+    setMode('signin')
+    setResetSent(false)
+    setError(null)
+  }
+
   return (
     <div className="min-h-screen bg-teal-50 dark:bg-slate-900 flex items-center justify-center p-6">
       <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8">
@@ -54,7 +69,23 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {signedUp ? (
+        {resetSent ? (
+          /* Worded so it says nothing about whether the address is registered.
+             Confirming that would turn this form into a way of finding out who
+             has an account. */
+          <div className="text-center">
+            <p className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">{t('pwResetSentTitle')}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+              {t('pwResetSentBody')}
+            </p>
+            <button
+              className="text-teal-600 dark:text-teal-300 underline text-sm"
+              onClick={backToSignIn}
+            >
+              {t('loginBackToSignIn')}
+            </button>
+          </div>
+        ) : signedUp ? (
           <div className="text-center">
             <p className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">{t('loginCheckEmailTitle')}</p>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
@@ -70,8 +101,15 @@ export default function LoginPage() {
         ) : (
           <>
             <h1 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-6">
-              {mode === 'signin' ? t('loginSignIn') : t('loginSignUp')}
+              {mode === 'reset' ? t('pwResetTitle')
+                : mode === 'signin' ? t('loginSignIn') : t('loginSignUp')}
             </h1>
+
+            {mode === 'reset' && (
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+                {t('pwResetDesc')}
+              </p>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -87,6 +125,7 @@ export default function LoginPage() {
                              focus:outline-none focus:ring-2 focus:ring-teal-400"
                 />
               </div>
+              {mode !== 'reset' && (
               <div>
                 <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor={`${fieldId}-f2`}>{t('loginPasswordLabel')}</label>
                 <input id={`${fieldId}-f2`}
@@ -100,6 +139,7 @@ export default function LoginPage() {
                              focus:outline-none focus:ring-2 focus:ring-teal-400"
                 />
               </div>
+              )}
 
               {error && (
                 <p role="alert" className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">{error}</p>
@@ -111,7 +151,9 @@ export default function LoginPage() {
                 className="w-full py-3 rounded-xl bg-teal-600 text-white font-semibold
                            hover:bg-teal-700 disabled:opacity-60 transition-colors"
               >
-                {submitting ? t('loadingLabel') : mode === 'signin' ? t('loginSignIn') : t('loginSignUp')}
+                {submitting ? t('loadingLabel')
+                  : mode === 'reset' ? t('pwResetSend')
+                  : mode === 'signin' ? t('loginSignIn') : t('loginSignUp')}
               </button>
             </form>
 
@@ -119,10 +161,26 @@ export default function LoginPage() {
                 a split sentence cannot be reordered by a translator, and three
                 of the fifteen languages read right to left. */}
             <p className="mt-6 text-center text-sm">
-              <button onClick={switchMode} className="text-teal-600 dark:text-teal-300 font-medium underline">
-                {mode === 'signin' ? t('loginNeedAccount') : t('loginHaveAccount')}
-              </button>
+              {mode === 'reset' ? (
+                <button onClick={backToSignIn} className="text-teal-600 dark:text-teal-300 font-medium underline">
+                  {t('loginBackToSignIn')}
+                </button>
+              ) : (
+                <button onClick={switchMode} className="text-teal-600 dark:text-teal-300 font-medium underline">
+                  {mode === 'signin' ? t('loginNeedAccount') : t('loginHaveAccount')}
+                </button>
+              )}
             </p>
+
+            {/* Offered only when signing in. Someone part-way through creating
+                an account has no password to have forgotten. */}
+            {mode === 'signin' && (
+              <p className="mt-2 text-center text-sm">
+                <button onClick={goToReset} className="text-slate-600 dark:text-slate-400 underline">
+                  {t('pwForgotLink')}
+                </button>
+              </p>
+            )}
           </>
         )}
       </div>

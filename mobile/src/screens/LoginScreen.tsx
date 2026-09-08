@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { supabase } from '../lib/supabase'
+import { WEB_APP_URL } from '../lib/urls'
 import { useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 
@@ -28,7 +29,7 @@ import { useLanguage } from '../contexts/LanguageContext'
 export default function LoginScreen() {
   const c = useTheme()
   const { t } = useLanguage()
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -36,7 +37,9 @@ export default function LoginScreen() {
   const [notice, setNotice] = useState<string | null>(null)
 
   const submit = async () => {
-    if (!email.trim() || !password) {
+    // Resetting needs the address and nothing else — there is no password to
+    // type when the whole problem is not having one.
+    if (!email.trim() || (mode !== 'reset' && !password)) {
       setError(t('loginFillFields'))
       return
     }
@@ -48,7 +51,16 @@ export default function LoginScreen() {
     setError(null)
     setNotice(null)
     try {
-      if (mode === 'signup') {
+      if (mode === 'reset') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: WEB_APP_URL,
+        })
+        if (error) throw error
+        // Says nothing about whether the address is registered: confirming that
+        // would make this a way of finding out who has an account.
+        setNotice(`${t('pwResetSentBody')} ${t('pwResetOnWebNote')}`)
+        setMode('signin')
+      } else if (mode === 'signup') {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(), password,
         })
@@ -67,7 +79,8 @@ export default function LoginScreen() {
         if (error) throw error
       }
     } catch (e: unknown) {
-      const fallback = mode === 'signup' ? t('signUpFailed') : t('loginFailed')
+      const fallback = mode === 'reset' ? t('pwResetFailed')
+        : mode === 'signup' ? t('signUpFailed') : t('loginFailed')
       setError(e instanceof Error ? e.message : fallback)
     } finally {
       setLoading(false)
@@ -76,6 +89,18 @@ export default function LoginScreen() {
 
   const switchMode = () => {
     setMode(m => (m === 'signin' ? 'signup' : 'signin'))
+    setError(null)
+    setNotice(null)
+  }
+
+  const goToReset = () => {
+    setMode('reset')
+    setError(null)
+    setNotice(null)
+  }
+
+  const backToSignIn = () => {
+    setMode('signin')
     setError(null)
     setNotice(null)
   }
@@ -99,6 +124,10 @@ export default function LoginScreen() {
             </Text>
           )}
 
+          {mode === 'reset' && (
+            <Text style={[styles.resetHint, { color: c.textSub }]}>{t('pwResetDesc')}</Text>
+          )}
+
           <Text style={[styles.label, { color: c.text }]}>{t('loginEmailLabel')}</Text>
           <TextInput
             style={[styles.input, { color: c.text, backgroundColor: c.bg, borderColor: c.border }]}
@@ -111,32 +140,51 @@ export default function LoginScreen() {
             placeholderTextColor={c.textMuted}
           />
 
-          <Text style={[styles.label, { color: c.text }]}>{t('loginPasswordLabel')}</Text>
-          <TextInput
-            style={[styles.input, { color: c.text, backgroundColor: c.bg, borderColor: c.border }]}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-            placeholder="••••••••"
-            placeholderTextColor={c.textMuted}
-          />
+          {mode !== 'reset' && (
+            <>
+              <Text style={[styles.label, { color: c.text }]}>{t('loginPasswordLabel')}</Text>
+              <TextInput
+                style={[styles.input, { color: c.text, backgroundColor: c.bg, borderColor: c.border }]}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                placeholder="••••••••"
+                placeholderTextColor={c.textMuted}
+              />
+            </>
+          )}
 
           <TouchableOpacity style={styles.button} onPress={submit} disabled={loading}>
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.buttonText}>
-                {mode === 'signup' ? t('loginSignUp') : t('loginSignIn')}
+                {mode === 'reset' ? t('pwResetSend')
+                  : mode === 'signup' ? t('loginSignUp') : t('loginSignIn')}
               </Text>
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.switchLink} onPress={switchMode} disabled={loading}>
-            <Text style={[styles.switchText, { color: c.primary }]}>
-              {mode === 'signup' ? t('loginHaveAccount') : t('loginNeedAccount')}
-            </Text>
-          </TouchableOpacity>
+          {mode === 'reset' ? (
+            <TouchableOpacity style={styles.switchLink} onPress={backToSignIn} disabled={loading}>
+              <Text style={[styles.switchText, { color: c.primary }]}>{t('loginBackToSignIn')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.switchLink} onPress={switchMode} disabled={loading}>
+              <Text style={[styles.switchText, { color: c.primary }]}>
+                {mode === 'signup' ? t('loginHaveAccount') : t('loginNeedAccount')}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Only when signing in: someone part-way through creating an account
+              has no password to have forgotten. */}
+          {mode === 'signin' && (
+            <TouchableOpacity style={styles.forgotLink} onPress={goToReset} disabled={loading}>
+              <Text style={[styles.forgotText, { color: c.textSub }]}>{t('pwForgotLink')}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -222,5 +270,23 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  // Quieter than the mode switch, and still a 48pt target — this is a thumb on
+  // a phone, not a cursor.
+  forgotLink: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  forgotText: {
+    fontSize: 14,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  resetHint: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 20,
   },
 })
