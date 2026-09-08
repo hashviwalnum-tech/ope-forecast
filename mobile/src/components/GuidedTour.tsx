@@ -99,6 +99,7 @@ const SECTIONS: MobileTourSection[] = [
       { titleKey: 'tourManagePatTitle',        bodyKey: 'tourManagePatBody',        icon: 'repeat-outline' },
       { titleKey: 'tourManageCurrencyTitle',   bodyKey: 'tourManageCurrencyBody',   icon: 'cash-outline' },
       { titleKey: 'tourManageSimpleLangTitle', bodyKey: 'tourManageSimpleLangBody', icon: 'text-outline' },
+      { titleKey: 'tourSettingsAppointmentsTitle', bodyKey: 'tourSettingsAppointmentsBody', icon: 'calendar-number-outline' },
     ],
   },
   {

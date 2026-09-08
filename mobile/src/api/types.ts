@@ -40,6 +40,9 @@ export interface ForecastDay {
   interval_low: number
   interval_high: number
   model_weights: Record<string, number>
+  /** Appointments the owner has recorded for that day. Null unless the
+      business takes bookings and a count was entered. */
+  booked_count: number | null
 }
 
 export interface ForecastResponse {
@@ -109,6 +112,8 @@ export interface ProductRead {
   business_id: number
   name: string
   unit: string
+  /** A service is performed, not reordered — it never carries stock of its own. */
+  product_type: 'stocked' | 'service'
   unit_mode: 'whole' | 'decimal'
   price: number | null
   current_stock: number | null
@@ -432,6 +437,8 @@ export interface ProductForecastDay {
   predicted_units: number
   interval_low: number
   interval_high: number
+  /** Appointments booked for this service on that day, when recorded. */
+  booked_count: number | null
 }
 
 export interface ProductForecastItem {
@@ -501,4 +508,33 @@ export interface OutlierFlag {
 
 export interface OutlierListResponse {
   flags: OutlierFlag[]
+}
+
+// ── Booked appointments (appointment businesses) ─────────────────────────────
+
+export interface BookedCountRead {
+  date: string
+  booked_count: number
+  /** null = the whole business; a number = one particular service. */
+  product_id: number | null
+}
+
+/**
+ * What the booking model has learned from this business's own history.
+ *
+ * `status` is 'off' when appointments are turned off and 'learning' until
+ * there are enough (booked, actual) pairs to fit — until then every figure is
+ * null, and the screen has to say so rather than show a no-show rate built on
+ * three days.
+ */
+export interface BookingModelRead {
+  status: 'off' | 'learning' | 'ok'
+  pairs: number
+  pairs_needed: number
+  no_show_rate: number | null      // 0.14 = about 1 in 7 booked appointments don't show
+  walk_ins_per_day: number | null  // unbooked arrivals on a typical day
+  show_up_rate: number | null
+  /** Dates where a partial per-service breakdown was set aside in favour of
+      the whole-business total. */
+  partial_service_dates: string[]
 }

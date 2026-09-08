@@ -63,6 +63,11 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
   const [nudgesEnabled, setNudgesEnabled] = useState(
     s.nudges_enabled !== false
   )
+  // Off unless the owner says otherwise: a shop that takes no appointments must
+  // never be asked for booked counts it does not have.
+  const [appointmentBased, setAppointmentBased] = useState(
+    s.appointment_based === true
+  )
   const [timezone, setTimezone] = useState(
     typeof s.timezone === 'string' ? s.timezone : ''
   )
@@ -85,6 +90,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
     setStockEnabled(fresh.stock_management_enabled !== false)
     setAssumeOnTime(fresh.assume_orders_arrive_on_time === true)
     setNudgesEnabled(fresh.nudges_enabled !== false)
+    setAppointmentBased(fresh.appointment_based === true)
     setTimezone(typeof fresh.timezone === 'string' ? fresh.timezone : '')
     setCurrency(typeof fresh.currency === 'string' ? fresh.currency : '')
   }, [business])
@@ -132,6 +138,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
         stock_management_enabled: stockEnabled,
         assume_orders_arrive_on_time: assumeOnTime,
         nudges_enabled: nudgesEnabled,
+        appointment_based: appointmentBased,
         // Only sent once chosen — never store a currency the owner did not pick.
         ...(currency.trim() ? { currency: currency.trim().toUpperCase() } : {}),
       })
@@ -358,6 +365,23 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
               <Switch
                 value={nudgesEnabled}
                 onValueChange={setNudgesEnabled}
+                trackColor={{ false: c.border, true: c.primary }}
+                thumbColor={c.onPrimary}
+              />
+            </View>
+
+            {/* ── Appointments ── */}
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('appointmentBasedLabel')}</Text>
+            <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('appointmentBasedDesc')}</Text>
+            <View style={[styles.toggleRow, { backgroundColor: c.card, borderColor: c.border, marginTop: 8 }]}>
+              <View style={styles.toggleText}>
+                <Text style={[styles.toggleLabel, { color: c.text }]}>
+                  {appointmentBased ? t('appointmentBasedOn') : t('appointmentBasedOff')}
+                </Text>
+              </View>
+              <Switch
+                value={appointmentBased}
+                onValueChange={setAppointmentBased}
                 trackColor={{ false: c.border, true: c.primary }}
                 thumbColor={c.onPrimary}
               />

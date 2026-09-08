@@ -370,6 +370,22 @@ export default function ForecastScreen() {
             ))
           )
         )}
+        {/* Booked vs. predicted — only ever shown for a business that takes
+            appointments, because booked_count is null for every other one. */}
+        {viewMode === 'customers' && forecast.some(d => d.booked_count != null) && (
+          <View style={[styles.bookedBox, { backgroundColor: c.card, borderColor: c.border }]}>
+            <Text style={[styles.bookedTitle, { color: c.text }]}>{t('bookedVsPredictedTitle')}</Text>
+            {forecast.filter(d => d.booked_count != null).map(d => (
+              <Text key={d.date} style={[styles.bookedRow, { color: c.textSub }]}>
+                {wdShort(d.weekday, t)} {d.date.slice(5)} — {t('bookedVsPredictedRow', {
+                  booked: String(d.booked_count),
+                  predicted: String(Math.round(d.predicted_customers)),
+                })}
+              </Text>
+            ))}
+          </View>
+        )}
+
         {/* What the range means: it covers ~80% of days, so say so rather than
             letting the one day in five outside it read as the app being wrong. */}
         {viewMode === 'customers' && forecast.length > 0 && (
@@ -415,6 +431,25 @@ export default function ForecastScreen() {
               </View>
             ))
           )
+        )}
+
+        {/* The same, for one service's own diary. */}
+        {typeof viewMode === 'number'
+          && selectedProduct?.status === 'ok'
+          && selectedProduct.days.some(d => d.booked_count != null) && (
+          <View style={[styles.bookedBox, { backgroundColor: c.card, borderColor: c.border }]}>
+            <Text style={[styles.bookedTitle, { color: c.text }]}>{t('bookedVsPredictedTitle')}</Text>
+            {selectedProduct.days.filter(d => d.booked_count != null).map(d => (
+              <Text key={d.date} style={[styles.bookedRow, { color: c.textSub }]}>
+                {wdShort(d.weekday, t)} {d.date.slice(5)} — {t('bookedVsPredictedRow', {
+                  booked: String(d.booked_count),
+                  predicted: selectedProduct.unit_mode === 'decimal'
+                    ? d.predicted_units.toFixed(1)
+                    : String(Math.round(d.predicted_units)),
+                })}
+              </Text>
+            ))}
+          </View>
         )}
 
         {/* ── Busy Hours + Staffing ── */}
@@ -779,6 +814,9 @@ function makeStyles(c: Theme) {
     switcherChipTextActive: { color: c.onPrimary },
 
     rangeMeaning: { fontSize: 12, lineHeight: 17, marginTop: 8, marginBottom: 4 },
+    bookedBox: { borderRadius: 14, borderWidth: 1, padding: 14, marginTop: 10, gap: 4 },
+    bookedTitle: { fontSize: 14, fontWeight: '700' },
+    bookedRow: { fontSize: 13, lineHeight: 19 },
     learningBox: {
       borderWidth: 1,
       borderRadius: 14,

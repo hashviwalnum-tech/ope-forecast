@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase'
 import type {
   AccuracyResponse,
+  BookedCountRead,
+  BookingModelRead,
   BusinessRead,
   CurrencyListResponse,
   SubscriptionRead,
@@ -159,6 +161,8 @@ export const businesses = {
     stock_management_enabled?: boolean
     assume_orders_arrive_on_time?: boolean
     nudges_enabled?: boolean
+    /** The business takes appointments: booked counts feed the forecast. */
+    appointment_based?: boolean
     /** ISO 4217 code, e.g. "ILS". Rejected by the API if it is not a real one. */
     currency?: string
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
@@ -252,6 +256,25 @@ export const recurringPatterns = {
   list:   ()                                        => GET<RecurringPatternRead[]>('/recurring-patterns'),
   create: (body: RecurringPatternCreate)            => POST<RecurringPatternRead>('/recurring-patterns', body),
   delete: (id: number)                              => DEL(`/recurring-patterns/${id}`),
+}
+
+/**
+ * Booked appointments. `productId` selects one service; leaving it out means
+ * the whole business, which is what a business with no service products has.
+ */
+export const bookedCounts = {
+  list: (productId?: number) =>
+    GET<BookedCountRead[]>(
+      productId != null ? `/booked-counts?product_id=${productId}` : '/booked-counts'
+    ),
+  upsert: (date: string, count: number, productId?: number) =>
+    PUT<BookedCountRead>(
+      `/booked-counts/${date}${productId != null ? `?product_id=${productId}` : ''}`,
+      { booked_count: count }
+    ),
+  delete: (date: string, productId?: number) =>
+    DEL(`/booked-counts/${date}${productId != null ? `?product_id=${productId}` : ''}`),
+  model: () => GET<BookingModelRead>('/booked-counts/model'),
 }
 
 export const subscription = {
