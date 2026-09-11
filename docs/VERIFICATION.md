@@ -99,6 +99,7 @@ These were run against Render + Supabase Postgres, not a local SQLite file.
 | The backend's clock is the real clock | `/health` `server_time` vs local | Within seconds |
 | Deleting a location works on Postgres | `probe_postgres_parity` cleanup | Fixed — see below |
 | Signup → login → onboarding → first data entry, through the real UI | Driven in a browser against the live backend and Supabase | Works. Run from a local dev server, because the deployed bundle cannot reach the backend — so Vercel's hosting is the one layer still unproven |
+| A signed-in owner stays signed in after closing the app (web + mobile) | Both clients' own `@supabase/supabase-js`, driven against the live project, over a store that survives the process — see below | Reopening returns the session with nothing typed, and a token already a week past expiry is refreshed silently |
 | The year-long simulation still scores identically | `run_year --to 365` then `score` | Byte-identical to the committed `docs/simulation/score.json` |
 
 The parity probe found a real bug on its first run: the delete cascade emptied
@@ -106,6 +107,43 @@ its tables in mapper-registry order, which SQLite tolerates (it does not enforce
 foreign keys unless asked) and Postgres refuses. An owner could not delete any
 location that had ever held a product. Fixed, with two regression tests —
 `backend/tests/test_business_delete_order.py`.
+
+---
+
+### Staying signed in between visits — verified 2026-09-11
+
+Checked because it is the difference between an owner opening Ope and an owner
+being asked for a password every morning.
+
+Both clients keep the session in a store that outlives the process — the web app
+in `localStorage`, the phone in `AsyncStorage` — so the question is only whether
+a cold start recovers it. Driving each client's *own* installed
+`@supabase/supabase-js` (web 2.106.2, mobile 2.108.1) against the live Supabase
+project, over a file standing in for either store:
+
+* sign in once, discard the client entirely, build a fresh one over the same
+  store — the session comes back with nothing typed;
+* rewind the stored access token to a week past its one-hour expiry and cold
+  start again — the client spends the refresh token silently, and the new token
+  is accepted by the server. This is the case that actually matters: anyone
+  returning the next day arrives with an expired access token.
+
+The live web app corroborates it from the other direction. A session on the
+Vercel origin whose last password entry was **2026-09-03** was still signed in on
+**2026-09-11**, across browser restarts, having refreshed itself on load; the
+sign-in screen was never rendered. Refresh tokens rotate and each rotation was
+accepted, so there is no session time-box or inactivity cut-off on the project.
+
+**Email confirmation is a signup gate only.** Nothing in either client re-checks
+it at sign-in, and the server does not either: `email_confirmed_at` is stamped
+once and repeat password sign-ins were accepted against it. Turning
+`mailer_autoconfirm` off (below) will not start asking existing owners to
+re-confirm.
+
+**Not covered:** the phone was not physically killed and reopened — the library,
+the config and the refresh path are proven, the on-device step is not. Listed
+under real-device mobile behaviour. A browser set to clear site data on exit
+will still sign the owner out; that is the browser's choice, not Ope's.
 
 ---
 
