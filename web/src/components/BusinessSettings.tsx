@@ -1,9 +1,10 @@
 import { useEffect, useState, useId } from 'react'
 import CurrencyPicker from './CurrencyPicker'
-import { businesses, nudges as nudgesApi } from '../api/client'
+import { account, businesses, nudges as nudgesApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { deviceTimeZone, isValidTimeZone } from '../lib/businessTime'
 import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../contexts/AuthContext'
 import TelegramConnectPanel from './TelegramConnectPanel'
 import FeedbackPanel from './FeedbackPanel'
 
@@ -34,6 +35,13 @@ function dayKey(i: number): string {
 export default function BusinessSettings({ onTierChanged, onReplayTour }: Props) {
   const fieldId = useId()
   const { t, simpleMode, setSimpleMode } = useLanguage()
+  const { signOut } = useAuth()
+  // Deleting the account is two deliberate taps, not a typed magic word: the
+  // audience includes owners who are nervous with a keyboard, and a second
+  // button they have to find is just as hard to hit by accident.
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [openDays,        setOpenDays]        = useState<number[]>([0,1,2,3,4,5,6])
   const [openingHour,     setOpeningHour]     = useState<number>(9)
   const [closingHour,     setClosingHour]     = useState<number>(22)
@@ -128,6 +136,26 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         ? prev.length > 1 ? prev.filter(x => x !== d) : prev
         : [...prev, d].sort((a, b) => a - b)
     )
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const result = await account.remove()
+      if (!result.login_deleted) {
+        // The data is gone but the sign-in is not. Say so and stay put —
+        // signing them out here would hide a half-finished deletion behind a
+        // login screen, and they would have no way to tell anyone.
+        setDeleteError(t('deleteAccountPartial'))
+        setDeleting(false)
+        return
+      }
+      await signOut()
+    } catch {
+      setDeleteError(t('deleteAccountFailed'))
+      setDeleting(false)
+    }
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -626,6 +654,51 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
           </button>
         </div>
       )}
+
+      {/* ── Delete account ───────────────────────────────────────────
+          Play requires deletion from inside the app, and the privacy policy
+          has been promising it since June. Last thing on the page, closed by
+          default: findable when wanted, never in the way. */}
+      <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+        {!confirmingDelete ? (
+          <button
+            type="button"
+            onClick={() => { setDeleteError(null); setConfirmingDelete(true) }}
+            className="text-sm text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+          >
+            {t('deleteAccountLabel')}
+          </button>
+        ) : (
+          <div className="rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/30 p-4">
+            <p className="text-sm text-slate-700 dark:text-slate-300">
+              {t('deleteAccountDesc')}
+            </p>
+            {deleteError && (
+              <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">
+                {deleteError}
+              </p>
+            )}
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+              >
+                {deleting ? t('savingLabel') : t('deleteAccountConfirm')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(false)}
+                disabled={deleting}
+                className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200"
+              >
+                {t('cancelBtn')}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* ── Legal ────────────────────────────────────────────────────── */}
       <div className="border-t border-slate-100 dark:border-slate-700 pt-4 text-center">

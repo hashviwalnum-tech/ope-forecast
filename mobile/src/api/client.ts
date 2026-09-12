@@ -302,6 +302,26 @@ export const subscription = {
   get: () => GET<SubscriptionRead>('/subscription'),
 }
 
+export interface AccountDeleted {
+  businesses_deleted: number
+  /** False when the data went but the Supabase sign-in did not. */
+  login_deleted: boolean
+  detail: string | null
+}
+
+export const account = {
+  /** Irreversible. Uses its own fetch rather than `DEL`, which throws the
+   *  response away — here the reply says whether the sign-in actually went. */
+  remove: async (): Promise<AccountDeleted> => {
+    const res = await fetchWithRetry(`${BASE}/account`, {
+      method: 'DELETE',
+      headers: await authHeaders(),
+    })
+    if (!res.ok) throw new Error(await extractError(res))
+    return res.json() as Promise<AccountDeleted>
+  },
+}
+
 export const feedback = {
   submit: (body: { name: string; business_name: string; message: string }) =>
     POST<{ ok: boolean }>('/feedback', body),

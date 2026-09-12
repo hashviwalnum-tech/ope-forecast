@@ -5,9 +5,11 @@ what is still missing. Checked on **2026-09-12** against the rules as they stand
 today rather than from memory — the target-API rule changed on 31 August 2026 and
 the billing rules changed twice during 2026.
 
-The one-line summary: the **app builds and its technical requirements are met**;
-what blocks submission is **paperwork plus one missing feature** (in-app account
-deletion), plus the free-tier backend's unreliable wake-up.
+The one-line summary: **nothing in the app blocks submission any more.** The
+technical requirements are met, the permissions are cut to one, account deletion
+exists, and crash reporting is in. What is left is paperwork you have to supply —
+a feature graphic, screenshots, the developer account — plus the free-tier
+backend's unreliable wake-up.
 
 ---
 
@@ -70,10 +72,21 @@ plain `permissions: []` does not.
 inside the built bundle asks for exactly:
 
     android.permission.INTERNET
+    android.permission.ACCESS_NETWORK_STATE
     com.opeforecast.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 
-The second is an app-private, signature-level permission AndroidX adds to guard
+`ACCESS_NETWORK_STATE` arrived with the Sentry SDK, which uses it to tag a crash
+report with the connection type. It is a **normal**-level permission: no runtime
+prompt, nothing a user is asked to grant, and Play lists it under "other" as
+"view network connections". It was left in rather than blocked, because Sentry
+reaching for network state without it would throw — and a crash inside the crash
+reporter is the worst possible trade for one line in a manifest.
+
+The third is an app-private, signature-level permission AndroidX adds to guard
 its own broadcast receiver. It is invisible to users and needs no justification.
+
+Neither is a **dangerous** permission. Ope asks for no runtime permission at
+all — no location, camera, microphone, contacts, storage or notifications.
 
 ---
 
@@ -302,18 +315,22 @@ clients actually send.
 | Financial info | Payment info | **No** | — | — | Nothing takes money yet; the payment provider is a stub |
 | Financial info | Purchase history | **No** | — | — | same |
 | App activity | **Other actions** | Yes | No | Required | App functionality, and analytics — the sales, customer counts, stock, orders and bookings the owner logs. This is the product |
-| App info & performance | Crash logs | **No** | — | — | see the note below |
-| App info & performance | Diagnostics | **No** | — | — | same |
+| App info & performance | **Crash logs** | Yes | No | Required | Analytics — Sentry, when a DSN is configured for the build. See the note below |
+| App info & performance | Diagnostics | **No** | — | — | No performance or usage telemetry — only crashes |
 | Device or other IDs | any | **No** | — | — | No advertising id, no device id, no analytics SDK. The Telegram chat id is supplied by the owner through a code, not read off the device |
 | Location | any | **No** | — | — | Never requested, never derived |
 | Messages, Photos, Audio, Contacts, Calendar, Health | any | **No** | — | — | None of these are touched |
 
-**Crash logs — understand this one before answering.** The web app reports
-crashes to Sentry. **The Android app does not: there is no Sentry in `mobile/` at
-all.** So for the Android app the honest answer today is No. If Sentry is added
-to the phone — and it should be, see section 8 — this row becomes
-"Crash logs: Yes, not shared, required, purpose: analytics", and the form has to
-be updated before that build ships.
+**Crash logs — read this before answering.** The Android app now initialises
+Sentry, so a crash is reported. Two things keep it honest:
+
+* `sendDefaultPii` is explicitly **false**, so the report carries no email
+  address and none of the owner's or their customers' data — a stack trace and
+  device details only;
+* it is **conditional on `EXPO_PUBLIC_SENTRY_DSN`**. A build without one sends
+  nothing at all.
+
+Answer **Yes** if you ship with a DSN, which you should.
 
 **Files.** CSV import reads only the one file the owner picks, and only to turn
 it into the same sales figures they could have typed by hand. Nothing scans their
@@ -342,25 +359,31 @@ costs nothing and it is the truthful framing.
 
 ## 8. What still blocks submission
 
-### In-app account deletion does not exist — a hard blocker
+### In-app account deletion — **built**
 
-Play requires any app that lets people create an account to offer deletion
-**from inside the app**, and to publish a **web link** for the same request.
-Searching the whole repository for account deletion finds nothing on either
-client and no endpoint behind them. Deleting a *business* and a *location*
-exists; deleting the *account* does not.
+Play requires any app that lets people create an account to offer deletion from
+inside the app, plus a web link for the same. Neither existed. Both do now.
 
-The web-link half is now satisfied by `/privacy#delete`. The in-app half is not,
-and Play rejects submissions for it.
+* **The web link** is `/privacy#delete`.
+* **In the app**, at the bottom of Settings on web and on the phone: a quiet
+  text link, then a panel that says exactly what will go, then a confirm. Two
+  deliberate taps rather than a typed magic word — plenty of owners are nervous
+  with a keyboard, and a second button they have to find is just as hard to hit
+  by accident.
+* **Behind it**, `DELETE /account` removes every business the owner has and
+  everything under it, through the same schema-derived cascade the per-location
+  delete uses, plus the subscription row, which hangs off `user_id` and so is
+  missed by that sweep. Then it asks Supabase to delete the auth user.
 
-It is a contained job: a "Delete my account" action in Settings with a real
-confirmation, an endpoint that removes the businesses and everything beneath them
-(`business_cascade.py` already knows the order Postgres insists on), and a call
-to Supabase's admin API to remove the auth user — which needs the service-role
-key as a new environment variable on Render.
+The one case worth knowing about: if `SUPABASE_SERVICE_ROLE_KEY` is not set on
+Render, the data is still erased but the sign-in survives, and **the app says
+so** rather than reporting a clean deletion and signing them out — which would
+hide a half-finished job behind a login screen. `/health` reports the key's
+presence as `configured.account_deletion`. Set it before submitting;
+`OPERATIONS.md` says where to find it and why it is not like the other secrets.
 
-That last part is a new secret and a new destructive endpoint, so it has **not**
-been built without asking.
+Seven tests cover it, including that another account's data is untouched and
+that the data still goes when Supabase refuses.
 
 ### The backend sleeps, and its wake-up is unreliable
 
@@ -371,12 +394,24 @@ sees an app that does not work, and Play does reject for that. Keep it awake wit
 a ten-minute health ping, or move off the free tier, before submitting. See
 `VERIFICATION.md`.
 
-### The phone has no crash reporting
+### Crash reporting on the phone — **added**
 
-The web app has Sentry; the phone has none. The first beta tester whose app
-crashes on a handset you have never seen will simply stop using it, and you will
-never find out why. `@sentry/react-native` is a new dependency, so this is a
-question rather than a change.
+`@sentry/react-native` is installed and initialised in `App.tsx` before anything
+else runs, and the app tree is wrapped so a render crash is caught too. Set
+`EXPO_PUBLIC_SENTRY_DSN` in `eas.json` — both profiles have an empty slot
+waiting — and crashes from real handsets start arriving.
+
+**Source maps are not uploaded**, deliberately. Sentry's Expo config plugin adds
+an upload step that runs `sentry-cli` during every release build and **fails the
+whole build** when no Sentry organisation is configured — which it is not, since
+there is no mobile Sentry project yet. That was tried and it did fail, twice: the
+JS bundle task itself dies with "An organization ID or slug is required", and
+`SENTRY_DISABLE_AUTO_UPLOAD` does not rescue it. A plugin that breaks every
+release to feed a project that does not exist is worse than no plugin, so it is
+left out. The consequence is that stack traces arrive against the minified
+bundle. When you create the Sentry project, add `@sentry/react-native/expo` to
+`app.json`'s `plugins` with your org and project, put `SENTRY_AUTH_TOKEN` in the
+build environment, and they become readable.
 
 ### Nothing has run on a phone
 
@@ -413,10 +448,10 @@ none ship, and set the target audience to **18 and over**.
 
 1. Stop the backend sleeping — a ten-minute ping, or the paid tier. Screenshots
    and any review pass both depend on it.
-2. Build in-app account deletion (needs a decision — section 8).
-3. Add Sentry to the phone (needs a decision — section 8).
-4. Run the app on a real phone and work through the on-device checklist.
-5. Register the Play developer account — $25, and the identity check takes days.
-6. Take screenshots against real data, and make the 1024 × 500 feature graphic.
-7. Have the Hebrew listing copy written by a person.
-8. `npx eas-cli build --profile production`, then upload.
+2. Set `SUPABASE_SERVICE_ROLE_KEY` on Render and `EXPO_PUBLIC_SENTRY_DSN` in
+   `eas.json` — the two things account deletion and crash reporting wait on.
+3. Run the app on a real phone and work through the on-device checklist.
+4. Register the Play developer account — $25, and the identity check takes days.
+5. Take screenshots against real data, and make the 1024 × 500 feature graphic.
+6. Have the Hebrew listing copy written by a person.
+7. `npx eas-cli build --profile production`, then upload.

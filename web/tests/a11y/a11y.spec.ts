@@ -436,9 +436,30 @@ test('the chart tables are translated, not left in English', async ({ page }) =>
   await primePage(page, 'he', 'light')
   await goHomeReady(page)
 
-  const caption = page.locator('main table.sr-only caption').first()
-  await expect(caption).toBeVisible({ visible: false })
-  const text = await caption.innerText()
+  const table = page.locator('main table.sr-only').first()
+  await expect(table).toBeAttached()
+
+  // Not `toBeVisible({ visible: false })`. Playwright calls an element visible
+  // whenever it has a non-empty box, and this one always does: `sr-only` sets
+  // `width:1px`, but table layout treats that as a minimum and sizes to its
+  // content anyway, so the table is a few hundred pixels wide no matter what.
+  // The old assertion was therefore reading whether layout had settled yet, and
+  // it flipped to failing on a change that only altered load timing.
+  //
+  // What actually hides an `sr-only` table is `clip-path: inset(50%)` on an
+  // absolutely-positioned box: it paints nothing while the text stays in the
+  // accessibility tree. Assert that, which is deterministic.
+  const hiding = await table.evaluate(el => {
+    const s = getComputedStyle(el)
+    return { clip: s.clipPath, position: s.position, overflow: s.overflow }
+  })
+  expect(hiding.clip, 'the screen-reader table is not clipped out of sight').toBe('inset(50%)')
+  expect(hiding.position).toBe('absolute')
+  expect(hiding.overflow).toBe('hidden')
+
+  // `innerText` reads what is rendered; a clipped element has none, so read the
+  // text content the screen reader would be given instead.
+  const text = (await table.locator('caption').first().textContent()) ?? ''
   // Hebrew screens must not fall back to the English caption wording.
   expect(text).not.toContain('the same numbers as a table')
   expect(text, 'the Hebrew caption has no Hebrew in it').toMatch(/[֐-׿]/)

@@ -1021,6 +1021,12 @@ export const translations = {
     tourReplayBtn: 'Replay tour',
 
     privacyPolicy: 'Privacy Policy',
+    deleteAccountLabel: 'Delete my account',
+    deleteAccountDesc: 'This removes your locations, everything in them, and your sign-in. It cannot be undone.',
+    deleteAccountStart: 'Delete my account',
+    deleteAccountConfirm: 'Yes, delete everything',
+    deleteAccountPartial: 'Your data has been deleted, but your sign-in could not be removed. Please email us so we can finish it.',
+    deleteAccountFailed: 'Your account could not be deleted. Please try again.',
 
     // Favorites / pin
     favoriteLabel: 'Favourite',
@@ -2218,6 +2224,12 @@ export const translations = {
     tourReplayBtn: 'שחזר סיור',
 
     privacyPolicy: 'מדיניות פרטיות',
+    deleteAccountLabel: 'מחיקת החשבון שלי',
+    deleteAccountDesc: 'הפעולה מוחקת את כל הסניפים שלך, כל מה שבתוכם, ואת ההתחברות שלך. אי אפשר לבטל אותה.',
+    deleteAccountStart: 'מחק את החשבון שלי',
+    deleteAccountConfirm: 'כן, מחק הכול',
+    deleteAccountPartial: 'הנתונים שלך נמחקו, אך לא ניתן היה להסיר את ההתחברות. אנא שלח לנו מייל כדי שנשלים את הפעולה.',
+    deleteAccountFailed: 'לא ניתן היה למחוק את החשבון. אנא נסה שוב.',
 
     // Favorites / pin
     favoriteLabel: 'מועדף',
@@ -2995,6 +3007,12 @@ export const translations = {
     tourSkipAll: '跳过导览', tourSkipStep: '跳过此步骤',
     tourReplayLabel: '引导导览', tourReplayDesc: '从头再次查看 Ope 的引导导览。',
     tourReplayBtn: '重播导览', privacyPolicy: '隐私政策',
+    deleteAccountLabel: '删除我的账户',
+    deleteAccountDesc: '这将删除您的所有门店、其中的全部数据以及您的登录账号。此操作无法撤销。',
+    deleteAccountStart: '删除我的账户',
+    deleteAccountConfirm: '是的，全部删除',
+    deleteAccountPartial: '您的数据已删除，但登录账号未能移除。请发邮件给我们，我们会为您完成。',
+    deleteAccountFailed: '无法删除您的账户。请重试。',
     favoriteLabel: '收藏', unfavoriteLabel: '取消收藏', favoritedBadge: '★ 已收藏 — 排在最前',
     stockStatusTab: '产品状态', tabStockStatus: '产品库存与状态',
     stockStatusDesc: '显示当前库存水平的所有产品。即使不需要，也可以在此重新订购任何产品。',
@@ -3762,6 +3780,12 @@ export const translations = {
     tourSkipAll: 'Omitir recorrido', tourSkipStep: 'Omitir este paso',
     tourReplayLabel: 'Recorrido guiado', tourReplayDesc: 'Ver el recorrido guiado de Ope de nuevo desde el principio.',
     tourReplayBtn: 'Reproducir recorrido', privacyPolicy: 'Política de privacidad',
+    deleteAccountLabel: 'Eliminar mi cuenta',
+    deleteAccountDesc: 'Esto elimina tus locales, todo lo que contienen y tu acceso. No se puede deshacer.',
+    deleteAccountStart: 'Eliminar mi cuenta',
+    deleteAccountConfirm: 'Sí, eliminar todo',
+    deleteAccountPartial: 'Tus datos se han eliminado, pero no se pudo eliminar tu acceso. Escríbenos por correo para terminarlo.',
+    deleteAccountFailed: 'No se pudo eliminar tu cuenta. Inténtalo de nuevo.',
     favoriteLabel: 'Favorito', unfavoriteLabel: 'Quitar favorito',
     favoritedBadge: '★ Favorito — ordenado al principio',
     stockStatusTab: 'Estado de productos', tabStockStatus: 'Stock y estado de productos',
@@ -4493,6 +4517,12 @@ export const translations = {
     tourSkipAll: 'दौरा छोड़ें', tourSkipStep: 'यह चरण छोड़ें',
     tourReplayLabel: 'गाइडेड दौरा', tourReplayDesc: 'शुरुआत से Ope का गाइडेड दौरा दोबारा देखें।',
     tourReplayBtn: 'दौरा दोबारा करें', privacyPolicy: 'गोपनीयता नीति',
+    deleteAccountLabel: 'मेरा खाता हटाएँ',
+    deleteAccountDesc: 'इससे आपके सभी स्थान, उनमें मौजूद सारा डेटा और आपका लॉगिन हट जाएगा। इसे वापस नहीं लाया जा सकता।',
+    deleteAccountStart: 'मेरा खाता हटाएँ',
+    deleteAccountConfirm: 'हाँ, सब कुछ हटाएँ',
+    deleteAccountPartial: 'आपका डेटा हटा दिया गया है, लेकिन लॉगिन नहीं हटाया जा सका। कृपया हमें ईमेल करें ताकि हम इसे पूरा कर सकें।',
+    deleteAccountFailed: 'आपका खाता हटाया नहीं जा सका। कृपया फिर से कोशिश करें।',
     favoriteLabel: 'पसंदीदा', unfavoriteLabel: 'पसंदीदा हटाएँ', favoritedBadge: '★ पसंदीदा — सबसे ऊपर क्रमबद्ध',
     stockStatusTab: 'उत्पाद स्थिति', tabStockStatus: 'उत्पाद स्टॉक और स्थिति',
     stockStatusDesc: 'वर्तमान स्टॉक स्तरों के साथ सभी उत्पाद। किसी भी उत्पाद को यहाँ पुनः ऑर्डर करें, भले ही अभी जरूरत न हो।',
@@ -5493,6 +5523,12 @@ export const translations = {
     tourReplayDesc: 'شاهد الجولة الإرشادية لـ Ope مرة أخرى من البداية.',
     tourReplayBtn: 'إعادة تشغيل الجولة',
     privacyPolicy: 'سياسة الخصوصية',
+    deleteAccountLabel: 'حذف حسابي',
+    deleteAccountDesc: 'سيؤدي هذا إلى حذف جميع فروعك وكل ما فيها وتسجيل الدخول الخاص بك. لا يمكن التراجع عن ذلك.',
+    deleteAccountStart: 'حذف حسابي',
+    deleteAccountConfirm: 'نعم، احذف كل شيء',
+    deleteAccountPartial: 'تم حذف بياناتك، لكن تعذّر إزالة تسجيل الدخول. يرجى مراسلتنا بالبريد الإلكتروني لإتمام ذلك.',
+    deleteAccountFailed: 'تعذّر حذف حسابك. يرجى المحاولة مرة أخرى.',
     favoriteLabel: 'مفضّل',
     unfavoriteLabel: 'إلغاء التفضيل',
     favoritedBadge: '★ مفضّل — مرتّب في الأعلى',
@@ -6271,6 +6307,12 @@ export const translations = {
     tourReplayLabel: 'Tour guiado', tourReplayDesc: 'Veja novamente o passo a passo guiado do Ope desde o início.',
     tourReplayBtn: 'Repetir tour',
     privacyPolicy: 'Política de Privacidade',
+    deleteAccountLabel: 'Excluir minha conta',
+    deleteAccountDesc: 'Isto remove os seus locais, tudo o que há neles e o seu acesso. Não pode ser desfeito.',
+    deleteAccountStart: 'Excluir minha conta',
+    deleteAccountConfirm: 'Sim, excluir tudo',
+    deleteAccountPartial: 'Os seus dados foram excluídos, mas não foi possível remover o seu acesso. Envie-nos um e-mail para concluirmos.',
+    deleteAccountFailed: 'Não foi possível excluir a sua conta. Tente novamente.',
     favoriteLabel: 'Favorito', unfavoriteLabel: 'Desfavoritar', favoritedBadge: '★ Favoritado — ordenado no topo',
     stockStatusTab: 'Status do Produto', tabStockStatus: 'Estoque e status do produto',
     stockStatusDesc: 'Todos os produtos com níveis de estoque atuais. Reponha qualquer produto aqui, mesmo que ainda não precise.',
@@ -7022,6 +7064,12 @@ export const translations = {
     tourReplayLabel: 'Обучающий тур', tourReplayDesc: 'Посмотрите обучающий тур по Ope снова с самого начала.',
     tourReplayBtn: 'Повторить тур',
     privacyPolicy: 'Политика конфиденциальности',
+    deleteAccountLabel: 'Удалить мой аккаунт',
+    deleteAccountDesc: 'Это удалит все ваши точки, все данные в них и ваш вход. Отменить это нельзя.',
+    deleteAccountStart: 'Удалить мой аккаунт',
+    deleteAccountConfirm: 'Да, удалить всё',
+    deleteAccountPartial: 'Ваши данные удалены, но вход удалить не удалось. Напишите нам на почту, и мы завершим удаление.',
+    deleteAccountFailed: 'Не удалось удалить аккаунт. Попробуйте ещё раз.',
     favoriteLabel: 'В избранное', unfavoriteLabel: 'Убрать из избранного',
     favoritedBadge: '★ В избранном — отсортировано наверх',
     stockStatusTab: 'Статус товаров', tabStockStatus: 'Запас и статус товаров',
@@ -8158,6 +8206,12 @@ export const translations = {
     tourReplayBtn: 'Revoir le tour',
 
     privacyPolicy: 'Politique de confidentialité',
+    deleteAccountLabel: 'Supprimer mon compte',
+    deleteAccountDesc: 'Cela supprime vos établissements, toutes leurs données et votre connexion. Action irréversible.',
+    deleteAccountStart: 'Supprimer mon compte',
+    deleteAccountConfirm: 'Oui, tout supprimer',
+    deleteAccountPartial: 'Vos données ont été supprimées, mais la connexion reste active. Envoyez-nous un e-mail pour terminer.',
+    deleteAccountFailed: 'Impossible de supprimer votre compte. Veuillez réessayer.',
 
     // Favorites / pin
     favoriteLabel: 'Favori',
@@ -9349,6 +9403,12 @@ export const translations = {
     tourReplayBtn: 'ট্যুর আবার চালান',
 
     privacyPolicy: 'গোপনীয়তা নীতি',
+    deleteAccountLabel: 'আমার অ্যাকাউন্ট মুছুন',
+    deleteAccountDesc: 'এটি আপনার সব শাখা, সেগুলোর সব তথ্য এবং আপনার লগইন মুছে ফেলবে। এটি ফেরানো যাবে না।',
+    deleteAccountStart: 'আমার অ্যাকাউন্ট মুছুন',
+    deleteAccountConfirm: 'হ্যাঁ, সব মুছে ফেলুন',
+    deleteAccountPartial: 'আপনার তথ্য মুছে ফেলা হয়েছে, তবে লগইন সরানো যায়নি। কাজটি শেষ করতে আমাদের ইমেল করুন।',
+    deleteAccountFailed: 'আপনার অ্যাকাউন্ট মোছা যায়নি। আবার চেষ্টা করুন।',
 
     // Favorites / pin
     favoriteLabel: 'পছন্দসই',
@@ -10540,6 +10600,12 @@ export const translations = {
     tourReplayBtn: 'ٹور دوبارہ چلائیں',
 
     privacyPolicy: 'رازداری کی پالیسی',
+    deleteAccountLabel: 'میرا اکاؤنٹ حذف کریں',
+    deleteAccountDesc: 'اس سے آپ کی تمام شاخیں، اُن کا سارا ڈیٹا اور آپ کا لاگ اِن حذف ہو جائے گا۔ اسے واپس نہیں لایا جا سکتا۔',
+    deleteAccountStart: 'میرا اکاؤنٹ حذف کریں',
+    deleteAccountConfirm: 'ہاں، سب کچھ حذف کریں',
+    deleteAccountPartial: 'آپ کا ڈیٹا حذف کر دیا گیا ہے، لیکن لاگ اِن نہیں ہٹایا جا سکا۔ براہِ کرم ہمیں ای میل کریں تاکہ ہم اسے مکمل کر سکیں۔',
+    deleteAccountFailed: 'آپ کا اکاؤنٹ حذف نہیں کیا جا سکا۔ براہِ کرم دوبارہ کوشش کریں۔',
 
     // Favorites / pin
     favoriteLabel: 'پسندیدہ',
@@ -11731,6 +11797,12 @@ export const translations = {
     tourReplayBtn: 'Putar ulang tur',
 
     privacyPolicy: 'Kebijakan Privasi',
+    deleteAccountLabel: 'Hapus akun saya',
+    deleteAccountDesc: 'Ini menghapus semua lokasi Anda, seluruh datanya, dan login Anda. Tindakan ini tidak dapat dibatalkan.',
+    deleteAccountStart: 'Hapus akun saya',
+    deleteAccountConfirm: 'Ya, hapus semuanya',
+    deleteAccountPartial: 'Data Anda sudah dihapus, tetapi login tidak dapat dihapus. Silakan email kami agar kami menyelesaikannya.',
+    deleteAccountFailed: 'Akun Anda tidak dapat dihapus. Silakan coba lagi.',
 
     // Favorites / pin
     favoriteLabel: 'Favorit',
@@ -12922,6 +12994,12 @@ export const translations = {
     tourReplayBtn: 'Tour wiederholen',
 
     privacyPolicy: 'Datenschutzrichtlinie',
+    deleteAccountLabel: 'Mein Konto löschen',
+    deleteAccountDesc: 'Damit werden alle Ihre Standorte, sämtliche Daten darin und Ihr Login gelöscht. Das lässt sich nicht rückgängig machen.',
+    deleteAccountStart: 'Mein Konto löschen',
+    deleteAccountConfirm: 'Ja, alles löschen',
+    deleteAccountPartial: 'Ihre Daten wurden gelöscht, aber das Login konnte nicht entfernt werden. Bitte schreiben Sie uns eine E-Mail, damit wir das abschließen.',
+    deleteAccountFailed: 'Ihr Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
 
     // Favorites / pin
     favoriteLabel: 'Favorit',
@@ -14113,6 +14191,12 @@ export const translations = {
     tourReplayBtn: 'ツアーを再生',
 
     privacyPolicy: 'プライバシーポリシー',
+    deleteAccountLabel: 'アカウントを削除',
+    deleteAccountDesc: 'すべての店舗、そこに入力したデータ、ログインが削除されます。元に戻すことはできません。',
+    deleteAccountStart: 'アカウントを削除',
+    deleteAccountConfirm: 'はい、すべて削除します',
+    deleteAccountPartial: 'データは削除されましたが、ログインを削除できませんでした。完了させますので、メールでご連絡ください。',
+    deleteAccountFailed: 'アカウントを削除できませんでした。もう一度お試しください。',
 
     // Favorites / pin
     favoriteLabel: 'お気に入り',
@@ -15318,6 +15402,12 @@ export const translations = {
     tourReplayBtn: 'Turu tekrar oynat',
 
     privacyPolicy: 'Gizlilik Politikası',
+    deleteAccountLabel: 'Hesabımı sil',
+    deleteAccountDesc: 'Bu işlem tüm şubelerinizi, içindeki tüm verileri ve girişinizi siler. Geri alınamaz.',
+    deleteAccountStart: 'Hesabımı sil',
+    deleteAccountConfirm: 'Evet, her şeyi sil',
+    deleteAccountPartial: 'Verileriniz silindi, ancak girişiniz kaldırılamadı. Tamamlamamız için lütfen bize e-posta gönderin.',
+    deleteAccountFailed: 'Hesabınız silinemedi. Lütfen tekrar deneyin.',
 
     // Favorites / pin
     favoriteLabel: 'Favori',

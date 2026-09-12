@@ -34,6 +34,7 @@ from app.api import telegram as telegram_api
 from app.api import timezone_backfill
 from app.api import bot as bot_api
 from app.api import feedback as feedback_api
+from app.api import account as account_api
 from app.api import nudges as nudges_api
 from app.api import dev_catchup as dev_catchup_api
 from app.api import subscriptions as subscriptions_api
@@ -279,6 +280,7 @@ app.include_router(subscriptions_api.router)
 app.include_router(booked_counts.router)
 app.include_router(currencies_api.router)
 app.include_router(planning_api.router)
+app.include_router(account_api.router)
 
 
 @app.get("/health", tags=["Health"])
@@ -309,6 +311,10 @@ def health():
             "telegram_bot": bool(os.environ.get("TELEGRAM_BOT_TOKEN")),
             "bot_service_key": bool(os.environ.get("BOT_SERVICE_KEY")),
             "admin_key": bool(os.environ.get("ADMIN_KEY")),
+            # Without it, deleting an account erases the data but leaves the
+            # Supabase sign-in behind — which Google Play treats as an
+            # incomplete deletion.
+            "account_deletion": bool(os.environ.get("SUPABASE_SERVICE_ROLE_KEY")),
             "cors_origins": len(ALLOWED_ORIGINS),
         },
         # Kept alongside `configured` because probe_tenancy reads it by name.

@@ -27,10 +27,10 @@ strangers. **Blocks Play** means Google will not accept the app until it is done
 | Vercel is serving a months-old build that calls the retired backend | **Broken now** | **A pilot** |
 | Email confirmation is still off, and Supabase cannot send mail at all | **Broken now** | **A launch** |
 | Three Render variables still unset — Telegram bot, bot service key, admin key | **Partly fixed** | A launch |
-| No in-app account deletion | **Missing** | **Play** |
-| No crash reporting on mobile | **Missing** | A launch |
+| No in-app account deletion | **Built**; needs `SUPABASE_SERVICE_ROLE_KEY` on Render to remove the sign-in too | Nothing, once the key is set |
+| No crash reporting on mobile | **Built**; needs `EXPO_PUBLIC_SENTRY_DSN` in the build | Nothing, once the DSN is set |
 | Password reset | Built; the link itself cannot be tested until mail works | **A launch** |
-| Real-device mobile behaviour | Unverified | **Play**, and a launch |
+| Real-device mobile behaviour | Unverified | A launch |
 | Real screen-reader behaviour | Unverified | A launch |
 | ~6,500 machine-translated strings, no native review | Unverified | A launch |
 | The guided tour in the other 13 languages | Unverified | A launch |
@@ -157,6 +157,12 @@ Re-read from the live `/health` on 2026-09-12 once the service woke:
 | `BOT_SERVICE_KEY` | **Unset** | The bot cannot call the API |
 | `ADMIN_KEY` | **Unset** | No manual tier grant — the only route to premium until billing exists. Set this before any pilot who is meant to see premium |
 | `ALLOWED_ORIGINS` | Unset, defaulted | `cors_origins: 2` is the built-in default. Harmless for now; set it anyway, because the default is a safety net rather than configuration |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Unset** | New today. Account deletion erases the data but leaves the Supabase sign-in behind, and says so. Play treats that as an incomplete deletion. Reported as `configured.account_deletion` |
+
+Note the service-role key is not like the others: it **bypasses row-level
+security entirely**. It belongs in Render's environment and nowhere else — never
+in `eas.json`, `mobile/.env`, or anything prefixed `EXPO_PUBLIC_` or `VITE_`,
+which are compiled into apps running on other people's devices.
 
 ---
 
@@ -166,9 +172,9 @@ The app had never been built for release. It has now.
 
 | What | How | Result |
 |---|---|---|
-| A production release bundle builds | `expo prebuild --clean` then `gradlew :app:bundleRelease`, twice | **BUILD SUCCESSFUL** — a 48 MB `app-release.aab` with all four ABIs, `lintVital` passing |
+| A production release bundle builds | `expo prebuild --clean` then `gradlew :app:bundleRelease` | **BUILD SUCCESSFUL** — a 50 MB `app-release.aab` with all four ABIs, `lintVital` passing. Rebuilt after every change below, including with Sentry in |
 | It targets the API level Play now demands | Read `uses-sdk` out of the built bundle's own merged manifest | `targetSdkVersion="36"` — Android 16. **The rule that took effect on 31 Aug 2026 is already met**, with no upgrade work needed |
-| It asks for only the permissions it needs | Read `uses-permission` out of the same merged manifest | `INTERNET`, plus one app-private AndroidX permission. Four unneeded ones were being requested and are now blocked — see `PLAY_STORE.md` §2 |
+| It asks for only the permissions it needs | Read `uses-permission` out of the same merged manifest | `INTERNET`, `ACCESS_NETWORK_STATE` (Sentry, normal-level, no prompt), plus one app-private AndroidX permission. Four unneeded ones were being requested and are now blocked — see `PLAY_STORE.md` §2. **No dangerous permission at all**: no location, camera, microphone, contacts or storage |
 | The EAS production profile emits an AAB, not an APK | `eas.json` | `"buildType": "app-bundle"` |
 | The launcher icon survives Android's mask | Composited the adaptive foreground over its background and drew the mask and safe-zone circles on the result | Fixed. It did not before — see below |
 | Type-checking, i18n and backend-URL tests | `npm run typecheck`, `npm test` | pass |
@@ -189,24 +195,74 @@ whether the session survives a real cold start — is still unknown.
 `ON_DEVICE.md` has the steps to run it over USB and the checklist to work
 through, and is explicit about which of those cannot be known until you do.
 
-### In-app account deletion does not exist — **blocks Play**
+### In-app account deletion — built
 
 Play requires any app that lets people create an account to offer deletion from
-inside the app, plus a web link for the same. Searching the repository finds no
-account-deletion UI on either client and no endpoint behind them. Business and
-location deletion exist; account deletion does not.
+inside the app, plus a web link for the same. Neither existed: searching the
+repository found no account-deletion UI on either client and no endpoint behind
+them. Deleting a *business* and a *location* existed; deleting the *account* did
+not.
 
-The web-link half is now satisfied (`/privacy#delete`). The in-app half will fail
-review. See `PLAY_STORE.md` §8 for the shape of the work — it needs a decision,
-because it means a new destructive endpoint and the Supabase service-role key as
-a new secret on Render.
+Both halves exist now. `/privacy#delete` is the link; the app half is at the
+bottom of Settings on web and on the phone — a quiet text link, then a panel
+saying exactly what will go, then a confirm.
 
-### Mobile has no crash reporting
+**Verified:** seven tests in `backend/tests/test_account_delete.py`. They cover
+that every business and every child row goes, including `SaleRecord`, which
+reaches the business only through its day and is the leg a hand-written table
+list forgets; that the subscription row goes, which hangs off `user_id` and is
+missed by the per-business cascade; that **another account is untouched**; that
+an account with nothing in it can still be deleted; and that an anonymous call
+is refused.
 
-`@sentry/react-native` is not installed and there is no Sentry call anywhere in
-`mobile/`. The web app has it; the phone does not. A beta tester whose app
-crashes on a handset you have never seen will simply stop using Ope. Adding it is
-a new dependency, so it needs a decision.
+**The case worth knowing:** without `SUPABASE_SERVICE_ROLE_KEY` on Render, the
+data is still erased but the Supabase sign-in survives. The endpoint reports
+that, and the clients show it rather than signing the owner out on a
+half-finished deletion — pinned by its own test. `/health` now reports the key
+as `configured.account_deletion`. **It is unset on Render today.**
+
+**Unverified:** the Supabase admin call itself. Every test stubs it, deliberately
+— these tests must not reach the network, and there is no service-role key here
+to reach it with. The first real deletion against the live project is the proof,
+and it cannot be run before the key is set.
+
+### Crash reporting on the phone — built
+
+`@sentry/react-native` 7.2.0, initialised in `App.tsx` before anything else runs,
+with the tree wrapped so a render crash is caught too. `sendDefaultPii` is
+explicitly false. Like the web app, it is conditional on a DSN: a build without
+`EXPO_PUBLIC_SENTRY_DSN` sends nothing. **The DSN is not set.**
+
+**Verified:** the app still type-checks, still passes its tests, and still
+builds a release bundle with Sentry in it — which was not a given, and did not
+hold at first (see below).
+
+**Unverified:** that a crash on a real handset actually arrives in Sentry.
+Nothing here can prove that; it needs a DSN and a phone.
+
+**Source maps are deliberately not uploaded.** Sentry's Expo config plugin adds
+a `sentry-cli` step to every release build that fails the build outright when no
+Sentry organisation is configured — tried, and it failed twice, with the JS
+bundle task itself dying on "An organization ID or slug is required".
+`SENTRY_DISABLE_AUTO_UPLOAD=true` does not rescue it. A plugin that breaks every
+release to feed a project that does not exist is worse than no plugin, so it is
+out, and stack traces will arrive against the minified bundle until a real
+Sentry project exists to point it at.
+
+### Two dependency faults the Sentry install exposed
+
+Neither was caused by Sentry; both were waiting for the next person to install
+this project from scratch.
+
+* **`@expo/vector-icons` was never a declared dependency.** Five screens import
+  it directly and it happened to be hoisted out of `expo`'s own tree, so it
+  resolved. On a clean `npm install` it lands nested instead, and the app stops
+  type-checking *and* stops bundling. Anyone cloning the repo would have hit it.
+  Now declared explicitly.
+* **`@types/react` was pinned below what React Native asks for** — `~19.0.0`
+  against react-native 0.81's `^19.1.0` — which made `npm install` refuse any
+  new package with a peer-dependency conflict. Raised to `~19.1.0`, which is
+  what Expo SDK 54 expects.
 
 ---
 
@@ -287,12 +343,12 @@ All green as of 2026-09-12.
 
 | Suite | Command | Result |
 |---|---|---|
-| Backend | `cd backend && python -m pytest` | **890 passed** |
+| Backend | `cd backend && python -m pytest` | **897 passed** |
 | Web unit | `cd web && npm test` | **91 passed** |
 | Web types | `cd web && npx tsc --noEmit` | clean |
 | Web build | `cd web && npm run build` | builds; `privacy-policy.html` confirmed in `dist/` |
-| Accessibility | `cd web && npm run test:a11y` | **114 passed**, 4 skipped |
-| Mobile | `cd mobile && npm test && npm run typecheck` | **11 passed**, types clean |
+| Accessibility | `cd web && npm run test:a11y` | **114 passed**, 4 skipped — one assertion rewritten, see below |
+| Mobile | `cd mobile && npm test && npm run typecheck` | **11 passed**, types clean — after a clean `rm -rf node_modules && npm install`, which is what exposed the two dependency faults above |
 | Year-long simulation | `python -m tests.simulation.run_year --to 365` then `score` | unchanged — see below |
 
 **The backend suite was not green when this run started.** Fifteen tests in
@@ -305,6 +361,23 @@ failing because the date had aged out, not because anything broke. Six SaleEvent
 timestamps were pinned to the same day and had the same problem. All of them are
 now derived from `date.today()`, which removes the fault rather than pushing it
 into next year.
+
+**One accessibility assertion was wrong, and only luck had been hiding it.**
+`the chart tables are translated` asserted the screen-reader table was *not
+visible* in Playwright's sense. Playwright calls anything with a non-empty box
+visible, and that table always has one: `sr-only` sets `width:1px`, but table
+layout treats that as a minimum and sizes to content regardless, so the table is
+a few hundred pixels wide whatever the class says. The assertion was really
+reading whether layout had settled yet, and a change that only altered load
+timing flipped it to failing — six times out of eight on repeat, while still
+passing on the first run after a reset, which is exactly how a flake disguises
+itself as a pass.
+
+It now asserts what genuinely hides such a table — `clip-path: inset(50%)` on an
+absolutely-positioned, overflow-hidden box — which is deterministic, and passed
+eight times out of eight on repeat. **Nothing about the app changed**: the table
+was correctly hidden all along, and the translation checks the test exists for
+are untouched.
 
 **Forecasting was not touched.** No file under `backend/app/engine/` changed, and
 the year-long simulation was re-run anyway: it still scores byte-identically to
@@ -346,7 +419,7 @@ money terms where a wrong verb makes an owner order the wrong quantity. Nothing
 on it has come back reviewed. The Play listing copy should go on that list too:
 it should be written in Hebrew by a person, not machine-translated.
 
-### Real-device mobile behaviour — blocks Play, and a launch
+### Real-device mobile behaviour — blocks a launch
 
 See the Android section above and `ON_DEVICE.md`. The build is proven; the phone
 is not.

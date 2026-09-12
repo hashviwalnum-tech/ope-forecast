@@ -28,9 +28,24 @@
 `/health` reports more than liveness: whether the test-only simulated clock is
 off (`clock`), and which optional integrations this deployment can actually
 perform (`configured`) — error reporting, feedback email, the Telegram bot, the
-bot service key, the admin key, and how many CORS origins are allowed. Booleans
-only, never the values. Recreating the Render service dropped `ALLOWED_ORIGINS`
-and `SENTRY_DSN` without anything failing; this is how that becomes visible.
+bot service key, the admin key, account deletion, and how many CORS origins are
+allowed. Booleans only, never the values. Recreating the Render service dropped
+`ALLOWED_ORIGINS` and `SENTRY_DSN` without anything failing; this is how that
+becomes visible.
+
+**`SUPABASE_SERVICE_ROLE_KEY` — set it, and treat it differently from the rest.**
+`DELETE /account` needs it to remove the Supabase auth user; without it the
+endpoint still erases every scrap of the account's data and then reports, to the
+owner's face, that the sign-in survived. `/health` shows it as
+`configured.account_deletion`.
+
+It is not like the other secrets here. The anon key is public by design and the
+database's row-level security is what stands behind it; the service-role key
+**bypasses row-level security entirely** and can read or write any row belonging
+to anyone. It lives only in Render's environment, is never sent to a client, and
+must never appear in `mobile/.env`, `web/.env`, `eas.json` or anything with
+`EXPO_PUBLIC_` or `VITE_` in the name — those are compiled into apps that run on
+other people's devices. Supabase → Project Settings → API → `service_role`.
 
 **What is and is not verified lives in one place: [VERIFICATION.md](VERIFICATION.md).**
 

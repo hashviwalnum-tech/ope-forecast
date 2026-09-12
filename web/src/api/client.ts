@@ -396,6 +396,27 @@ export const feedback = {
     POST<{ ok: boolean }>('/feedback', body),
 }
 
+export interface AccountDeleted {
+  businesses_deleted: number
+  /** False when the data went but the Supabase sign-in did not — the caller has
+   *  to say so rather than report a clean deletion. */
+  login_deleted: boolean
+  detail: string | null
+}
+
+export const account = {
+  /** Irreversible. Deletes every location the signed-in owner has, everything
+   *  under them, and the sign-in itself. Needs its own DELETE-with-a-body-less
+   *  response rather than the shared `DELETE` helper, which discards the reply. */
+  remove: async (): Promise<AccountDeleted> => {
+    const res = await fetchWithRetry(`${BASE}/account`, {
+      method: 'DELETE', headers: await authHeaders(),
+    })
+    if (!res.ok) throw await extractError(res)
+    return res.json()
+  },
+}
+
 export interface NudgeItem {
   type: string
   message: string

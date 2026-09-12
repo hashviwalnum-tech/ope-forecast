@@ -1,8 +1,28 @@
 import 'react-native-url-polyfill/auto'
 import { enableScreens } from 'react-native-screens'
+import * as Sentry from '@sentry/react-native'
 import { useEffect, useState } from 'react'
 
 enableScreens()
+
+// Crash reporting, before anything else runs, so a crash during startup is
+// still caught. The web app has had this since June; the phone had nothing at
+// all, which meant a beta tester whose app died on a handset nobody here owns
+// would simply stop using Ope and never be heard from.
+//
+// Same shape as web/src/main.tsx: no DSN, no Sentry. A missing environment
+// variable must leave the app working rather than crash it on launch, and it is
+// genuinely absent in development.
+const _sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN
+if (_sentryDsn) {
+  Sentry.init({
+    dsn: _sentryDsn,
+    // Off by default in the SDK, and left off deliberately: Ope's own users are
+    // shop owners, and an error report should not carry their email or their
+    // customers' names out to a third party.
+    sendDefaultPii: false,
+  })
+}
 import { View, ActivityIndicator } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
@@ -64,7 +84,7 @@ function AppRoot() {
   )
 }
 
-export default function App() {
+function App() {
   return (
     <SafeAreaProvider>
       <LanguageProvider>
@@ -75,3 +95,8 @@ export default function App() {
     </SafeAreaProvider>
   )
 }
+
+// `Sentry.wrap` is what catches a render crash in the tree below it. Without it
+// only errors thrown outside React would ever be reported, which is the smaller
+// half. It is a no-op when `init` was never called.
+export default Sentry.wrap(App)

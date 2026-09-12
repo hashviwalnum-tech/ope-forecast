@@ -20,6 +20,7 @@ import type { BusinessRead } from '../../api/types'
 import CurrencyPicker from '../../components/CurrencyPicker'
 import { useTheme, useAppTheme } from '../../contexts/ThemeContext'
 import { WEB_APP_URL } from '../../lib/urls'
+import { supabase } from '../../lib/supabase'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { LANG_LABELS, type Lang } from '../../lib/i18n'
 import type { Theme } from '../../lib/theme'
@@ -44,6 +45,32 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
   const styles = useMemo(() => makeStyles(c), [c])
 
   const s = business.settings
+
+  // Deleting the account is two deliberate taps rather than a typed magic
+  // word: plenty of owners are nervous with a keyboard, and a second button
+  // they have to find is just as hard to hit by accident.
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const result = await api.account.remove()
+      if (!result.login_deleted) {
+        // Data gone, sign-in not. Stay put and say so — signing them out here
+        // would hide a half-finished deletion behind a login screen.
+        setDeleteError(t('deleteAccountPartial'))
+        setDeleting(false)
+        return
+      }
+      await supabase.auth.signOut()
+    } catch {
+      setDeleteError(t('deleteAccountFailed'))
+      setDeleting(false)
+    }
+  }
 
   const [openingDays, setOpeningDays] = useState<number[]>(
     parseSetting<number[]>(s.opening_days, [0, 1, 2, 3, 4, 5, 6])
@@ -434,6 +461,57 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
               </View>
             )}
 
+            {/* ── Delete account ──
+                Play requires deletion from inside the app. Last thing on the
+                page, closed by default: findable when wanted, never in the way. */}
+            <View style={{ marginTop: 24 }}>
+              {!confirmingDelete ? (
+                <TouchableOpacity
+                  onPress={() => { setDeleteError(null); setConfirmingDelete(true) }}
+                  style={styles.deleteLinkBtn}
+                >
+                  <Text style={[styles.deleteLinkText, { color: c.textMuted }]}>
+                    {t('deleteAccountLabel')}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={[styles.deleteBox, { borderColor: c.danger, backgroundColor: c.dangerBg }]}>
+                  <Text style={[styles.deleteBoxText, { color: c.text }]}>
+                    {t('deleteAccountDesc')}
+                  </Text>
+                  {deleteError && (
+                    <Text
+                      accessibilityRole="alert"
+                      style={[styles.deleteBoxError, { color: c.danger }]}
+                    >
+                      {deleteError}
+                    </Text>
+                  )}
+                  <TouchableOpacity
+                    onPress={handleDeleteAccount}
+                    disabled={deleting}
+                    style={[
+                      styles.deleteConfirmBtn,
+                      { backgroundColor: c.danger, opacity: deleting ? 0.6 : 1 },
+                    ]}
+                  >
+                    {deleting
+                      ? <ActivityIndicator size="small" color="#ffffff" />
+                      : <Text style={styles.deleteConfirmText}>{t('deleteAccountConfirm')}</Text>}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setConfirmingDelete(false)}
+                    disabled={deleting}
+                    style={[styles.deleteCancelBtn, { borderColor: c.border }]}
+                  >
+                    <Text style={[styles.deleteCancelText, { color: c.text }]}>
+                      {t('cancel')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
             {/* ── Legal ── */}
             <View style={styles.legalRow}>
               <TouchableOpacity
@@ -561,6 +639,21 @@ function makeStyles(c: Theme) {
       paddingVertical: 13, alignItems: 'center',
     },
     tourBtnText: { fontSize: 15, fontWeight: '700' },
+
+    deleteLinkBtn: { paddingVertical: 12, alignItems: 'center' },
+    deleteLinkText: { fontSize: 14, textDecorationLine: 'underline' },
+    deleteBox: { borderRadius: 14, borderWidth: 1, padding: 16 },
+    deleteBoxText: { fontSize: 14, lineHeight: 20 },
+    deleteBoxError: { fontSize: 13, lineHeight: 19, marginTop: 12 },
+    deleteConfirmBtn: {
+      marginTop: 16, borderRadius: 12, paddingVertical: 14, alignItems: 'center',
+    },
+    deleteConfirmText: { fontSize: 15, fontWeight: '700', color: '#ffffff' },
+    deleteCancelBtn: {
+      marginTop: 10, borderRadius: 12, borderWidth: 1, paddingVertical: 14,
+      alignItems: 'center',
+    },
+    deleteCancelText: { fontSize: 15, fontWeight: '600' },
 
     legalRow: { marginTop: 28, marginBottom: 8, alignItems: 'center' },
     legalLink: { fontSize: 12, textDecorationLine: 'underline' },
