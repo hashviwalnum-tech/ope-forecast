@@ -173,7 +173,8 @@ inside Android's masks.
 - whether the session really survives a cold start on the device;
 - whether anything crashes in a way no simulator reproduces.
 
-**A caveat on Group E, today:** the backend is not answering, so every screen that
-needs data will show an error or an empty state. That is not a mobile bug. Run
-Group A, B, C, D and F now if you like, and come back to E once the backend is
-up.
+**A caveat on Group E:** the backend sleeps after about fifteen minutes idle and
+can take a minute or more to wake — occasionally much longer. The first screen
+you open may sit there for a while. That is the hosting, not a mobile bug. Open
+`https://ope-forecast-dj78.onrender.com/health` in a browser and wait for it to
+reply before starting Group E.

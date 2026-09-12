@@ -7,7 +7,7 @@ the billing rules changed twice during 2026.
 
 The one-line summary: the **app builds and its technical requirements are met**;
 what blocks submission is **paperwork plus one missing feature** (in-app account
-deletion), and the fact that the backend the app talks to is currently down.
+deletion), plus the free-tier backend's unreliable wake-up.
 
 ---
 
@@ -153,11 +153,11 @@ Generated into `mobile/assets/`:
 | `adaptive-icon-background.png` | the gradient, full bleed |
 | `logo-rounded.png` | the original artwork with its corners made *transparent* instead of black, for the splash screen over its pale background |
 
-**About screenshots.** They must show the app actually working, and right now it
-cannot: the backend is unreachable, so every screen would show an error or an
-empty state. Take them once the backend answers again — from a phone, or from the
-Pixel 7 emulator already configured on this machine — signed in to a business
-with a few weeks of data, so the charts have something in them.
+**About screenshots.** They must show the app actually working, so take them
+against a business that has a few weeks of data in it, with the backend awake —
+from a phone, or from the Pixel 7 emulator already configured on this machine.
+Wake the backend first with a request to `/health` and wait for it to answer,
+or the screens will photograph as spinners.
 
 A good set of five: the Log (tap-to-record) screen, the week forecast, what to
 order, busy hours, and the insights view.
@@ -362,12 +362,14 @@ key as a new environment variable on Render.
 That last part is a new secret and a new destructive endpoint, so it has **not**
 been built without asking.
 
-### The backend is down — blocks everything downstream
+### The backend sleeps, and its wake-up is unreliable
 
-`ope-forecast-dj78.onrender.com` accepts a TLS connection and then never answers,
-across repeated attempts of up to four minutes. An app submitted in this state
-would fail review at first launch, and no screenshot can be taken until it is
-back. See `VERIFICATION.md`.
+`ope-forecast-dj78.onrender.com` is on Render's free tier. It spent about fifteen
+minutes today accepting connections and returning nothing at all, then woke and
+answered in 62 seconds. A reviewer who opens the app during one of those spells
+sees an app that does not work, and Play does reject for that. Keep it awake with
+a ten-minute health ping, or move off the free tier, before submitting. See
+`VERIFICATION.md`.
 
 ### The phone has no crash reporting
 
@@ -409,7 +411,8 @@ none ship, and set the target audience to **18 and over**.
 
 ## 10. The order to do things in
 
-1. Get the backend answering again — nothing below can be checked until it does.
+1. Stop the backend sleeping — a ten-minute ping, or the paid tier. Screenshots
+   and any review pass both depend on it.
 2. Build in-app account deletion (needs a decision — section 8).
 3. Add Sentry to the phone (needs a decision — section 8).
 4. Run the app on a real phone and work through the on-device checklist.

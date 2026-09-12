@@ -23,10 +23,10 @@ strangers. **Blocks Play** means Google will not accept the app until it is done
 
 | Gap | Status | Blocks |
 |---|---|---|
-| The backend does not answer at all | **Broken now** | **A pilot** |
+| The backend can take 15+ minutes to wake, and sometimes refuses to | **Flaky** | **A pilot** |
 | Vercel is serving a months-old build that calls the retired backend | **Broken now** | **A pilot** |
 | Email confirmation is still off, and Supabase cannot send mail at all | **Broken now** | **A launch** |
-| Every optional Render variable — unknown, because `/health` is unreachable | **Unknown** | **A pilot** |
+| Three Render variables still unset — Telegram bot, bot service key, admin key | **Partly fixed** | A launch |
 | No in-app account deletion | **Missing** | **Play** |
 | No crash reporting on mobile | **Missing** | A launch |
 | Password reset | Built; the link itself cannot be tested until mail works | **A launch** |
@@ -41,32 +41,37 @@ strangers. **Blocks Play** means Google will not accept the app until it is done
 
 ## Broken right now
 
-### The backend does not answer — **blocks a pilot, and everything else**
+### The backend sleeps hard, and sometimes will not wake — **blocks a pilot**
 
-This is new today and it is worse than the frontend problem below.
+Not the outright outage it first looked like, and the difference matters.
 
-`https://ope-forecast-dj78.onrender.com` — the *current* backend, not the retired
-one — resolves, accepts a TLS connection, accepts the request, and then **returns
-nothing at all**. Tested against `/health` and `/`, with timeouts of 30s, 60s,
-90s, 120s (three times) and 240s. Every one returned zero bytes.
+`https://ope-forecast-dj78.onrender.com` spent roughly fifteen minutes refusing
+to answer at all. It resolved, accepted the TLS connection, accepted the request,
+and returned **zero bytes** — across timeouts of 30s, 60s, 90s, 120s (three
+times) and 240s, and on `/` as well as `/health`:
 
     * Established connection to ope-forecast-dj78.onrender.com (216.24.57.15:443)
     > GET /health HTTP/1.1
     * Request completely sent off
     * Operation timed out after 30011 milliseconds with 0 bytes received
 
-That is not a Render free-tier cold start, which completes in about 45 seconds.
-It is the same failure signature the *retired* host shows — connection accepted,
-then silence — which is what made the earlier bug so hard to see.
+Some time later, unprompted, it answered in **62 seconds** and has been healthy
+since. Every live probe below was then re-run successfully against it.
 
-It cannot be diagnosed from here; it needs the Render dashboard. Look at whether
-the service is suspended, whether the last deploy failed, and whether the start
-command is hanging before it binds a port (a database connection that never times
-out would do exactly this).
+So the service is not broken — it is on Render's free tier, which sleeps after
+about fifteen minutes of inactivity, and its wake-up is far worse than the ~45
+seconds that is usually quoted. Sometimes it does not complete at all.
 
-Everything downstream is blocked by it: `probe_tenancy`, `probe_postgres_parity`,
-the `/health` environment-variable check, Play screenshots, and any end-to-end
-test of the live site.
+**Why this still blocks a pilot.** An owner opening Ope first thing in the
+morning is, by definition, hitting a sleeping backend. A minute of nothing is
+already bad; the several attempts that returned nothing at all would look to them
+exactly like the app being broken. The clients do retry through a cold start, but
+they cannot retry through a wake that never finishes.
+
+The fix is not code. It is either Render's paid tier, which does not sleep, or
+something that pings `/health` every ten minutes to keep it awake. The second is
+free and takes five minutes to set up with any uptime-monitor service, and is
+worth doing before a real business is handed the app.
 
 ### Vercel is serving a build from before the fix — **blocks a pilot**
 
@@ -133,29 +138,25 @@ round trip stays untested. The moment mail works, `probe_tenancy` checks the
 confirmation gate automatically, and the password-reset round trip is a
 ten-minute job with a throwaway inbox.
 
-### Render environment variables — **unknown**
+### Render environment variables — three of six still unset
 
-`/health` reports which optional variables are set, and `/health` is unreachable,
-so this could not be re-checked. It was last seen as all-unset:
+Re-read from the live `/health` on 2026-09-12 once the service woke:
 
 ```json
 "configured": {
-  "error_reporting": false, "feedback_email": false, "telegram_bot": false,
+  "error_reporting": true, "feedback_email": true, "telegram_bot": false,
   "bot_service_key": false, "admin_key": false, "cors_origins": 2
 }
 ```
 
-| Variable | What is broken while it is unset |
-|---|---|
-| `SENTRY_DSN` | Crashes go to the Render log and nowhere else |
-| `FEEDBACK_FROM_EMAIL` / `_PASSWORD` | The in-app feedback form answers 503 — the one channel a beta user has |
-| `TELEGRAM_BOT_TOKEN` | The bot cannot reply |
-| `BOT_SERVICE_KEY` | The bot cannot call the API |
-| `ADMIN_KEY` | No manual tier grant, the only route to premium until billing exists |
-| `ALLOWED_ORIGINS` | Nothing, for now — `cors_origins: 2` is the built-in default. Set it anyway; the default is a safety net, not configuration |
-
-Re-check with `GET /health`, or `python -m tests.deployment.probe_tenancy`, once
-the service answers.
+| Variable | State | What that means |
+|---|---|---|
+| `SENTRY_DSN` | **Set** | Backend crashes now reach Sentry instead of dying in the Render log |
+| `FEEDBACK_FROM_EMAIL` / `_PASSWORD` | **Set** | The in-app feedback form should work now. It has not been sent end to end — worth one real submission to confirm the mail actually arrives, since it uses SMTP directly rather than Supabase |
+| `TELEGRAM_BOT_TOKEN` | **Unset** | The bot cannot reply |
+| `BOT_SERVICE_KEY` | **Unset** | The bot cannot call the API |
+| `ADMIN_KEY` | **Unset** | No manual tier grant — the only route to premium until billing exists. Set this before any pilot who is meant to see premium |
+| `ALLOWED_ORIGINS` | Unset, defaulted | `cors_origins: 2` is the built-in default. Harmless for now; set it anyway, because the default is a safety net rather than configuration |
 
 ---
 
@@ -232,14 +233,14 @@ safety answers derived from the same audit are in §7.
 
 ## Verified against the live deployment
 
-These were run against Render + Supabase Postgres, not a local SQLite file.
-**Everything below predates today's outage** — the dates say when each was last
-actually run, and none of them could be re-run today.
+These were run against Render + Supabase Postgres, not a local SQLite file. The
+dates say when each was last actually run; the two isolation probes were re-run
+today, once the backend woke.
 
 | What | How | Result | Last run |
 |---|---|---|---|
-| The published anon key cannot read any table | `python -m tests.deployment.probe_rls` | All 19 tables refused by row-level security | 2026-09-08 |
-| One tenant cannot reach another's data | `python -m tests.deployment.probe_tenancy` | Every isolation check held: no token → 401; a valid token naming another business's id returns the caller's own; reading, writing and deleting another tenant's business all refused | 2026-09-08 |
+| The published anon key cannot read any table | `python -m tests.deployment.probe_rls` | All 21 tables refused by row-level security | **2026-09-12** |
+| One tenant cannot reach another's data | `python -m tests.deployment.probe_tenancy` | Every isolation check held again: no token → 401 on all four endpoints; a valid token naming another business's id returns the caller's own; reading, writing and deleting another tenant's business all refused; a forecast ran against Postgres. The run's only failure is the three unset environment variables above | **2026-09-12** |
 | Postgres computes what SQLite computes | `python -m tests.deployment.probe_postgres_parity` | Identical answers on all 11 analytics endpoints for the same three weeks of trading | 2026-09-08 |
 | The simulated clock is off in production | `GET /health` → `clock: "live"` | Confirmed on the running process, not just in the source | 2026-09-08 |
 | Signup → login → onboarding → first data entry, through the real UI | Driven in a browser against the live backend and Supabase | Works — but from a local dev server, because the deployed bundle cannot reach the backend | 2026-09-08 |
@@ -411,12 +412,14 @@ python -m tests.deployment.report_timezones --sql  # what the backfill decided
 python -m tests.deployment.find_business_orphans --sql
 ```
 
-All of these need the backend answering; today they stop at the first check.
+All of these need the backend awake. If the first one hangs, that is the cold
+start in the section above — wait a minute and run it again rather than assuming
+the service is down.
 
 The two live probes create throwaway accounts and delete what they can. The API
 will not delete an account's last location, by design, so each run leaves one
 empty business behind; `find_business_orphans --purge-businesses <ids>` writes
-the SQL to clear them.
+the SQL to clear them. Today's run left businesses **31 and 32**.
 
 From `web/`: `npm test`, `npm run test:a11y`, `npx tsc --noEmit`, `npm run build`.
 From `mobile/`: `npm test`, `npm run typecheck`.
