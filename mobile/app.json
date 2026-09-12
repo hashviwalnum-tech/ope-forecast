@@ -4,10 +4,10 @@
     "slug": "ope-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/applogo.png",
+    "icon": "./assets/icon-1024.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/applogo.png",
+      "image": "./assets/logo-rounded.png",
       "resizeMode": "contain",
       "backgroundColor": "#EBF4F0"
     },
@@ -17,11 +17,19 @@
     },
     "android": {
       "package": "com.opeforecast.app",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/applogo.png",
-        "backgroundColor": "#EBF4F0"
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
+        "backgroundImage": "./assets/adaptive-icon-background.png",
+        "backgroundColor": "#1E9FD6"
       },
-      "permissions": []
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.VIBRATE",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     }
   }
 }

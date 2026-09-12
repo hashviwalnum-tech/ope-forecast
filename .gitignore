@@ -39,3 +39,9 @@ docs/simulation/score_*.txt
 # public by design — they ship inside the app bundle — but the file still has no
 # business in git.
 mobile/.env
+
+# Expo generates mobile/android and mobile/ios from app.json on demand
+# (`expo prebuild` / `expo run:android`). Committing them means they drift from
+# the config that is meant to be the single source of truth.
+mobile/android/
+mobile/ios/

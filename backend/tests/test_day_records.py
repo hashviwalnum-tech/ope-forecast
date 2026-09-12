@@ -1,4 +1,6 @@
 """Tests for POST /day-records duplicate detection, CORS on error responses, and PUT overwrite."""
+from datetime import date, timedelta
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -7,9 +9,17 @@ from app.engine.limits import Tier
 from app.db import get_db
 from app.main import app
 
-# Dates within the free-tier 1-year history window (today is 2026-06-07).
-DATE_A = "2025-09-10"
-DATE_B = "2025-09-11"
+# Two past dates inside the free-tier one-year history window.
+#
+# These were once written out in full, chosen against the date the file was
+# written.  The window moves and the constants did not, so on the day they
+# slipped past a year old every test here began failing with 403 — a suite that
+# broke because of the calendar rather than because of a change.  Deriving them
+# from today keeps them inside the window for good.
+DATE_A = str(date.today() - timedelta(days=90))
+DATE_B = str(date.today() - timedelta(days=89))
+# The same day as DATE_A, for building SaleEvent timestamps that have to land on it.
+DAY_A = date.fromisoformat(DATE_A)
 
 
 @pytest.fixture()
@@ -97,7 +107,7 @@ def test_reconciliation_hours_exceed_manual_uses_hours_sum(day_client, db, biz):
         db.add(SaleEvent(
             business_id=biz.id,
             product_id=None,
-            timestamp=datetime.datetime(2025, 9, 10, 10, minute, 0),
+            timestamp=datetime.datetime(DAY_A.year, DAY_A.month, DAY_A.day, 10, minute, 0),
             quantity=1.0,
         ))
     db.commit()
@@ -132,14 +142,14 @@ def test_reconciliation_closed_hour_events_excluded(day_client, db, biz):
         db.add(SaleEvent(
             business_id=biz.id,
             product_id=None,
-            timestamp=datetime.datetime(2025, 9, 10, 10, minute, 0),
+            timestamp=datetime.datetime(DAY_A.year, DAY_A.month, DAY_A.day, 10, minute, 0),
             quantity=1.0,
         ))
     for minute in range(50):
         db.add(SaleEvent(
             business_id=biz.id,
             product_id=None,
-            timestamp=datetime.datetime(2025, 9, 10, 22, minute, 0),
+            timestamp=datetime.datetime(DAY_A.year, DAY_A.month, DAY_A.day, 22, minute, 0),
             quantity=1.0,
         ))
     db.commit()
@@ -164,7 +174,7 @@ def test_no_warning_when_events_under_total(day_client, db, biz):
         db.add(SaleEvent(
             business_id=biz.id,
             product_id=None,
-            timestamp=datetime.datetime(2025, 9, 10, 10, minute, 0),
+            timestamp=datetime.datetime(DAY_A.year, DAY_A.month, DAY_A.day, 10, minute, 0),
             quantity=1.0,
         ))
     db.commit()
@@ -301,13 +311,13 @@ def test_reconciliation_uses_local_hour_not_utc_hour(day_client, db, biz):
     for minute in range(5):
         db.add(SaleEvent(
             business_id=biz.id, product_id=None,
-            timestamp=datetime.datetime(2025, 9, 10, 7, minute, 0),
+            timestamp=datetime.datetime(DAY_A.year, DAY_A.month, DAY_A.day, 7, minute, 0),
             quantity=1.0,
         ))
     for minute in range(50):
         db.add(SaleEvent(
             business_id=biz.id, product_id=None,
-            timestamp=datetime.datetime(2025, 9, 10, 15, minute, 0),
+            timestamp=datetime.datetime(DAY_A.year, DAY_A.month, DAY_A.day, 15, minute, 0),
             quantity=1.0,
         ))
     db.commit()

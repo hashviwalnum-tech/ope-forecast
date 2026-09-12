@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
+  Linking,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -18,6 +19,7 @@ import * as api from '../../api/client'
 import type { BusinessRead } from '../../api/types'
 import CurrencyPicker from '../../components/CurrencyPicker'
 import { useTheme, useAppTheme } from '../../contexts/ThemeContext'
+import { WEB_APP_URL } from '../../lib/urls'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { LANG_LABELS, type Lang } from '../../lib/i18n'
 import type { Theme } from '../../lib/theme'
@@ -431,6 +433,16 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
                 </TouchableOpacity>
               </View>
             )}
+
+            {/* ── Legal ── */}
+            <View style={styles.legalRow}>
+              <TouchableOpacity
+                onPress={() => Linking.openURL(`${WEB_APP_URL}/privacy`)}
+                accessibilityRole="link"
+              >
+                <Text style={[styles.legalLink, { color: c.textMuted }]}>{t('privacyPolicy')}</Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -549,5 +561,8 @@ function makeStyles(c: Theme) {
       paddingVertical: 13, alignItems: 'center',
     },
     tourBtnText: { fontSize: 15, fontWeight: '700' },
+
+    legalRow: { marginTop: 28, marginBottom: 8, alignItems: 'center' },
+    legalLink: { fontSize: 12, textDecorationLine: 'underline' },
   })
 }

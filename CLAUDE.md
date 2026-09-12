@@ -10,9 +10,15 @@ Always-loaded spine (auto-included below):
 - `docs/DATA_MODEL.md` — entities, ordering lifecycle, batch/FIFO shelf-life, data-integrity rules
 - `docs/FEATURES.md` — design language, UI features, staffing/queueing, premium gating
 - `docs/MOBILE.md` — Phase 4 mobile detail, Phase 4.5 beta readiness
+- `docs/ON_DEVICE.md` — how to run the app on a real Android phone over USB, the
+  on-device checklist, and what cannot be known until it is run
+- `docs/PLAY_STORE.md` — Google Play requirements, permissions audit, listing copy,
+  icon assets, Data safety and content-rating answers, and what still blocks submission
+- `docs/BILLING_PLATFORMS.md` — where Ope is allowed to take money, and what each
+  route costs. Read before building anything that charges
 - `docs/OPERATIONS.md` — deploy, auth, Telegram, billing, engineering conventions
-- `docs/EMAIL.md` — the two separate outbound-email paths, SMTP setup, and why
-  password reset does not exist yet
+- `docs/EMAIL.md` — the two separate outbound-email paths, SMTP setup, and the
+  password-reset flow (built; the link itself is untestable until SMTP works)
 - `docs/VERIFICATION.md` — **what has actually been checked and what has not**, and which gaps block a pilot rather than a launch. Read it before claiming anything works end to end.
 
 ## How to work with me (important)
@@ -72,5 +78,14 @@ Phase 1 = MVP, **no login / no billing / single local user**. Prove the forecast
   after a change rather than expecting zero.
 
 **Mobile** (from `mobile/`)
-- Type-check: `npx tsc --noEmit`
-- Run on a device: `npx expo start`, then scan the QR code with Expo Go
+- Type-check: `npm run typecheck`
+- Tests: `npm test`
+- Run on a device over USB: `npx expo run:android` — see `docs/ON_DEVICE.md`
+- Or over Wi-Fi: `npx expo start`, then scan the QR code with Expo Go
+- Build a release bundle: `npx expo prebuild --platform android --clean`, then
+  `cd android && ./gradlew :app:bundleRelease`. **Use JDK 21**
+  (`JAVA_HOME=~/.jdks/jbr-21.0.11`) — Gradle 8.14 cannot build under the JDK 25
+  Android Studio bundles, and fails with "Unsupported class file major version 69"
+  only after `gradlew --version` has reported everything as fine.
+- `mobile/android/` is generated from `app.json` and is not committed. Change the
+  config, not the generated project.
