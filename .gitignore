@@ -45,3 +45,7 @@ mobile/.env
 # the config that is meant to be the single source of truth.
 mobile/android/
 mobile/ios/
+
+# Local secrets file. Never commit it, whatever extension Windows gives it.
+keys.env
+keys.env.*
