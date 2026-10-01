@@ -66,7 +66,9 @@ Phase 1 = MVP, **no login / no billing / single local user**. Prove the forecast
   reachable. Run it after adding a table.
 - Dependencies: `requirements.txt` pins **every** package, transitive ones
   included (an unpinned SQLAlchemy 2.1 once broke a deploy). Never add an
-  unpinned line — a test fails if you do. To upgrade: fresh venv, install the
+  unpinned line — a test fails if you do. Render runs **Python 3.11.16** (its
+  `PYTHON_VERSION` setting, which overrides `.python-version`), so resolve on
+  3.11: many new releases need 3.12. To upgrade: fresh 3.11 venv, install the
   "Direct" names without versions, run `pytest`, paste `pip freeze` back, re-add
   the `uvloop ... ; sys_platform != "win32"` line. Web and mobile are locked by
   their committed `package-lock.json`; Vercel installs with `npm ci`.
