@@ -64,6 +64,12 @@ Phase 1 = MVP, **no login / no billing / single local user**. Prove the forecast
 - Probe live RLS: `python -m tests.deployment.probe_rls` — asks the deployed
   Supabase project, using the published anon key, whether any table is
   reachable. Run it after adding a table.
+- Dependencies: `requirements.txt` pins **every** package, transitive ones
+  included (an unpinned SQLAlchemy 2.1 once broke a deploy). Never add an
+  unpinned line — a test fails if you do. To upgrade: fresh venv, install the
+  "Direct" names without versions, run `pytest`, paste `pip freeze` back, re-add
+  the `uvloop ... ; sys_platform != "win32"` line. Web and mobile are locked by
+  their committed `package-lock.json`; Vercel installs with `npm ci`.
 
 **Web** (from `web/`)
 - Dev server: `npm run dev`
