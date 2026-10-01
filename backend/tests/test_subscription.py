@@ -91,20 +91,16 @@ def test_trial_expired_is_free(db, auth_client):
     assert data["trial_days_remaining"] == 0
 
 
-# ── 4. POST /subscription/checkout returns a checkout_url ────────────────────
+# ── 4. There is no way to buy premium except through Google Play ───────────
 
-def test_checkout_returns_url(auth_client):
-    body = {
-        "plan": "monthly",
-        "success_url": "https://example.com/success",
-        "cancel_url": "https://example.com/cancel",
-    }
-    resp = auth_client.post("/subscription/checkout", json=body)
-    assert resp.status_code == 200, resp.text
-    data = resp.json()
-    assert "checkout_url" in data
-    assert "stub=1" in data["checkout_url"]
-    assert "monthly" in data["checkout_url"]
+@pytest.mark.parametrize("path", [
+    "/subscription/checkout", "/subscription/cancel", "/subscription/webhook",
+])
+def test_the_stub_purchase_endpoints_are_gone(auth_client, path):
+    """Premium is bought only in the Android app, through Google Play. The old
+    stub checkout handed out premium to anyone who asked; the old webhook was
+    Stripe-shaped; cancelling is done in the Play Store."""
+    assert auth_client.post(path, json={}).status_code in (404, 405)
 
 
 # ── 5. GET /admin/subscriptions requires X-Admin-Key ─────────────────────────

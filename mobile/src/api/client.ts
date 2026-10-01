@@ -187,8 +187,6 @@ export const businesses = {
     /** ISO 4217 code, e.g. "ILS". Rejected by the API if it is not a real one. */
     currency?: string
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
-  setTier: (tier: 'free' | 'premium') =>
-    PATCH<BusinessRead>('/businesses/me/tier', { tier }),
 }
 
 export const analytics = {

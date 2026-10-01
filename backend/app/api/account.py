@@ -17,6 +17,13 @@ Two halves, and they fail independently on purpose:
    Supabase refuses, the data is still gone and the response says so plainly
    rather than pretending.
 
+Before either, a **renewing Google Play subscription is cancelled** through
+Google.  Deleting the Ope account does not stop Google charging, so an owner who
+deletes while subscribed would keep paying for an account that no longer exists.
+If that cancellation cannot be done — Google unreachable, credentials missing —
+nothing is deleted, and the owner is told to cancel in the Play Store first and
+why (``409 play_subscription_active``; each app shows its own translation).
+
 The order matters.  Data first, login second: an account whose data is gone but
 whose login survives is a recoverable mess someone can finish by hand.  The
 reverse — a login deleted while the rows remain — leaves orphan data nobody can
@@ -31,12 +38,14 @@ import ssl
 import urllib.error
 import urllib.request
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.business_cascade import delete_business_data
 from app.api.deps import get_current_user
+from app.billing.entitlement import RENEWING_STATUSES
+from app.billing.google_play import PROVIDER, PlayClient, PlayError, get_play_client, sync_from_google
 from app.db import get_db
 from app.models import Business
 from app.models.subscription import Subscription
@@ -96,16 +105,44 @@ def _delete_auth_user(user_id: str) -> tuple[bool, str | None]:
         return False, "The sign-in could not be reached to be removed."
 
 
+#: The error code the apps translate into "cancel it in the Play Store first".
+PLAY_SUBSCRIPTION_ACTIVE = "play_subscription_active"
+
+
+def _cancel_play_subscription(db: Session, sub: Subscription | None, play: PlayClient | None) -> None:
+    """Stop Google charging, or raise so that nothing is deleted."""
+    if (sub is None or sub.subscription_provider != PROVIDER
+            or not sub.subscription_provider_id
+            or sub.subscription_status not in RENEWING_STATUSES):
+        return
+    if play is None:
+        log.error("Account %s has a renewing Play subscription and Play is not configured", sub.user_id)
+        raise HTTPException(409, PLAY_SUBSCRIPTION_ACTIVE)
+    try:
+        # Ask first: they may already have cancelled in the Play Store and the
+        # notification has not reached us.
+        state = sync_from_google(db, sub, play, sub.subscription_provider_id)
+        if state.status in RENEWING_STATUSES:
+            play.cancel(sub.play_product_id or "", sub.subscription_provider_id)
+    except PlayError as e:
+        log.error("Could not cancel Play subscription for %s: %s", sub.user_id, e)
+        raise HTTPException(409, PLAY_SUBSCRIPTION_ACTIVE)
+
+
 @router.delete("", response_model=AccountDeleted)
 def delete_account(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
+    play: PlayClient | None = Depends(get_play_client),
 ):
     """Delete the caller's account: every business they own, then the sign-in.
 
     Irreversible, and deliberately has no "are you sure" of its own — the
     confirmation belongs in the client, where the person is.
     """
+    sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
+    _cancel_play_subscription(db, sub, play)
+
     businesses = db.query(Business).filter(Business.user_id == user_id).all()
 
     # One transaction for all of it: a failure part-way leaves the account whole

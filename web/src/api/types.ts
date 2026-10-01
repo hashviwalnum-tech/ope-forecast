@@ -197,13 +197,14 @@ export interface SubscriptionRead {
   trial_started_at: string | null
   trial_ends_at: string | null
   trial_days_remaining: number | null
-  subscription_status: string  // "none" | "active" | "cancelled" | "expired"
-  subscription_provider: string | null
-  renewal_at: string | null
-}
-
-export interface CheckoutResponse {
-  checkout_url: string
+  /** "none" | "active" | "grace" | "on_hold" | "paused" | "cancelled" |
+   *  "expired" | "pending" | "unknown" — see backend app/billing/entitlement.py */
+  subscription_status: string
+  subscription_provider: string | null   // "google_play" or null
+  renewal_at: string | null              // paid through
+  manual_grant: boolean
+  manual_grant_ends_at: string | null
+  play_account_id: string
 }
 
 // ── Analytics ──────────────────────────────────────────────────────────────

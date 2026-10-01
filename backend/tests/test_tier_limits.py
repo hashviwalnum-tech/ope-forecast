@@ -216,13 +216,19 @@ def test_a_stale_tier_string_left_in_settings_is_ignored(db, sim_clock):
 
 
 def test_an_explicit_admin_grant_is_still_honoured(db, sim_clock):
-    """The one deliberate exception: a manual grant behind the server's own key."""
+    """The one deliberate manual path: a grant on the Subscription row, set
+    behind the server's own key. The old settings override no longer counts —
+    startup moves it onto the row (tests/test_billing_play_api.py)."""
     from app.api.deps import resolve_tier
     from app.models import Business
+    from app.models.subscription import Subscription
 
     clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))
     db.add(Business(name="Granted", user_id=USER,
                     settings={"tier": "premium", "tier_admin_override": True}))
+    db.commit()
+    assert not resolve_tier(db, USER).is_premium, "settings are never read"
+    db.add(Subscription(user_id=USER, tier="free", manual_grant=True))
     db.commit()
     assert resolve_tier(db, USER).is_premium
 
@@ -249,7 +255,9 @@ def test_nothing_reads_a_tier_out_of_settings():
     from pathlib import Path
 
     app_dir = Path(__file__).resolve().parents[1] / "app"
-    allowed = {"app/api/deps.py", "app/api/businesses.py"}
+    # grants.py reads the legacy override once, to move it onto the
+    # Subscription row and delete it.
+    allowed = {"app/billing/grants.py"}
 
     offenders = []
     for path in app_dir.rglob("*.py"):
@@ -342,9 +350,8 @@ def test_paying_takes_effect_on_the_very_next_request(tier_client, sim_clock, db
     happened to refresh the flag — the mirror image of the trial that never
     ended, and the one that would have cost a paying customer their purchase.
 
-    (The webhook handler itself is a no-op until a real provider is wired up:
-    `payment_provider.verify_webhook` returns `{}` for the stub. This drives the
-    subscription row directly, which is what that handler will do.)
+    (This drives the subscription row directly, which is what the Google Play
+    path does — tests/test_billing_play_api.py covers it with a fake Google.)
     """
     from app.models.subscription import Subscription
 
@@ -366,19 +373,20 @@ def test_paying_takes_effect_on_the_very_next_request(tier_client, sim_clock, db
     )
 
 
-def test_cancelling_removes_the_entitlement_at_once(tier_client, sim_clock, db):
+def test_cancelling_keeps_premium_until_the_paid_period_ends(tier_client, sim_clock, db):
+    """Cancelling on Google Play turns off renewal; the owner has paid up to the
+    end of the period and keeps premium exactly until then — not a day more."""
     from app.models.subscription import Subscription
 
     clock.freeze(datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc))
     _new_account(tier_client)
     sub = db.query(Subscription).filter_by(user_id=USER).first()
-    sub.subscription_status = "active"
+    sub.subscription_status = "cancelled"
+    sub.renewal_at = datetime(2026, 3, 10, tzinfo=timezone.utc)
     db.commit()
     clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))
     assert tier_client.post("/businesses", json={"name": "Second"}).status_code == 201
-
-    r = tier_client.post("/subscription/cancel")
-    assert r.status_code == 200, r.text
+    clock.freeze(datetime(2026, 3, 10, 0, 0, 1, tzinfo=timezone.utc))
     assert tier_client.post("/businesses", json={"name": "Third"}).status_code == 403
 
 

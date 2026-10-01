@@ -701,7 +701,6 @@ function AppInner() {
           {tab === 'history'          && <DayList refreshKey={refreshKey} />}
           {tab === 'import'           && <CsvImport onImported={afterImport} />}
           {tab === 'settings'         && <BusinessSettings
-            onTierChanged={() => loadBusinesses(activeBusiness?.id)}
             onReplayTour={() => {
               clearTourDone(activeBusiness.id)
               setShowTour(true)

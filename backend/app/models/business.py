@@ -12,9 +12,9 @@ class Business(Base):
     user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     # opening_days (list[int] 0-6), default_lead_time_days, target_service_level, etc.
     #
-    # NOTE: settings may still carry a legacy "tier" key, and carries
-    # "tier_admin_override"/"tier" as the deliberate manual-grant path. Neither
-    # is the tier. There is deliberately **no `.tier` property here**: it used to
+    # NOTE: old rows may carry legacy "tier"/"tier_admin_override" keys until
+    # startup moves them onto the Subscription row (app/billing/grants.py).
+    # Neither is the tier. There is deliberately **no `.tier` property here**: it used to
     # read settings["tier"], a cache that only some code paths refreshed, and
     # every entitlement leak found in testing was code reading that cache
     # without refreshing it first — a trial that never ended, and three Telegram

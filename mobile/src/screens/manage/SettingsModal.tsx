@@ -66,8 +66,12 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
         return
       }
       await supabase.auth.signOut()
-    } catch {
-      setDeleteError(t('deleteAccountFailed'))
+    } catch (e) {
+      // A renewing Google Play subscription that could not be cancelled for
+      // them: nothing was deleted, and they need to know why.
+      setDeleteError(e instanceof Error && e.message === 'play_subscription_active'
+        ? t('deleteAccountPlaySubActive')
+        : t('deleteAccountFailed'))
       setDeleting(false)
     }
   }

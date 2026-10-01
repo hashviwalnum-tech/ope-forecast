@@ -38,6 +38,8 @@ from app.api import account as account_api
 from app.api import nudges as nudges_api
 from app.api import dev_catchup as dev_catchup_api
 from app.api import subscriptions as subscriptions_api
+from app.api import billing as billing_api
+from app.billing.grants import migrate_admin_overrides_to_grants
 from app.api import currencies as currencies_api
 from app.api import planning as planning_api
 
@@ -158,7 +160,8 @@ def _migrate_sqlite_subscriptions(eng) -> None:
     # create_all handles the new table; this only patches existing partial tables
     if "subscriptions" not in inspector.get_table_names():
         return
-    existing = {col["name"] for col in inspector.get_columns("subscriptions")}
+    columns = {col["name"]: col for col in inspector.get_columns("subscriptions")}
+    existing = set(columns)
     with eng.connect() as conn:
         if "subscription_provider" not in existing:
             conn.execute(text("ALTER TABLE subscriptions ADD COLUMN subscription_provider TEXT"))
@@ -166,6 +169,22 @@ def _migrate_sqlite_subscriptions(eng) -> None:
             conn.execute(text("ALTER TABLE subscriptions ADD COLUMN subscription_provider_id TEXT"))
         if "renewal_at" not in existing:
             conn.execute(text("ALTER TABLE subscriptions ADD COLUMN renewal_at TIMESTAMP"))
+        if "play_product_id" not in existing:
+            conn.execute(text("ALTER TABLE subscriptions ADD COLUMN play_product_id VARCHAR(100)"))
+        if "manual_grant" not in existing:
+            conn.execute(text(
+                "ALTER TABLE subscriptions ADD COLUMN manual_grant BOOLEAN NOT NULL DEFAULT FALSE"
+            ))
+        if "manual_grant_ends_at" not in existing:
+            conn.execute(text("ALTER TABLE subscriptions ADD COLUMN manual_grant_ends_at TIMESTAMP"))
+        # A Play purchase token has no documented maximum length; the column
+        # was VARCHAR(200).  SQLite ignores lengths, so Postgres only.
+        token_col = columns.get("subscription_provider_id")
+        if (eng.dialect.name == "postgresql" and token_col is not None
+                and getattr(token_col["type"], "length", None) is not None):
+            conn.execute(text(
+                "ALTER TABLE subscriptions ALTER COLUMN subscription_provider_id TYPE TEXT"
+            ))
         conn.commit()
 
 
@@ -232,6 +251,9 @@ async def lifespan(app: FastAPI):
     _migrate_sqlite_telegram_links(engine)
     _migrate_sqlite_stock_batches(engine)
     _migrate_sqlite_subscriptions(engine)
+    # The old admin override lived in business settings; it is a Subscription
+    # grant now. Idempotent — a business with no override is left alone.
+    migrate_admin_overrides_to_grants(engine)
     # Businesses created before the timezone field existed have none, and fall
     # back to UTC for every "today". Idempotent, and never guesses.
     timezone_backfill.run_on_startup(engine)
@@ -277,6 +299,7 @@ app.include_router(feedback_api.router)
 app.include_router(nudges_api.router)
 app.include_router(dev_catchup_api.router)
 app.include_router(subscriptions_api.router)
+app.include_router(billing_api.router)
 app.include_router(booked_counts.router)
 app.include_router(currencies_api.router)
 app.include_router(planning_api.router)
@@ -315,6 +338,15 @@ def health():
             # Supabase sign-in behind — which Google Play treats as an
             # incomplete deletion.
             "account_deletion": bool(os.environ.get("SUPABASE_SERVICE_ROLE_KEY")),
+            # Checking a Play purchase with Google. Without it the phone can
+            # take payment but the backend cannot confirm it — and Google
+            # refunds a purchase nobody acknowledges within three days.
+            "google_play_verification": bool(
+                os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON")),
+            # Hearing about renewals, cancellations and refunds as they happen.
+            "google_play_notifications": bool(
+                os.environ.get("GOOGLE_RTDN_AUDIENCE")
+                and os.environ.get("GOOGLE_RTDN_SERVICE_ACCOUNT")),
             "cors_origins": len(ALLOWED_ORIGINS),
         },
         # Kept alongside `configured` because probe_tenancy reads it by name.

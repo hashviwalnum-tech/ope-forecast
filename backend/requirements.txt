@@ -12,3 +12,5 @@ statsmodels
 pytest
 httpx
 sentry-sdk[fastapi]
+google-auth>=2.30
+google-api-python-client>=2.130

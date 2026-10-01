@@ -12,7 +12,7 @@
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55a3R6eGtrb3dvcnBodm51cnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNDYyNDUsImV4cCI6MjA5NTcyMjI0NX0.7OdJCGIBr_8z6YGaovt9B-zR5WqCsm3I5etspbzUId8",
         "EXPO_PUBLIC_API_BASE_URL": "https://ope-forecast-dj78.onrender.com",
         "EXPO_PUBLIC_WEB_APP_URL": "https://ope-forecast-bngx.vercel.app",
-        "EXPO_PUBLIC_SENTRY_DSN": ""
+        "EXPO_PUBLIC_SENTRY_DSN": "https://90539d02c375672c561340dfb04bb965@o4512073398681600.ingest.us.sentry.io/4512175886041088"
       }
     },
     "production": {
@@ -24,7 +24,7 @@
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55a3R6eGtrb3dvcnBodm51cnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNDYyNDUsImV4cCI6MjA5NTcyMjI0NX0.7OdJCGIBr_8z6YGaovt9B-zR5WqCsm3I5etspbzUId8",
         "EXPO_PUBLIC_API_BASE_URL": "https://ope-forecast-dj78.onrender.com",
         "EXPO_PUBLIC_WEB_APP_URL": "https://ope-forecast-bngx.vercel.app",
-        "EXPO_PUBLIC_SENTRY_DSN": ""
+        "EXPO_PUBLIC_SENTRY_DSN": "https://90539d02c375672c561340dfb04bb965@o4512073398681600.ingest.us.sentry.io/4512175886041088"
       }
     }
   }

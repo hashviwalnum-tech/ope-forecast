@@ -7,7 +7,7 @@ import {
   Modal,
   ActivityIndicator,
   ScrollView,
-  Alert,
+  Linking,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -16,6 +16,11 @@ import type { BusinessRead, SubscriptionRead } from '../../api/types'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Theme } from '../../lib/theme'
+
+// Google's own subscription page for this app. Allowed in the Play build: it is
+// Google Play itself, not somewhere else to pay.
+const PLAY_MANAGE_URL =
+  'https://play.google.com/store/account/subscriptions?sku=ope_premium&package=com.opeforecast.app'
 
 interface Props {
   business: BusinessRead
@@ -41,14 +46,13 @@ const PREMIUM_FEATURE_KEYS = [
   'premiumPaidItem6',
 ] as const
 
-export default function PremiumModal({ business, onClose, onUpdated }: Props) {
+export default function PremiumModal({ business, onClose }: Props) {
   const c = useTheme()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [sub, setSub] = useState<SubscriptionRead | null>(null)
   const [subLoading, setSubLoading] = useState(true)
-  const [upgrading, setUpgrading] = useState(false)
 
   const loadSub = useCallback(async () => {
     setSubLoading(true)
@@ -65,43 +69,37 @@ export default function PremiumModal({ business, onClose, onUpdated }: Props) {
   useEffect(() => { loadSub() }, [loadSub])
 
   const isPremium = sub ? sub.effective_tier === 'premium' : business.tier === 'premium'
-  const isActive = sub?.subscription_status === 'active'
-  const isTrial = sub?.tier === 'trial' && isPremium
+  const status = sub?.subscription_status ?? 'none'
+  const onPlay = sub?.subscription_provider === 'google_play'
+  // Paying through Google Play and still entitled — renewing, in grace, or
+  // cancelled but paid up to a date.
+  const isActive = onPlay && isPremium && ['active', 'grace', 'cancelled'].includes(status)
+  const isTrial = sub?.tier === 'trial' && isPremium && !isActive
+  const isGranted = !!sub?.manual_grant && isPremium && !isActive && !isTrial
   const daysLeft = sub?.trial_days_remaining
+  const fmtDate = (iso: string | null | undefined) =>
+    iso ? new Date(iso).toLocaleDateString(lang) : null
+  const paidThrough = fmtDate(sub?.renewal_at)
+  const grantEnds = fmtDate(sub?.manual_grant_ends_at)
+  const paymentProblem = onPlay && ['grace', 'on_hold'].includes(status)
 
   function statusBadge() {
-    if (isActive) return { label: t('premiumStatusPremium'), color: '#d97706' }
+    if (isActive || isGranted) return { label: t('premiumStatusPremium'), color: '#d97706' }
     if (isTrial) return { label: t('premiumStatusTrial'), color: '#0d9488' }
     return { label: t('premiumStatusFree'), color: c.textMuted }
   }
 
-  const badge = statusBadge()
-
-  const setTier = (tier: 'free' | 'premium') => {
-    Alert.alert(
-      tier === 'premium' ? t('premiumUpgradeToPremium') : t('premiumDowngradeToFree'),
-      tier === 'premium' ? t('setPremiumBody') : t('setFreeBody'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: tier === 'premium' ? t('premiumUpgradeToPremium') : t('premiumDowngradeToFree'),
-          style: tier === 'free' ? 'destructive' : 'default',
-          onPress: async () => {
-            setUpgrading(true)
-            try {
-              const updated = await api.businesses.setTier(tier)
-              onUpdated(updated)
-              await loadSub()
-            } catch (e) {
-              Alert.alert(t('errorTitle'), e instanceof Error ? e.message : t('failedToChangeTier'))
-            } finally {
-              setUpgrading(false)
-            }
-          },
-        },
-      ]
-    )
+  function statusLine(): string {
+    if (isActive && status === 'cancelled' && paidThrough) return t('premiumCancelledUntil', { date: paidThrough })
+    if (isActive) return t('premiumActiveMsg')
+    if (isTrial && daysLeft !== null && daysLeft !== undefined && daysLeft > 0)
+      return t('premiumTrialDays', { n: daysLeft, s: daysLeft === 1 ? '' : 's' })
+    if (isGranted) return grantEnds ? t('premiumGrantedUntil', { date: grantEnds }) : t('premiumGranted')
+    if (sub?.tier === 'trial') return t('premiumTrialEnded')
+    return t('premiumFreeMsg')
   }
+
+  const badge = statusBadge()
 
   return (
     <Modal visible animationType="slide" onRequestClose={onClose}>
@@ -133,16 +131,10 @@ export default function PremiumModal({ business, onClose, onUpdated }: Props) {
             {subLoading ? (
               <ActivityIndicator size="small" color={c.primary} style={{ marginTop: 8 }} />
             ) : (
-              <Text style={styles.statusSub}>
-                {isActive
-                  ? t('premiumActiveMsg')
-                  : isTrial && daysLeft !== null && daysLeft !== undefined && daysLeft > 0
-                    ? t('premiumTrialDays', { n: daysLeft, s: daysLeft === 1 ? '' : 's' })
-                    : isTrial
-                      ? t('premiumTrialEnded')
-                      : t('premiumFreeMsg')
-                }
-              </Text>
+              <Text style={styles.statusSub}>{statusLine()}</Text>
+            )}
+            {paymentProblem && (
+              <Text style={[styles.statusSub, { color: '#b45309' }]}>{t('premiumPaymentProblem')}</Text>
             )}
             {isTrial && (
               <Text style={[styles.statusSub, { fontSize: 12, marginTop: 4, color: c.textMuted }]}>
@@ -177,62 +169,28 @@ export default function PremiumModal({ business, onClose, onUpdated }: Props) {
             </View>
           ))}
 
-          {/* Upgrade section — only when not active paying subscriber */}
-          {!isActive && (
-            <View style={styles.upgradeSection}>
-              <Text style={styles.upgradeSectionTitle}>{t('premiumUpgradeTitle')}</Text>
-
-              {/* Pricing display */}
-              <View style={styles.pricingRow}>
-                <View style={styles.pricingCard}>
-                  <Text style={styles.pricingAmount}>{t('premiumMonthly')}</Text>
-                </View>
-                <View style={[styles.pricingCard, styles.pricingCardAnnual]}>
-                  <Text style={[styles.pricingAmount, { color: '#d97706' }]}>{t('premiumAnnual')}</Text>
-                  <Text style={styles.pricingSave}>{t('premiumAnnualSave')}</Text>
-                </View>
-              </View>
-
-              {/* Web payment note */}
-              <View style={styles.webNoteBox}>
-                <Ionicons name="information-circle-outline" size={16} color={c.textMuted} />
-                <Text style={styles.webNoteText}>{t('premiumWebNote')}</Text>
-              </View>
+          {/* Buying Premium from the app arrives with Google Play Billing.
+              Until then this says only that — Play forbids pointing an app's
+              users anywhere else to pay, so there is no link, price or
+              mention of the website here. */}
+          {!isPremium && (
+            <View style={styles.noteBox}>
+              <Ionicons name="information-circle-outline" size={16} color={c.textMuted} />
+              <Text style={styles.noteText}>{t('premiumComingSoon')}</Text>
             </View>
           )}
 
-          {/* Test mode section */}
-          <View style={styles.testSection}>
-            <Text style={styles.testSectionTitle}>{t('premiumTestModeTitle')}</Text>
-            <Text style={styles.testSectionDesc}>{t('premiumTestModeDesc')}</Text>
-
-            {!isPremium ? (
-              <TouchableOpacity
-                style={styles.upgradeBtn}
-                onPress={() => setTier('premium')}
-                disabled={upgrading}
-                activeOpacity={0.85}
-              >
-                {upgrading
-                  ? <ActivityIndicator size="small" color="#fff" />
-                  : <>
-                    <Ionicons name="star" size={16} color="#fff" />
-                    <Text style={styles.upgradeBtnText}>{t('premiumUpgradeToPremium')}</Text>
-                  </>}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.downgradeBtn}
-                onPress={() => setTier('free')}
-                disabled={upgrading}
-                activeOpacity={0.8}
-              >
-                {upgrading
-                  ? <ActivityIndicator size="small" color={c.textSub} />
-                  : <Text style={styles.downgradeBtnText}>{t('premiumDowngradeToFree')}</Text>}
-              </TouchableOpacity>
-            )}
-          </View>
+          {/* Google's own page for managing or cancelling a Play subscription. */}
+          {onPlay && (isActive || paymentProblem) && (
+            <TouchableOpacity
+              style={styles.manageBtn}
+              onPress={() => Linking.openURL(PLAY_MANAGE_URL)}
+              accessibilityRole="link"
+              activeOpacity={0.8}
+            >
+              <Text style={styles.manageBtnText}>{t('premiumManageOnPlay')}</Text>
+            </TouchableOpacity>
+          )}
 
         </ScrollView>
       </SafeAreaView>
@@ -277,45 +235,17 @@ function makeStyles(c: Theme) {
     featureText: { flex: 1, fontSize: 14, color: c.text },
     featureTextLocked: { color: c.textSub },
 
-    upgradeSection: {
-      marginTop: 28, backgroundColor: c.card,
-      borderRadius: 16, padding: 20, borderWidth: 1, borderColor: c.border,
-    },
-    upgradeSectionTitle: { fontSize: 16, fontWeight: '700', color: c.text, marginBottom: 14 },
-    pricingRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-    pricingCard: {
-      flex: 1, borderRadius: 12, padding: 14, borderWidth: 1.5,
-      borderColor: c.primary, backgroundColor: c.bg,
-      alignItems: 'center',
-    },
-    pricingCardAnnual: { borderColor: '#d97706' },
-    pricingAmount: { fontSize: 15, fontWeight: '700', color: c.primary },
-    pricingSave: { fontSize: 11, color: '#d97706', marginTop: 2 },
-
-    webNoteBox: {
-      flexDirection: 'row', gap: 8, alignItems: 'flex-start',
-      backgroundColor: c.bg, borderRadius: 10, padding: 12,
+    noteBox: {
+      marginTop: 28, flexDirection: 'row', gap: 8, alignItems: 'flex-start',
+      backgroundColor: c.card, borderRadius: 12, padding: 14,
       borderWidth: 1, borderColor: c.border,
     },
-    webNoteText: { flex: 1, fontSize: 12, color: c.textSub, lineHeight: 17 },
+    noteText: { flex: 1, fontSize: 13, color: c.textSub, lineHeight: 18 },
 
-    testSection: {
-      marginTop: 28, backgroundColor: c.card, borderRadius: 16, padding: 16,
-      borderWidth: 1, borderColor: c.border, borderStyle: 'dashed',
+    manageBtn: {
+      marginTop: 28, alignItems: 'center', justifyContent: 'center', minHeight: 48,
+      borderRadius: 12, borderWidth: 1, borderColor: c.border, backgroundColor: c.card,
     },
-    testSectionTitle: { fontSize: 12, fontWeight: '700', color: c.textMuted, marginBottom: 2 },
-    testSectionDesc: { fontSize: 12, color: c.textMuted, marginBottom: 12 },
-
-    upgradeBtn: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-      backgroundColor: '#d97706', borderRadius: 12, paddingVertical: 13,
-    },
-    upgradeBtnText: { fontSize: 14, fontWeight: '700', color: '#fff' },
-
-    downgradeBtn: {
-      alignItems: 'center', borderRadius: 12, paddingVertical: 12,
-      borderWidth: 1, borderColor: c.border,
-    },
-    downgradeBtnText: { fontSize: 13, color: c.textSub },
+    manageBtnText: { fontSize: 14, fontWeight: '600', color: c.primary },
   })
 }

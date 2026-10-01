@@ -35,7 +35,7 @@ strangers. **Blocks Play** means Google will not accept the app until it is done
 | ~6,500 machine-translated strings, no native review | Unverified | A launch |
 | The guided tour in the other 13 languages | Unverified | A launch |
 | Load and concurrency | Unverified | A launch |
-| Billing and payments | Stub only; the platform rules are now researched | Neither (yet) |
+| Billing and payments | Google Play only. Backend built and tested against a fake Google (verify, notifications, grants, deletion). Never run against real Google — needs the Play payments profile, the subscription product and a service account. Phone purchase screen not built | A launch with paid Premium |
 
 ---
 
@@ -155,7 +155,9 @@ Re-read from the live `/health` on 2026-09-12 once the service woke:
 | `FEEDBACK_FROM_EMAIL` / `_PASSWORD` | **Set** | The in-app feedback form should work now. It has not been sent end to end — worth one real submission to confirm the mail actually arrives, since it uses SMTP directly rather than Supabase |
 | `TELEGRAM_BOT_TOKEN` | **Unset** | The bot cannot reply |
 | `BOT_SERVICE_KEY` | **Unset** | The bot cannot call the API |
-| `ADMIN_KEY` | **Unset** | No manual tier grant — the only route to premium until billing exists. Set this before any pilot who is meant to see premium |
+| `ADMIN_KEY` | **Unset** | No manual grant (`POST /admin/grants`). Set this before any pilot who is meant to see premium |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | **Unset** | Play purchases cannot be confirmed (`/verify` answers 503), and account deletion refuses while a Play subscription renews. See BILLING_PLATFORMS.md |
+| `GOOGLE_RTDN_AUDIENCE` / `_SERVICE_ACCOUNT` | **Unset** | Renewals, cancellations and refunds are only noticed when the owner next opens their account |
 | `ALLOWED_ORIGINS` | Unset, defaulted | `cors_origins: 2` is the built-in default. Harmless for now; set it anyway, because the default is a safety net rather than configuration |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Unset** | New today. Account deletion erases the data but leaves the Supabase sign-in behind, and says so. Play treats that as an incomplete deletion. Reported as `configured.account_deletion` |
 

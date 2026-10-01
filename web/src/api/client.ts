@@ -4,7 +4,6 @@ import type {
   BookedCountRead,
   BookingModelRead,
   BusinessRead,
-  CheckoutResponse,
   CurrencyListResponse,
   DecisionResponse,
   FramingRequest,
@@ -268,7 +267,6 @@ export const businesses = {
     /** ISO 4217 code, e.g. "ILS". Rejected by the API if it is not a real one. */
     currency?: string
   }) => PATCH<BusinessRead>('/businesses/me/settings', settings),
-  setTier: (tier: 'free' | 'premium') => PATCH<BusinessRead>('/businesses/me/tier', { tier }),
   delete: (id: number) => DELETE(`/businesses/${id}`),
 }
 
@@ -384,11 +382,10 @@ export const telegram = {
   revoke:       ()               => DELETE('/telegram/link'),
 }
 
+/** Read-only on the web. Premium is bought only in the Android app, through
+ *  Google Play; the backend reflects it here on the next request. */
 export const subscription = {
   get: () => GET<SubscriptionRead>('/subscription'),
-  startCheckout: (plan: 'monthly' | 'annual', success_url: string, cancel_url: string) =>
-    POST<CheckoutResponse>('/subscription/checkout', { plan, success_url, cancel_url }),
-  cancel: () => POST<SubscriptionRead>('/subscription/cancel', {}),
 }
 
 export const feedback = {

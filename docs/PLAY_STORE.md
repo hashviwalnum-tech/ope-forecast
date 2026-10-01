@@ -63,6 +63,7 @@ being requested.
 | `VIBRATE` | Expo template | **Removed** | Nothing in Ope vibrates |
 | `READ_EXTERNAL_STORAGE` | `expo-file-system` | **Removed** | CSV import picks a file through Android's document picker with `copyToCacheDirectory: true`, so the file is read back out of the app's *own* cache. No storage permission is involved |
 | `WRITE_EXTERNAL_STORAGE` | `expo-file-system` | **Removed** | Nothing writes outside the app |
+| `com.android.vending.BILLING` | `expo-iap` | **To be kept — approved 2026-10-01, not in the manifest yet** | Required for Google Play Billing, the only way Premium is sold (see BILLING_PLATFORMS.md). Normal-level: no prompt, nothing the user grants. It arrives when `expo-iap` is installed with the purchase screen — re-check the merged manifest then, and confirm `expo-iap` adds nothing else |
 
 Done with `android.blockedPermissions` in `app.json`, which strips them at
 manifest-merge time — including the ones a library declares for itself, which a

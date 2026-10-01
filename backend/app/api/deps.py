@@ -9,7 +9,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.engine.limits import FREE, PREMIUM, Tier
+from app.engine.limits import FREE, Tier
 from app.models import Business
 
 log = logging.getLogger(__name__)
@@ -84,20 +84,10 @@ def resolve_tier(db: Session, user_id: str) -> Tier:
     source of truth, and returns a ``Tier`` — a type the limit helpers require,
     so no caller can reach a gate without having come through here.
 
-    One deliberate exception: an explicit admin grant
-    (``settings["tier_admin_override"]``, set only by the admin-key
-    ``PATCH /businesses/me/tier``) pins a tier for testing until billing exists.
-    That is a manual act behind the server's own key, not a stale value.
+    Manual grants for pilot businesses are columns on that same row, so they
+    are honoured here without any special case — see app/billing/entitlement.
     """
     from app.models.subscription import Subscription  # local: avoids an import cycle
-
-    businesses = db.query(Business).filter(Business.user_id == user_id).all()
-    for b in businesses:
-        settings = b.settings or {}
-        if settings.get("tier_admin_override"):
-            granted = settings.get("tier")
-            if granted in (FREE, PREMIUM):
-                return Tier(granted)
 
     sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
     return Tier(sub.effective_tier if sub is not None else FREE)

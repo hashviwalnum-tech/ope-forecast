@@ -452,6 +452,8 @@ Do not compare raw sales during a promo to a random baseline. Instead: have the 
 - **1-month free trial, NO credit card required** to start. After trial, premium features require payment; account gracefully drops to free limits if not converted (never delete their data).
 - **Pricing:** ~**₪30/month**, or an **annual plan ~₪300/year** (works out to ~₪25/mo). Launch-affordable to drive early adoption; room to raise later.
 
+**DECIDED 2026-10-01 — Google Play Billing only.** Premium is bought inside the Android app; the web app is free-tier only (shows status, points to the Play listing, never a price or purchase flow); no web processor, no direct-APK discount. Details in `docs/BILLING_PLATFORMS.md`. The plan below is kept for history.
+
 **Payment architecture (build now, abstracted; turn on later with keys):**
 - Build the FULL premium system now — trial, gating, tier tracking, upgrade UI, subscription state, revenue/subscriber tracking — behind a **clean payment-provider ABSTRACTION** (an interface), so wiring a real processor later is a single contained step (plug in keys/SDK), NOT a rebuild.
 - **Web payments:** Stripe is NOT available to Israeli businesses — use a **merchant-of-record (Paddle / Lemon Squeezy, handles VAT/tax)** OR an **Israeli gateway (Tranzila/Cardcom/Meshulam/PayPlus, accepts Max/Isracard/Cal/Bit)**. Abstraction must allow either.

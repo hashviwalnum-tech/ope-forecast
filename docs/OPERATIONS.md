@@ -53,13 +53,13 @@ other people's devices. Supabase → Project Settings → API → `service_role`
 
 ## Phase 3.5 — Monetization
 
-**Subscription billing** (Stripe on web) layered onto the premium-limit gating. **Ad placement** — slots already reserved in the design (see [FEATURES.md](FEATURES.md#ad-slots)). For mobile, App Store / Play in-app purchases are usually **required** for digital subscriptions (15–30% cut, own rules) — design the premium flow with that in mind.
+**Subscription billing — decided 2026-10-01: Google Play Billing only**, bought inside the Android app; the web never sells. How it works, what to configure, and what is not built yet: [BILLING_PLATFORMS.md](BILLING_PLATFORMS.md). **Ad placement** — slots already reserved in the design (see [FEATURES.md](FEATURES.md#ad-slots)). For mobile, App Store / Play in-app purchases are usually **required** for digital subscriptions (15–30% cut, own rules) — design the premium flow with that in mind.
 
 **Load and concurrency testing** is deferred to here too. Every test to date has been one user at a time, and one pilot business will not find what several concurrent ones would. See [VERIFICATION.md](VERIFICATION.md).
 
 ### Security Hardening (deferred to coincide with billing, lower-risk-later)
 
-- **Premium tier granting:** pre-beta, the self-serve free-upgrade hole is closed (no open `PATCH /tier`). When billing lands, a verified payment becomes the legitimate way premium is granted (replacing any manual/admin path).
+- **Premium tier granting:** a Google-verified Play purchase is the paid route. A manual grant (`POST /admin/grants`, behind `ADMIN_KEY`, optional end date) is kept for pilot businesses, and can only add premium — never take it from a paying owner.
 - **Supabase Row-Level Security (RLS):** ~~deferred~~ **done, and confirmed against the live project.** `migrations/001_enable_rls_all_tables.sql` enables it on every table, and `python -m tests.deployment.probe_rls` asks the deployed project — using the published anon key, from outside — whether any table is reachable. All 19 refuse. Re-run it after adding a table; the probe's table list must be kept in step with `app/models/`.
 
 ---

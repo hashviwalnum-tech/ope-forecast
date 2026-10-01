@@ -9,7 +9,6 @@ import TelegramConnectPanel from './TelegramConnectPanel'
 import FeedbackPanel from './FeedbackPanel'
 
 interface Props {
-  onTierChanged?: () => void
   onReplayTour?: () => void
 }
 
@@ -32,7 +31,7 @@ function dayKey(i: number): string {
   return ['dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat', 'daySun'][i]
 }
 
-export default function BusinessSettings({ onTierChanged, onReplayTour }: Props) {
+export default function BusinessSettings({ onReplayTour }: Props) {
   const fieldId = useId()
   const { t, simpleMode, setSimpleMode } = useLanguage()
   const { signOut } = useAuth()
@@ -68,8 +67,6 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
   const [nudgeSending, setNudgeSending] = useState(false)
   const [nudgeFeedback, setNudgeFeedback] = useState<{ ok: boolean; msg: string } | null>(null)
   const [currentTier,   setCurrentTier]   = useState<string>('free')
-  const [tierSaving,    setTierSaving]    = useState(false)
-  const [tierFeedback,  setTierFeedback]  = useState<{ ok: boolean; msg: string } | null>(null)
   const { isDark, toggleTheme } = useTheme()
 
   function hourLabel(h: number): string {
@@ -115,21 +112,6 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
     }).catch(() => {})
   }, [])
 
-  async function handleSetTier(tier: 'free' | 'premium') {
-    setTierSaving(true)
-    setTierFeedback(null)
-    try {
-      const biz = await businesses.setTier(tier)
-      setCurrentTier(biz.tier)
-      setTierFeedback({ ok: true, msg: t('switchedToPlan', { tier: biz.tier }) })
-      onTierChanged?.()
-    } catch {
-      setTierFeedback({ ok: false, msg: t('planChangeError') })
-    } finally {
-      setTierSaving(false)
-    }
-  }
-
   function toggleDay(d: number) {
     setOpenDays(prev =>
       prev.includes(d)
@@ -152,8 +134,12 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
         return
       }
       await signOut()
-    } catch {
-      setDeleteError(t('deleteAccountFailed'))
+    } catch (e) {
+      // A renewing Google Play subscription that could not be cancelled for
+      // them: nothing was deleted, and they need to know why.
+      setDeleteError(e instanceof Error && e.message === 'play_subscription_active'
+        ? t('deleteAccountPlaySubActive')
+        : t('deleteAccountFailed'))
       setDeleting(false)
     }
   }
@@ -592,42 +578,9 @@ export default function BusinessSettings({ onTierChanged, onReplayTour }: Props)
       {/* ── Plan / tier ─────────────────────────────────────────────── */}
       <div data-tour="settings-plan" className="border-t border-slate-100 dark:border-slate-700 pt-6">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('planLabel')}</p>
-        <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
           {currentTier === 'premium' ? t('planDescPremium') : t('planDescFree')}
         </p>
-
-        <div className="flex gap-3">
-          <button
-            type="button"
-            disabled={tierSaving || currentTier === 'free'}
-            onClick={() => handleSetTier('free')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors
-              ${currentTier === 'free'
-                ? 'bg-teal-600 text-white border-teal-600'
-                : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-700'}`}
-          >
-            {t('planFree')}
-          </button>
-          <button
-            type="button"
-            disabled={tierSaving || currentTier === 'premium'}
-            onClick={() => handleSetTier('premium')}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors
-              ${currentTier === 'premium'
-                ? 'bg-teal-600 text-white border-teal-600'
-                : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-700'}`}
-          >
-            {t('planPremium')}
-          </button>
-        </div>
-
-        {tierFeedback && (
-          <p role="status" aria-live="polite" className={`mt-3 text-sm rounded-xl px-3 py-2.5 ${tierFeedback.ok
-            ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20'
-            : 'text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20'}`}>
-            {tierFeedback.msg}
-          </p>
-        )}
       </div>
 
       {/* ── Telegram integration ─────────────────────────────────────── */}

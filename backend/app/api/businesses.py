@@ -310,25 +310,23 @@ def set_tier(
     user_id: str = Depends(get_current_user),
     _: None = Depends(require_admin_key),
 ):
-    """Admin-only: set the account tier for all of this user's businesses.
+    """Admin-only shortcut: grant ("premium") or revoke ("free") a manual grant
+    on the caller's own account.  ``POST /admin/grants`` does the same for any
+    account by user id, with an optional end date.
 
-    Requires the X-Admin-Key header matching the ADMIN_KEY environment variable.
-    Normal users cannot call this endpoint. Billing (Phase 3.5) will replace this
-    with a Stripe-verified grant path.
+    "free" only removes a grant.  It cannot take away premium that comes from a
+    trial or a Google Play subscription — a grant never forces anyone down.
     """
+    from app.models.subscription import Subscription
+    from app.api.subscriptions import _get_or_create_subscription
+
     if body.tier not in ("free", "premium"):
         raise HTTPException(400, "tier must be 'free' or 'premium'")
-    all_biz = db.query(Business).filter(Business.user_id == user_id).all()
-    if not all_biz:
-        raise HTTPException(404, "No businesses found for this account")
-    for biz in all_biz:
-        settings = dict(biz.settings or {})
-        settings["tier"] = body.tier
-        # Mark it as a deliberate override so the live-tier sync leaves it alone
-        # (this is the manual grant path used for testing until billing lands).
-        settings["tier_admin_override"] = True
-        biz.settings = settings
-        flag_modified(biz, "settings")
-    db.commit()
     first = db.query(Business).filter(Business.user_id == user_id).order_by(Business.id).first()
+    if not first:
+        raise HTTPException(404, "No businesses found for this account")
+    sub: Subscription = _get_or_create_subscription(user_id, db)
+    sub.manual_grant = body.tier == "premium"
+    sub.manual_grant_ends_at = None
+    db.commit()
     return _read(first, resolve_tier(db, user_id))

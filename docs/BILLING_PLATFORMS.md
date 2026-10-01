@@ -1,6 +1,17 @@
 # Where Ope can take money, and what each route costs
 
-Research only — nothing here is built. Checked **2026-09-12**, because this area
+> ## Decided 2026-10-01: Google Play Billing only
+>
+> Premium is bought **only inside the Android app, through Google Play**. No
+> Stripe, no web checkout, no direct-APK discount. The web app never sells: it
+> shows the owner's status, and for a free account says Premium is in the Ope
+> Android app with a link to the Play listing — our own website pointing at our
+> own Play listing, which Play's payments policy (it governs what the *app*
+> says) does not restrict. The Android app shows no price, no link and no
+> mention of the website. See **"How it works now"** at the end of this file;
+> sections 1–5 are the research the decision was made from.
+
+The original survey, kept for its reasoning. Checked **2026-09-12**, because this area
 changed twice during 2026 and anything written from memory would be wrong.
 
 The decision you actually have to make is narrower than it looks: **the web is
@@ -165,3 +176,96 @@ committing, particularly:
 - [Understanding user choice billing on Google Play](https://support.google.com/googleplay/android-developer/answer/13821247?hl=en)
 - [Offering an alternative billing system for users in the EEA](https://support.google.com/googleplay/android-developer/answer/12348241?hl=en)
 - [Expanded billing choice and lower fees on Google Play](https://android-developers.googleblog.com/2026/06/play-expanded-billing.html)
+
+---
+
+## How it works now (built 2026-10-01)
+
+### One row decides premium
+
+`resolve_tier()` reads the `subscriptions` row every time, as before. Google's
+answers land in that same row — no parallel table:
+
+| Column | Holds |
+|---|---|
+| `subscription_provider` | `google_play` |
+| `subscription_provider_id` | the Play purchase token (now `TEXT`; Google sets no maximum length) |
+| `play_product_id` | the subscription id, e.g. `ope_premium` |
+| `subscription_status` | `active` · `grace` · `on_hold` · `paused` · `cancelled` · `expired` · `pending` · `unknown` |
+| `renewal_at` | paid-through date — Google's `expiryTime` |
+| `manual_grant`, `manual_grant_ends_at` | the pilot grant (below) |
+
+The rule is a pure function, `app/billing/entitlement.py`, with known-answer
+tests: premium if a grant is live, **or** the trial is running, **or** the
+subscription is `active` (until paid-through + 24h), `grace` (Google requires
+access while it retries a failed payment), or `cancelled` (until paid-through,
+not a minute more). Hold, pause, expiry and refunds-with-revocation give nothing.
+
+### How a purchase reaches the backend
+
+1. The phone buys through Google Play, passing `play_account_id` (a hash of the
+   Ope user id, served by `GET /subscription`) as Google's `obfuscatedAccountId`.
+2. The phone sends only the **purchase token** to `POST /billing/google/verify`.
+3. The backend asks Google (`purchases.subscriptionsv2.get`) what the token is,
+   refuses it if it was bought for a different account or is already on another
+   account, stores Google's answer, and **acknowledges** it — Google refunds a
+   purchase left unacknowledged for three days.
+
+Nothing the phone says about price, product or status is believed.
+
+### How later changes arrive — Real-time Developer Notifications
+
+Google publishes every change (renewal, cancel, failed payment, grace, hold,
+pause, expiry, refund) to a Pub/Sub topic; a push subscription delivers it to
+`POST /billing/google/rtdn`. The endpoint accepts only pushes signed by Google
+for our push account, and even then treats the message as a hint: it re-asks
+Google about the token and stores that. If Google is unreachable it answers 500
+and Pub/Sub redelivers. A purchase the phone never reported (it crashed after
+paying) is found by its hashed account id and acknowledged.
+
+As a backstop, `GET /subscription` re-asks Google whenever a stored paid-through
+date has passed, or the account is in grace, hold or pause.
+
+### Manual grants (pilot businesses)
+
+`POST /admin/grants` with `{"user_id": "...", "ends_at": "2026-12-31T00:00:00Z"}`
+(`ends_at` may be `null` for no end) and `DELETE /admin/grants/{user_id}`, both
+behind `X-Admin-Key`. The user id is the UID in Supabase → Authentication →
+Users. A grant only ever **adds** premium: revoking it never touches the Google
+columns, so a paying owner stays premium. The old settings-based override is
+moved onto the row at startup.
+
+### Deleting an account while subscribed
+
+`DELETE /account` first asks Google about a renewing subscription and cancels
+it. If that cannot be done (Google unreachable, credentials missing), **nothing
+is deleted** and both apps tell the owner to cancel in the Play Store first, and
+why.
+
+### What was removed
+
+The stub checkout (it granted premium to anyone who asked), the Stripe-shaped
+webhook, `POST /subscription/cancel` (cancelling happens in Google Play), the web
+Free/Premium switch and the mobile "test mode" buttons (both needed the admin
+key, so always failed for owners), the mobile note telling owners to pay on the
+website (a Play policy violation), and the download page's DIRECT10 discount (it
+promised a web checkout that does not exist).
+
+### Settings the backend needs (Render)
+
+| Variable | What it is |
+|---|---|
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | The service account's JSON key, pasted whole. Without it `/verify` answers 503, and account deletion refuses while a Play subscription renews |
+| `GOOGLE_PLAY_PRODUCT_IDS` | Optional; defaults to `ope_premium` |
+| `GOOGLE_PLAY_PACKAGE_NAME` | Optional; defaults to `com.opeforecast.app` |
+| `GOOGLE_RTDN_AUDIENCE` | The audience set on the Pub/Sub push subscription (use the endpoint URL) |
+| `GOOGLE_RTDN_SERVICE_ACCOUNT` | The service account the push subscription authenticates as |
+
+`/health` reports `google_play_verification` and `google_play_notifications`.
+
+### Not built yet
+
+The purchase screen on the phone (`expo-iap`, plus the `BILLING` permission).
+Approved; it is the next slice, and it can only be tried on a real device once
+the subscription product exists in Play Console. Whether a direct-APK install
+can buy through Google Play is untested — check before relying on it.

@@ -3,6 +3,7 @@ import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
 import * as api from '../api/client'
 import type { SubscriptionRead } from '../api/types'
+import { PLAY_LISTING_URL, PLAY_MANAGE_URL } from '../lib/googlePlay'
 
 const FREE_FEATURES = [
   'premiumFreeItem1',
@@ -24,13 +25,12 @@ const PREMIUM_FEATURES = [
 ] as const
 
 export default function PremiumPage() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const locale = lang
 
   const [sub, setSub] = useState<SubscriptionRead | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<unknown>(null)
-  const [checkingOut, setCheckingOut] = useState<'monthly' | 'annual' | null>(null)
-  const [testComplete, setTestComplete] = useState(false)
 
   const loadSub = useCallback(async () => {
     setLoading(true)
@@ -46,32 +46,6 @@ export default function PremiumPage() {
   }, [])
 
   useEffect(() => { loadSub() }, [loadSub])
-
-  // Detect stub checkout completion: current page URL has ?stub=1
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('stub') === '1') {
-      setTestComplete(true)
-      // Clean up the URL
-      const clean = window.location.pathname
-      window.history.replaceState({}, '', clean)
-      loadSub()
-    }
-  }, [loadSub])
-
-  async function handleCheckout(plan: 'monthly' | 'annual') {
-    setCheckingOut(plan)
-    try {
-      const successUrl = window.location.href.split('?')[0]
-      const cancelUrl = window.location.href.split('?')[0]
-      const result = await api.subscription.startCheckout(plan, successUrl, cancelUrl)
-      window.location.href = result.checkout_url
-    } catch (e) {
-      alert(e instanceof Error ? e.message : 'Checkout failed')
-    } finally {
-      setCheckingOut(null)
-    }
-  }
 
   if (loading) {
     return (
@@ -96,15 +70,33 @@ export default function PremiumPage() {
   }
 
   const isPremium = sub?.effective_tier === 'premium'
-  const isActive = sub?.subscription_status === 'active'
-  const isTrial = sub?.tier === 'trial' && isPremium
+  const status = sub?.subscription_status ?? 'none'
+  const onPlay = sub?.subscription_provider === 'google_play'
+  // Paying through Google Play and still entitled — renewing, in grace, or
+  // cancelled but paid up to a date.
+  const isActive = onPlay && isPremium && ['active', 'grace', 'cancelled'].includes(status)
+  const isTrial = sub?.tier === 'trial' && isPremium && !isActive
+  const isGranted = !!sub?.manual_grant && isPremium && !isActive && !isTrial
   const daysLeft = sub?.trial_days_remaining
-  const renewalDate = sub?.renewal_at
-    ? new Date(sub.renewal_at).toLocaleDateString()
-    : null
+  const fmtDate = (iso: string | null | undefined) =>
+    iso ? new Date(iso).toLocaleDateString(locale) : null
+  const paidThrough = fmtDate(sub?.renewal_at)
+  const grantEnds = fmtDate(sub?.manual_grant_ends_at)
+  // A Play subscription that still needs the owner's attention in Google Play.
+  const paymentProblem = onPlay && ['grace', 'on_hold'].includes(status)
+
+  function statusLine(): string {
+    if (isActive && status === 'cancelled' && paidThrough) return t('premiumCancelledUntil', { date: paidThrough })
+    if (isActive) return t('premiumActiveSubscription')
+    if (isTrial && daysLeft !== null && daysLeft !== undefined && daysLeft > 0)
+      return t('premiumTrialEndsIn', { n: daysLeft, s: daysLeft === 1 ? '' : 's' })
+    if (isGranted) return grantEnds ? t('premiumGrantedUntil', { date: grantEnds }) : t('premiumGranted')
+    if (sub?.tier === 'trial') return t('premiumTrialEnded')
+    return t('premiumFreeAccount')
+  }
 
   function statusBadge() {
-    if (isActive) return { label: t('premiumStatusBadgePremium'), cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' }
+    if (isActive || isGranted) return { label: t('premiumStatusBadgePremium'), cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' }
     if (isTrial) return { label: t('premiumStatusBadgeTrial'), cls: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-50' }
     return { label: t('premiumStatusBadgeFree'), cls: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300' }
   }
@@ -113,16 +105,6 @@ export default function PremiumPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
-
-      {/* Test-mode success banner */}
-      {testComplete && (
-        <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 px-5 py-4 flex items-center gap-3">
-          <svg className="w-5 h-5 text-teal-600 dark:text-teal-300 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-          <p className="text-sm text-teal-800 dark:text-teal-200 font-medium">{t('premiumTestComplete')}</p>
-        </div>
-      )}
 
       {/* Status card */}
       <div className={`rounded-2xl border-2 p-6 ${
@@ -136,21 +118,19 @@ export default function PremiumPage() {
               {badge.label}
             </span>
             <p className="text-base font-semibold text-slate-800 dark:text-slate-100">
-              {isActive
-                ? t('premiumActiveSubscription')
-                : isTrial && daysLeft !== null && daysLeft !== undefined && daysLeft > 0
-                  ? t('premiumTrialEndsIn', { n: daysLeft, s: daysLeft === 1 ? '' : 's' })
-                  : isTrial
-                    ? t('premiumTrialEnded')
-                    : t('premiumFreeAccount')
-              }
+              {statusLine()}
             </p>
             {isTrial && (
               <p className="text-sm text-slate-600 dark:text-slate-400">{t('premiumTrialActive')}</p>
             )}
-            {isActive && renewalDate && (
+            {isActive && status === 'active' && paidThrough && (
               <p className="text-sm text-amber-700 dark:text-amber-300">
-                {t('premiumRenewalDate', { date: renewalDate })}
+                {t('premiumRenewalDate', { date: paidThrough })}
+              </p>
+            )}
+            {paymentProblem && (
+              <p role="status" className="text-sm text-amber-800 dark:text-amber-200">
+                {t('premiumPaymentProblem')}
               </p>
             )}
           </div>
@@ -216,51 +196,38 @@ export default function PremiumPage() {
         </div>
       </div>
 
-      {/* Upgrade section — only shown when not already a paying subscriber */}
-      {!isActive && (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-5">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">{t('premiumUpgradeTitle')}</h2>
-
-          <p className="text-sm text-slate-600 dark:text-slate-400">{t('premiumBillingNote')}</p>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            {/* Monthly */}
-            <button
-              onClick={() => handleCheckout('monthly')}
-              disabled={checkingOut !== null}
-              className="flex flex-col items-center gap-1 p-5 rounded-xl border-2 border-teal-500 bg-teal-50 dark:bg-teal-900/20 dark:border-teal-600
-                         hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors disabled:opacity-60"
-            >
-              <span className="text-xl font-bold text-teal-700 dark:text-teal-300">{t('premiumMonthlyPlan')}</span>
-              <span className="text-sm font-semibold text-teal-600 dark:text-teal-300">
-                {checkingOut === 'monthly' ? t('loadingLabel') : t('premiumUpgradeMonthly')}
-              </span>
-            </button>
-
-            {/* Annual */}
-            <button
-              onClick={() => handleCheckout('annual')}
-              disabled={checkingOut !== null}
-              className="flex flex-col items-center gap-1 p-5 rounded-xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-600
-                         hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-60 relative"
-            >
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-700 dark:bg-amber-700 text-white text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
-                {t('premiumAnnualSave')}
-              </span>
-              <span className="text-xl font-bold text-amber-700 dark:text-amber-300">{t('premiumAnnualPlan')}</span>
-              <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                {checkingOut === 'annual' ? t('loadingLabel') : t('premiumUpgradeAnnual')}
-              </span>
-            </button>
-          </div>
+      {/* Where Premium comes from. The web never sells it — it can only
+          point to the Android app, where Google Play handles payment. No
+          price here, and no purchase flow. */}
+      {!isPremium && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">{t('premiumAndroidTitle')}</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{t('premiumAndroidBody')}</p>
+          <a
+            href={PLAY_LISTING_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center px-5 min-h-11 rounded-xl text-sm font-semibold
+                       bg-teal-600 hover:bg-teal-700 text-white transition-colors
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+          >
+            {t('premiumGetOnPlay')}
+          </a>
         </div>
       )}
 
-      {/* Manage billing note — for active subscribers */}
-      {isActive && (
-        <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{t('premiumManageBilling')}</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">{t('premiumManageBillingNote')}</p>
+      {/* Managing a Play subscription happens in Google Play, not here. */}
+      {onPlay && (isActive || paymentProblem) && (
+        <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('premiumManageBilling')}</h3>
+          <a
+            href={PLAY_MANAGE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-sm font-medium text-teal-700 dark:text-teal-300 underline underline-offset-2 min-h-11"
+          >
+            {t('premiumManageOnPlay')}
+          </a>
         </div>
       )}
 

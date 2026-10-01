@@ -1,17 +1,16 @@
-import os
-from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, Request
+import logging
+from datetime import timedelta, timezone
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app import clock
-from app.api.deps import get_current_user, require_admin_key, resolve_tier
-from app.billing.provider import payment_provider
+from app.api.deps import get_current_user, require_admin_key
+from app.billing.google_play import PROVIDER, PlayClient, PlayError, get_play_client, sync_from_google
 from app.db import get_db
-from app.models import Business
 from app.models.subscription import Subscription, TRIAL_DAYS
-from app.schemas.subscription import (
-    CheckoutRequest, CheckoutResponse, SubscriptionRead, WebhookEvent
-)
+from app.schemas.subscription import GrantRequest, SubscriptionRead
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Subscriptions"])
 
@@ -38,79 +37,78 @@ def _get_or_create_subscription(user_id: str, db: Session) -> Subscription:
 def get_subscription(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user),
+    play: PlayClient | None = Depends(get_play_client),
 ):
     # Nothing to write back: the tier is no longer cached on the business, so a
     # subscription change takes effect on the very next gated request without
     # anything having to notice.  That is what removes the whole class of
     # "premium kept working after the trial ended" bug.
-    return _get_or_create_subscription(user_id, db)
+    sub = _get_or_create_subscription(user_id, db)
+    if play is not None and _worth_asking_google(sub):
+        # Belt and braces behind Google's notifications: if the paid period
+        # has run out (or the account is in a grace/hold state) and we have
+        # heard nothing, ask.  Never fatal — a Google outage must not stop the
+        # owner seeing their account.
+        try:
+            sync_from_google(db, sub, play, sub.subscription_provider_id)
+        except PlayError as e:
+            log.warning("Play refresh failed for %s: %s", user_id, e)
+            db.rollback()
+        db.refresh(sub)
+    return sub
 
 
-@router.post("/subscription/checkout", response_model=CheckoutResponse)
-def start_checkout(
-    body: CheckoutRequest,
+def _worth_asking_google(sub: Subscription) -> bool:
+    if sub.subscription_provider != PROVIDER or not sub.subscription_provider_id:
+        return False
+    if sub.subscription_status in ("grace", "on_hold", "paused", "pending"):
+        return True
+    if sub.subscription_status in ("active", "cancelled") and sub.renewal_at is not None:
+        paid = sub.renewal_at
+        if paid.tzinfo is None:
+            paid = paid.replace(tzinfo=timezone.utc)
+        return clock.now_utc() >= paid
+    return False
+
+
+# ── Admin: manual grants (pilot businesses) ──────────────────────────────────
+#
+# A grant sits in its own two columns on the same Subscription row.  It can only
+# ADD premium: revoking a grant clears those columns and nothing else, so an
+# owner who is also paying through Google keeps premium regardless.
+
+@router.post("/admin/grants", response_model=SubscriptionRead)
+def grant_premium(
+    body: GrantRequest,
     db: Session = Depends(get_db),
-    user_id: str = Depends(get_current_user),
+    _: None = Depends(require_admin_key),
 ):
-    if body.plan not in ("monthly", "annual"):
-        raise HTTPException(400, "plan must be 'monthly' or 'annual'")
-    result = payment_provider.start_checkout(
-        user_id=user_id,
-        plan=body.plan,
-        success_url=body.success_url,
-        cancel_url=body.cancel_url,
-    )
-    return CheckoutResponse(checkout_url=result.checkout_url)
-
-
-@router.post("/subscription/cancel", response_model=SubscriptionRead)
-def cancel_subscription(
-    db: Session = Depends(get_db),
-    user_id: str = Depends(get_current_user),
-):
-    sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
-    if not sub or sub.subscription_status != "active":
-        raise HTTPException(400, "No active subscription to cancel.")
-    if sub.subscription_provider_id:
-        payment_provider.cancel_subscription(sub.subscription_provider_id)
-    sub.subscription_status = "cancelled"
+    if not body.user_id.strip():
+        raise HTTPException(400, "user_id is required")
+    sub = _get_or_create_subscription(body.user_id.strip(), db)
+    sub.manual_grant = True
+    sub.manual_grant_ends_at = body.ends_at
     sub.updated_at = clock.now_utc()
     db.commit()
     db.refresh(sub)
     return sub
 
 
-@router.post("/subscription/webhook")
-async def payment_webhook(
-    request: Request,
+@router.delete("/admin/grants/{user_id}", response_model=SubscriptionRead)
+def revoke_grant(
+    user_id: str,
     db: Session = Depends(get_db),
     _: None = Depends(require_admin_key),
 ):
-    """Receive payment provider webhooks (admin key required for security)."""
-    body = await request.body()
-    sig = request.headers.get("X-Webhook-Signature", "")
-    event = payment_provider.verify_webhook(body, sig)
-    # Normalize and apply: stub returns {} so this is a no-op until real provider
-    if event.get("type") == "subscription.activated":
-        user_id = event.get("user_id", "")
-        sub_id = event.get("subscription_id", "")
-        renewal = event.get("renewal_at")
-        sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
-        if sub and user_id:
-            sub.tier = "premium"
-            sub.subscription_status = "active"
-            sub.subscription_provider_id = sub_id
-            sub.renewal_at = renewal
-            sub.updated_at = clock.now_utc()
-            db.commit()
-    elif event.get("type") == "subscription.cancelled":
-        user_id = event.get("user_id", "")
-        sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
-        if sub and user_id:
-            sub.subscription_status = "cancelled"
-            sub.updated_at = clock.now_utc()
-            db.commit()
-    return {"ok": True}
+    sub = db.query(Subscription).filter(Subscription.user_id == user_id).first()
+    if sub is None:
+        raise HTTPException(404, "No account with that user id")
+    sub.manual_grant = False
+    sub.manual_grant_ends_at = None
+    sub.updated_at = clock.now_utc()
+    db.commit()
+    db.refresh(sub)
+    return sub
 
 
 # ── Admin: "follow the cash" ──────────────────────────────────────────────────
@@ -141,18 +139,21 @@ def admin_subscriptions(
             "subscription_status": s.subscription_status,
             "subscription_provider": s.subscription_provider,
             "renewal_at": s.renewal_at.isoformat() if s.renewal_at else None,
+            "manual_grant": bool(s.manual_grant),
+            "manual_grant_ends_at": s.manual_grant_ends_at.isoformat() if s.manual_grant_ends_at else None,
             "created_at": s.created_at.isoformat() if s.created_at else None,
         })
 
     in_trial_count = sum(1 for r in rows if r["in_trial"])
-    active_count = sum(1 for r in rows if r["subscription_status"] == "active")
-    converted = sum(1 for r in rows if r["subscription_status"] in ("active", "cancelled"))
+    active_count = sum(1 for r in rows if r["subscription_status"] in ("active", "grace"))
+    converted = sum(1 for s in subs if s.subscription_provider == PROVIDER)
 
     return {
         "summary": {
             "total_accounts": len(rows),
             "in_trial": in_trial_count,
             "active_subscribers": active_count,
+            "manual_grants": sum(1 for r in rows if r["manual_grant"]),
             "converted": converted,
             "conversion_rate_pct": round(converted / len(rows) * 100, 1) if rows else 0,
         },
