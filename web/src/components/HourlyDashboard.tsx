@@ -16,6 +16,7 @@ import ChartFigure from './ChartFigure'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { WeekdayHourlyEntry, WeekdayHourlyResponse, WeekdayHourlySlot } from '../api/types'
+import { serverSentence } from '../lib/serverText'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -440,7 +441,7 @@ export default function HourlyDashboard() {
   if (!data || data.status !== 'ok') {
     return (
       <NotEnoughHourlyData
-        message={data?.message}
+        message={serverSentence(data?.message, lang)}
         nDays={data?.n_days_total ?? 0}
       />
     )

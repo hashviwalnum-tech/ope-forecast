@@ -14,6 +14,7 @@ import LoadError from './LoadError'
 import ChartFigure from './ChartFigure'
 import { describeStock, pendingArrivalQty } from '../lib/stockLabel'
 import { useLanguage } from '../contexts/LanguageContext'
+import { serverSentence } from '../lib/serverText'
 import { useTheme } from '../contexts/ThemeContext'
 import type {
   ForecastResponse,
@@ -67,10 +68,10 @@ function wdayShort(weekday: string, t: ReturnType<typeof useLanguage>['t']): str
 // ── week prediction (7-day customer bars) ─────────────────────────────────────
 
 function ForecastChart({ data }: { data: ForecastResponse }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { isDark } = useTheme()
   if (data.status !== 'ok' || data.days.length === 0) {
-    return <NotEnoughData message={data.message} />
+    return <NotEnoughData message={serverSentence(data.message, lang)} />
   }
 
   const chartData = data.days.map(d => ({
@@ -511,9 +512,9 @@ function OrderingTable({
   today: string
   onOrdersChanged: () => void
 }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   if (data.status !== 'ok' || data.products.length === 0) {
-    return <NotEnoughData message={data.message} />
+    return <NotEnoughData message={serverSentence(data.message, lang)} />
   }
 
   // Show only products that need attention (at or below reorder point, or approaching it)

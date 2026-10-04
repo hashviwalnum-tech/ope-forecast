@@ -3,6 +3,7 @@ import { analytics, periods as periodsApi, products as productsApi } from '../ap
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { LiftResponse, PeriodLift, PeriodRead, ProductRead } from '../api/types'
+import { serverSentence } from '../lib/serverText'
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
@@ -339,7 +340,7 @@ function PeriodRow({ period, onDeleted }: { period: PeriodRead; onDeleted: () =>
 // ── main component ───────────────────────────────────────────────────────────
 
 export default function PeriodsPanel() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [periodList, setPeriodList] = useState<PeriodRead[]>([])
   const [liftData, setLiftData]     = useState<LiftResponse | null>(null)
   const [loadingLift, setLoadingLift] = useState(false)
@@ -419,7 +420,7 @@ export default function PeriodsPanel() {
         ) : liftData.periods.length === 0 ? (
           <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-10 text-center shadow-sm">
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
-              {liftData.message ?? t('periodsNotEnough')}
+              {serverSentence(liftData.message, lang) ?? t('periodsNotEnough')}
             </p>
           </div>
         ) : (

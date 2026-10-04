@@ -509,6 +509,8 @@ export interface OutlierFlag {
   date: string
   weekday: string
   customers: number
+  weekday_median: number
+  direction: 'high' | 'low' | string
   message: string
 }
 

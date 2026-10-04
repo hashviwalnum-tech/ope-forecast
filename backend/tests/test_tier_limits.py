@@ -401,3 +401,34 @@ def test_the_reported_tier_matches_what_the_gates_enforce(tier_client, sim_clock
     clock.freeze(datetime(2026, 3, 1, 12, 0, tzinfo=timezone.utc))
     assert tier_client.get("/businesses/me").json()["tier"] == "free"
     assert tier_client.post("/businesses", json={"name": "C"}).status_code == 403
+
+
+# ── every limit says which limit it is ───────────────────────────────────────
+
+def test_each_limit_carries_a_code_the_apps_can_translate(tier_client, sim_clock):
+    """The English `detail` reached Hebrew-speaking owners as it was. Each
+    refusal now names itself, with its numbers, so the apps can say it in the
+    owner's language; `detail` stays for anything that only reads English."""
+    clock.freeze(datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc))
+    _new_account(tier_client)
+    clock.freeze(datetime(2026, 3, 1, 20, 0, tzinfo=timezone.utc))    # trial over
+
+    for i in range(FREE_ADS_LIMIT):
+        _make_period(tier_client, i, "ad")
+    ads = _make_period(tier_client, FREE_ADS_LIMIT, "ad").json()
+    assert ads["code"] == "ads_limit" and ads["params"] == {"limit": FREE_ADS_LIMIT}
+    assert "premium" in ads["detail"].lower()
+
+    for i in range(FREE_EVENTS_LIMIT):
+        _make_period(tier_client, i, "event")
+    assert _make_period(tier_client, 99, "event").json()["code"] == "events_limit"
+
+    old = tier_client.post("/day-records", json={"date": "2024-06-01", "customers": 40}).json()
+    assert old["code"] == "history_cap"
+    assert old["params"]["date"] == "2024-06-01"
+
+    loc = tier_client.post("/businesses", json={"name": "Second Location"}).json()
+    assert loc["code"] == "locations_limit" and loc["params"] == {"limit": 1}
+
+    future = tier_client.post("/day-records", json={"date": "2027-06-01", "customers": 40}).json()
+    assert future["code"] == "future_date"

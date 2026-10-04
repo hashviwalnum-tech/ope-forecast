@@ -52,6 +52,21 @@ def _fmt_hour(h: int) -> str:
         return f"{h} am"
     return f"{h - 12} pm"
 
+class RuleError(ValueError):
+    """A rule the owner ran into, with a stable code and the numbers behind it.
+
+    `str(err)` is the English sentence (the Telegram bot and older clients show
+    it as it is). `code` and `params` let a client say the same thing in the
+    owner's own language — before they existed, every one of these reached a
+    Hebrew-speaking owner in English.
+    """
+
+    def __init__(self, code: str, message: str, **params: object) -> None:
+        super().__init__(message)
+        self.code = code
+        self.params = params
+
+
 FREE_HISTORY_DAYS = 365
 FREE_EVENTS_LIMIT = 10   # one-off events; §10 spec: generous expanded allowance
 FREE_ADS_LIMIT = 5       # ads remain gated but expanded from 2
@@ -71,11 +86,13 @@ def check_history(tier: Tier, record_date: date, today: date) -> None:
     """
     cutoff = history_cutoff(tier, today)
     if cutoff is not None and record_date < cutoff:
-        raise ValueError(
+        raise RuleError(
+            "history_cap",
             f"Your free plan keeps up to 1 year of history "
             f"(dates from {cutoff} onward). "
             f"The date {record_date} is older than that. "
-            f"Upgrade to premium to log and access more history."
+            f"Upgrade to premium to log and access more history.",
+            cutoff=cutoff.isoformat(), date=record_date.isoformat(),
         )
 
 
@@ -88,9 +105,11 @@ def check_not_in_the_future(record_date: date, today: date) -> None:
     projected stock with no matching delivery ever arriving.
     """
     if record_date > today:
-        raise ValueError(
+        raise RuleError(
+            "future_date",
             f"{record_date} hasn't happened yet — you can only log days up to today "
-            f"({today}). Check the date and try again."
+            f"({today}). Check the date and try again.",
+            date=record_date.isoformat(), today=today.isoformat(),
         )
 
 
@@ -123,13 +142,17 @@ def check_entry_timing(
 
     close_str = _fmt_hour(closing_hour)
     if current_hour < opening_hour:
-        raise ValueError(
+        raise RuleError(
+            "day_not_started",
             f"Today hasn't started yet (your opening hour is {_fmt_hour(opening_hour)}). "
-            f"Come back after closing ({close_str}) to log today's numbers."
+            f"Come back after closing ({close_str}) to log today's numbers.",
+            opening_hour=opening_hour, closing_hour=closing_hour,
         )
-    raise ValueError(
+    raise RuleError(
+        "still_open",
         f"Your business is still open until {close_str}. "
-        f"Log today's totals after you close — that way the count will be complete."
+        f"Log today's totals after you close — that way the count will be complete.",
+        closing_hour=closing_hour,
     )
 
 
@@ -149,9 +172,11 @@ def check_non_working_day(
         return
     if today.weekday() not in opening_days:
         day_name = today.strftime("%A")
-        raise ValueError(
+        raise RuleError(
+            "closed_day",
             f"{day_name} is not a working day for your business. "
-            f"You can still edit past days from the Past Days screen."
+            f"You can still edit past days from the Past Days screen.",
+            date=today.isoformat(),
         )
 
 
@@ -170,7 +195,9 @@ def check_periods(tier: Tier, current_count: int, period_type: str = "event") ->
         limit = FREE_EVENTS_LIMIT
         kind = "events"
     if current_count >= limit:
-        raise ValueError(
+        raise RuleError(
+            "ads_limit" if period_type == "ad" else "events_limit",
             f"Your free plan allows up to {limit} saved {kind}. "
-            f"Delete one to make room, or upgrade to premium for unlimited tracking."
+            f"Delete one to make room, or upgrade to premium for unlimited tracking.",
+            limit=limit,
         )

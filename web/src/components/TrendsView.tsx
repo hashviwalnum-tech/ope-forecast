@@ -11,6 +11,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import type { MonthlyResponse, MonthSummary } from '../api/types'
 import { addCardToHome, isCardOnHome, removeCardFromHome } from '../lib/homeLayout'
 import ChartFigure from './ChartFigure'
+import { serverSentence } from '../lib/serverText'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -164,7 +165,7 @@ function HomeToggleButton() {
 // ── main component ────────────────────────────────────────────────────────────
 
 export default function TrendsView() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const { isDark } = useTheme()
   const [data, setData] = useState<MonthlyResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -195,7 +196,7 @@ export default function TrendsView() {
   if (error) return <LoadError error={error} onRetry={reload} />
 
   if (!data || data.status !== 'ok' || data.months.length === 0) {
-    return <NotEnoughData message={data?.message} />
+    return <NotEnoughData message={serverSentence(data?.message, lang)} />
   }
 
   const months = data.months

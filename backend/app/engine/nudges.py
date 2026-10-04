@@ -10,7 +10,7 @@ in the API layer; computing all candidates lets the caller decide.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -18,6 +18,9 @@ class Nudge:
     type: str      # 'busy_tomorrow' | 'slow_tomorrow' | 'low_stock' | 'approaching_stock'
     message: str   # plain-language, specific, actionable
     priority: int  # higher = more urgent (low_stock=3, busy/approaching=2, slow=1)
+    # The numbers behind `message`, so a client can say it in the owner's own
+    # language. `message` is English and stays for the Telegram bot.
+    params: dict = field(default_factory=dict)
 
 
 # Minimum % deviation from the weekday mean to trigger a forecast nudge.
@@ -48,7 +51,8 @@ def compute_forecast_nudge(
             f"(~{tomorrow_predicted} vs your usual ~{usual}) "
             f"— you may want extra help."
         )
-        return Nudge(type="busy_tomorrow", message=msg, priority=2)
+        return Nudge(type="busy_tomorrow", message=msg, priority=2,
+                     params={"predicted": tomorrow_predicted, "usual": usual})
 
     if deviation <= -_FORECAST_THRESHOLD:
         msg = (
@@ -56,7 +60,8 @@ def compute_forecast_nudge(
             f"(~{tomorrow_predicted} vs your usual ~{usual}) "
             f"— you might be able to reduce staffing."
         )
-        return Nudge(type="slow_tomorrow", message=msg, priority=1)
+        return Nudge(type="slow_tomorrow", message=msg, priority=1,
+                     params={"predicted": tomorrow_predicted, "usual": usual})
 
     return None
 
@@ -80,20 +85,23 @@ def compute_stock_nudge(ordering_products: list[dict]) -> Nudge | None:
     ]
 
     if order_now:
-        names = _join_names([p["name"] for p in order_now])
+        listed = [p["name"] for p in order_now]
+        names = _join_names(listed)
         msg = (
             f"Stock is low for {names} — you're at or below the reorder point. "
             f"Place your order now to avoid running out."
         )
-        return Nudge(type="low_stock", message=msg, priority=3)
+        return Nudge(type="low_stock", message=msg, priority=3, params={"names": listed})
 
     if approaching:
-        names = _join_names([p["name"] for p in approaching])
+        listed = [p["name"] for p in approaching]
+        names = _join_names(listed)
         msg = (
             f"{names} is running low and will reach the reorder point soon. "
             f"Think about ordering in the next day or two."
         )
-        return Nudge(type="approaching_stock", message=msg, priority=2)
+        return Nudge(type="approaching_stock", message=msg, priority=2,
+                     params={"names": listed})
 
     return None
 

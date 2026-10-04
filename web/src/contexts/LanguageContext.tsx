@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { translations, simpleTranslations, RTL_LANGS, type Lang, type TranslationKey } from '../i18n'
+import { setServerTextTranslator } from '../api/client'
+import { serverErrorText } from '../lib/serverText'
 
 const VALID_LANGS = new Set<string>(['en','he','zh','es','hi','ar','pt','ru','fr','bn','ur','id','de','ja','tr'])
 
@@ -90,6 +92,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
     return str
   }
+
+  // Errors are built outside React, in the API client, so it is handed a
+  // translator. Re-registered whenever the language or wording mode changes.
+  useEffect(() => {
+    setServerTextTranslator({
+      error: (code, params) => serverErrorText(code, params, t, lang),
+      network: () => t('loadFailedBody'),
+    })
+    return () => setServerTextTranslator(null)
+  })
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t, dir, simpleMode, setSimpleMode, simpleModeNeverSet }}>

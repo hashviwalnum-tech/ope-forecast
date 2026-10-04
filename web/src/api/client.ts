@@ -127,6 +127,8 @@ async function fetchWithRetry(input: string, init: RequestInit): Promise<Respons
         // Give up: clear this request's share of the "still trying" banner,
         // otherwise it would hang there for the rest of the session.
         if (attempt > 0) _wakingUpListener.call(false)
+        // "Failed to fetch" is the browser talking, in English, to a developer.
+        if (isNetworkError(err) && _serverText) throw new TypeError(_serverText.network(), { cause: err })
         throw err
       }
       if (attempt === 0) _wakingUpListener.call(true)
@@ -163,11 +165,32 @@ async function authHeaders(): Promise<Record<string, string>> {
  */
 export class ApiError extends Error {
   readonly status: number
-  constructor(status: number, message: string) {
+  /** Which rule refused the request (`still_open`, `ads_limit`…), when the server said. */
+  readonly code?: string
+  readonly params?: Record<string, unknown>
+  constructor(status: number, message: string, code?: string, params?: Record<string, unknown>) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.code = code
+    this.params = params
   }
+}
+
+/**
+ * Turns the server's coded refusals, and a failed connection, into the owner's
+ * language. Set by LanguageProvider; until it is, the server's English stands.
+ *
+ * Doing it here rather than on each screen is the point: some thirty places
+ * show `err.message`, and every one of them used to show English to everyone.
+ */
+interface ServerTextTranslator {
+  error: (code: string | undefined, params: Record<string, unknown> | undefined) => string | null
+  network: () => string
+}
+let _serverText: ServerTextTranslator | null = null
+export function setServerTextTranslator(tr: ServerTextTranslator | null): void {
+  _serverText = tr
 }
 
 /** True when `err` is a failed request that came back with `status`. */
@@ -182,7 +205,14 @@ async function extractError(res: Response): Promise<ApiError> {
   const text = await res.text()
   try {
     const json = JSON.parse(text)
-    if (typeof json.detail === 'string') return new ApiError(res.status, json.detail)
+    // A validation failure carries a list of field errors, not a sentence —
+    // it used to reach the screen as raw JSON.
+    const code: string | undefined = typeof json.code === 'string' ? json.code
+      : Array.isArray(json.detail) ? 'invalid_input' : undefined
+    const params = json.params && typeof json.params === 'object' ? json.params as Record<string, unknown> : undefined
+    const said = _serverText?.error(code, params) ?? null
+    if (said) return new ApiError(res.status, said, code, params)
+    if (typeof json.detail === 'string') return new ApiError(res.status, json.detail, code, params)
   } catch { /* fall through */ }
   return new ApiError(res.status, text)
 }
@@ -418,6 +448,8 @@ export interface NudgeItem {
   type: string
   message: string
   priority: number
+  /** The numbers behind `message`, for saying it in the owner's language. */
+  params?: Record<string, unknown>
 }
 export interface NudgesResponse {
   enabled: boolean

@@ -22,6 +22,7 @@ import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import type { Theme } from '../lib/theme'
+import { outlierText } from '../lib/serverText'
 import AppHeader from '../components/AppHeader'
 
 const KEY_CUSTOMER = 'customer'
@@ -312,7 +313,7 @@ export default function LogScreen() {
 
             {outlierExpanded && outlierFlags.map(flag => (
               <View key={flag.day_record_id} style={styles.outlierCard}>
-                <Text style={styles.outlierMessage}>{flag.message}</Text>
+                <Text style={styles.outlierMessage}>{outlierText(flag, t, lang)}</Text>
                 <View style={styles.outlierBtns}>
                   {(
                     [

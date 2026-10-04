@@ -15,6 +15,8 @@ from app.db import get_db
 from app.models import Business, Product
 from app import clock
 
+from app.api.errors import CodedHTTPException  # noqa: E402
+
 FREE_BUSINESS_LIMIT = 1  # §10: free = one location; premium = more
 
 router = APIRouter(prefix="/businesses", tags=["Businesses"])
@@ -165,9 +167,9 @@ def create_business(
     tier = resolve_tier(db, user_id)   # authoritative, read now (§10)
     existing = db.query(Business).filter(Business.user_id == user_id).all()
     if not tier.is_premium and len(existing) >= FREE_BUSINESS_LIMIT:
-        raise HTTPException(
-            status_code=403,
-            detail="Multiple locations require a premium plan. Upgrade in Settings.",
+        raise CodedHTTPException(
+            403, "Multiple locations require a premium plan. Upgrade in Settings.",
+            "locations_limit", {"limit": FREE_BUSINESS_LIMIT},
         )
     settings: dict = {}
     if body.timezone:
@@ -220,9 +222,9 @@ def copy_business(
 
     tier = resolve_tier(db, user_id)   # authoritative, read now (§10)
     if not tier.is_premium:
-        raise HTTPException(
-            status_code=403,
-            detail="Multiple locations require a premium plan. Upgrade in Settings.",
+        raise CodedHTTPException(
+            403, "Multiple locations require a premium plan. Upgrade in Settings.",
+            "locations_limit", {"limit": FREE_BUSINESS_LIMIT},
         )
 
     new_settings = dict(source.settings or {})

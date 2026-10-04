@@ -396,10 +396,10 @@ export default function RegularsPanel() {
 
             <div>
               <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" htmlFor={`${fieldId}-f2`}>
-                {t('avgSpendLabel')}
+                {t('avgSpendLabel', { symbol })}
               </label>
               <input id={`${fieldId}-f2`}
-                type="number" min="0" step="0.5"
+                type="number" min="0" step={step}
                 value={form.avg_spend}
                 onChange={e => setForm(f => ({ ...f, avg_spend: parseFloat(e.target.value) || 0 }))}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm
@@ -417,7 +417,7 @@ export default function RegularsPanel() {
             <p className="text-xs text-teal-700 dark:text-teal-300 mt-0.5">
               {t('clvFormulaText', {
                 freq: String(form.visit_frequency_per_week),
-                spend: String(form.avg_spend),
+                spend: money(form.avg_spend),
                 years: String(form.expected_lifespan_years ?? 3),
               })}
             </p>
@@ -648,7 +648,7 @@ export default function RegularsPanel() {
                 </button>
                 {r.today_amount != null && (
                   <span className="text-xs text-teal-600 dark:text-teal-300 font-medium">
-                    {t('todayLoggedLabel', { amount: String(r.today_amount.toFixed(2)) })}
+                    {t('todayLoggedLabel', { amount: money(r.today_amount) })}
                   </span>
                 )}
               </div>

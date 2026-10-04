@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { dayRecords, outliers as outliersApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import type { OutlierFlag } from '../api/types'
+import { outlierText } from '../lib/serverText'
 
 interface Props {
   onResolved: () => void
 }
 
 export default function OutlierBanner({ onResolved }: Props) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [flags, setFlags]         = useState<OutlierFlag[]>([])
   const [resolving, setResolving] = useState<number | null>(null)
 
@@ -53,7 +54,7 @@ export default function OutlierBanner({ onResolved }: Props) {
             key={flag.day_record_id}
             className="bg-white dark:bg-slate-800 rounded-xl border border-amber-200 dark:border-amber-800 p-4"
           >
-            <p className="text-sm text-slate-700 dark:text-slate-200 mb-3 leading-relaxed">{flag.message}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 mb-3 leading-relaxed">{outlierText(flag, t, lang)}</p>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => resolve(flag.day_record_id, 'event')}

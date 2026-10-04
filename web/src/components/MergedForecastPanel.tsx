@@ -17,6 +17,7 @@ import { useLanguage } from '../contexts/LanguageContext'
 import { useTheme } from '../contexts/ThemeContext'
 import type { Lang, TranslationKey } from '../i18n'
 import type { ForecastResponse, OrderRecordRead, ProductForecastItem, ProductForecastResponse } from '../api/types'
+import { serverSentence } from '../lib/serverText'
 
 // ── weekday translation map ───────────────────────────────────────────────────
 
@@ -392,8 +393,8 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
 
   const noData = chartData.length === 0
   const noDataMsg = selected === 'customers'
-    ? (forecast?.message ?? t('keepLoggingForecast'))
-    : (activeProduct?.message ?? t('logMoreProductSales', { name: activeProduct?.name ?? '' }))
+    ? (serverSentence(forecast?.message, lang) ?? t('keepLoggingForecast'))
+    : (serverSentence(activeProduct?.message, lang) ?? t('logMoreProductSales', { name: activeProduct?.name ?? '' }))
 
   return (
     <section className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-slate-700 p-6 shadow-sm">
@@ -583,7 +584,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
       {activeProduct && activeProduct.status !== 'ok' && (
         <div className="mt-3 rounded-xl bg-teal-50/40 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 px-4 py-4 text-center">
           <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
-            {activeProduct.message ?? t('logMoreProductSales', { name: activeProduct.name })}
+            {serverSentence(activeProduct.message, lang) ?? t('logMoreProductSales', { name: activeProduct.name })}
           </p>
           {activeProduct.n_days_data > 0 && (
             <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">

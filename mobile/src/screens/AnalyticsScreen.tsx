@@ -23,6 +23,7 @@ import { useBusiness } from '../contexts/BusinessContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { serverSentence } from '../lib/serverText'
 import type { TranslationKey } from '../lib/i18n'
 
 /**
@@ -224,7 +225,7 @@ export default function AnalyticsScreen() {
           <View style={styles.emptyBox}>
             <Ionicons name="stats-chart-outline" size={28} color={c.textMuted} />
             <Text style={styles.emptyText}>
-              {accuracy?.message ?? t('noAccuracyYet')}
+              {serverSentence(accuracy?.message, lang) ?? t('noAccuracyYet')}
             </Text>
           </View>
         ) : (
@@ -273,7 +274,7 @@ export default function AnalyticsScreen() {
           <View style={styles.emptyBox}>
             <Ionicons name="people-outline" size={28} color={c.textMuted} />
             <Text style={styles.emptyText}>
-              {staffing?.message ?? t('noStaffingYet')}
+              {serverSentence(staffing?.message, lang) ?? t('noStaffingYet')}
             </Text>
           </View>
         ) : (
@@ -318,7 +319,7 @@ export default function AnalyticsScreen() {
           <View style={styles.emptyBox}>
             <Ionicons name="megaphone-outline" size={28} color={c.textMuted} />
             <Text style={styles.emptyText}>
-              {lift?.message ?? t('noAdEventYet')}
+              {serverSentence(lift?.message, lang) ?? t('noAdEventYet')}
             </Text>
           </View>
         ) : (
@@ -472,7 +473,7 @@ function InsightsSection({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: any
 }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   if (insights === null) {
     return (
       <View style={styles.card}>
@@ -486,7 +487,7 @@ function InsightsSection({
       <View style={styles.emptyBox}>
         <Ionicons name="bulb-outline" size={28} color={c.textMuted} />
         <Text style={styles.emptyText}>
-          {insights.message ?? t('insightsKeepLogging')}
+          {serverSentence(insights.message, lang) ?? t('insightsKeepLogging')}
         </Text>
       </View>
     )

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { analytics } from '../api/client'
 import LoadError from './LoadError'
 import { useLanguage } from '../contexts/LanguageContext'
+import { serverSentence } from '../lib/serverText'
 import type {
   InsightsResponse,
   InsightsWeekdayTrend,
@@ -117,7 +118,7 @@ function DecliningRow({ reg }: { reg: InsightsDecliningRegular }) {
 // ── component ─────────────────────────────────────────────────────────────────
 
 export default function InsightsView() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [data, setData] = useState<InsightsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<unknown>(null)
@@ -153,7 +154,7 @@ export default function InsightsView() {
         </div>
         <p className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-2">{t('tabInsights')}</p>
         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
-          {data?.message ?? t('insightsKeepLogging')}
+          {serverSentence(data?.message, lang) ?? t('insightsKeepLogging')}
         </p>
       </div>
     )

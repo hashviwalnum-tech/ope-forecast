@@ -28,6 +28,7 @@ import type {
 import { useBusiness } from '../contexts/BusinessContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { serverSentence } from '../lib/serverText'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { shiftIso, weekdayMon0 } from '../lib/businessTime'
 import type { TranslationKey } from '../lib/i18n'
@@ -400,7 +401,7 @@ export default function ForecastScreen() {
             <View style={[styles.emptyBox, { backgroundColor: c.card, borderColor: c.border }]}>
               <Ionicons name="cube-outline" size={28} color={c.textMuted} />
               <Text style={[styles.emptyText, { color: c.textSub }]}>
-                {selectedProduct?.message ?? t('noProductDataYet')}
+                {serverSentence(selectedProduct?.message, lang) ?? t('noProductDataYet')}
               </Text>
             </View>
           ) : (
@@ -558,7 +559,7 @@ export default function ForecastScreen() {
               <View style={[styles.emptyBox, { backgroundColor: c.card, borderColor: c.border }]}>
                 <Ionicons name="cube-outline" size={28} color={c.textMuted} />
                 <Text style={[styles.emptyText, { color: c.textSub }]}>
-                  {ordering?.message ?? t('addProductsLog')}
+                  {serverSentence(ordering?.message, lang) ?? t('addProductsLog')}
                 </Text>
               </View>
             ) : (

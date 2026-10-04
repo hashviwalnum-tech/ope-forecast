@@ -82,7 +82,11 @@ async function fetchWithRetry(input: string, init: RequestInit): Promise<Respons
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       })
     } catch (err) {
-      if (!isNetworkError(err) || attempt === RETRY_MAX) throw err
+      if (!isNetworkError(err) || attempt === RETRY_MAX) {
+        // "Network request failed" is React Native talking to a developer.
+        if (isNetworkError(err) && _serverText) throw new TypeError(_serverText.network())
+        throw err
+      }
       await new Promise<void>((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
     }
   }
@@ -108,10 +112,30 @@ async function authHeaders(): Promise<Record<string, string>> {
   return headers
 }
 
+/**
+ * Turns the server's coded refusals, and a failed connection, into the owner's
+ * language. Set by LanguageProvider; until it is, the server's English stands.
+ * Every screen shows `e.message`, so translating here covers all of them.
+ */
+interface ServerTextTranslator {
+  error: (code: string | undefined, params: Record<string, unknown> | undefined) => string | null
+  network: () => string
+}
+let _serverText: ServerTextTranslator | null = null
+export function setServerTextTranslator(tr: ServerTextTranslator | null): void {
+  _serverText = tr
+}
+
 async function extractError(res: Response): Promise<string> {
   const text = await res.text()
   try {
     const json = JSON.parse(text)
+    // A validation failure is a list of field errors, not a sentence.
+    const code: string | undefined = typeof json.code === 'string' ? json.code
+      : Array.isArray(json.detail) ? 'invalid_input' : undefined
+    const params = json.params && typeof json.params === 'object' ? json.params as Record<string, unknown> : undefined
+    const said = _serverText?.error(code, params) ?? null
+    if (said) return said
     if (typeof json.detail === 'string') return json.detail
   } catch {
     /* fall through */

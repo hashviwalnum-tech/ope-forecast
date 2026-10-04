@@ -46,8 +46,11 @@ def _utcnow() -> datetime:
 
 class NudgeItem(BaseModel):
     type: str
-    message: str
+    message: str   # English; the Telegram bot sends this as it is
     priority: int
+    # What the clients build a translated sentence from: predicted / usual /
+    # date (ISO) for the forecast nudges, names for the stock ones.
+    params: dict = {}
 
 
 class NudgesResponse(BaseModel):
@@ -106,6 +109,7 @@ def _compute_nudge(db: Session, biz: Business) -> Nudge | None:
                     weekday_mean=float(wd_mean),
                 )
                 if fn:
+                    fn.params["date"] = tomorrow.date.isoformat()
                     candidates.append(fn)
     except Exception:
         pass
@@ -174,7 +178,8 @@ def get_nudges(
 
     return NudgesResponse(
         enabled=True,
-        nudge=NudgeItem(type=nudge.type, message=nudge.message, priority=nudge.priority),
+        nudge=NudgeItem(type=nudge.type, message=nudge.message, priority=nudge.priority,
+                        params=nudge.params),
     )
 
 

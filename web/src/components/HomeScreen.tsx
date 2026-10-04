@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { NudgeItem } from '../api/client'
 import { nudges as nudgesApi } from '../api/client'
+import { nudgeText } from '../lib/serverText'
 import { OrderingPanel } from './ForecastDashboard'
 import HourlyDashboard from './HourlyDashboard'
 import LogDayForm from './LogDayForm'
@@ -50,7 +51,7 @@ export function saveLayout(cards: CardConfig[]) {
 
 function RecordRegularPanel({ onDone }: { onDone: () => void }) {
   const { t } = useLanguage()
-  const { symbol, step, amount } = useCurrency()
+  const { symbol, step, money } = useCurrency()
   const [rows, setRows]             = useState<RegularRead[]>([])
   const [loading, setLoading]       = useState(true)
   const [recording, setRecording]   = useState<number | null>(null)
@@ -108,7 +109,7 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200 flex-1 min-w-0">{r.name}</span>
             {r.today_amount != null && (
               <span className="text-xs text-teal-600 dark:text-teal-300 font-medium shrink-0">
-                {t('todayLoggedLabel', { amount: amount(r.today_amount) })}
+                {t('todayLoggedLabel', { amount: money(r.today_amount) })}
               </span>
             )}
           </div>
@@ -160,7 +161,7 @@ interface Props {
 }
 
 export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Props) {
-  const { t, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
+  const { t, lang, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
   const { today: localToday, hour: bizHour } = useBusinessTime()
   const [showSell, setShowSell]       = useState(false)
   const [showLog, setShowLog]         = useState(false)
@@ -513,7 +514,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
             <div>
               <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">{t('nudgeBannerTitle')}</p>
               <p className="text-sm text-teal-700 dark:text-teal-300 mt-0.5 leading-relaxed">
-                {nudge.message}
+                {nudgeText(nudge, t, lang)}
               </p>
             </div>
           </div>

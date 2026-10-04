@@ -128,6 +128,25 @@ test('the CSV template carries no money column, so it needs no currency', () => 
 
 // ── nothing formats money on its own any more ──────────────────────────────
 
+test('no translation names a currency', () => {
+  // The component scan below never looked inside i18n.ts, so the regulars
+  // screen kept "($)" in fifteen languages — and "₪" in Hebrew — for a
+  // business set to any currency at all. A money figure in a string comes in
+  // through a placeholder, already formatted by useCurrency().
+  const offenders: string[] = []
+  for (const file of [
+    join(import.meta.dirname, '..', 'i18n.ts'),
+    join(import.meta.dirname, '..', '..', '..', 'mobile', 'src', 'lib', 'i18n.ts'),
+  ]) {
+    let src: string
+    try { src = readFileSync(file, 'utf8') } catch { continue }
+    for (const m of src.matchAll(/(\w+):\s*(['"])((?:\\.|(?!\2).)*)\2/g)) {
+      if (/[$€₪£¥₩₹]|\bUSD\b/.test(m[3])) offenders.push(`${file.split(/[\\/]/).slice(-3).join('/')}  ${m[1]}: ${m[3]}`)
+    }
+  }
+  assert.deepEqual(offenders, [], 'these strings name a currency:\n' + offenders.join('\n'))
+})
+
 test('no screen formats money with a hardcoded currency', () => {
   // The regulars screen used to hardcode US dollars and the planning toolbox a
   // euro sign, which is how one owner saw two different currencies. Money now

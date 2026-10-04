@@ -13,6 +13,7 @@ import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import ChartFigure from './ChartFigure'
 import type { OrderRecordRead, ProductForecastItem, ProductForecastResponse } from '../api/types'
+import { serverSentence } from '../lib/serverText'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -326,12 +327,12 @@ function ProductDetail({
   onDismissWarning: (productId: number) => void
   onOrderPlaced: (order: OrderRecordRead) => void
 }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   if (item.status !== 'ok') {
     return (
       <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 px-5 py-8 text-center dark:bg-slate-800 dark:border-slate-700">
         <p className="text-sm text-slate-600 leading-relaxed max-w-sm mx-auto dark:text-slate-300">
-          {item.message ?? t('logMoreProductSales', { name: item.name })}
+          {serverSentence(item.message, lang) ?? t('logMoreProductSales', { name: item.name })}
         </p>
         {item.n_days_data > 0 && (
           <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">

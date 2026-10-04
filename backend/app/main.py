@@ -272,6 +272,18 @@ app.add_middleware(
 
 _log = logging.getLogger(__name__)
 
+from app.api.errors import CodedHTTPException  # noqa: E402
+
+
+@app.exception_handler(CodedHTTPException)
+async def _coded_exception_handler(request: Request, exc: CodedHTTPException) -> JSONResponse:
+    # `detail` stays the English sentence every existing caller reads; `code`
+    # and `params` let the apps say it in the owner's language.
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "code": exc.code, "params": exc.params},
+    )
+
 
 @app.exception_handler(Exception)
 async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:

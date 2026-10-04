@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createContext, useContext, useEffect, useState } from 'react'
+import { setServerTextTranslator } from '../api/client'
+import { serverErrorText } from '../lib/serverText'
 import { Alert, I18nManager } from 'react-native'
 import { type Lang, type TranslationKey, makeT, translations, RTL_LANGS } from '../lib/i18n'
 
@@ -83,6 +85,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }
 
   const t = makeT(lang, simpleMode)
+
+  // Errors are built in the API client, outside React, so it is handed a
+  // translator; re-registered whenever the language or wording mode changes.
+  useEffect(() => {
+    setServerTextTranslator({
+      error: (code, params) => serverErrorText(code, params, t, lang),
+      network: () => t('loadFailedBody'),
+    })
+    return () => setServerTextTranslator(null)
+  })
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t, dir, simpleMode, setSimpleMode, simpleModeNeverSet }}>

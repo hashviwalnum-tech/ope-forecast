@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app import clock
 from app.api.deps import get_business, get_tier
 from app.db import get_db
+from app.api.errors import rule_http
 from app.engine.limits import (
     Tier,
     check_entry_timing,
@@ -139,7 +140,7 @@ def _timing_check(record_date: date, biz: Business) -> None:
         check_non_working_day(record_date, local_now.date(), opening_days)
         check_entry_timing(record_date, local_now.date(), local_now.hour, opening, closing)
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise rule_http(422, e)
 
 
 def _hourly_consistency_warning(
@@ -309,7 +310,7 @@ def create_day_record(body: DayRecordCreate, db: Session = Depends(get_db),
     try:
         check_history(tier, body.date, clock.today_local(biz.settings))
     except ValueError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise rule_http(403, e)
     _timing_check(body.date, biz)
     # Reject duplicates before hitting the unique constraint so the error is a
     # clean 409 rather than an unhandled IntegrityError that looks like CORS.

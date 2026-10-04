@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_business, get_tier
 from app.db import get_db
+from app.api.errors import rule_http
 from app.engine.limits import Tier, check_periods
 from app.models import Business, Period
 from app.schemas.period import PeriodCreate, PeriodRead, PeriodUpdate
@@ -30,7 +31,7 @@ def create_period(body: PeriodCreate, db: Session = Depends(get_db),
     try:
         check_periods(tier, count, body.type)
     except ValueError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise rule_http(403, e)
     row = Period(business_id=biz.id, **body.model_dump())
     db.add(row)
     db.commit()
