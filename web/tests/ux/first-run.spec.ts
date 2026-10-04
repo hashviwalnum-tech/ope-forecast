@@ -1,7 +1,7 @@
 /**
  * What a brand-new owner sees, step by step, and how many taps it takes.
  * Run against an empty database (UX_FRESH=1 — see playwright.ux.config.ts).
- * Writes test-results/ux-first-run-<lang>.json.
+ * Writes docs/audit/ux/ux-first-run-<lang>.json.
  */
 import { test, type Page } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -78,8 +78,8 @@ for (const lang of ['en', 'he'] as Lang[]) {
     steps.push({ what: 'home, day one', taps: 0, ms: 0, text: await visibleText(page),
       m: await measure(page, base('home-day-one', 0)) })
 
-    mkdirSync('test-results', { recursive: true })
-    writeFileSync(`test-results/ux-first-run-${lang}.json`, JSON.stringify(steps, null, 1))
+    mkdirSync('../docs/audit/ux', { recursive: true })
+    writeFileSync(`../docs/audit/ux/ux-first-run-${lang}.json`, JSON.stringify(steps, null, 1))
     await ctx.close()
   })
 }

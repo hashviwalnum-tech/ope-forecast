@@ -16,6 +16,13 @@
   --text-sm: 0.9375rem;         /* 15px — was 14px */
   --text-sm--line-height: 1.45;
 
+  /* ── Loading pulse ──────────────────────────────────────────────────
+     Tailwind's pulse fades to 50% opacity. On the loading lines it is used
+     for, that put grey text at 3.9–4.2:1 for half of every cycle — below the
+     4.5:1 minimum, on exactly the text an owner stares at while the backend
+     wakes up. Fading to 85% keeps the cue and stays above 5:1. */
+  --animate-pulse: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
   /* teal-25 = very light card / header background (not pure white) */
   --color-teal-25:  #f5fbf9;
   /* teal-50 = page body background — more vibrant than before */
@@ -53,4 +60,8 @@ body { margin: 0; background: inherit; }
   filter:
     drop-shadow(0 0 1px rgba(255,255,255,0.95))
     drop-shadow(0 0 3px rgba(255,255,255,0.45));
+}
+
+@keyframes pulse-soft {
+  50% { opacity: 0.85; }
 }

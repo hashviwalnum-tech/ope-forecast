@@ -383,7 +383,7 @@ export default function CsvImport({ onImported }: Props) {
           </p>
           <div className="space-y-2">
             {detectedProductCols.map(prod => (
-              <label key={prod.id} className="flex items-center gap-3 cursor-pointer group">
+              <label key={prod.id} className="flex items-center gap-3 cursor-pointer group min-h-11">
                 <input
                   type="checkbox"
                   checked={confirmedProductIds.has(prod.id)}
@@ -446,7 +446,7 @@ export default function CsvImport({ onImported }: Props) {
             {t('csvPreviewTitle', { n: String(preview.length) })}
           </h3>
           <div
-            className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-600"
+            className="relative overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-600"
             role="region"
             aria-label={t('csvPreviewTitle', { n: String(preview.length) })}
             tabIndex={0}

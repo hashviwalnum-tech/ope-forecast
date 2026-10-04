@@ -318,3 +318,12 @@ def test_bot_log_sale_wrong_key(client, linked_chat, product):
         json={"product_name": "Croissant", "quantity": 1},
     )
     assert r.status_code == 401
+
+
+def test_status_says_when_no_bot_can_answer(authed_client, monkeypatch):
+    """Both apps offered 'Connect Telegram' in production with no bot running.
+    The status now says whether a bot can answer, so they can stop offering it."""
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    assert authed_client.get("/telegram/link").json()["available"] is False
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123:abc")
+    assert authed_client.get("/telegram/link").json()["available"] is True

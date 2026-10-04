@@ -9,6 +9,7 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    tgNotAvailable: 'The Telegram assistant isn\'t switched on yet. Everything it does is already here in the app.',
     logToday: 'Log Today',
     monthDec: 'Dec',
     monthNov: 'Nov',
@@ -681,6 +682,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Nothing has been deleted yet. Your Google Play subscription is still active and we couldn\'t cancel it for you — and deleting your Ope account doesn\'t stop Google from charging you. Please cancel it first: open the Play Store, tap your profile picture, then Payments & subscriptions, then Subscriptions. Then try again.',
   },
   he: {
+    tgNotAvailable: 'העוזר בטלגרם עדיין לא הופעל. כל מה שהוא עושה כבר זמין כאן באפליקציה.',
     logToday: 'תעד היום',
     monthDec: 'דצמ',
     monthNov: 'נוב',
@@ -1341,6 +1343,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'עדיין לא נמחק דבר. המנוי שלך ב-Google Play עדיין פעיל ולא הצלחנו לבטל אותו בשבילך — ומחיקת חשבון Ope לא עוצרת את החיובים של Google. בטלו אותו קודם: פתחו את חנות Play, הקישו על תמונת הפרופיל, אחר כך "תשלומים ומינויים" ואז "מינויים". לאחר מכן נסו שוב.',
   },
   zh: {
+    tgNotAvailable: 'Telegram 助手尚未开启。它能做的事，在应用里都已经可以完成。',
     logToday: '记录今天',
     monthDec: '12月',
     monthNov: '11月',
@@ -1804,6 +1807,7 @@ export const translations = {
     deleteAccountPlaySubActive: '尚未删除任何内容。您的 Google Play 订阅仍然有效，我们无法替您取消——而删除 Ope 账户并不会让 Google 停止扣费。请先取消订阅：打开 Play 商店，点按您的头像，然后依次选择"付款和订阅"、"订阅"。然后再试一次。',
   },
   es: {
+    tgNotAvailable: 'El asistente de Telegram todavía no está activado. Todo lo que hace ya está aquí, en la app.',
     logToday: 'Registrar hoy',
     monthDec: 'Dic',
     monthNov: 'Nov',
@@ -2273,6 +2277,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Todavía no se ha borrado nada. Tu suscripción de Google Play sigue activa y no pudimos cancelarla por ti, y borrar tu cuenta de Ope no impide que Google te cobre. Cancélala primero: abre Play Store, toca tu foto de perfil, luego "Pagos y suscripciones" y después "Suscripciones". Luego vuelve a intentarlo.',
   },
   hi: {
+    tgNotAvailable: 'Telegram सहायक अभी चालू नहीं है। वह जो करता है, वह सब यहीं ऐप में पहले से है।',
     logToday: 'आज लॉग करें',
     monthDec: 'दिस',
     monthNov: 'नव',
@@ -2880,6 +2885,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'अभी तक कुछ भी हटाया नहीं गया है। आपकी Google Play सदस्यता अभी भी सक्रिय है और हम इसे आपके लिए रद्द नहीं कर सके — और Ope खाता हटाने से Google का शुल्क लेना बंद नहीं होता। कृपया पहले इसे रद्द करें: Play Store खोलें, अपनी प्रोफ़ाइल तस्वीर पर टैप करें, फिर "भुगतान और सदस्यताएँ", फिर "सदस्यताएँ"। फिर दोबारा कोशिश करें।',
   },
   ar: {
+    tgNotAvailable: 'مساعد Telegram غير مفعّل بعد. كل ما يفعله متاح هنا في التطبيق.',
     logToday: 'تسجيل اليوم',
     monthDec: 'ديسمبر',
     monthNov: 'نوفمبر',
@@ -3487,6 +3493,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'لم يُحذف أي شيء بعد. اشتراكك في Google Play لا يزال نشطًا ولم نتمكن من إلغائه نيابةً عنك — وحذف حساب Ope لا يوقف تحصيل Google للرسوم. يُرجى إلغاؤه أولاً: افتح متجر Play، واضغط على صورة ملفك الشخصي، ثم "الدفعات والاشتراكات"، ثم "الاشتراكات". بعد ذلك حاول مرة أخرى.',
   },
   pt: {
+    tgNotAvailable: 'O assistente do Telegram ainda não está ligado. Tudo o que ele faz já está aqui na app.',
     logToday: 'Registrar hoje',
     monthDec: 'Dez',
     monthNov: 'Nov',
@@ -4094,6 +4101,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Nada foi excluído ainda. Sua assinatura do Google Play ainda está ativa e não conseguimos cancelá-la por você — e excluir sua conta do Ope não impede o Google de cobrar. Cancele-a primeiro: abra a Play Store, toque na sua foto de perfil, depois em "Pagamentos e assinaturas" e em "Assinaturas". Depois tente de novo.',
   },
   ru: {
+    tgNotAvailable: 'Помощник в Telegram пока не включён. Всё, что он умеет, уже есть в приложении.',
     logToday: 'Внести сегодня',
     monthDec: 'Дек',
     monthNov: 'Ноя',
@@ -4701,6 +4709,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Пока ничего не удалено. Ваша подписка в Google Play всё ещё активна, и мы не смогли отменить её за вас, а удаление аккаунта Ope не останавливает списания Google. Сначала отмените её: откройте Play Маркет, нажмите на фото профиля, затем «Платежи и подписки» и «Подписки». Затем попробуйте снова.',
   },
   fr: {
+    tgNotAvailable: 'L\'assistant Telegram n\'est pas encore activé. Tout ce qu\'il fait est déjà disponible ici, dans l\'appli.',
     logToday: "Enregistrer aujourd'hui",
     monthDec: 'Déc',
     monthNov: 'Nov',
@@ -5308,6 +5317,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Rien n’a encore été supprimé. Votre abonnement Google Play est toujours actif et nous n’avons pas pu le résilier pour vous — et supprimer votre compte Ope n’empêche pas Google de vous facturer. Résiliez-le d’abord : ouvrez le Play Store, touchez votre photo de profil, puis « Paiements et abonnements », puis « Abonnements ». Réessayez ensuite.',
   },
   bn: {
+    tgNotAvailable: 'Telegram সহকারী এখনও চালু হয়নি। সে যা করে, তার সবই এই অ্যাপে আছে।',
     logToday: 'আজকের হিসাব লগ করুন',
     monthDec: 'ডিসে',
     monthNov: 'নভে',
@@ -5915,6 +5925,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'এখনও কিছুই মোছা হয়নি। আপনার Google Play সাবস্ক্রিপশন এখনও চালু আছে এবং আমরা আপনার হয়ে সেটি বাতিল করতে পারিনি — আর Ope অ্যাকাউন্ট মুছলে Google চার্জ নেওয়া বন্ধ করে না। অনুগ্রহ করে আগে সেটি বাতিল করুন: Play Store খুলুন, আপনার প্রোফাইল ছবিতে ট্যাপ করুন, তারপর "পেমেন্ট ও সাবস্ক্রিপশন", তারপর "সাবস্ক্রিপশন"। তারপর আবার চেষ্টা করুন।',
   },
   ur: {
+    tgNotAvailable: 'Telegram معاون ابھی فعال نہیں ہوا۔ جو کچھ وہ کرتا ہے، وہ سب پہلے ہی ایپ میں موجود ہے۔',
     logToday: 'آج کا اندراج کریں',
     monthDec: 'دسمبر',
     monthNov: 'نومبر',
@@ -6522,6 +6533,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'ابھی تک کچھ بھی حذف نہیں ہوا۔ آپ کی Google Play رکنیت ابھی فعال ہے اور ہم اسے آپ کے لیے منسوخ نہیں کر سکے — اور Ope اکاؤنٹ حذف کرنے سے Google کی وصولی بند نہیں ہوتی۔ براہ کرم پہلے اسے منسوخ کریں: Play Store کھولیں، اپنی پروفائل تصویر پر ٹیپ کریں، پھر "ادائیگیاں اور رکنیتیں"، پھر "رکنیتیں"۔ اس کے بعد دوبارہ کوشش کریں۔',
   },
   id: {
+    tgNotAvailable: 'Asisten Telegram belum diaktifkan. Semua yang bisa dilakukannya sudah ada di aplikasi ini.',
     logToday: 'Catat Hari Ini',
     monthDec: 'Des',
     monthNov: 'Nov',
@@ -7129,6 +7141,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Belum ada yang dihapus. Langganan Google Play Anda masih aktif dan kami tidak dapat membatalkannya untuk Anda — dan menghapus akun Ope tidak menghentikan tagihan Google. Batalkan dulu: buka Play Store, ketuk foto profil Anda, lalu "Pembayaran & langganan", lalu "Langganan". Setelah itu coba lagi.',
   },
   de: {
+    tgNotAvailable: 'Der Telegram-Assistent ist noch nicht eingeschaltet. Alles, was er kann, gibt es schon hier in der App.',
     logToday: 'Heute eintragen',
     monthDec: 'Dez',
     monthNov: 'Nov',
@@ -7736,6 +7749,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Es wurde noch nichts gelöscht. Ihr Google-Play-Abo ist noch aktiv und wir konnten es nicht für Sie kündigen – und das Löschen Ihres Ope-Kontos hält Google nicht vom Abbuchen ab. Bitte kündigen Sie es zuerst: Öffnen Sie den Play Store, tippen Sie auf Ihr Profilbild, dann auf „Zahlungen und Abos“ und auf „Abos“. Versuchen Sie es danach erneut.',
   },
   ja: {
+    tgNotAvailable: 'Telegram アシスタントはまだ有効になっていません。できることはすべて、このアプリでも行えます。',
     logToday: '今日を記録',
     monthDec: '12月',
     monthNov: '11月',
@@ -8343,6 +8357,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'まだ何も削除されていません。Google Play のサブスクリプションは有効なままで、こちらで解約できませんでした。Ope のアカウントを削除しても Google からの請求は止まりません。先に解約してください：Play ストアを開き、プロフィール写真をタップし、「お支払いと定期購入」、「定期購入」の順に進みます。その後、もう一度お試しください。',
   },
   tr: {
+    tgNotAvailable: 'Telegram asistanı henüz açılmadı. Yaptığı her şey zaten burada, uygulamada var.',
     logToday: 'Bugünü Kaydet',
     monthDec: 'Ara',
     monthNov: 'Kas',

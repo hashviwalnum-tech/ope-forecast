@@ -126,9 +126,10 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
                 type="number"
                 min="0"
                 step={step}
+                aria-label={`${r.today_amount != null ? t('updateTodaysTotalLabel') : t('recordVisitAmountLabel')} — ${r.name}`}
                 value={amounts[r.id] ?? r.avg_spend}
                 onChange={e => setAmounts(a => ({ ...a, [r.id]: e.target.value }))}
-                className="w-20 text-sm px-2 py-1.5 border border-slate-200 dark:border-slate-600
+                className="w-20 text-sm px-2 min-h-11 border border-slate-200 dark:border-slate-600
                            rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200
                            focus:outline-none focus:ring-2 focus:ring-teal-300 tabular-nums"
               />
@@ -136,7 +137,7 @@ function RecordRegularPanel({ onDone }: { onDone: () => void }) {
             <button
               onClick={() => record(r.id, r.name)}
               disabled={recording === r.id}
-              className={`px-3 py-1.5 text-white text-xs font-semibold rounded-lg
+              className={`px-3 min-h-11 text-white text-xs font-semibold rounded-lg
                          hover:bg-teal-700 disabled:opacity-50 transition-colors
                          ${r.today_amount != null ? 'bg-teal-500' : 'bg-teal-600'}`}
             >

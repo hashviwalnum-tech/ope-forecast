@@ -75,7 +75,7 @@ test('no source file carries text garbled by a wrong encoding', () => {
   // Built from char codes so this file cannot contain what it looks for.
   const ch = (n: number) => String.fromCharCode(n)
   const garbled = new RegExp(
-    `${ch(0x05d2)}${ch(0x20ac)}.|${ch(0x05b2)}[${ch(0xa0)}-${ch(0xff)}]|${ch(0x05d2)}${ch(0x2020)}.`)
+    `${ch(0x05d2)}[${ch(0x20ac)}${ch(0x201d)}${ch(0x2020)}${ch(0x2122)}].|${ch(0x05b2)}[${ch(0xa0)}-${ch(0xff)}]`)
   const offenders = tsxFiles(SRC)
     .concat(readdirSync(join(SRC, 'lib')).filter(f => f.endsWith('.ts')).map(f => join(SRC, 'lib', f)))
     .filter(f => garbled.test(readFileSync(f, 'utf8')))

@@ -31,6 +31,12 @@ interface ChartDataTableProps {
 export function ChartDataTable({ caption, columns, rows }: ChartDataTableProps) {
   if (rows.length === 0) return null
   return (
+    // The wrapper is what keeps this off the page. `sr-only` hides the table
+    // visually, but table layout ignores its 1px width and sizes to content, so
+    // the hidden table still made the page wider than a phone — 97px of
+    // sideways scroll on the home screen, measured. A 1px box that clips its
+    // overflow contains it; screen readers still read everything inside.
+    <div className="relative w-px h-px overflow-hidden">
     <table className="sr-only">
       <caption>{caption}</caption>
       <thead>
@@ -52,6 +58,7 @@ export function ChartDataTable({ caption, columns, rows }: ChartDataTableProps) 
         ))}
       </tbody>
     </table>
+    </div>
   )
 }
 

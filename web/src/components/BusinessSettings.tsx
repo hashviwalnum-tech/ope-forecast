@@ -375,7 +375,7 @@ export default function BusinessSettings({ onReplayTour }: Props) {
                ['wait', t('staffingOptionWait')],
                ['queue', t('staffingOptionQueue')],
           ] as const).map(([val, label]) => (
-            <label key={val} className="flex items-center gap-2.5 cursor-pointer">
+            <label key={val} className="flex items-center gap-2.5 cursor-pointer min-h-11">
               <input
                 type="radio"
                 name="thresholdType"

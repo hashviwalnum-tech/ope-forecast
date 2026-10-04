@@ -626,6 +626,7 @@ export default function RegularsPanel() {
                     type="number"
                     min="0"
                     step={step}
+                    aria-label={`${r.today_amount != null ? t('updateTodaysTotalLabel') : t('recordVisitAmountLabel')} — ${r.name}`}
                     value={visitAmounts[r.id] ?? (r.today_amount ?? r.avg_spend)}
                     onChange={e => setVisitAmounts(a => ({ ...a, [r.id]: e.target.value }))}
                     className="w-24 text-sm px-3 min-h-11 border border-slate-300 dark:border-slate-600 rounded-xl

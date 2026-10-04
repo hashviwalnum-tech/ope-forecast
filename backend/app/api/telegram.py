@@ -8,6 +8,7 @@ Flow:
   4. Backend stores chat_id ↔ business_id in TelegramLink
   5. Owner can view/revoke via GET/DELETE /telegram/link
 """
+import os
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -59,23 +60,34 @@ def generate_link_code(
     return TelegramLinkCodeResponse(code=code, expires_in_minutes=LINK_CODE_EXPIRES_MINUTES)
 
 
+def bot_available() -> bool:
+    """Whether a Telegram bot can actually answer for this deployment.
+
+    The bot needs its Telegram token to receive messages and the service key to
+    call this API. Production had neither on 2026-10-04, while both apps offered
+    "Connect Telegram" and handed out codes nobody could redeem.
+    """
+    return bool(os.environ.get("TELEGRAM_BOT_TOKEN")) and bool(os.environ.get("BOT_SERVICE_KEY"))
+
+
 @router.get("/link", response_model=TelegramLinkStatus)
 def get_link_status(
     db: Session = Depends(get_db),
     biz: Business = Depends(get_business),
 ):
     """Get the current Telegram link status for this business."""
+    available = bot_available()
     row = db.query(TelegramLink).filter_by(business_id=biz.id).first()
     if not row:
-        return TelegramLinkStatus(linked=False)
+        return TelegramLinkStatus(linked=False, available=available)
     if row.chat_id:
-        return TelegramLinkStatus(linked=True, chat_id=row.chat_id)
+        return TelegramLinkStatus(linked=True, chat_id=row.chat_id, available=available)
     # Pending, unredeemed code
     still_valid = row.link_code is not None and (
         row.link_code_expires_at is None
         or row.link_code_expires_at > _utcnow()
     )
-    return TelegramLinkStatus(linked=False, has_pending_code=still_valid)
+    return TelegramLinkStatus(linked=False, has_pending_code=still_valid, available=available)
 
 
 @router.delete("/link", status_code=204)

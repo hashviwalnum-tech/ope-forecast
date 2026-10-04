@@ -9,7 +9,7 @@ import { dirname, resolve } from 'node:path'
  * The UX review's measuring script was never committed, so its figures could
  * not be re-run. This is that measurement, kept: the real web app, against
  * two real backends, at phone and desktop sizes, in both themes and four
- * languages, writing every figure to test-results/ux-*.json.
+ * languages, writing every figure to docs/audit/ux/.
  *
  *   sim   — the simulated year-long business (backend/sim/sim.db, made by
  *           `python -m tests.simulation.run_year --to 365`), clock frozen at

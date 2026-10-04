@@ -32,7 +32,7 @@ function isValidDate(s: string): boolean {
   return !isNaN(new Date(s).getTime())
 }
 
-// ג”€ג”€ CSV helpers ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
+// ── CSV helpers ────────────────────────────────────────────────────────────────
 
 function parseCSV(text: string): string[][] {
   return text
@@ -116,7 +116,7 @@ function parseCSVRows(
   return { parsed, skipped }
 }
 
-// ג”€ג”€ Main component ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
+// ── Main component ─────────────────────────────────────────────────────────────
 
 export default function PastDaysModal({ onClose, startAdding = false }: Props) {
   const c = useTheme()
@@ -323,7 +323,7 @@ export default function PastDaysModal({ onClose, startAdding = false }: Props) {
     )
   }
 
-  // ג”€ג”€ CSV import ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
+  // ── CSV import ───────────────────────────────────────────────────────────────
 
   const openImport = () => {
     setCsvRows([])
@@ -429,7 +429,7 @@ export default function PastDaysModal({ onClose, startAdding = false }: Props) {
     else { onClose() }
   }
 
-  // ג”€ג”€ Render ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
+  // ── Render ───────────────────────────────────────────────────────────────────
 
   const headerTitle = showForm
     ? (editId ? t('pdEditDay') : t('addPastDay'))
@@ -476,7 +476,7 @@ export default function PastDaysModal({ onClose, startAdding = false }: Props) {
           )}
         </View>
 
-        {/* ג”€ג”€ Add / Edit form ג”€ג”€ */}
+        {/* ── Add / Edit form ── */}
         {showForm && (
           <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -552,7 +552,7 @@ export default function PastDaysModal({ onClose, startAdding = false }: Props) {
           </KeyboardAvoidingView>
         )}
 
-        {/* ג”€ג”€ CSV Import view ג”€ג”€ */}
+        {/* ── CSV Import view ── */}
         {showImport && (
           <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
             <Text style={styles.importHint}>
@@ -629,7 +629,7 @@ export default function PastDaysModal({ onClose, startAdding = false }: Props) {
           </ScrollView>
         )}
 
-        {/* ג”€ג”€ Record list ג”€ג”€ */}
+        {/* ── Record list ── */}
         {!showForm && !showImport && (
           <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
             {loading ? (

@@ -11,6 +11,7 @@ export default function TelegramConnectPanel() {
   const [loading, setLoading]     = useState(true)
   const [working, setWorking]     = useState(false)
   const [error, setError]         = useState<string | null>(null)
+  const [available, setAvailable] = useState(true)
 
   useEffect(() => {
     telegram.getStatus()
@@ -18,6 +19,7 @@ export default function TelegramConnectPanel() {
         setLinked(s.linked)
         setChatId(s.chat_id ?? null)
         setPending(s.has_pending_code)
+        setAvailable(s.available !== false)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -54,7 +56,9 @@ export default function TelegramConnectPanel() {
     }
   }
 
-  if (loading) return null
+  // No bot on this deployment: offering a code nobody can redeem is worse than
+  // saying nothing, so the section is left out of Settings until there is one.
+  if (loading || (!available && !linked)) return null
 
   return (
     <div className="border-t border-slate-100 dark:border-slate-700 pt-6 space-y-4">

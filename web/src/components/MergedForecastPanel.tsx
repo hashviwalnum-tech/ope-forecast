@@ -19,21 +19,15 @@ import type { Lang, TranslationKey } from '../i18n'
 import type { ForecastResponse, OrderRecordRead, ProductForecastItem, ProductForecastResponse } from '../api/types'
 import { serverSentence } from '../lib/serverText'
 
-// ── weekday translation map ───────────────────────────────────────────────────
-
-const WEEKDAY_SHORT: Partial<Record<Lang, Record<string, string>>> = {
-  en: {
-    Monday: 'Mon', Tuesday: 'Tue', Wednesday: 'Wed', Thursday: 'Thu',
-    Friday: 'Fri', Saturday: 'Sat', Sunday: 'Sun',
-  },
-  he: {
-    Monday: 'שני', Tuesday: 'שלישי', Wednesday: 'רביעי', Thursday: 'חמישי',
-    Friday: 'שישי', Saturday: 'שבת', Sunday: 'ראשון',
-  },
-}
-
-function shortDay(weekday: string, lang: Lang): string {
-  return WEEKDAY_SHORT[lang]?.[weekday] ?? weekday.slice(0, 3)
+// ── weekday names ─────────────────────────────────────────────────────────────
+// From the date, in the owner's language. A hand-written map covered English and
+// Hebrew only, so the chart read "Mon 10/05" in the other thirteen languages.
+function shortDay(date: string, lang: Lang): string {
+  try {
+    return new Intl.DateTimeFormat(lang, { weekday: 'short' }).format(new Date(`${date}T12:00:00`))
+  } catch {
+    return date
+  }
 }
 
 function fmtQty(n: number, unitMode: 'whole' | 'decimal', unit: string) {
@@ -367,8 +361,8 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
   const learning = forecast?.status === 'learning'
   if (selected === 'customers' && (forecast?.status === 'ok' || learning)) {
     chartData = forecast.days.map(d => ({
-      name: `${shortDay(d.weekday, lang)} ${d.date.slice(5).replace('-', '/')}`,
-      fullDay: d.weekday,
+      name: `${shortDay(d.date, lang)} ${d.date.slice(5).replace('-', '/')}`,
+      fullDay: t(`weekdayFull_${d.weekday}` as TranslationKey),
       predicted: Math.round(d.predicted_customers),
       low: Math.round(d.interval_low),
       high: Math.round(d.interval_high),
@@ -376,8 +370,8 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
     yLabel = t('customersLabel')
   } else if (activeProduct?.status === 'ok') {
     chartData = activeProduct.days.map(d => ({
-      name: `${shortDay(d.weekday, lang)} ${d.date.slice(5).replace('-', '/')}`,
-      fullDay: d.weekday,
+      name: `${shortDay(d.date, lang)} ${d.date.slice(5).replace('-', '/')}`,
+      fullDay: t(`weekdayFull_${d.weekday}` as TranslationKey),
       predicted: activeUMode === 'decimal' ? d.predicted_units : Math.round(d.predicted_units),
       low: activeUMode === 'decimal' ? d.interval_low : Math.round(d.interval_low),
       high: activeUMode === 'decimal' ? d.interval_high : Math.round(d.interval_high),
@@ -553,7 +547,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
           </p>
           {forecast.days.filter(d => d.booked_count != null).map(d => (
             <p key={d.date} className="text-sm text-slate-600 dark:text-slate-300">
-              {shortDay(d.weekday, lang)} {d.date.slice(5).replace('-', '/')} — {t('bookedVsPredictedRow', {
+              {shortDay(d.date, lang)} {d.date.slice(5).replace('-', '/')} — {t('bookedVsPredictedRow', {
                 booked: String(d.booked_count),
                 predicted: String(Math.round(d.predicted_customers)),
               })}
@@ -568,7 +562,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
           </p>
           {activeProduct.days.filter(d => d.booked_count != null).map(d => (
             <p key={d.date} className="text-sm text-slate-600 dark:text-slate-300">
-              {shortDay(d.weekday, lang)} {d.date.slice(5).replace('-', '/')} — {t('bookedVsPredictedRow', {
+              {shortDay(d.date, lang)} {d.date.slice(5).replace('-', '/')} — {t('bookedVsPredictedRow', {
                 booked: String(d.booked_count),
                 predicted: String(activeUMode === 'decimal' ? d.predicted_units.toFixed(2) : Math.round(d.predicted_units)),
               })}

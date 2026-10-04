@@ -379,7 +379,7 @@ export default function TrendsView() {
           <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">{t('monthByMonthTable')}</h2>
         </div>
         <div
-          className="overflow-x-auto"
+          className="relative overflow-x-auto"
           role="region"
           aria-label={t('monthByMonthTable')}
           tabIndex={0}

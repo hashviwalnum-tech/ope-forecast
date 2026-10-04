@@ -14,6 +14,7 @@ import { useLanguage } from '../contexts/LanguageContext'
 import ChartFigure from './ChartFigure'
 import type { OrderRecordRead, ProductForecastItem, ProductForecastResponse } from '../api/types'
 import { serverSentence } from '../lib/serverText'
+import type { TranslationKey } from '../i18n'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -24,10 +25,11 @@ function fmt(n: number, unit: string) {
 // ── per-product 7-day chart ───────────────────────────────────────────────────
 
 function DemandChart({ item }: { item: ProductForecastItem }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const day = new Intl.DateTimeFormat(lang, { weekday: 'short' })
   const chartData = item.days.map(d => ({
-    name: `${d.weekday.slice(0, 3)} ${d.date.slice(5).replace('-', '/')}`,
-    fullDay: d.weekday,
+    name: `${day.format(new Date(`${d.date}T12:00:00`))} ${d.date.slice(5).replace('-', '/')}`,
+    fullDay: t(`weekdayFull_${d.weekday}` as TranslationKey),
     predicted: d.predicted_units,
     low: d.interval_low,
     high: d.interval_high,

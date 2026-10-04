@@ -10,6 +10,10 @@ class TelegramLinkStatus(BaseModel):
     linked: bool
     chat_id: str | None = None
     has_pending_code: bool = False
+    # False when this deployment has no Telegram bot to talk to. The apps then
+    # say the assistant isn't switched on yet, instead of handing out a code
+    # that nothing will ever redeem.
+    available: bool = True
 
 
 class TelegramRedeemRequest(BaseModel):

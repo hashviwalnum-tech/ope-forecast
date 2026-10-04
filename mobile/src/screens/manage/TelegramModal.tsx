@@ -109,8 +109,14 @@ export default function TelegramModal({ onClose }: Props) {
                 <Text style={styles.retryText}>{t('retry')}</Text>
               </TouchableOpacity>
             </View>
+          ) : status && status.available === false && !status.linked ? (
+            // No bot on this deployment: say so plainly rather than hand out a
+            // code nobody can redeem.
+            <View style={styles.center}>
+              <Text style={styles.infoText}>{t('tgNotAvailable')}</Text>
+            </View>
           ) : status?.linked ? (
-            /* ג”€ג”€ Linked ג”€ג”€ */
+            /* ── Linked ── */
             <>
               <View style={styles.connectedCard}>
                 <Ionicons name="checkmark-circle" size={36} color="#16a34a" />
@@ -137,7 +143,7 @@ export default function TelegramModal({ onClose }: Props) {
               </TouchableOpacity>
             </>
           ) : (
-            /* ג”€ג”€ Not linked ג”€ג”€ */
+            /* ── Not linked ── */
             <>
               <View style={styles.heroIcon}>
                 <Ionicons name="paper-plane-outline" size={48} color={c.primary} />

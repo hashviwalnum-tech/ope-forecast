@@ -394,6 +394,8 @@ export interface TelegramLinkStatus {
   linked: boolean
   chat_id: string | null
   has_pending_code: boolean
+  /** False when no Telegram bot can answer on this deployment. Older servers omit it. */
+  available?: boolean
 }
 
 export interface OrderRecordRead {

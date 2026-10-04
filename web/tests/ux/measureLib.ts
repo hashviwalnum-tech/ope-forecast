@@ -44,9 +44,10 @@ export async function prime(page: Page, lang: string, theme: string, bizId: numb
 }
 
 export async function settle(page: Page) {
-  await page.locator('main [role="status"][aria-live="polite"]')
-    .filter({ hasText: /^(Loading|Saving|טוען|שומר|جارٍ|Laden|Wird)/ })
-    .first().waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {})
+  // Wait for every loading line to go, in any language — matching the word
+  // "Loading" missed the German screens and measured them mid-load.
+  await page.waitForFunction(() => !document.querySelector('main .animate-pulse, main [aria-busy="true"]'),
+    undefined, { timeout: 15_000 }).catch(() => {})
   await page.waitForTimeout(300)
 }
 

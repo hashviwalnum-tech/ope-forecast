@@ -1,6 +1,6 @@
 /**
  * Every main screen of the year-long business, measured. See playwright.ux.config.ts.
- * Writes test-results/ux-sim.json.
+ * Writes docs/audit/ux/ux-sim.json.
  */
 import { test, expect, type Page } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -82,7 +82,7 @@ test('measure every screen of the year-long business', async ({ browser }) => {
       await ctx.close()
     }
   }
-  mkdirSync('test-results', { recursive: true })
-  writeFileSync('test-results/ux-sim.json', JSON.stringify(results, null, 1))
+  mkdirSync('../docs/audit/ux', { recursive: true })
+  writeFileSync('../docs/audit/ux/ux-sim.json', JSON.stringify(results, null, 1))
   console.log(`measured ${results.length} screen states`)
 })
