@@ -1,0 +1,36 @@
+# Keeps the Render backend from falling asleep while owners are likely to open
+# Ope. On the free tier it sleeps after ~15 minutes idle, and waking it took
+# 75 seconds on 2026-10-04 - and on 2026-09-12 roughly fifteen minutes, some
+# attempts never answering at all. An owner opening Ope at 7am would think it
+# was broken.
+#
+# Every 10 minutes from 02:00 to 21:59 UTC, which is 04:00/05:00 to
+# midnight/01:00 in Israel. Overnight it is left to sleep: Render's free tier
+# allows 750 instance-hours a month across the whole workspace, and this keeps
+# the backend's share to about 620.
+#
+# Public repository, so Actions minutes cost nothing. GitHub may delay a
+# scheduled run by several minutes, and switches schedules off after 60 days
+# without a commit - a paid Render instance (no sleep) is the only fix that
+# does not depend on either.
+name: keep-awake
+
+on:
+  schedule:
+    - cron: "*/10 2-21 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping /health
+        run: |
+          for attempt in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 90 https://ope-forecast-dj78.onrender.com/health || true)
+            echo "attempt $attempt: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "::warning::backend did not answer /health with 200"
