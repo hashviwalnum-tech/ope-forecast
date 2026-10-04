@@ -657,7 +657,7 @@ export const translations = {
 
     // Business setup (new location)
     oneFreeLocation: 'One location on the free plan',
-    freePlanOneLocMsg: 'Your free plan includes one location. Upgrade to premium in Manage → Settings to add more.',
+    freePlanOneLocMsg: 'Your free plan includes one location. Premium, in the Ope Android app, lets you add more.',
     goBack: 'Go back',
     welcomeTitle: 'Welcome to Ope!',
     locationNameHint: 'Give your new location a name to get started.',
@@ -990,7 +990,7 @@ export const translations = {
     insightsYoYCompare: '{curr} vs {prev}',
     insightsNoYoY: 'You need at least a year of data to compare year-over-year. Keep logging.',
     insightsSectionAccuracy: 'Forecast accuracy',
-    insightsAccuracyWithin: 'Your forecasts are typically accurate to within {pct}%.',
+    insightsAccuracyWithin: 'On average, your forecasts are off by about {pct}%.',
     insightsAccuracyImproving: 'Getting better — started at ~{early}% error, now ~{recent}%.',
     insightsAccuracyStable: 'Currently at ~{recent}% average error.',
     insightsNoAccuracy: 'Log a few weeks of data to see how accurate your forecasts are.',
@@ -1128,7 +1128,7 @@ export const translations = {
     tourManageEventsTitle: 'Promos & Events',
     tourManageEventsBody: "Tag one-off events and ad campaigns here — a local festival, a social media boost, a flyer run. Ope measures how much extra business each one actually brought you, compared to what you would normally expect. Great for knowing which promotions are worth repeating.",
     tourManageSimpleLangTitle: 'Simple language mode',
-    tourManageSimpleLangBody: "Under Manage → Settings, you'll find a 'Simple language' toggle. Switch it on and Ope replaces technical terms — like 'MAPE', 'safety buffer', or 'FIFO' — with plain everyday words. Great if any label feels unfamiliar. Both English and Hebrew get the simple version. The tour itself also uses the simpler wording when this mode is on.",
+    tourManageSimpleLangBody: 'In Settings — the gear at the top of the screen — you can turn on \'Simple language\'. It swaps technical terms for plain everyday words. Perfect if any label feels confusing.',
 
     // Tour — preferences section (shown near the start, before Home, to set dark/simple mode early)
     tourSectionPreferences: 'Preferences',
@@ -1874,7 +1874,7 @@ export const translations = {
 
     // Business setup (new location)
     oneFreeLocation: 'מיקום אחד בתוכנית החינמית',
-    freePlanOneLocMsg: 'התוכנית החינמית שלך כוללת מיקום אחד. שדרג לפרמיום בניהול ← הגדרות להוסיף עוד.',
+    freePlanOneLocMsg: 'התוכנית החינמית כוללת סניף אחד. בפרימיום, באפליקציית Ope לאנדרואיד, אפשר להוסיף עוד.',
     goBack: 'חזור',
     welcomeTitle: 'ברוכים הבאים ל-Ope!',
     locationNameHint: 'תן לסניף החדש שלך שם כדי להתחיל.',
@@ -2207,7 +2207,7 @@ export const translations = {
     insightsYoYCompare: '{curr} לעומת {prev}',
     insightsNoYoY: 'צריך לפחות שנה של נתונים להשוות שנה מול שנה. המשך לרשום.',
     insightsSectionAccuracy: 'דיוק התחזית',
-    insightsAccuracyWithin: 'התחזיות שלך מדויקות בדרך כלל בתוך {pct}%.',
+    insightsAccuracyWithin: 'בממוצע, התחזיות שלך סוטות בכ-{pct}%.',
     insightsAccuracyImproving: 'משתפר — התחיל בשגיאה של ~{early}%, עכשיו ~{recent}%.',
     insightsAccuracyStable: 'כרגע שגיאה ממוצעת של ~{recent}%.',
     insightsNoAccuracy: 'רשום כמה שבועות של נתונים כדי לראות עד כמה התחזיות שלך מדויקות.',
@@ -2345,7 +2345,7 @@ export const translations = {
     tourManageEventsTitle: 'מבצעים ואירועים',
     tourManageEventsBody: 'תייג אירועים חד-פעמיים וקמפיינים פרסומיים כאן — פסטיבל מקומי, הגברת מדיה חברתית, חלוקת עלונים. Ope מודד כמה עסקים נוספים כל אחד מהם באמת הביא לך, בהשוואה למה שהיית מצפה בדרך כלל. מומלץ לדעת אילו מבצעים שווה לחזור עליהם.',
     tourManageSimpleLangTitle: 'מצב שפה פשוטה',
-    tourManageSimpleLangBody: "תחת ניהול ← הגדרות, תמצא מתג 'שפה פשוטה'. הפעל אותו ו-Ope מחליף כל מונח טכני — כמו 'MAPE', 'מאגר בטיחות', או 'FIFO' — במילים יומיומיות פשוטות. מעולה אם תווית כלשהי נשמעת לא מוכרת. גם אנגלית וגם עברית מקבלות את הגרסה הפשוטה. הסיור עצמו גם משתמש בניסוח הפשוט יותר כשהמצב הזה פועל.",
+    tourManageSimpleLangBody: 'בהגדרות — גלגל השיניים בראש המסך — אפשר להפעיל \'שפה פשוטה\'. היא מחליפה מונחים טכניים במילים יומיומיות. מושלם אם תווית כלשהי נראית מבלבלת.',
 
     // Tour — preferences section
     tourSectionPreferences: 'העדפות',
@@ -2836,7 +2836,7 @@ export const translations = {
     periodConfirmDelete: '确认删除', periodDelete: '删除', periodCost: '费用：{cost}',
     busyHoursLabel: '繁忙时段',
     oneFreeLocation: '免费计划中的一个分店',
-    freePlanOneLocMsg: '您的免费计划包含一个分店。升级到高级版以添加更多。',
+    freePlanOneLocMsg: '免费方案包含一个门店。在 Ope 安卓应用中开通高级版即可添加更多。',
     goBack: '返回', welcomeTitle: '欢迎使用 Ope！',
     locationNameHint: '为您的新分店命名以开始。',
     businessNameHint: '让我们开始。您的业务叫什么名字？',
@@ -3018,7 +3018,7 @@ export const translations = {
     insightsSectionYoY: '同比', insightsYoYGrowth: '↑ 比去年同月客户增加 {pct}%',
     insightsYoYDecline: '↓ 比去年同月客户减少 {pct}%', insightsYoYCompare: '{curr} 与 {prev}',
     insightsNoYoY: '至少需要一年数据来进行同比比较。继续记录。',
-    insightsSectionAccuracy: '预测准确性', insightsAccuracyWithin: '您的预测通常准确到 {pct}% 以内。',
+    insightsSectionAccuracy: '预测准确性', insightsAccuracyWithin: '平均来说，您的预测偏差约为 {pct}%。',
     insightsAccuracyImproving: '越来越好 — 从约 {early}% 误差开始，现在约 {recent}%。',
     insightsAccuracyStable: '目前约 {recent}% 平均误差。',
     insightsNoAccuracy: '记录几周数据以查看预测准确性。',
@@ -3113,7 +3113,7 @@ export const translations = {
     tourManageEventsTitle: '促销与活动',
     tourManageEventsBody: '在这里标记一次性活动和广告活动。Ope 衡量每个活动实际带来的额外业务，与您通常预期的相比。非常适合了解哪些促销值得重复。',
     tourManageSimpleLangTitle: '简单语言模式',
-    tourManageSimpleLangBody: '在管理 → 设置下，您会找到"简单语言"切换开关。开启它，Ope 会将技术术语替换为日常简单用语。如果任何标签感觉陌生，这非常好。',
+    tourManageSimpleLangBody: '在“设置”（屏幕顶部的齿轮）里可以打开“简单用语”。它会把专业术语换成日常说法，任何标签看不懂时都很合适。',
     tourSectionPreferences: '偏好设置', tourDarkModeTitle: '选择您的外观 — 暗色或亮色？',
     tourDarkModeBody: 'Ope 在亮色和暗色模式下都能工作。突出显示的按钮可以在两者之间切换 — 现在按下试试！您可以随时切换回来。',
     tourFriendlyModeTitle: '更喜欢简单的措辞？',
@@ -3604,7 +3604,7 @@ export const translations = {
     periodConfirmDelete: 'Confirmar eliminación', periodDelete: 'Eliminar', periodCost: 'coste: {cost}',
     busyHoursLabel: 'Horas punta',
     oneFreeLocation: 'Una ubicación en el plan gratuito',
-    freePlanOneLocMsg: 'Tu plan gratuito incluye una ubicación. Actualiza a Premium en Gestionar → Ajustes para añadir más.',
+    freePlanOneLocMsg: 'Tu plan gratuito incluye un local. Con Premium, en la app de Ope para Android, puedes añadir más.',
     goBack: 'Volver', welcomeTitle: '¡Bienvenido a Ope!',
     locationNameHint: 'Dale un nombre a tu nueva ubicación para empezar.',
     businessNameHint: 'Empecemos. ¿Cómo se llama tu negocio?',
@@ -3815,7 +3815,7 @@ export const translations = {
     insightsYoYCompare: '{curr} vs {prev}',
     insightsNoYoY: 'Necesitas al menos un año de datos para comparar año a año. Sigue registrando.',
     insightsSectionAccuracy: 'Precisión de la previsión',
-    insightsAccuracyWithin: 'Tus previsiones suelen ser precisas con un margen de {pct}%.',
+    insightsAccuracyWithin: 'De media, tus previsiones se desvían alrededor de un {pct}%.',
     insightsAccuracyImproving: 'Mejorando — empezó con ~{early}% de error, ahora ~{recent}%.',
     insightsAccuracyStable: 'Actualmente con ~{recent}% de error promedio.',
     insightsNoAccuracy: 'Registra algunas semanas de datos para ver la precisión de tus previsiones.',
@@ -3911,7 +3911,7 @@ export const translations = {
     tourManageEventsTitle: 'Promos y eventos',
     tourManageEventsBody: 'Etiqueta aquí eventos puntuales y campañas publicitarias. Ope mide cuánto negocio extra trajo cada uno, comparado con lo que normalmente esperarías. Ideal para saber qué promociones vale la pena repetir.',
     tourManageSimpleLangTitle: 'Modo de lenguaje sencillo',
-    tourManageSimpleLangBody: 'En Gestionar → Ajustes, encontrarás el interruptor "Lenguaje sencillo". Actívalo y Ope reemplaza los términos técnicos — como "MAPE", "margen de seguridad" o "FIFO" — con palabras cotidianas sencillas.',
+    tourManageSimpleLangBody: 'En Ajustes —el engranaje de arriba— puedes activar «Lenguaje sencillo». Cambia los términos técnicos por palabras cotidianas. Ideal si alguna etiqueta te confunde.',
     tourSectionPreferences: 'Preferencias', tourDarkModeTitle: '¿Oscuro o claro?',
     tourDarkModeBody: 'Ope funciona en modo claro y oscuro. El botón resaltado cambia entre ellos — ¡pruébalo ahora! Puedes cambiarlo en cualquier momento.',
     tourFriendlyModeTitle: '¿Prefieres un lenguaje más sencillo?',
@@ -4384,7 +4384,7 @@ export const translations = {
     periodConfirmDelete: 'हटाने की पुष्टि करें', periodDelete: 'हटाएँ', periodCost: 'लागत: {cost}',
     busyHoursLabel: 'व्यस्त घंटे',
     oneFreeLocation: 'निःशुल्क प्लान पर एक शाखा',
-    freePlanOneLocMsg: 'आपके निःशुल्क प्लान में एक शाखा शामिल है। और जोड़ने के लिए प्रबंधन → सेटिंग्स में प्रीमियम में अपग्रेड करें।',
+    freePlanOneLocMsg: 'आपकी मुफ़्त योजना में एक स्थान शामिल है। Ope के Android ऐप में प्रीमियम से आप और जोड़ सकते हैं।',
     goBack: 'वापस जाएं', welcomeTitle: 'Ope में आपका स्वागत है!',
     locationNameHint: 'शुरू करने के लिए अपनी नई शाखा को नाम दें।',
     businessNameHint: 'चलिए शुरू करते हैं। आपके व्यापार का नाम क्या है?',
@@ -4573,7 +4573,7 @@ export const translations = {
     insightsSectionYoY: 'वर्ष-दर-वर्ष', insightsYoYGrowth: '↑ पिछले वर्ष के इस महीने से {pct}% अधिक ग्राहक',
     insightsYoYDecline: '↓ पिछले वर्ष के इस महीने से {pct}% कम ग्राहक', insightsYoYCompare: '{curr} बनाम {prev}',
     insightsNoYoY: 'वर्ष-दर-वर्ष तुलना के लिए कम से कम एक वर्ष का डेटा चाहिए। लॉग करते रहें।',
-    insightsSectionAccuracy: 'पूर्वानुमान सटीकता', insightsAccuracyWithin: 'आपके पूर्वानुमान आमतौर पर {pct}% के भीतर सटीक हैं।',
+    insightsSectionAccuracy: 'पूर्वानुमान सटीकता', insightsAccuracyWithin: 'औसतन, आपके पूर्वानुमान लगभग {pct}% अलग रहते हैं।',
     insightsAccuracyImproving: 'बेहतर हो रहा है — ~{early}% त्रुटि से शुरू, अब ~{recent}%।',
     insightsAccuracyStable: 'वर्तमान में ~{recent}% औसत त्रुटि।',
     insightsNoAccuracy: 'सटीकता देखने के लिए कुछ सप्ताह डेटा लॉग करें।',
@@ -4669,7 +4669,7 @@ export const translations = {
     tourManageEventsTitle: 'प्रचार और कार्यक्रम',
     tourManageEventsBody: 'यहाँ एकबारगी कार्यक्रम और विज्ञापन अभियान टैग करें। Ope मापता है कि हर एक ने वास्तव में कितना अतिरिक्त व्यापार लाया।',
     tourManageSimpleLangTitle: 'सरल भाषा मोड',
-    tourManageSimpleLangBody: 'प्रबंधन → सेटिंग्स में "सरल भाषा" टॉगल मिलेगा। इसे चालू करें और Ope तकनीकी शब्दों — जैसे "MAPE", "सुरक्षा बफर", या "FIFO" — को सरल रोज़मर्रा के शब्दों से बदल देगा।',
+    tourManageSimpleLangBody: 'सेटिंग्स में — स्क्रीन के ऊपर गियर — आप \'सरल भाषा\' चालू कर सकते हैं। यह तकनीकी शब्दों को रोज़मर्रा के शब्दों से बदल देती है। कोई लेबल उलझाए तो बढ़िया है।',
     tourSectionPreferences: 'प्राथमिकताएं', tourDarkModeTitle: 'अपना लुक चुनें — डार्क या लाइट?',
     tourDarkModeBody: 'Ope लाइट और डार्क दोनों मोड में काम करता है। हाइलाइट किया बटन दोनों के बीच स्विच करता है — अभी आज़माएं! आप कभी भी वापस स्विच कर सकते हैं।',
     tourFriendlyModeTitle: 'सरल शब्दावली पसंद करते हैं?',
@@ -5306,7 +5306,7 @@ export const translations = {
     periodCost: 'التكلفة: {cost}',
     busyHoursLabel: 'ساعات الذروة',
     oneFreeLocation: 'فرع واحد في الخطة المجانية',
-    freePlanOneLocMsg: 'تشمل خطتك المجانية فرعًا واحدًا. رقِّ إلى بريميوم في الإدارة ← الإعدادات لإضافة المزيد.',
+    freePlanOneLocMsg: 'تشمل خطتك المجانية فرعًا واحدًا. يتيح لك Premium في تطبيق Ope لأندرويد إضافة المزيد.',
     goBack: 'العودة',
     welcomeTitle: 'مرحبًا بك في Ope!',
     locationNameHint: 'أعطِ فرعك الجديد اسمًا للبدء.',
@@ -5592,7 +5592,7 @@ export const translations = {
     insightsYoYCompare: '{curr} مقابل {prev}',
     insightsNoYoY: 'تحتاج إلى سنة واحدة على الأقل من البيانات للمقارنة السنوية. استمر في التسجيل.',
     insightsSectionAccuracy: 'دقة التوقع',
-    insightsAccuracyWithin: 'توقعاتك عادةً دقيقة بهامش {pct}%.',
+    insightsAccuracyWithin: 'في المتوسط، تنحرف توقعاتك بنحو {pct}%.',
     insightsAccuracyImproving: 'تتحسن — بدأت بنحو {early}% خطأ، والآن نحو {recent}%.',
     insightsAccuracyStable: 'حاليًا عند نحو {recent}% متوسط خطأ.',
     insightsNoAccuracy: 'سجّل بضعة أسابيع من البيانات لرؤية مدى دقة توقعاتك.',
@@ -5703,7 +5703,7 @@ export const translations = {
     tourManageEventsTitle: 'العروض والفعاليات',
     tourManageEventsBody: 'صنّف المناسبات الفردية والحملات الإعلانية هنا — مهرجان محلي، ترويج على وسائل التواصل الاجتماعي، توزيع منشورات. يقيس Ope مقدار الأعمال الإضافية التي جلبها كل منها فعليًا، مقارنة بما كنت تتوقعه عادةً. رائع لمعرفة أي العروض تستحق التكرار.',
     tourManageSimpleLangTitle: 'وضع اللغة البسيطة',
-    tourManageSimpleLangBody: 'تحت الإدارة ← الإعدادات، ستجد مفتاح "لغة بسيطة". فعّله وسيستبدل Ope المصطلحات التقنية — مثل "MAPE" أو "مخزون الأمان" أو "FIFO" — بكلمات يومية بسيطة. رائع إذا شعرت أن أي تسمية غير مألوفة. تحصل كل من الإنجليزية والعبرية على النسخة المبسّطة. تستخدم الجولة نفسها أيضًا الصياغة الأبسط عند تفعيل هذا الوضع.',
+    tourManageSimpleLangBody: 'في الإعدادات — الترس أعلى الشاشة — يمكنك تشغيل «لغة بسيطة». تستبدل المصطلحات التقنية بكلمات يومية بسيطة. مثالية إن بدت أي تسمية مربكة.',
     tourSectionPreferences: 'التفضيلات',
     tourDarkModeTitle: 'اختر مظهرك — داكن أم فاتح؟',
     tourDarkModeBody: 'يعمل Ope في كلا الوضعين الفاتح والداكن. الزر المميَّز يبدّل بينهما — اضغطه الآن لتجربته! يمكنك التبديل مرة أخرى في أي وقت.',
@@ -6198,7 +6198,7 @@ export const translations = {
     periodConfirmDelete: 'Confirmar exclusão', periodDelete: 'Excluir', periodCost: 'custo: {cost}',
     busyHoursLabel: 'Horários de pico',
     oneFreeLocation: 'Uma filial no plano gratuito',
-    freePlanOneLocMsg: 'Seu plano gratuito inclui uma filial. Atualize para premium em Gerenciar → Configurações para adicionar mais.',
+    freePlanOneLocMsg: 'O seu plano gratuito inclui um local. O Premium, na app Ope para Android, permite adicionar mais.',
     goBack: 'Voltar', welcomeTitle: 'Bem-vindo ao Ope!',
     locationNameHint: 'Dê um nome à sua nova filial para começar.',
     businessNameHint: 'Vamos começar. Qual é o nome do seu negócio?',
@@ -6398,7 +6398,7 @@ export const translations = {
     insightsYoYCompare: '{curr} vs. {prev}',
     insightsNoYoY: 'Você precisa de pelo menos um ano de dados para comparar ano a ano. Continue registrando.',
     insightsSectionAccuracy: 'Precisão da previsão',
-    insightsAccuracyWithin: 'Suas previsões costumam ter precisão dentro de {pct}%.',
+    insightsAccuracyWithin: 'Em média, as suas previsões falham por cerca de {pct}%.',
     insightsAccuracyImproving: 'Melhorando — começou com ~{early}% de erro, agora ~{recent}%.',
     insightsAccuracyStable: 'Atualmente em ~{recent}% de erro médio.',
     insightsNoAccuracy: 'Registre algumas semanas de dados para ver a precisão das suas previsões.',
@@ -6496,7 +6496,7 @@ export const translations = {
     tourManageEventsTitle: 'Promoções e Eventos',
     tourManageEventsBody: 'Marque eventos únicos e campanhas de anúncio aqui — um festival local, um impulso nas redes sociais, uma distribuição de panfletos. O Ope mede quanto negócio extra cada um realmente trouxe, comparado ao que você normalmente esperaria. Ótimo para saber quais promoções valem a pena repetir.',
     tourManageSimpleLangTitle: 'Modo de linguagem simples',
-    tourManageSimpleLangBody: 'Em Gerenciar → Configurações, você encontra um botão de "Linguagem simples". Ative e o Ope substitui termos técnicos — como "MAPE", "margem de segurança" ou "FIFO" — por palavras simples do dia a dia. Ótimo se algum rótulo parecer estranho. Tanto o inglês quanto o hebraico têm a versão simples. O próprio tour também usa a linguagem mais simples quando esse modo está ativo.',
+    tourManageSimpleLangBody: 'Nas Definições — a roda dentada no topo do ecrã — pode ligar a «Linguagem simples». Troca termos técnicos por palavras do dia a dia. Ideal se algum rótulo parecer confuso.',
     tourSectionPreferences: 'Preferências',
     tourDarkModeTitle: 'Escolha sua aparência — escura ou clara?',
     tourDarkModeBody: 'O Ope funciona no modo claro e escuro. O botão destacado alterna entre eles — aperte agora para experimentar! Você pode voltar atrás a qualquer momento.',
@@ -6980,7 +6980,7 @@ export const translations = {
     periodConfirmDelete: 'Подтвердить удаление', periodDelete: 'Удалить', periodCost: 'стоимость: {cost}',
     busyHoursLabel: 'Загруженные часы',
     oneFreeLocation: 'Одна точка на бесплатном плане',
-    freePlanOneLocMsg: 'Ваш бесплатный план включает одну точку. Перейдите на премиум в Управление → Настройки, чтобы добавить больше.',
+    freePlanOneLocMsg: 'Бесплатный тариф включает одну точку. Premium в приложении Ope для Android позволяет добавить больше.',
     goBack: 'Назад', welcomeTitle: 'Добро пожаловать в Ope!',
     locationNameHint: 'Дайте название новой точке, чтобы начать.',
     businessNameHint: 'Начнём. Как называется ваш бизнес?',
@@ -7177,7 +7177,7 @@ export const translations = {
     insightsYoYCompare: '{curr} против {prev}',
     insightsNoYoY: 'Для сравнения год к году нужен минимум год данных. Продолжайте вносить записи.',
     insightsSectionAccuracy: 'Точность прогноза',
-    insightsAccuracyWithin: 'Ваши прогнозы обычно точны в пределах {pct}%.',
+    insightsAccuracyWithin: 'В среднем ваши прогнозы ошибаются примерно на {pct}%.',
     insightsAccuracyImproving: 'Становится лучше — начиналось с ошибки ~{early}%, сейчас ~{recent}%.',
     insightsAccuracyStable: 'Сейчас средняя ошибка ~{recent}%.',
     insightsNoAccuracy: 'Внесите данные за несколько недель, чтобы увидеть, насколько точны ваши прогнозы.',
@@ -7276,7 +7276,7 @@ export const translations = {
     tourManageEventsTitle: 'Акции и события',
     tourManageEventsBody: 'Отмечайте здесь разовые события и рекламные кампании — местный фестиваль, продвижение в соцсетях, раздачу листовок. Ope измеряет, сколько дополнительного бизнеса каждое из них реально принесло по сравнению с тем, что вы ожидали бы обычно. Отлично подходит, чтобы понять, какие акции стоит повторять.',
     tourManageSimpleLangTitle: 'Режим простого языка',
-    tourManageSimpleLangBody: 'В разделе Управление → Настройки есть переключатель «Простой язык». Включите его, и Ope заменит технические термины — такие как «MAPE», «запас прочности» или «FIFO» — простыми повседневными словами. Отлично, если какая-то подпись кажется незнакомой. Упрощённая версия доступна на английском и иврите. Сам тур тоже использует более простые формулировки, когда этот режим включён.',
+    tourManageSimpleLangBody: 'В настройках — шестерёнка вверху экрана — можно включить «Простой язык». Он заменяет технические термины обычными словами. Удобно, если какая-то надпись непонятна.',
     tourSectionPreferences: 'Настройки внешнего вида',
     tourDarkModeTitle: 'Выберите внешний вид — тёмный или светлый?',
     tourDarkModeBody: 'Ope работает как в светлом, так и в тёмном режиме. Выделенная кнопка переключает между ними — нажмите её сейчас, чтобы попробовать! Вы можете переключиться обратно в любое время.',
@@ -7997,7 +7997,7 @@ export const translations = {
 
     // Business setup (new location)
     oneFreeLocation: 'Un établissement dans le forfait gratuit',
-    freePlanOneLocMsg: "Votre forfait gratuit comprend un établissement. Passez au premium dans Gérer → Paramètres pour en ajouter d'autres.",
+    freePlanOneLocMsg: 'Votre offre gratuite comprend un établissement. Premium, dans l\'appli Ope pour Android, permet d\'en ajouter.',
     goBack: 'Retour',
     welcomeTitle: 'Bienvenue sur Ope !',
     locationNameHint: 'Donnez un nom à votre nouvel établissement pour commencer.',
@@ -8329,7 +8329,7 @@ export const translations = {
     insightsYoYCompare: '{curr} vs {prev}',
     insightsNoYoY: "Vous avez besoin d'au moins un an de données pour comparer année après année. Continuez à enregistrer.",
     insightsSectionAccuracy: 'Fiabilité des prévisions',
-    insightsAccuracyWithin: 'Vos prévisions sont généralement fiables à {pct} % près.',
+    insightsAccuracyWithin: 'En moyenne, vos prévisions s\'écartent d\'environ {pct} %.',
     insightsAccuracyImproving: "En amélioration — a commencé à ~{early} % d'erreur, maintenant ~{recent} %.",
     insightsAccuracyStable: "Actuellement à ~{recent} % d'erreur moyenne.",
     insightsNoAccuracy: 'Enregistrez quelques semaines de données pour voir la fiabilité de vos prévisions.',
@@ -8467,7 +8467,7 @@ export const translations = {
     tourManageEventsTitle: 'Promos et événements',
     tourManageEventsBody: "Marquez ici des événements ponctuels et des campagnes publicitaires — un festival local, une promotion sur les réseaux sociaux, une distribution de flyers. Ope mesure combien d'activité supplémentaire chacun vous a réellement apportée, par rapport à ce que vous attendriez normalement. Idéal pour savoir quelles promotions valent la peine d'être répétées.",
     tourManageSimpleLangTitle: 'Mode langage simple',
-    tourManageSimpleLangBody: "Sous Gérer → Paramètres, vous trouverez un interrupteur « Langage simple ». Activez-le et Ope remplace les termes techniques — comme « MAPE », « marge de sécurité », ou « FIFO » — par des mots simples du quotidien. Utile si un libellé semble peu familier. L'anglais et l'hébreu ont tous deux la version simple. La visite guidée elle-même utilise aussi la formulation plus simple quand ce mode est activé.",
+    tourManageSimpleLangBody: 'Dans Réglages — l\'engrenage en haut de l\'écran — vous pouvez activer « Langage simple ». Il remplace les termes techniques par des mots de tous les jours. Idéal si une étiquette vous paraît obscure.',
 
     // Tour — preferences section (shown near the start, before Home, to set dark/simple mode early)
     tourSectionPreferences: 'Préférences',
@@ -9208,7 +9208,7 @@ export const translations = {
 
     // Business setup (new location)
     oneFreeLocation: 'ফ্রি প্ল্যানে একটি শাখা',
-    freePlanOneLocMsg: 'আপনার ফ্রি প্ল্যানে একটি শাখা অন্তর্ভুক্ত। আরও যোগ করতে পরিচালনা → সেটিংস-এ প্রিমিয়ামে আপগ্রেড করুন।',
+    freePlanOneLocMsg: 'আপনার বিনামূল্যের প্ল্যানে একটি লোকেশন আছে। Ope-এর Android অ্যাপে প্রিমিয়াম নিলে আরও যোগ করা যায়।',
     goBack: 'ফিরে যান',
     welcomeTitle: 'Ope-তে স্বাগতম!',
     locationNameHint: 'শুরু করতে আপনার নতুন শাখার একটি নাম দিন।',
@@ -9540,7 +9540,7 @@ export const translations = {
     insightsYoYCompare: '{curr} বনাম {prev}',
     insightsNoYoY: 'বছরের-পর-বছর তুলনা করতে আপনার কমপক্ষে এক বছরের ডেটা দরকার। লগ করতে থাকুন।',
     insightsSectionAccuracy: 'পূর্বাভাসের নির্ভুলতা',
-    insightsAccuracyWithin: 'আপনার পূর্বাভাস সাধারণত {pct}%-এর মধ্যে সঠিক।',
+    insightsAccuracyWithin: 'গড়ে আপনার পূর্বাভাস প্রায় {pct}% এদিক-ওদিক হয়।',
     insightsAccuracyImproving: 'উন্নতি হচ্ছে — ~{early}% ত্রুটি দিয়ে শুরু হয়েছিল, এখন ~{recent}%।',
     insightsAccuracyStable: 'বর্তমানে ~{recent}% গড় ত্রুটিতে।',
     insightsNoAccuracy: 'আপনার পূর্বাভাস কতটা সঠিক তা দেখতে কয়েক সপ্তাহের ডেটা লগ করুন।',
@@ -9678,7 +9678,7 @@ export const translations = {
     tourManageEventsTitle: 'প্রচার ও ইভেন্ট',
     tourManageEventsBody: 'এখানে একবারের অনুষ্ঠান ও বিজ্ঞাপন ক্যাম্পেইন ট্যাগ করুন — একটি স্থানীয় উৎসব, একটি সোশ্যাল মিডিয়া বুস্ট, একটি ফ্লায়ার বিতরণ। Ope পরিমাপ করে প্রতিটি আসলে কতটা অতিরিক্ত ব্যবসা এনেছে, আপনি সাধারণত যা আশা করতেন তার তুলনায়। কোন প্রচারগুলো পুনরাবৃত্তির যোগ্য তা জানার জন্য দারুণ।',
     tourManageSimpleLangTitle: 'সহজ ভাষা মোড',
-    tourManageSimpleLangBody: 'পরিচালনা → সেটিংস-এর অধীনে, আপনি একটি \'সহজ ভাষা\' টগল পাবেন। এটি চালু করুন এবং Ope প্রযুক্তিগত শব্দ — যেমন \'MAPE\', \'নিরাপত্তা বাফার\', বা \'FIFO\' — সহজ প্রতিদিনের শব্দ দিয়ে প্রতিস্থাপন করে। কোনো লেবেল অপরিচিত মনে হলে দারুণ কাজে দেয়। ইংরেজি ও হিব্রু উভয়ই সহজ সংস্করণ পায়। এই মোড চালু থাকলে ট্যুরও সহজ শব্দ ব্যবহার করে।',
+    tourManageSimpleLangBody: 'সেটিংসে — স্ক্রিনের ওপরের গিয়ার — \'সহজ ভাষা\' চালু করতে পারেন। এটি কারিগরি শব্দের বদলে রোজকার শব্দ বসায়। কোনো লেবেল বিভ্রান্তিকর লাগলে দারুণ।',
 
     // Tour — preferences section (shown near the start, before Home, to set dark/simple mode early)
     tourSectionPreferences: 'পছন্দসমূহ',
@@ -10419,7 +10419,7 @@ export const translations = {
 
     // Business setup (new location)
     oneFreeLocation: 'مفت پلان پر ایک شاخ',
-    freePlanOneLocMsg: 'آپ کے مفت پلان میں ایک شاخ شامل ہے۔ مزید شامل کرنے کے لیے انتظام → ترتیبات میں پریمیم میں اپ گریڈ کریں۔',
+    freePlanOneLocMsg: 'آپ کے مفت پلان میں ایک مقام شامل ہے۔ Ope کی Android ایپ میں پریمیم سے آپ مزید شامل کر سکتے ہیں۔',
     goBack: 'واپس جائیں',
     welcomeTitle: 'Ope میں خوش آمدید!',
     locationNameHint: 'شروع کرنے کے لیے اپنی نئی شاخ کو ایک نام دیں۔',
@@ -10751,7 +10751,7 @@ export const translations = {
     insightsYoYCompare: '{curr} بمقابلہ {prev}',
     insightsNoYoY: 'سال بہ سال موازنہ کرنے کے لیے آپ کو کم از کم ایک سال کا ڈیٹا درکار ہے۔ درج کرتے رہیں۔',
     insightsSectionAccuracy: 'پیشگوئی کی درستگی',
-    insightsAccuracyWithin: 'آپ کی پیشگوئیاں عام طور پر {pct}% کے اندر درست ہوتی ہیں۔',
+    insightsAccuracyWithin: 'اوسطاً آپ کی پیش گوئیاں تقریباً {pct}% مختلف رہتی ہیں۔',
     insightsAccuracyImproving: 'بہتر ہو رہی ہے — ~{early}% غلطی سے شروع ہوئی، اب ~{recent}%۔',
     insightsAccuracyStable: 'فی الحال ~{recent}% اوسط غلطی پر۔',
     insightsNoAccuracy: 'اپنی پیشگوئیوں کی درستگی دیکھنے کے لیے چند ہفتوں کا ڈیٹا درج کریں۔',
@@ -10889,7 +10889,7 @@ export const translations = {
     tourManageEventsTitle: 'پروموشنز اور تقریبات',
     tourManageEventsBody: 'یہاں یک بار کی تقریبات اور اشتہاری مہمات کو ٹیگ کریں — کوئی مقامی میلہ، سوشل میڈیا کی مہم، پمفلٹ کی تقسیم۔ Ope ناپتا ہے کہ ہر ایک نے واقعی کتنا اضافی کاروبار لایا، اس کے مقابلے میں جس کی آپ عام طور پر توقع رکھتے۔ یہ جاننے کے لیے بہترین کہ کون سی پروموشنز دہرانے کے قابل ہیں۔',
     tourManageSimpleLangTitle: 'سادہ زبان موڈ',
-    tourManageSimpleLangBody: 'انتظام → ترتیبات کے تحت، آپ کو "سادہ زبان" کا ٹوگل ملے گا۔ اسے آن کریں اور Ope تکنیکی اصطلاحات — جیسے "MAPE"، "حفاظتی بفر"، یا "FIFO" — کو سادہ روزمرہ الفاظ سے بدل دیتا ہے۔ اگر کوئی لیبل ناواقف لگے تو بہترین ہے۔ انگریزی اور عبرانی دونوں کو سادہ ورژن ملتا ہے۔ جب یہ موڈ آن ہو تو ٹور خود بھی سادہ الفاظ استعمال کرتا ہے۔',
+    tourManageSimpleLangBody: 'سیٹنگز میں — اسکرین کے اوپر گیئر — آپ \'آسان زبان\' آن کر سکتے ہیں۔ یہ تکنیکی الفاظ کو روزمرہ الفاظ سے بدل دیتی ہے۔ کوئی لیبل الجھا دے تو بہترین ہے۔',
 
     // Tour — preferences section (shown near the start, before Home, to set dark/simple mode early)
     tourSectionPreferences: 'ترجیحات',
@@ -11630,7 +11630,7 @@ export const translations = {
 
     // Business setup (new location)
     oneFreeLocation: 'Satu lokasi pada paket gratis',
-    freePlanOneLocMsg: 'Paket gratis Anda mencakup satu lokasi. Tingkatkan ke premium di Kelola → Pengaturan untuk menambah lokasi lain.',
+    freePlanOneLocMsg: 'Paket gratis Anda mencakup satu lokasi. Premium di aplikasi Ope untuk Android memungkinkan menambah lebih banyak.',
     goBack: 'Kembali',
     welcomeTitle: 'Selamat datang di Ope!',
     locationNameHint: 'Beri nama lokasi baru Anda untuk memulai.',
@@ -11962,7 +11962,7 @@ export const translations = {
     insightsYoYCompare: '{curr} vs {prev}',
     insightsNoYoY: 'Anda memerlukan setidaknya satu tahun data untuk membandingkan tahun ke tahun. Terus catat.',
     insightsSectionAccuracy: 'Akurasi perkiraan',
-    insightsAccuracyWithin: 'Perkiraan Anda biasanya akurat dalam kisaran {pct}%.',
+    insightsAccuracyWithin: 'Rata-rata, prakiraan Anda meleset sekitar {pct}%.',
     insightsAccuracyImproving: 'Semakin membaik — dimulai dari ~{early}% kesalahan, sekarang ~{recent}%.',
     insightsAccuracyStable: 'Saat ini pada ~{recent}% rata-rata kesalahan.',
     insightsNoAccuracy: 'Catat beberapa minggu data untuk melihat seberapa akurat perkiraan Anda.',
@@ -12100,7 +12100,7 @@ export const translations = {
     tourManageEventsTitle: 'Promo & Acara',
     tourManageEventsBody: 'Tandai acara sekali saja dan kampanye iklan di sini — festival lokal, promosi media sosial, penyebaran brosur. Ope mengukur berapa banyak bisnis tambahan yang benar-benar dihasilkan masing-masing, dibandingkan dengan yang biasanya Anda perkirakan. Cocok untuk mengetahui promosi mana yang layak diulang.',
     tourManageSimpleLangTitle: 'Mode bahasa sederhana',
-    tourManageSimpleLangBody: "Di bawah Kelola → Pengaturan, Anda akan menemukan sakelar 'Bahasa sederhana'. Aktifkan dan Ope akan mengganti istilah teknis — seperti 'MAPE', 'stok pengaman', atau 'FIFO' — dengan kata-kata sehari-hari yang sederhana. Cocok jika ada label yang terasa asing. Baik Inggris maupun Ibrani mendapatkan versi sederhana. Tur ini sendiri juga menggunakan bahasa yang lebih sederhana saat mode ini aktif.",
+    tourManageSimpleLangBody: 'Di Pengaturan — ikon roda gigi di atas layar — Anda bisa menyalakan \'Bahasa sederhana\'. Istilah teknis diganti kata sehari-hari. Cocok jika ada label yang membingungkan.',
 
     // Tour — preferences section (shown near the start, before Home, to set dark/simple mode early)
     tourSectionPreferences: 'Preferensi',
@@ -12841,7 +12841,7 @@ export const translations = {
 
     // Business setup (new location)
     oneFreeLocation: 'Ein Standort im kostenlosen Plan',
-    freePlanOneLocMsg: 'Ihr kostenloser Plan umfasst einen Standort. Upgraden Sie unter Verwalten → Einstellungen auf Premium, um weitere hinzuzufügen.',
+    freePlanOneLocMsg: 'Ihr kostenloser Tarif umfasst einen Standort. Mit Premium in der Ope-App für Android können Sie weitere hinzufügen.',
     goBack: 'Zurück',
     welcomeTitle: 'Willkommen bei Ope!',
     locationNameHint: 'Geben Sie Ihrem neuen Standort einen Namen, um zu starten.',
@@ -13173,7 +13173,7 @@ export const translations = {
     insightsYoYCompare: '{curr} vs. {prev}',
     insightsNoYoY: 'Sie brauchen mindestens ein Jahr an Daten für einen Jahresvergleich. Bleiben Sie am Erfassen.',
     insightsSectionAccuracy: 'Prognosegenauigkeit',
-    insightsAccuracyWithin: 'Ihre Prognosen sind typischerweise auf {pct} % genau.',
+    insightsAccuracyWithin: 'Im Schnitt liegen Ihre Prognosen um etwa {pct} % daneben.',
     insightsAccuracyImproving: 'Wird besser — startete bei ~{early} % Fehler, jetzt ~{recent} %.',
     insightsAccuracyStable: 'Aktuell bei ~{recent} % durchschnittlichem Fehler.',
     insightsNoAccuracy: 'Erfassen Sie ein paar Wochen an Daten, um zu sehen, wie genau Ihre Prognosen sind.',
@@ -13311,7 +13311,7 @@ export const translations = {
     tourManageEventsTitle: 'Aktionen & Events',
     tourManageEventsBody: 'Markieren Sie hier einmalige Events und Werbekampagnen — ein lokales Fest, einen Social-Media-Boost, eine Flyer-Aktion. Ope misst, wie viel zusätzliches Geschäft jedes davon tatsächlich gebracht hat, verglichen mit dem, was Sie normalerweise erwarten würden. Ideal, um zu wissen, welche Aktionen sich zu wiederholen lohnen.',
     tourManageSimpleLangTitle: 'Modus Einfache Sprache',
-    tourManageSimpleLangBody: 'Unter Verwalten → Einstellungen finden Sie einen Schalter „Einfache Sprache". Schalten Sie ihn ein, und Ope ersetzt Fachbegriffe — wie „MAPE", „Sicherheitspuffer" oder „FIFO" — durch einfache Alltagswörter. Praktisch, wenn Ihnen ein Begriff unbekannt vorkommt. Sowohl Englisch als auch Hebräisch erhalten die einfache Version. Die Tour selbst nutzt bei aktiviertem Modus ebenfalls die einfachere Formulierung.',
+    tourManageSimpleLangBody: 'In den Einstellungen — das Zahnrad oben auf dem Bildschirm — können Sie „Einfache Sprache“ einschalten. Sie ersetzt Fachbegriffe durch Alltagswörter. Ideal, wenn eine Beschriftung verwirrt.',
 
     // Tour — preferences section (shown near the start, before Home, to set dark/simple mode early)
     tourSectionPreferences: 'Präferenzen',
@@ -14052,7 +14052,7 @@ export const translations = {
 
     // Business setup (new location)
     oneFreeLocation: '無料プランでは1店舗',
-    freePlanOneLocMsg: '無料プランには1店舗が含まれます。さらに追加するには「管理 → 設定」でプレミアムにアップグレードしてください。',
+    freePlanOneLocMsg: '無料プランは1店舗までです。Ope の Android アプリでプレミアムにすると追加できます。',
     goBack: '戻る',
     welcomeTitle: 'Opeへようこそ！',
     locationNameHint: '新しい店舗の名前を入力して始めましょう。',
@@ -14384,7 +14384,7 @@ export const translations = {
     insightsYoYCompare: '{curr} 対 {prev}',
     insightsNoYoY: '前年比を比較するには少なくとも1年分のデータが必要です。記録を続けてください。',
     insightsSectionAccuracy: '予測精度',
-    insightsAccuracyWithin: 'あなたの予測は通常{pct}%以内の精度です。',
+    insightsAccuracyWithin: '予測のずれは平均で約{pct}%です。',
     insightsAccuracyImproving: '改善しています — 誤差は約{early}%から始まり、現在は約{recent}%です。',
     insightsAccuracyStable: '現在の平均誤差は約{recent}%です。',
     insightsNoAccuracy: '予測の精度を確認するには、数週間分のデータを記録してください。',
@@ -14522,7 +14522,7 @@ export const translations = {
     tourManageEventsTitle: 'プロモーション・イベント',
     tourManageEventsBody: 'ここで単発のイベントや広告キャンペーンをタグ付けできます — 地元のお祭り、SNSでの宣伝、チラシ配布などです。Opeは通常予想される来店数と比較して、それぞれが実際にどれだけ多くの来店をもたらしたかを測定します。どのプロモーションを繰り返す価値があるかを知るのに最適です。',
     tourManageSimpleLangTitle: 'やさしい言葉モード',
-    tourManageSimpleLangBody: '「管理 → 設定」に「やさしい言葉」の切り替えがあります。オンにすると、Opeは「MAPE」「安全バッファー」「FIFO」などの専門用語を日常的な言葉に置き換えます。ラベルがわかりにくいと感じたときに便利です。英語とヘブライ語の両方でやさしい版が利用できます。このモードがオンのとき、ツアー自体もよりわかりやすい表現を使用します。',
+    tourManageSimpleLangBody: '設定（画面上部の歯車）で「やさしい言葉」をオンにできます。専門用語をふだんの言葉に置き換えます。わかりにくい表示があるときに便利です。',
 
     // Tour — preferences section (shown near the start, before Home, to set dark/simple mode early)
     tourSectionPreferences: '基本設定',
@@ -15277,7 +15277,7 @@ export const translations = {
 
     // Business setup (new location)
     oneFreeLocation: 'Ücretsiz planda bir şube',
-    freePlanOneLocMsg: 'Ücretsiz planınız bir şube içerir. Daha fazla eklemek için Yönet → Ayarlar\'dan premium\'a yükseltin.',
+    freePlanOneLocMsg: 'Ücretsiz planınız bir şube içerir. Ope Android uygulamasındaki Premium ile daha fazlasını ekleyebilirsiniz.',
     goBack: 'Geri dön',
     welcomeTitle: "Ope'ye hoş geldiniz!",
     locationNameHint: 'Başlamak için yeni şubenize bir isim verin.',
@@ -15609,7 +15609,7 @@ export const translations = {
     insightsYoYCompare: '{curr} / {prev}',
     insightsNoYoY: 'Yıldan yıla karşılaştırma yapmak için en az bir yıllık veriye ihtiyacınız var. Kaydetmeye devam edin.',
     insightsSectionAccuracy: 'Tahmin doğruluğu',
-    insightsAccuracyWithin: 'Tahminleriniz genellikle %{pct} içinde doğrudur.',
+    insightsAccuracyWithin: 'Tahminleriniz ortalama yaklaşık %{pct} sapıyor.',
     insightsAccuracyImproving: 'Gelişiyor — ~%{early} hatayla başladı, şimdi ~%{recent}.',
     insightsAccuracyStable: 'Şu anda ~%{recent} ortalama hata seviyesinde.',
     insightsNoAccuracy: 'Tahminlerinizin ne kadar doğru olduğunu görmek için birkaç haftalık veri kaydedin.',
@@ -15747,7 +15747,7 @@ export const translations = {
     tourManageEventsTitle: 'Promosyonlar ve Etkinlikler',
     tourManageEventsBody: 'Tek seferlik etkinlikleri ve reklam kampanyalarını burada etiketleyin — yerel bir festival, bir sosyal medya artışı, bir broşür dağıtımı. Ope, normalde beklediğinizle karşılaştırıldığında her birinin size gerçekte ne kadar ekstra iş getirdiğini ölçer. Hangi promosyonların tekrarlamaya değer olduğunu bilmek için harika.',
     tourManageSimpleLangTitle: 'Sade dil modu',
-    tourManageSimpleLangBody: "Yönet → Ayarlar altında bir 'Sade dil' anahtarı bulacaksınız. Açtığınızda Ope, 'MAPE', 'güvenlik tamponu' veya 'FIFO' gibi teknik terimleri sade günlük kelimelerle değiştirir. Herhangi bir etiket yabancı hissettiriyorsa harika. Hem İngilizce hem İbranice sade sürümü alır. Bu mod açıkken turun kendisi de daha sade ifadeler kullanır.",
+    tourManageSimpleLangBody: 'Ayarlar\'da — ekranın üstündeki dişli — \'Sade dil\'i açabilirsiniz. Teknik terimleri gündelik kelimelerle değiştirir. Bir etiket kafa karıştırıyorsa ideal.',
 
     // Tour — preferences section (shown near the start, before Home, to set dark/simple mode early)
     tourSectionPreferences: 'Tercihler',

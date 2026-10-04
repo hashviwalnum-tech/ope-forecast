@@ -24,6 +24,7 @@ import { useBusinessTime } from '../contexts/BusinessTimeContext'
 import type { Theme } from '../lib/theme'
 import { outlierText } from '../lib/serverText'
 import AppHeader from '../components/AppHeader'
+import PastDaysModal from './manage/PastDaysModal'
 
 const KEY_CUSTOMER = 'customer'
 const tapKey = (productId: number | null) =>
@@ -60,6 +61,7 @@ export default function LogScreen() {
 
   // Record-a-regular inline state
   const [regularsExpanded, setRegularsExpanded] = useState(false)
+  const [loggingTotals, setLoggingTotals] = useState(false)
   const [visitRegId, setVisitRegId] = useState<number | null>(null)
   const [visitAmount, setVisitAmount] = useState('')
   const [recordingVisit, setRecordingVisit] = useState(false)
@@ -428,6 +430,14 @@ export default function LogScreen() {
           </View>
         )}
 
+        {/* ── End-of-day totals ── the other way to log, for owners who count at
+            closing rather than tapping. It used to live only under Manage → Past
+            days, a history screen, five taps from here. */}
+        <TouchableOpacity style={[styles.undoRow, { minHeight: 44 }]} onPress={() => setLoggingTotals(true)} accessibilityRole="button">
+          <Ionicons name="create-outline" size={16} color={c.primary} />
+          <Text style={[styles.undoText, { color: c.primary }]}>{t('logToday')}</Text>
+        </TouchableOpacity>
+
         {/* ── Record a Regular ── */}
         <TouchableOpacity
           style={[styles.regularsToggle, { backgroundColor: c.primaryBg, borderColor: c.primary }]}
@@ -525,6 +535,9 @@ export default function LogScreen() {
           </View>
         )}
       </ScrollView>
+      {loggingTotals && (
+        <PastDaysModal startAdding onClose={() => { setLoggingTotals(false); void loadData() }} />
+      )}
     </SafeAreaView>
   )
 }

@@ -21,7 +21,11 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useBusinessTime } from '../../contexts/BusinessTimeContext'
 import type { Theme } from '../../lib/theme'
 
-interface Props { onClose: () => void }
+interface Props {
+  onClose: () => void
+  /** Open on a new entry for today rather than on the list. */
+  startAdding?: boolean
+}
 
 function isValidDate(s: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false
@@ -114,7 +118,7 @@ function parseCSVRows(
 
 // ג”€ג”€ Main component ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
-export default function PastDaysModal({ onClose }: Props) {
+export default function PastDaysModal({ onClose, startAdding = false }: Props) {
   const c = useTheme()
   const { t } = useLanguage()
   // The business's today, not the device's — see BusinessTimeContext.
@@ -168,6 +172,9 @@ export default function PastDaysModal({ onClose }: Props) {
   }
 
   useEffect(() => { void loadRecords() }, [])
+
+  // Opened from the Log tab's "Log today": go straight to today's form.
+  useEffect(() => { if (startAdding) openAdd() }, [])  // eslint-disable-line react-hooks/exhaustive-deps
 
   const openAdd = () => {
     setEditId(null)
