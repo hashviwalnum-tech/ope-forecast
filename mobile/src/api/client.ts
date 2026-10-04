@@ -331,6 +331,17 @@ export interface AccountDeleted {
   detail: string | null
 }
 
+/** The day-by-day figures as CSV text, in the columns the import reads.
+ *  Never gated: the owner's data is theirs to take, whatever the plan. */
+export const exportData = {
+  daysCsv: async (): Promise<string> => {
+    const res = await fetchWithRetry(`${BASE}/export/days.csv`, { headers: await authHeaders() })
+    if (!res.ok) throw new Error(await extractError(res))
+    // Drop the byte-order mark that is there for Excel; a share sheet does not need it.
+    return (await res.text()).replace(new RegExp('^' + String.fromCharCode(0xfeff)), '')
+  },
+}
+
 export const account = {
   /** Irreversible. Uses its own fetch rather than `DEL`, which throws the
    *  response away — here the reply says whether the sign-in actually went. */

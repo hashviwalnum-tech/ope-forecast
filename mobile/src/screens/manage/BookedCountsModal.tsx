@@ -237,7 +237,7 @@ export default function BookedCountsModal({ onClose }: Props) {
                 </View>
               )}
 
-              <Text style={styles.fieldLabel}>{t('dateLabel')} (YYYY-MM-DD)</Text>
+              <Text style={styles.fieldLabel}>{t('dateLabel')}</Text>
               <TextInput
                 style={styles.input}
                 value={date}

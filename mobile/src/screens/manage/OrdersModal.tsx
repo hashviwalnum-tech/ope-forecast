@@ -21,13 +21,14 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useBusinessTime } from '../../contexts/BusinessTimeContext'
 import type { Theme } from '../../lib/theme'
+import type { TranslationKey } from '../../lib/i18n'
 
 interface Props { onClose: () => void }
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending',
-  arrived: 'Arrived',
-  cancelled: 'Cancelled',
+const STATUS_KEYS: Record<string, TranslationKey> = {
+  pending: 'ordPending',
+  arrived: 'ordArrived',
+  cancelled: 'ordCancelled',
 }
 
 export default function OrdersModal({ onClose }: Props) {
@@ -64,7 +65,7 @@ export default function OrdersModal({ onClose }: Props) {
       setProducts(prods)
       setError(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load.')
+      setError(e instanceof Error ? e.message : t('loadFailedBody'))
     } finally {
       setLoading(false)
     }
@@ -85,9 +86,9 @@ export default function OrdersModal({ onClose }: Props) {
   }
 
   const save = async () => {
-    if (!selectedProductId) { setSaveError('Select a product.'); return }
+    if (!selectedProductId) { setSaveError(t('ordChooseProduct')); return }
     const qty = parseFloat(quantity)
-    if (isNaN(qty) || qty <= 0) { setSaveError('Quantity must be greater than 0.'); return }
+    if (isNaN(qty) || qty <= 0) { setSaveError(t('ordQtyPositive')); return }
 
     setSaving(true)
     setSaveError(null)
@@ -100,7 +101,7 @@ export default function OrdersModal({ onClose }: Props) {
       setOrderRecords(rs => [created, ...rs])
       closeForm()
     } catch (e) {
-      setSaveError(e instanceof Error ? e.message : 'Failed to log order.')
+      setSaveError(e instanceof Error ? e.message : t('failedToLogOrder'))
     } finally {
       setSaving(false)
     }
@@ -186,10 +187,10 @@ export default function OrdersModal({ onClose }: Props) {
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backBtn} hitSlop={8}>
             <Ionicons name="chevron-back" size={22} color={c.onPrimary} />
-            <Text style={styles.backLabel}>{showForm ? 'Cancel' : 'Manage'}</Text>
+            <Text style={styles.backLabel}>{showForm ? t('cancel') : t('manage')}</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {showForm ? 'Log Order' : 'Orders'}
+            {showForm ? t('ordLogOrder') : t('orders')}
           </Text>
           {!showForm && (
             <TouchableOpacity onPress={openAdd} style={styles.addBtn} hitSlop={8}>
@@ -205,7 +206,7 @@ export default function OrdersModal({ onClose }: Props) {
             >
               {saving
                 ? <ActivityIndicator size="small" color={c.onPrimary} />
-                : <Text style={styles.saveBtnText}>Log</Text>}
+                : <Text style={styles.saveBtnText}>{t('log')}</Text>}
             </TouchableOpacity>
           )}
         </View>
@@ -226,10 +227,10 @@ export default function OrdersModal({ onClose }: Props) {
                 </View>
               )}
 
-              <Text style={styles.fieldLabel}>Product *</Text>
+              <Text style={styles.fieldLabel}>{t('ordProduct')} *</Text>
               {products.length === 0 ? (
                 <Text style={styles.noProductsHint}>
-                  No products yet. Add them first in the Products section.
+                  {t('ordNoProducts')}
                 </Text>
               ) : (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productPicker}>
@@ -255,7 +256,7 @@ export default function OrdersModal({ onClose }: Props) {
               )}
 
               <Text style={styles.fieldLabel}>
-                Quantity *
+                {t('ordQuantity')} *
                 {selectedProductId && (
                   <Text style={styles.unitHint}>
                     {' '}({productUnit(selectedProductId)})
@@ -271,7 +272,7 @@ export default function OrdersModal({ onClose }: Props) {
                 placeholderTextColor={c.textMuted}
               />
               <Text style={styles.fieldHint}>
-                Arrival date is auto-set based on the product's lead time.
+                {t('ordArrivalNote')}
               </Text>
             </ScrollView>
           </KeyboardAvoidingView>
@@ -285,7 +286,7 @@ export default function OrdersModal({ onClose }: Props) {
               <View style={styles.center}>
                 <Text style={styles.errorText}>{error}</Text>
                 <TouchableOpacity style={styles.retryBtn} onPress={() => void loadData()}>
-                  <Text style={styles.retryText}>Retry</Text>
+                  <Text style={styles.retryText}>{t('retry')}</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -293,20 +294,19 @@ export default function OrdersModal({ onClose }: Props) {
                 {pendingOrders.length === 0 && otherOrders.length === 0 && (
                   <View style={styles.emptyBox}>
                     <Ionicons name="cube-outline" size={36} color={c.textMuted} />
-                    <Text style={styles.emptyTitle}>No orders yet</Text>
+                    <Text style={styles.emptyTitle}>{t('ordNoOrdersTitle')}</Text>
                     <Text style={styles.emptyText}>
-                      Tap + to log an order. Ope will track when it's due to arrive and adjust
-                      your projected stock.
+                      {t('ordNoOrdersDesc')}
                     </Text>
                     <TouchableOpacity style={styles.emptyAddBtn} onPress={openAdd}>
-                      <Text style={styles.emptyAddBtnText}>Log Order</Text>
+                      <Text style={styles.emptyAddBtnText}>{t('ordLogOrder')}</Text>
                     </TouchableOpacity>
                   </View>
                 )}
 
                 {pendingOrders.length > 0 && (
                   <>
-                    <Text style={styles.sectionLabel}>Pending</Text>
+                    <Text style={styles.sectionLabel}>{t('ordPending')}</Text>
                     {pendingOrders.map(order => (
                       <View key={order.id} style={styles.orderCard}>
                         {editingId === order.id ? (
@@ -321,7 +321,7 @@ export default function OrdersModal({ onClose }: Props) {
                                 value={editQty}
                                 onChangeText={setEditQty}
                                 keyboardType="decimal-pad"
-                                placeholder="Quantity"
+                                placeholder={t('ordQuantity')}
                                 placeholderTextColor={c.textMuted}
                                 autoFocus
                               />
@@ -336,7 +336,7 @@ export default function OrdersModal({ onClose }: Props) {
                               >
                                 {editSaving
                                   ? <ActivityIndicator size="small" color={c.onPrimary} />
-                                  : <Text style={styles.arrivedBtnText}>Save</Text>}
+                                  : <Text style={styles.arrivedBtnText}>{t('save')}</Text>}
                               </TouchableOpacity>
                               <TouchableOpacity onPress={cancelEdit} hitSlop={8}>
                                 <Ionicons name="close-circle-outline" size={22} color={c.textMuted} />
@@ -353,8 +353,7 @@ export default function OrdersModal({ onClose }: Props) {
                                 {order.quantity} {productUnit(order.product_id)}
                               </Text>
                               <Text style={styles.orderDates}>
-                                Ordered {order.ordered_date} ·{' '}
-                                Expected {order.expected_arrival_date}
+                                {t('ordDates', { ordered: order.ordered_date, expected: order.expected_arrival_date })}
                               </Text>
                             </View>
                             <View style={styles.orderBtns}>
@@ -390,7 +389,7 @@ export default function OrdersModal({ onClose }: Props) {
 
                 {otherOrders.length > 0 && (
                   <>
-                    <Text style={[styles.sectionLabel, { marginTop: 20 }]}>History</Text>
+                    <Text style={[styles.sectionLabel, { marginTop: 20 }]}>{t('history')}</Text>
                     {otherOrders.slice(0, 20).map(order => (
                       <View key={order.id} style={[styles.orderCard, styles.orderCardDim]}>
                         <View style={styles.orderInfo}>
@@ -401,7 +400,7 @@ export default function OrdersModal({ onClose }: Props) {
                             {order.quantity} {productUnit(order.product_id)}
                           </Text>
                           <Text style={styles.orderDates}>
-                            {order.ordered_date} ֲ· {STATUS_LABELS[order.status]}
+                            {order.ordered_date} · {STATUS_KEYS[order.status] ? t(STATUS_KEYS[order.status]) : order.status}
                           </Text>
                         </View>
                       </View>

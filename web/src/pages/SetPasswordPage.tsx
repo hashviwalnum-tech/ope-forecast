@@ -49,7 +49,7 @@ export default function SetPasswordPage() {
       <div className="bg-teal-25 dark:bg-slate-800 rounded-2xl shadow-md w-full max-w-sm p-8">
 
         <div className="flex items-center gap-3 mb-8">
-          <img src={logo} alt="Ope logo" className="logo-img h-12 w-auto" />
+          <img src={logo} alt="Ope" className="logo-img h-12 w-auto" />
           <div className="leading-tight">
             <span className="block text-2xl font-bold text-teal-700 dark:text-teal-300">Ope</span>
             <span className="block text-sm text-teal-700 dark:text-teal-300">{t('loginSlogan')}</span>

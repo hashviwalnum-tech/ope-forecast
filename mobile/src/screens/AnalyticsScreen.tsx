@@ -96,9 +96,9 @@ function fmt12(hour: number): string {
 // dollar sign and two decimal places, so an Israeli owner saw "$120.00" and a
 // Japanese one "¥1200.00" — a precision the yen does not have.
 
-const MONTH_NAMES = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+const MONTH_KEYS: TranslationKey[] = [
+  'monthJan', 'monthFeb', 'monthMar', 'monthApr', 'monthMay', 'monthJun',
+  'monthJul', 'monthAug', 'monthSep', 'monthOct', 'monthNov', 'monthDec',
 ]
 
 export default function AnalyticsScreen() {
@@ -140,7 +140,7 @@ export default function AnalyticsScreen() {
       if (regsRes.status === 'fulfilled') setRegulars(regsRes.value)
       setDataError(null)
     } catch (e: unknown) {
-      setDataError(e instanceof Error ? e.message : 'Failed to load analytics.')
+      setDataError(e instanceof Error ? e.message : t('loadFailedBody'))
     } finally {
       setInitialLoading(false)
     }
@@ -391,7 +391,7 @@ export default function AnalyticsScreen() {
                   <View style={styles.regularLeft}>
                     <Text style={styles.regularName}>{reg.name}</Text>
                     <Text style={styles.regularMeta}>
-                      CLV: {fmtCurrency(reg.clv)} ·{' '}
+                      {t('rgWorth', { amount: fmtCurrency(reg.clv) })} ·{' '}
                       {reg.last_visit_date
                         ? `${reg.last_visit_date}`
                         : t('noVisitsYet')}
@@ -433,7 +433,7 @@ export default function AnalyticsScreen() {
                             {prof.monthly_visits.slice(-6).map(mv => (
                               <View key={`${mv.year}-${mv.month}`} style={styles.mvRow}>
                                 <Text style={styles.mvLabel}>
-                                  {MONTH_NAMES[mv.month - 1]} {mv.year}
+                                  {t(MONTH_KEYS[mv.month - 1])} {mv.year}
                                 </Text>
                                 <Text style={styles.mvVisits}>
                                   {mv.visits} visit{mv.visits !== 1 ? 's' : ''}

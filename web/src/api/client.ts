@@ -431,6 +431,18 @@ export interface AccountDeleted {
   detail: string | null
 }
 
+/** A copy of the business's data, as a file the browser saves. Never gated:
+ *  the owner's data is theirs to take, whatever the plan. */
+export const exportData = {
+  download: async (kind: 'days.csv' | 'all.json'): Promise<{ blob: Blob; filename: string }> => {
+    const res = await fetchWithRetry(`${BASE}/export/${kind}`, { headers: await authHeaders() })
+    if (!res.ok) throw await extractError(res)
+    const cd = res.headers.get('Content-Disposition') ?? ''
+    const filename = /filename="([^"]+)"/.exec(cd)?.[1] ?? `ope-${kind}`
+    return { blob: await res.blob(), filename }
+  },
+}
+
 export const account = {
   /** Irreversible. Deletes every location the signed-in owner has, everything
    *  under them, and the sign-in itself. Needs its own DELETE-with-a-body-less

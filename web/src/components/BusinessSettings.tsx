@@ -1,6 +1,6 @@
 import { useEffect, useState, useId } from 'react'
 import CurrencyPicker from './CurrencyPicker'
-import { account, businesses, nudges as nudgesApi } from '../api/client'
+import { account, businesses, exportData, nudges as nudgesApi } from '../api/client'
 import { useLanguage } from '../contexts/LanguageContext'
 import { deviceTimeZone, isValidTimeZone } from '../lib/businessTime'
 import { useTheme } from '../contexts/ThemeContext'
@@ -39,6 +39,8 @@ export default function BusinessSettings({ onReplayTour }: Props) {
   // audience includes owners who are nervous with a keyboard, and a second
   // button they have to find is just as hard to hit by accident.
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [exporting, setExporting] = useState<'days.csv' | 'all.json' | null>(null)
+  const [exportError, setExportError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [openDays,        setOpenDays]        = useState<number[]>([0,1,2,3,4,5,6])
@@ -118,6 +120,26 @@ export default function BusinessSettings({ onReplayTour }: Props) {
         ? prev.length > 1 ? prev.filter(x => x !== d) : prev
         : [...prev, d].sort((a, b) => a - b)
     )
+  }
+
+  async function handleExport(kind: 'days.csv' | 'all.json') {
+    setExporting(kind)
+    setExportError(null)
+    try {
+      const { blob, filename } = await exportData.download(kind)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (e) {
+      setExportError(e instanceof Error && e.message ? e.message : t('exportFailed'))
+    } finally {
+      setExporting(null)
+    }
   }
 
   async function handleDeleteAccount() {
@@ -607,6 +629,29 @@ export default function BusinessSettings({ onReplayTour }: Props) {
           </button>
         </div>
       )}
+
+      {/* ── Your data ───────────────────────────────────────────────
+          A copy to keep, or to take elsewhere. Free on every plan. */}
+      <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('exportLabel')}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{t('exportDesc')}</p>
+        <div className="flex flex-wrap gap-3">
+          {(['days.csv', 'all.json'] as const).map(kind => (
+            <button
+              key={kind}
+              type="button"
+              onClick={() => handleExport(kind)}
+              disabled={exporting !== null}
+              className="px-5 py-2.5 rounded-xl border border-teal-300 dark:border-teal-700
+                         text-teal-700 dark:text-teal-300 text-sm font-medium min-h-11
+                         hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors disabled:opacity-60"
+            >
+              {exporting === kind ? t('savingLabel') : t(kind === 'days.csv' ? 'exportDaysBtn' : 'exportAllBtn')}
+            </button>
+          ))}
+        </div>
+        {exportError && <p role="alert" className="mt-2 text-sm text-rose-700 dark:text-rose-300">{exportError}</p>}
+      </div>
 
       {/* ── Delete account ───────────────────────────────────────────
           Play requires deletion from inside the app, and the privacy policy

@@ -1,7 +1,6 @@
 import logging
 import os
 import secrets
-import ssl
 
 import jwt
 from jwt import PyJWKClient
@@ -9,6 +8,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.tls import supabase_ssl_context
 from app.engine.limits import FREE, Tier
 from app.models import Business
 
@@ -16,12 +16,9 @@ log = logging.getLogger(__name__)
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 
-# Python 3.14 enforces stricter CA cert validation (Basic Constraints must be
-# critical) which breaks on HUJI's network SSL interceptor. The JWKS endpoint
-# only serves public keys, so skipping chain verification here is acceptable.
-_ssl_ctx = ssl.create_default_context()
-_ssl_ctx.check_hostname = False
-_ssl_ctx.verify_mode = ssl.CERT_NONE
+# Verified: a forged signing key here would mean forged logins. See app/tls.py
+# for the development-only escape hatch an intercepting network needs.
+_ssl_ctx = supabase_ssl_context()
 
 _jwks_client = PyJWKClient(
     f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json",
@@ -30,6 +27,23 @@ _jwks_client = PyJWKClient(
 
 
 def get_current_user(request: Request) -> str:
+    return _verified_claims(request)["sub"]
+
+
+def get_current_email(request: Request) -> str | None:
+    """The signed-in owner's email, from the same verified token, or None.
+
+    Never the gate — get_current_user is — so a missing or odd claim yields
+    None rather than a 401.
+    """
+    try:
+        email = _verified_claims(request).get("email")
+    except HTTPException:
+        return None
+    return email if isinstance(email, str) and "@" in email else None
+
+
+def _verified_claims(request: Request) -> dict:
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing authorization token")
@@ -49,7 +63,9 @@ def get_current_user(request: Request) -> str:
             # the token's 1-hour lifetime.
             leeway=60,
         )
-        return payload["sub"]
+        if not payload.get("sub"):
+            raise ValueError("token has no subject")
+        return payload
     except Exception as e:
         log.warning("JWT verification failed: %s: %s", type(e).__name__, e)
         raise HTTPException(status_code=401, detail="Invalid or expired token")

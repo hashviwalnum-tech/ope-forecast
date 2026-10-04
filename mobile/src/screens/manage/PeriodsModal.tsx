@@ -30,7 +30,7 @@ function isValidDate(s: string): boolean {
 }
 
 export default function PeriodsModal({ onClose }: Props) {
-  const { symbol, parseNumber } = useCurrency()
+  const { symbol, parseNumber, money } = useCurrency()
   const c = useTheme()
   const { t } = useLanguage()
   // The business's today, not the device's — see BusinessTimeContext.
@@ -87,13 +87,13 @@ export default function PeriodsModal({ onClose }: Props) {
 
   const save = async () => {
     if (!label.trim()) { setSaveError(t('periodName') + ' is required.'); return }
-    if (!isValidDate(startDate)) { setSaveError('Enter a valid start date (YYYY-MM-DD).'); return }
-    if (!isValidDate(endDate)) { setSaveError('Enter a valid end date (YYYY-MM-DD).'); return }
-    if (endDate < startDate) { setSaveError('End date must be on or after start date.'); return }
+    if (!isValidDate(startDate)) { setSaveError(t('dateInvalid')); return }
+    if (!isValidDate(endDate)) { setSaveError(t('dateInvalid')); return }
+    if (endDate < startDate) { setSaveError(t('perEndBeforeStart')); return }
 
     const costNum = cost.trim() ? (parseNumber(cost) ?? NaN) : undefined
     if (costNum !== undefined && (isNaN(costNum) || costNum < 0)) {
-      setSaveError('Cost must be a positive number.'); return
+      setSaveError(t('perCostNonNegative')); return
     }
 
     setSaving(true)
@@ -220,7 +220,7 @@ export default function PeriodsModal({ onClose }: Props) {
                 ))}
               </View>
 
-              <Text style={styles.fieldLabel}>{t('startDate')} (YYYY-MM-DD) *</Text>
+              <Text style={styles.fieldLabel}>{t('startDate')} *</Text>
               <TextInput
                 style={styles.input}
                 value={startDate}
@@ -232,7 +232,7 @@ export default function PeriodsModal({ onClose }: Props) {
                 autoCorrect={false}
               />
 
-              <Text style={styles.fieldLabel}>{t('endDate')} (YYYY-MM-DD) *</Text>
+              <Text style={styles.fieldLabel}>{t('endDate')} *</Text>
               <TextInput
                 style={styles.input}
                 value={endDate}
@@ -340,7 +340,7 @@ export default function PeriodsModal({ onClose }: Props) {
                     {period.start_date !== period.end_date ? ` – ${period.end_date}` : ''}
                   </Text>
                   {period.cost != null && (
-                    <Text style={styles.periodMeta}>Cost: ${period.cost}</Text>
+                    <Text style={styles.periodMeta}>{t('perCost', { amount: money(period.cost) })}</Text>
                   )}
                   {period.target_product_id != null && (
                     <Text style={styles.periodMeta}>

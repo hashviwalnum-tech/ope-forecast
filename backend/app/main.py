@@ -39,6 +39,7 @@ from app.api import nudges as nudges_api
 from app.api import dev_catchup as dev_catchup_api
 from app.api import subscriptions as subscriptions_api
 from app.api import billing as billing_api
+from app.api import export as export_api
 from app.billing.grants import migrate_admin_overrides_to_grants
 from app.api import currencies as currencies_api
 from app.api import planning as planning_api
@@ -310,6 +311,7 @@ app.include_router(bot_api.router)
 app.include_router(feedback_api.router)
 app.include_router(nudges_api.router)
 app.include_router(dev_catchup_api.router)
+app.include_router(export_api.router)
 app.include_router(subscriptions_api.router)
 app.include_router(billing_api.router)
 app.include_router(booked_counts.router)

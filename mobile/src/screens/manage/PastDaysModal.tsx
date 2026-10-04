@@ -66,7 +66,7 @@ function parseDateStr(raw: string): string | null {
 interface ParsedRow {
   date: string
   customers: number
-  products: Record<string, number>  // product name ג†’ units
+  products: Record<string, number>  // product name → units
 }
 
 function parseCSVRows(
@@ -161,7 +161,7 @@ export default function PastDaysModal({ onClose }: Props) {
       setProducts(prods)
       setError(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load.')
+      setError(e instanceof Error ? e.message : t('loadFailedBody'))
     } finally {
       setLoading(false)
     }
@@ -210,7 +210,7 @@ export default function PastDaysModal({ onClose }: Props) {
 
   const save = async () => {
     if (!isValidDate(date)) {
-      setSaveError('Enter a valid date in YYYY-MM-DD format (e.g. 2026-01-15).')
+      setSaveError(t('dateInvalid'))
       return
     }
     const cust = parseInt(customers, 10)
@@ -289,7 +289,7 @@ export default function PastDaysModal({ onClose }: Props) {
 
       closeForm()
     } catch (e) {
-      setSaveError(e instanceof Error ? e.message : 'Failed to save.')
+      setSaveError(e instanceof Error ? e.message : t('failedToSave'))
     } finally {
       setSaving(false)
     }
@@ -349,7 +349,7 @@ export default function PastDaysModal({ onClose }: Props) {
       setCsvSkipped(skipped)
       setCsvError(parsed.length === 0 ? 'No valid rows found. Make sure the file has date and customers columns.' : null)
     } catch (e) {
-      setCsvError(e instanceof Error ? e.message : 'Failed to read file.')
+      setCsvError(e instanceof Error ? e.message : t('pdReadFailed'))
     }
   }
 
@@ -425,12 +425,12 @@ export default function PastDaysModal({ onClose }: Props) {
   // ג”€ג”€ Render ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
   const headerTitle = showForm
-    ? (editId ? 'Edit Day' : 'Add Past Day')
+    ? (editId ? t('pdEditDay') : t('addPastDay'))
     : showImport
-      ? 'Import CSV'
-      : 'Past Days'
+      ? t('pdImportCsv')
+      : t('pastDays')
 
-  const backLabel = showForm || showImport ? 'Cancel' : 'Manage'
+  const backLabel = showForm || showImport ? t('cancel') : t('manage')
 
   return (
     <Modal visible animationType="slide" onRequestClose={handleBack}>
@@ -461,7 +461,7 @@ export default function PastDaysModal({ onClose }: Props) {
             >
               {saving
                 ? <ActivityIndicator size="small" color={c.onPrimary} />
-                : <Text style={styles.saveBtnText}>Save</Text>}
+                : <Text style={styles.saveBtnText}>{t('save')}</Text>}
             </TouchableOpacity>
           )}
           {showImport && !csvResult && (
@@ -486,28 +486,28 @@ export default function PastDaysModal({ onClose }: Props) {
                 </View>
               )}
 
-              <Text style={styles.fieldLabel}>Date *</Text>
+              <Text style={styles.fieldLabel}>{t('dateLabel')} *</Text>
               <TextInput
                 style={styles.input}
                 value={date}
                 onChangeText={setDate}
-                placeholder="YYYY-MM-DD (e.g. 2026-01-15)"
+                placeholder={t('pdDatePh')}
                 placeholderTextColor={c.textMuted}
                 keyboardType="numbers-and-punctuation"
                 autoCapitalize="none"
                 autoCorrect={false}
               />
               <Text style={styles.fieldHint}>
-                Format: YYYY-MM-DD. Add earlier dates to build up more history.
+                {t('pdDateHint')}
               </Text>
 
-              <Text style={styles.fieldLabel}>Customers *</Text>
+              <Text style={styles.fieldLabel}>{t('customers')} *</Text>
               <TextInput
                 style={styles.input}
                 value={customers}
                 onChangeText={setCustomers}
                 keyboardType="number-pad"
-                placeholder="How many customers that day"
+                placeholder={t('pdCustomersPh')}
                 placeholderTextColor={c.textMuted}
               />
 
@@ -515,7 +515,7 @@ export default function PastDaysModal({ onClose }: Props) {
               {products.length > 0 && (
                 <>
                   <Text style={[styles.fieldLabel, { marginTop: 20 }]}>
-                    Products sold (optional)
+                    {t('pdProductsSold')}
                   </Text>
                   {salesLoading ? (
                     <ActivityIndicator size="small" color={c.primary} style={{ marginTop: 8 }} />
@@ -549,14 +549,14 @@ export default function PastDaysModal({ onClose }: Props) {
         {showImport && (
           <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
             <Text style={styles.importHint}>
-              Pick a CSV file with columns: <Text style={{ fontWeight: '700' }}>date</Text>,{' '}
-              <Text style={{ fontWeight: '700' }}>customers</Text>
-              {products.length > 0
-                ? `, and optionally a column for each product (${products.map(p => p.name).join(', ')}).`
-                : '.'}
+              {t('pdCsvIntro')}{' '}
+              {/* Column names stay as they are: the file has to use them exactly. */}
+              <Text style={{ fontWeight: '700' }}>
+                {['date', 'customers', ...products.map(p => p.name)].join(', ')}
+              </Text>
             </Text>
             <Text style={styles.importSubHint}>
-              Dates can be YYYY-MM-DD or DD/MM/YYYY. Existing dates will be overwritten.
+              {t('pdCsvDatesHint')}
             </Text>
 
             {csvResult ? (
@@ -569,7 +569,7 @@ export default function PastDaysModal({ onClose }: Props) {
                   style={styles.importBtn}
                   onPress={() => setShowImport(false)}
                 >
-                  <Text style={styles.importBtnText}>Done</Text>
+                  <Text style={styles.importBtnText}>{t('done')}</Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -579,7 +579,7 @@ export default function PastDaysModal({ onClose }: Props) {
                   onPress={() => void handlePickFile()}
                 >
                   <Ionicons name="document-outline" size={20} color={c.onPrimary} />
-                  <Text style={styles.importBtnText}>Choose CSV file</Text>
+                  <Text style={styles.importBtnText}>{t('pdChooseCsv')}</Text>
                 </TouchableOpacity>
 
                 {csvError && (
@@ -590,18 +590,18 @@ export default function PastDaysModal({ onClose }: Props) {
                   <View style={styles.previewBox}>
                     <Text style={styles.previewTitle}>
                       {csvRows.length} day{csvRows.length !== 1 ? 's' : ''} ready to import
-                      {csvSkipped > 0 ? ` (${csvSkipped} rows skipped ג€” couldn't parse)` : ''}
+                      {csvSkipped > 0 ? ` (${csvSkipped} rows skipped — couldn't parse)` : ''}
                     </Text>
                     {csvRows.slice(0, 5).map(row => (
                       <Text key={row.date} style={styles.previewRow}>
-                        {row.date} ג€” {row.customers} customers
+                        {row.date} — {row.customers} customers
                         {Object.entries(row.products).length > 0
-                          ? ' ֲ· ' + Object.entries(row.products).map(([n, u]) => `${u} ${n}`).join(', ')
+                          ? ' · ' + Object.entries(row.products).map(([n, u]) => `${u} ${n}`).join(', ')
                           : ''}
                       </Text>
                     ))}
                     {csvRows.length > 5 && (
-                      <Text style={styles.previewMore}>ג€¦and {csvRows.length - 5} more</Text>
+                      <Text style={styles.previewMore}>{t('pdMoreRows', { n: csvRows.length - 5 })}</Text>
                     )}
 
                     <TouchableOpacity
@@ -612,7 +612,7 @@ export default function PastDaysModal({ onClose }: Props) {
                       {csvImporting
                         ? <ActivityIndicator size="small" color={c.onPrimary} />
                         : <Text style={styles.importBtnText}>
-                            Import {csvRows.length} day{csvRows.length !== 1 ? 's' : ''}
+                            {csvRows.length === 1 ? t('pdImportOne') : t('pdImportMany', { n: csvRows.length })}
                           </Text>}
                     </TouchableOpacity>
                   </View>
@@ -633,18 +633,18 @@ export default function PastDaysModal({ onClose }: Props) {
               <View style={styles.center}>
                 <Text style={styles.errorText}>{error}</Text>
                 <TouchableOpacity style={styles.retryBtn} onPress={() => void loadRecords()}>
-                  <Text style={styles.retryText}>Retry</Text>
+                  <Text style={styles.retryText}>{t('retry')}</Text>
                 </TouchableOpacity>
               </View>
             ) : records.length === 0 ? (
               <View style={styles.emptyBox}>
                 <Ionicons name="calendar-outline" size={36} color={c.textMuted} />
-                <Text style={styles.emptyTitle}>No records yet</Text>
+                <Text style={styles.emptyTitle}>{t('pdNoDaysTitle')}</Text>
                 <Text style={styles.emptyText}>
-                  Add past days to build up history for the forecasting engine.
+                  {t('pdNoDaysDesc')}
                 </Text>
                 <TouchableOpacity style={styles.emptyAddBtn} onPress={openAdd}>
-                  <Text style={styles.emptyAddBtnText}>Add a Day</Text>
+                  <Text style={styles.emptyAddBtnText}>{t('pdAddDay')}</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -667,7 +667,7 @@ export default function PastDaysModal({ onClose }: Props) {
                             {r.customers} customer{r.customers !== 1 ? 's' : ''}
                           </Text>
                           {r.outlier_status === 'flagged' && (
-                            <Text style={styles.outlierBadge}>Flagged as unusual</Text>
+                            <Text style={styles.outlierBadge}>{t('pdFlagged')}</Text>
                           )}
                         </View>
                         <Ionicons
@@ -699,7 +699,7 @@ export default function PastDaysModal({ onClose }: Props) {
                         {isLoadingSales ? (
                           <ActivityIndicator size="small" color={c.primary} style={{ marginVertical: 8 }} />
                         ) : recordSales.length === 0 ? (
-                          <Text style={styles.noSalesText}>No product sales recorded for this day.</Text>
+                          <Text style={styles.noSalesText}>{t('pdNoProductSales')}</Text>
                         ) : (
                           recordSales.map(s => {
                             const prod = products.find(p => p.id === s.product_id)

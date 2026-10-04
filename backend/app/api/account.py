@@ -34,7 +34,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import ssl
 import urllib.error
 import urllib.request
 
@@ -52,17 +51,15 @@ from app.models.subscription import Subscription
 
 log = logging.getLogger(__name__)
 
+from app.tls import supabase_ssl_context  # noqa: E402
+
 router = APIRouter(prefix="/account", tags=["Account"])
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 _SERVICE_KEY_ENV = "SUPABASE_SERVICE_ROLE_KEY"
 
-# Same reason as app/api/deps.py: Python 3.14 rejects the CA chain presented by
-# some intercepting proxies. This call carries a bearer token over TLS to a
-# pinned Supabase hostname.
-_ssl_ctx = ssl.create_default_context()
-_ssl_ctx.check_hostname = False
-_ssl_ctx.verify_mode = ssl.CERT_NONE
+# Verified: this call carries the service-role key. See app/tls.py.
+_ssl_ctx = supabase_ssl_context()
 
 
 class AccountDeleted(BaseModel):

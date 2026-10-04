@@ -55,7 +55,7 @@ export default function ProductsModal({ onClose }: Props) {
       setProducts(data)
       setError(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load products.')
+      setError(e instanceof Error ? e.message : t('loadFailedBody'))
     } finally {
       setLoading(false)
     }
@@ -98,10 +98,12 @@ export default function ProductsModal({ onClose }: Props) {
   }
 
   const save = async () => {
-    if (!form.name.trim()) { setSaveError('Product name is required.'); return }
-    if (!form.unit.trim()) { setSaveError('Unit is required (e.g. "kg", "cups", "items").'); return }
+    if (!form.name.trim()) { setSaveError(t('prNameRequired')); return }
+    if (!form.unit.trim()) { setSaveError(t('prUnitRequired')); return }
     const lt = parseInt(form.leadTime, 10)
-    if (isNaN(lt) || lt < 0) { setSaveError('Lead time must be 0 or more days.'); return }
+    // The server requires at least one day for a stocked product; checking 0
+    // here only let the save fail later with a less helpful message.
+    if (isNaN(lt) || lt < 1) { setSaveError(t('prLeadTimeMin')); return }
 
     setSaving(true)
     setSaveError(null)
@@ -128,7 +130,7 @@ export default function ProductsModal({ onClose }: Props) {
       }
       closeForm()
     } catch (e) {
-      setSaveError(e instanceof Error ? e.message : 'Failed to save.')
+      setSaveError(e instanceof Error ? e.message : t('failedToSave'))
     } finally {
       setSaving(false)
     }
@@ -166,10 +168,10 @@ export default function ProductsModal({ onClose }: Props) {
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backBtn} hitSlop={8}>
             <Ionicons name="chevron-back" size={22} color={c.onPrimary} />
-            <Text style={styles.backLabel}>{showForm ? 'Cancel' : 'Manage'}</Text>
+            <Text style={styles.backLabel}>{showForm ? t('cancel') : t('manage')}</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {showForm ? (editId ? 'Edit Product' : 'Add Product') : 'Products'}
+            {showForm ? (editId ? t('prEditProduct') : t('addProductBtn')) : t('products')}
           </Text>
           {!showForm && (
             <TouchableOpacity onPress={openAdd} style={styles.addBtn} hitSlop={8}>
@@ -185,7 +187,7 @@ export default function ProductsModal({ onClose }: Props) {
             >
               {saving
                 ? <ActivityIndicator size="small" color={c.onPrimary} />
-                : <Text style={styles.saveBtnText}>Save</Text>}
+                : <Text style={styles.saveBtnText}>{t('save')}</Text>}
             </TouchableOpacity>
           )}
         </View>
@@ -207,25 +209,25 @@ export default function ProductsModal({ onClose }: Props) {
                 </View>
               )}
 
-              <Text style={styles.fieldLabel}>Product Name *</Text>
+              <Text style={styles.fieldLabel}>{t('productNameLabel')} *</Text>
               <TextInput
                 style={styles.input}
                 value={form.name}
                 onChangeText={v => setForm(f => ({ ...f, name: v }))}
-                placeholder="e.g. Croissant, Coffee, Roses"
+                placeholder={t('prNamePh')}
                 placeholderTextColor={c.textMuted}
               />
 
-              <Text style={styles.fieldLabel}>Unit *</Text>
+              <Text style={styles.fieldLabel}>{t('prUnit')} *</Text>
               <TextInput
                 style={styles.input}
                 value={form.unit}
                 onChangeText={v => setForm(f => ({ ...f, unit: v }))}
-                placeholder="e.g. items, kg, cups, bunch"
+                placeholder={t('prUnitPh')}
                 placeholderTextColor={c.textMuted}
               />
 
-              <Text style={styles.fieldLabel}>Lead Time (days) *</Text>
+              <Text style={styles.fieldLabel}>{t('prLeadTime')} *</Text>
               <TextInput
                 style={styles.input}
                 value={form.leadTime}
@@ -237,7 +239,7 @@ export default function ProductsModal({ onClose }: Props) {
 
               <View style={styles.switchRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.fieldLabel}>Count in decimals</Text>
+                  <Text style={styles.fieldLabel}>{t('prDecimals')}</Text>
                   <Text style={styles.fieldHint}>
                     Off = whole numbers only (items, cups). On = allow fractions (kg, L).
                   </Text>
@@ -258,7 +260,7 @@ export default function ProductsModal({ onClose }: Props) {
                 activeOpacity={0.7}
               >
                 <Text style={styles.optionalToggleText}>
-                  {showOptional ? 'Hide optional details' : 'Show optional details'}
+                  {showOptional ? t('prHideOptional') : t('prShowOptional')}
                 </Text>
                 <Ionicons
                   name={showOptional ? 'chevron-up' : 'chevron-down'}
@@ -269,7 +271,7 @@ export default function ProductsModal({ onClose }: Props) {
 
               {showOptional && (
                 <>
-                  <Text style={styles.fieldLabel}>Price ({symbol}) (optional)</Text>
+                  <Text style={styles.fieldLabel}>{t('prPrice', { symbol })}</Text>
                   <TextInput
                     style={styles.input}
                     value={form.price}
@@ -279,45 +281,45 @@ export default function ProductsModal({ onClose }: Props) {
                     placeholderTextColor={c.textMuted}
                   />
 
-                  <Text style={styles.fieldLabel}>Current stock (optional)</Text>
+                  <Text style={styles.fieldLabel}>{t('prCurrentStock')}</Text>
                   <TextInput
                     style={styles.input}
                     value={form.stock}
                     onChangeText={v => setForm(f => ({ ...f, stock: v }))}
                     keyboardType="decimal-pad"
-                    placeholder="How many you have right now"
+                    placeholder={t('prStockPh')}
                     placeholderTextColor={c.textMuted}
                   />
 
                   <Text style={styles.fieldLabel}>
-                    Service time per customer (minutes, optional)
+                    {t('prServiceTime')}
                   </Text>
                   <TextInput
                     style={styles.input}
                     value={form.serviceTime}
                     onChangeText={v => setForm(f => ({ ...f, serviceTime: v }))}
                     keyboardType="decimal-pad"
-                    placeholder="Overrides business default"
+                    placeholder={t('prServiceTimePh')}
                     placeholderTextColor={c.textMuted}
                   />
 
-                  <Text style={styles.fieldLabel}>Storage capacity (optional)</Text>
+                  <Text style={styles.fieldLabel}>{t('prCapacity')}</Text>
                   <TextInput
                     style={styles.input}
                     value={form.capacity}
                     onChangeText={v => setForm(f => ({ ...f, capacity: v }))}
                     keyboardType="decimal-pad"
-                    placeholder="Max units that physically fit"
+                    placeholder={t('prCapacityPh')}
                     placeholderTextColor={c.textMuted}
                   />
 
-                  <Text style={styles.fieldLabel}>Shelf life (days, optional)</Text>
+                  <Text style={styles.fieldLabel}>{t('prShelfLife')}</Text>
                   <TextInput
                     style={styles.input}
                     value={form.shelfLife}
                     onChangeText={v => setForm(f => ({ ...f, shelfLife: v }))}
                     keyboardType="number-pad"
-                    placeholder="e.g. 3 (spoils after 3 days)"
+                    placeholder={t('prShelfLifePh')}
                     placeholderTextColor={c.textMuted}
                   />
                 </>
@@ -334,18 +336,18 @@ export default function ProductsModal({ onClose }: Props) {
               <View style={styles.center}>
                 <Text style={styles.errorText}>{error}</Text>
                 <TouchableOpacity style={styles.retryBtn} onPress={() => void loadProducts()}>
-                  <Text style={styles.retryText}>Retry</Text>
+                  <Text style={styles.retryText}>{t('retry')}</Text>
                 </TouchableOpacity>
               </View>
             ) : products.length === 0 ? (
               <View style={styles.emptyBox}>
                 <Ionicons name="cube-outline" size={36} color={c.textMuted} />
-                <Text style={styles.emptyTitle}>No products yet</Text>
+                <Text style={styles.emptyTitle}>{t('prNoProductsTitle')}</Text>
                 <Text style={styles.emptyText}>
-                  Tap + to add your first product.
+                  {t('prNoProductsDesc')}
                 </Text>
                 <TouchableOpacity style={styles.emptyAddBtn} onPress={openAdd}>
-                  <Text style={styles.emptyAddBtnText}>Add Product</Text>
+                  <Text style={styles.emptyAddBtnText}>{t('addProductBtn')}</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -354,10 +356,10 @@ export default function ProductsModal({ onClose }: Props) {
                   <View style={styles.productInfo}>
                     <Text style={styles.productName}>{p.name}</Text>
                     <Text style={styles.productMeta}>
-                      {p.unit} ֲ· {p.unit_mode === 'decimal' ? 'decimal' : 'whole'} ֲ·{' '}
+                      {p.unit} · {p.unit_mode === 'decimal' ? 'decimal' : 'whole'} ·{' '}
                       lead {p.lead_time_days}d
-                      {p.price != null ? ` ֲ· $${p.price}` : ''}
-                      {p.current_stock != null ? ` ֲ· stock: ${p.current_stock}` : ''}
+                      {p.price != null ? ` · $${p.price}` : ''}
+                      {p.current_stock != null ? ` · stock: ${p.current_stock}` : ''}
                     </Text>
                   </View>
                   <TouchableOpacity

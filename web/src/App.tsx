@@ -35,7 +35,12 @@ import * as api from './api/client'
 import type { BusinessRead, SubscriptionRead } from './api/types'
 
 const FREE_BUSINESS_LIMIT = 1  // §10: free = one location; premium = more
-const SHOW_ADS = true
+// Off: there is no ad network behind these slots, so they showed every owner —
+// Premium included — empty boxes labelled "Ad". An empty placeholder reads as
+// something broken, and a Premium list promising "no ads" was promising to
+// remove something that does not exist. Turn back on only with real ads, and
+// only for the free tier.
+const SHOW_ADS = false
 
 type Tab =
   | 'home' | 'predictions_home' | 'insights'
@@ -379,7 +384,7 @@ function AppInner() {
           onClick={() => setTab('home')}
           aria-label={t('a11yGoHome')}
         >
-          <img src={logo} alt="Ope logo" className="logo-img h-9 lg:h-11 w-auto" />
+          <img src={logo} alt="Ope" className="logo-img h-9 lg:h-11 w-auto" />
           <div className="leading-tight">
             <span className="block text-lg lg:text-xl font-bold text-teal-700 dark:text-teal-300 tracking-tight">Ope</span>
             <span className="hidden lg:block text-xs text-teal-700 dark:text-teal-300 font-medium">{t('slogan')}</span>

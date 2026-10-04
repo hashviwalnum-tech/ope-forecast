@@ -39,7 +39,7 @@ export default function TelegramModal({ onClose }: Props) {
       setStatus(s)
       setError(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load Telegram status.')
+      setError(e instanceof Error ? e.message : t('loadFailedBody'))
     } finally {
       setLoading(false)
     }
@@ -54,7 +54,7 @@ export default function TelegramModal({ onClose }: Props) {
       const result = await api.telegram.generateCode()
       setCode(result)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to generate code.')
+      setError(e instanceof Error ? e.message : t('loadFailedBody'))
     } finally {
       setGenerating(false)
     }
@@ -91,7 +91,7 @@ export default function TelegramModal({ onClose }: Props) {
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.backBtn} hitSlop={8}>
             <Ionicons name="chevron-back" size={22} color={c.onPrimary} />
-            <Text style={styles.backLabel}>Manage</Text>
+            <Text style={styles.backLabel}>{t('manage')}</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Telegram</Text>
           <View style={{ width: 60 }} />
@@ -106,7 +106,7 @@ export default function TelegramModal({ onClose }: Props) {
             <View style={styles.center}>
               <Text style={styles.errorText}>{error}</Text>
               <TouchableOpacity style={styles.retryBtn} onPress={() => void loadStatus()}>
-                <Text style={styles.retryText}>Retry</Text>
+                <Text style={styles.retryText}>{t('retry')}</Text>
               </TouchableOpacity>
             </View>
           ) : status?.linked ? (
@@ -114,14 +114,13 @@ export default function TelegramModal({ onClose }: Props) {
             <>
               <View style={styles.connectedCard}>
                 <Ionicons name="checkmark-circle" size={36} color="#16a34a" />
-                <Text style={styles.connectedTitle}>Telegram Connected</Text>
+                <Text style={styles.connectedTitle}>{t('tgConnectedTitle')}</Text>
                 {status.chat_id && (
-                  <Text style={styles.connectedSub}>Chat ID: {status.chat_id}</Text>
+                  <Text style={styles.connectedSub}>{t('tgChatId', { id: status.chat_id })}</Text>
                 )}
               </View>
               <Text style={styles.infoText}>
-                Your Ope bot is active. You can send messages to the bot to log sales and get
-                forecasts directly in Telegram.
+                {t('tgConnectedDesc')}
               </Text>
               <TouchableOpacity
                 style={styles.dangerBtn}
@@ -133,7 +132,7 @@ export default function TelegramModal({ onClose }: Props) {
                   ? <ActivityIndicator size="small" color={c.danger} />
                   : <>
                     <Ionicons name="unlink-outline" size={18} color={c.danger} />
-                    <Text style={styles.dangerBtnText}>Disconnect Telegram</Text>
+                    <Text style={styles.dangerBtnText}>{t('disconnectTelegramTitle')}</Text>
                   </>}
               </TouchableOpacity>
             </>
@@ -143,38 +142,37 @@ export default function TelegramModal({ onClose }: Props) {
               <View style={styles.heroIcon}>
                 <Ionicons name="paper-plane-outline" size={48} color={c.primary} />
               </View>
-              <Text style={styles.heroTitle}>Connect Telegram</Text>
+              <Text style={styles.heroTitle}>{t('telegramLabel')}</Text>
               <Text style={styles.infoText}>
-                Link your Ope account to a Telegram bot so you can log sales and ask for forecasts
-                in plain language ג€” without opening the app.
+                {t('tgConnectDesc')}
               </Text>
 
-              <Text style={styles.stepsTitle}>How to connect:</Text>
+              <Text style={styles.stepsTitle}>{t('tgHowTo')}</Text>
               <View style={styles.step}>
                 <Text style={styles.stepNum}>1</Text>
                 <Text style={styles.stepText}>
-                  Tap "Generate Code" below to get a one-time code.
+                  {t('tgStep1')}
                 </Text>
               </View>
               <View style={styles.step}>
                 <Text style={styles.stepNum}>2</Text>
                 <Text style={styles.stepText}>
-                  Open Telegram and find the Ope bot (your admin will give you the bot name).
+                  {t('tgStep2')}
                 </Text>
               </View>
               <View style={styles.step}>
                 <Text style={styles.stepNum}>3</Text>
                 <Text style={styles.stepText}>
-                  Send the bot: <Text style={styles.codeInline}>/link YOUR_CODE</Text>
+                  {t('tgStep3')} <Text style={styles.codeInline}>/link {t('tgCodeWord')}</Text>
                 </Text>
               </View>
 
               {code ? (
                 <View style={styles.codeCard}>
-                  <Text style={styles.codeLabel}>Your one-time code:</Text>
+                  <Text style={styles.codeLabel}>{t('tgYourCode')}</Text>
                   <Text style={styles.codeValue} selectable>{code.code}</Text>
                   <Text style={styles.codeExpiry}>
-                    Expires in {code.expires_in_minutes} minutes
+                    {t('tgExpires', { n: code.expires_in_minutes })}
                   </Text>
                   <TouchableOpacity
                     style={[styles.primaryBtn, { marginTop: 16 }]}
@@ -183,7 +181,7 @@ export default function TelegramModal({ onClose }: Props) {
                     activeOpacity={0.8}
                   >
                     <Text style={styles.primaryBtnText}>
-                      {generating ? 'Generatingג€¦' : 'Generate a new code'}
+                      {generating ? t('telegramGenerating') : t('telegramRefreshCode')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -196,7 +194,7 @@ export default function TelegramModal({ onClose }: Props) {
                 >
                   {generating
                     ? <ActivityIndicator size="small" color={c.onPrimary} />
-                    : <Text style={styles.primaryBtnText}>Generate Code</Text>}
+                    : <Text style={styles.primaryBtnText}>{t('tgGetCode')}</Text>}
                 </TouchableOpacity>
               )}
             </>

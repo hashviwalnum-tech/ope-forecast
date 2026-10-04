@@ -20,6 +20,7 @@ import { useCurrency } from '../../contexts/CurrencyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Theme } from '../../lib/theme'
+import type { TranslationKey } from '../../lib/i18n'
 
 interface Props { onClose: () => void }
 
@@ -27,9 +28,9 @@ const EMPTY_FORM = {
   name: '', visitFreq: '1', avgSpend: '', lifespan: '3', notes: '',
 }
 
-const MONTH_NAMES = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+const MONTH_KEYS: TranslationKey[] = [
+  'monthJan', 'monthFeb', 'monthMar', 'monthApr', 'monthMay', 'monthJun',
+  'monthJul', 'monthAug', 'monthSep', 'monthOct', 'monthNov', 'monthDec',
 ]
 
 export default function RegularsModal({ onClose }: Props) {
@@ -68,7 +69,7 @@ export default function RegularsModal({ onClose }: Props) {
       setRegulars(data)
       setError(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load.')
+      setError(e instanceof Error ? e.message : t('loadFailedBody'))
     } finally {
       setLoading(false)
     }
@@ -103,13 +104,13 @@ export default function RegularsModal({ onClose }: Props) {
   }
 
   const save = async () => {
-    if (!form.name.trim()) { setSaveError('Name is required.'); return }
+    if (!form.name.trim()) { setSaveError(t('rgNameRequired')); return }
     const freq = parseFloat(form.visitFreq)
-    if (isNaN(freq) || freq <= 0) { setSaveError('Visit frequency must be greater than 0.'); return }
+    if (isNaN(freq) || freq <= 0) { setSaveError(t('rgFreqPositive')); return }
     const spend = parseFloat(form.avgSpend)
-    if (isNaN(spend) || spend < 0) { setSaveError('Average spend must be 0 or more.'); return }
+    if (isNaN(spend) || spend < 0) { setSaveError(t('rgSpendMin')); return }
     const lifespan = parseFloat(form.lifespan)
-    if (isNaN(lifespan) || lifespan <= 0) { setSaveError('Lifespan must be greater than 0.'); return }
+    if (isNaN(lifespan) || lifespan <= 0) { setSaveError(t('rgLifespanPositive')); return }
 
     setSaving(true)
     setSaveError(null)
@@ -130,7 +131,7 @@ export default function RegularsModal({ onClose }: Props) {
       }
       closeForm()
     } catch (e) {
-      setSaveError(e instanceof Error ? e.message : 'Failed to save.')
+      setSaveError(e instanceof Error ? e.message : t('failedToSave'))
     } finally {
       setSaving(false)
     }
@@ -211,15 +212,15 @@ export default function RegularsModal({ onClose }: Props) {
           <TouchableOpacity onPress={handleBack} style={styles.backBtn} hitSlop={8}>
             <Ionicons name="chevron-back" size={22} color={c.onPrimary} />
             <Text style={styles.backLabel}>
-              {showForm ? 'Cancel' : visitRegularId !== null ? 'Cancel' : 'Manage'}
+              {showForm ? t('cancel') : visitRegularId !== null ? t('cancel') : t('manage')}
             </Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {showForm
-              ? (editId ? 'Edit Regular' : 'Add Regular')
+              ? (editId ? t('editRegular') : t('addRegular'))
               : visitRegularId !== null
-                ? 'Record Visit'
-                : 'Regulars'}
+                ? t('recordVisit')
+                : t('regulars')}
           </Text>
           {!showForm && visitRegularId === null && (
             <TouchableOpacity onPress={openAdd} style={styles.addBtn} hitSlop={8}>
@@ -235,7 +236,7 @@ export default function RegularsModal({ onClose }: Props) {
             >
               {saving
                 ? <ActivityIndicator size="small" color={c.onPrimary} />
-                : <Text style={styles.saveBtnText}>Save</Text>}
+                : <Text style={styles.saveBtnText}>{t('save')}</Text>}
             </TouchableOpacity>
           )}
         </View>
@@ -248,22 +249,17 @@ export default function RegularsModal({ onClose }: Props) {
           >
             <View style={styles.bodyContent}>
               <Text style={styles.visitHint}>
-                How much did{' '}
-                <Text style={{ fontWeight: '700' }}>
-                  {regulars.find(r => r.id === visitRegularId)?.name}
-                </Text>{' '}
-                spend today?
+                {t('rgSpendQuestion', { name: regulars.find(r => r.id === visitRegularId)?.name ?? '' })}
               </Text>
               <Text style={styles.visitSub}>
-                Leave blank to record a visit without an amount. If they've already
-                been recorded today, this updates today's total.
+                {t('rgVisitHint')}
               </Text>
               <TextInput
                 style={styles.input}
                 value={visitAmount}
                 onChangeText={setVisitAmount}
                 keyboardType="decimal-pad"
-                placeholder="Amount (optional, e.g. 12.50)"
+                placeholder={t('amountOptional')}
                 placeholderTextColor={c.textMuted}
                 autoFocus
               />
@@ -275,7 +271,7 @@ export default function RegularsModal({ onClose }: Props) {
               >
                 {recordingVisit
                   ? <ActivityIndicator size="small" color={c.onPrimary} />
-                  : <Text style={styles.primaryBtnText}>Record Visit</Text>}
+                  : <Text style={styles.primaryBtnText}>{t('recordVisit')}</Text>}
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
@@ -297,26 +293,26 @@ export default function RegularsModal({ onClose }: Props) {
                   <Text style={styles.errorBannerText}>{saveError}</Text>
                 </View>
               )}
-              <Text style={styles.fieldLabel}>Name *</Text>
+              <Text style={styles.fieldLabel}>{t('nameLabel')}</Text>
               <TextInput
                 style={styles.input}
                 value={form.name}
                 onChangeText={v => setForm(f => ({ ...f, name: v }))}
-                placeholder="Regular's name"
+                placeholder={t('rgNamePh')}
                 placeholderTextColor={c.textMuted}
               />
 
-              <Text style={styles.fieldLabel}>Visits per week *</Text>
+              <Text style={styles.fieldLabel}>{t('visitsPerWeekLabel')}</Text>
               <TextInput
                 style={styles.input}
                 value={form.visitFreq}
                 onChangeText={v => setForm(f => ({ ...f, visitFreq: v }))}
                 keyboardType="decimal-pad"
-                placeholder="e.g. 2 (twice a week)"
+                placeholder={t('rgFreqPh')}
                 placeholderTextColor={c.textMuted}
               />
 
-              <Text style={styles.fieldLabel}>Average spend per visit *</Text>
+              <Text style={styles.fieldLabel}>{t('avgSpendLabel')}</Text>
               <TextInput
                 style={styles.input}
                 value={form.avgSpend}
@@ -326,7 +322,7 @@ export default function RegularsModal({ onClose }: Props) {
                 placeholderTextColor={c.textMuted}
               />
 
-              <Text style={styles.fieldLabel}>Expected lifespan (years)</Text>
+              <Text style={styles.fieldLabel}>{t('expectedLifespan')}</Text>
               <TextInput
                 style={styles.input}
                 value={form.lifespan}
@@ -336,12 +332,12 @@ export default function RegularsModal({ onClose }: Props) {
                 placeholderTextColor={c.textMuted}
               />
 
-              <Text style={styles.fieldLabel}>Notes (optional)</Text>
+              <Text style={styles.fieldLabel}>{t('notesOptional')}</Text>
               <TextInput
                 style={[styles.input, styles.inputMulti]}
                 value={form.notes}
                 onChangeText={v => setForm(f => ({ ...f, notes: v }))}
-                placeholder="e.g. always orders the special"
+                placeholder={t('rgNotesPh')}
                 placeholderTextColor={c.textMuted}
                 multiline
                 numberOfLines={3}
@@ -361,18 +357,18 @@ export default function RegularsModal({ onClose }: Props) {
               <View style={styles.center}>
                 <Text style={styles.errorText}>{error}</Text>
                 <TouchableOpacity style={styles.retryBtn} onPress={() => void loadRegulars()}>
-                  <Text style={styles.retryText}>Retry</Text>
+                  <Text style={styles.retryText}>{t('retry')}</Text>
                 </TouchableOpacity>
               </View>
             ) : regulars.length === 0 ? (
               <View style={styles.emptyBox}>
                 <Ionicons name="heart-outline" size={36} color={c.textMuted} />
-                <Text style={styles.emptyTitle}>No regulars yet</Text>
+                <Text style={styles.emptyTitle}>{t('noRegularsYetTitle')}</Text>
                 <Text style={styles.emptyText}>
-                  Track your loyal customers — see their lifetime value and spot any who are drifting away.
+                  {t('noRegularsYetDesc')}
                 </Text>
                 <TouchableOpacity style={styles.emptyAddBtn} onPress={openAdd}>
-                  <Text style={styles.emptyAddBtnText}>Add Regular</Text>
+                  <Text style={styles.emptyAddBtnText}>{t('addRegular')}</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -385,16 +381,16 @@ export default function RegularsModal({ onClose }: Props) {
                       <View style={styles.regularInfo}>
                         <Text style={styles.regularName}>{reg.name}</Text>
                         <Text style={styles.regularMeta}>
-                          CLV: {money(reg.clv)} · {reg.visit_count} visit{reg.visit_count !== 1 ? 's' : ''} · ~{money(reg.avg_spend)}/visit
+                          {t('rgWorth', { amount: money(reg.clv) })} · {t('rgVisits', { n: reg.visit_count })} · {t('rgPerVisit', { amount: money(reg.avg_spend) })}
                         </Text>
                         <Text style={styles.regularMeta}>
-                          {reg.visit_frequency_per_week}×/wk
-                          {reg.first_visit_date ? ` · since ${reg.first_visit_date}` : ''}
-                          {reg.last_visit_date ? ` · last ${reg.last_visit_date}` : ''}
+                          {t('rgFreqLine', { n: reg.visit_frequency_per_week })}
+                          {reg.first_visit_date ? ` · ${t('rgSince', { date: reg.first_visit_date })}` : ''}
+                          {reg.last_visit_date ? ` · ${t('rgLastVisit', { date: reg.last_visit_date })}` : ''}
                         </Text>
                         {reg.today_amount != null && (
                           <Text style={styles.todayBadge}>
-                            Today: {money(reg.today_amount)}
+                            {t('rgToday', { amount: money(reg.today_amount) })}
                           </Text>
                         )}
                       </View>
@@ -429,7 +425,7 @@ export default function RegularsModal({ onClose }: Props) {
                       activeOpacity={0.7}
                     >
                       <Text style={styles.profitabilityToggleText}>
-                        {isExpanded ? 'Hide profitability' : 'See profitability'}
+                        {isExpanded ? t('hideProfitability') : t('seeProfitability')}
                       </Text>
                       <Ionicons
                         name={isExpanded ? 'chevron-up' : 'chevron-down'}
@@ -449,31 +445,31 @@ export default function RegularsModal({ onClose }: Props) {
                                 <Text style={styles.profTileVal}>
                                   {money(prof.this_month)}
                                 </Text>
-                                <Text style={styles.profTileLabel}>this month</Text>
+                                <Text style={styles.profTileLabel}>{t('thisMonth')}</Text>
                               </View>
                               <View style={styles.profTile}>
                                 <Text style={styles.profTileVal}>
                                   {money(prof.this_year)}
                                 </Text>
-                                <Text style={styles.profTileLabel}>this year</Text>
+                                <Text style={styles.profTileLabel}>{t('thisYear')}</Text>
                               </View>
                               <View style={styles.profTile}>
                                 <Text style={styles.profTileVal}>
                                   {money(prof.all_time)}
                                 </Text>
-                                <Text style={styles.profTileLabel}>all time</Text>
+                                <Text style={styles.profTileLabel}>{t('allTime')}</Text>
                               </View>
                             </View>
                             {prof.monthly_visits.length > 0 && (
                               <>
-                                <Text style={styles.profSubLabel}>Recent months</Text>
+                                <Text style={styles.profSubLabel}>{t('recentMonths')}</Text>
                                 {prof.monthly_visits.slice(-4).map(mv => (
                                   <View
                                     key={`${mv.year}-${mv.month}`}
                                     style={styles.mvRow}
                                   >
                                     <Text style={styles.mvLabel}>
-                                      {MONTH_NAMES[mv.month - 1]} {mv.year}
+                                      {t(MONTH_KEYS[mv.month - 1])} {mv.year}
                                     </Text>
                                     <Text style={styles.mvVisits}>
                                       {mv.visits} visit{mv.visits !== 1 ? 's' : ''}
@@ -487,7 +483,7 @@ export default function RegularsModal({ onClose }: Props) {
                             )}
                           </>
                         ) : (
-                          <Text style={styles.profEmpty}>No data yet.</Text>
+                          <Text style={styles.profEmpty}>{t('noProfData')}</Text>
                         )}
                       </View>
                     )}

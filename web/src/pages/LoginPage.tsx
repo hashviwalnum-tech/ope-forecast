@@ -62,7 +62,7 @@ export default function LoginPage() {
 
         {/* Brand */}
         <div className="flex items-center gap-3 mb-8">
-          <img src={logo} alt="Ope logo" className="logo-img h-12 w-auto" />
+          <img src={logo} alt="Ope" className="logo-img h-12 w-auto" />
           <div className="leading-tight">
             <span className="block text-2xl font-bold text-teal-700 dark:text-teal-300">Ope</span>
             <span className="block text-sm text-teal-700 dark:text-teal-300">{t('loginSlogan')}</span>

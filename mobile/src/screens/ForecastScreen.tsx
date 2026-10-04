@@ -173,7 +173,7 @@ export default function ForecastScreen() {
         hourlyRes.status === 'rejected'
       ) {
         const err = forecastRes.reason as Error
-        setDataError(err instanceof Error ? err.message : 'Failed to load forecast.')
+        setDataError(err instanceof Error ? err.message : t('loadFailedBody'))
       } else {
         setDataError(null)
       }
@@ -541,7 +541,7 @@ export default function ForecastScreen() {
                       {fmt12(entry.peak_hour)}
                     </Text>
                     <Text style={[styles.weekdayPeakCount, { color: c.textSub }]}>
-                      ~{Math.round(entry.peak_avg_taps)}/hr
+                      {t('fcPerHour', { n: Math.round(entry.peak_avg_taps) })}
                     </Text>
                   </View>
                 ))}
@@ -729,7 +729,7 @@ export default function ForecastScreen() {
                 {t('iReorderedThis')} — {logOrderProduct?.name}
               </Text>
               <Text style={[styles.logOrderSub, { color: c.textSub }]}>
-                How many {logOrderProduct?.unit} did you order?
+                {t('fcHowManyOrdered', { unit: logOrderProduct?.unit ?? '' })}
               </Text>
               <TextInput
                 style={[styles.logOrderInput, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}

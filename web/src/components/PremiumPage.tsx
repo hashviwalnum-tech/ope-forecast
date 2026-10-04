@@ -18,10 +18,7 @@ const FREE_FEATURES = [
 const PREMIUM_FEATURES = [
   'premiumPaidItem1',
   'premiumPaidItem2',
-  'premiumPaidItem3',
   'premiumPaidItem4',
-  'premiumPaidItem5',
-  'premiumPaidItem6',
 ] as const
 
 export default function PremiumPage() {

@@ -12,6 +12,7 @@ import {
   Platform,
   Switch,
   Linking,
+  Share,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -50,6 +51,21 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
   // word: plenty of owners are nervous with a keyboard, and a second button
   // they have to find is just as hard to hit by accident.
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+
+  async function shareDays() {
+    setExporting(true)
+    setExportError(null)
+    try {
+      const csv = await api.exportData.daysCsv()
+      await Share.share({ message: csv, title: t('exportDaysBtn') })
+    } catch (e) {
+      setExportError(e instanceof Error && e.message ? e.message : t('exportFailed'))
+    } finally {
+      setExporting(false)
+    }
+  }
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
@@ -179,7 +195,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
       setTimeout(() => setSaved(false), 2000)
       await onSaved(updated)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to save settings.')
+      setError(e instanceof Error ? e.message : t('failedToSave'))
     } finally {
       setSaving(false)
     }
@@ -342,18 +358,18 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
             </View>
 
             {/* ── Timezone ── */}
-            <Text style={[styles.sectionLabel, { color: c.text }]}>Timezone</Text>
+            <Text style={[styles.sectionLabel, { color: c.text }]}>{t('tzLabel')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]}
               value={timezone}
               onChangeText={setTimezone}
               autoCapitalize="none"
               autoCorrect={false}
-              placeholder="e.g. Asia/Jerusalem"
+              placeholder={t('tzPh')}
               placeholderTextColor={c.textMuted}
             />
             <Text style={[styles.fieldHint, { color: c.textMuted }]}>
-              IANA timezone name used to match your tap timestamps to opening hours. Leave blank to use UTC.
+              {t('tzHint')}
             </Text>
 
             {/* ── Currency ── */}
@@ -382,7 +398,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
               value={maxWait}
               onChangeText={setMaxWait}
               keyboardType="decimal-pad"
-              placeholder="e.g. 5 (leave blank to skip)"
+              placeholder={t('maxWaitPh')}
               placeholderTextColor={c.textMuted}
             />
             <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('maxWaitHint')}</Text>
@@ -464,6 +480,23 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
                 </TouchableOpacity>
               </View>
             )}
+
+            {/* ── Your data ── a copy to keep or take elsewhere, free on every plan. */}
+            <View style={{ marginTop: 8 }}>
+              <Text style={[styles.sectionLabel, { color: c.text }]}>{t('exportLabel')}</Text>
+              <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('exportDescMobile')}</Text>
+              <TouchableOpacity
+                style={[styles.tourBtn, { borderColor: c.primary, backgroundColor: c.primaryBg }]}
+                onPress={() => void shareDays()}
+                disabled={exporting}
+                activeOpacity={0.8}
+              >
+                {exporting
+                  ? <ActivityIndicator size="small" color={c.primary} />
+                  : <Text style={[styles.tourBtnText, { color: c.primary }]}>{t('exportDaysBtn')}</Text>}
+              </TouchableOpacity>
+              {exportError && <Text style={[styles.fieldHint, { color: c.danger }]}>{exportError}</Text>}
+            </View>
 
             {/* ── Delete account ──
                 Play requires deletion from inside the app. Last thing on the

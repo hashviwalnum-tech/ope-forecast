@@ -82,7 +82,7 @@ export default function LogScreen() {
         tod.status === 'rejected'
       ) {
         const err = prods.reason as Error
-        setDataError(err instanceof Error ? err.message : 'Failed to load.')
+        setDataError(err instanceof Error ? err.message : t('loadFailedBody'))
       } else {
         setDataError(null)
       }
@@ -125,7 +125,7 @@ export default function LogScreen() {
       void refreshSummary()
     } catch (e: unknown) {
       setPending(p => ({ ...p, [key]: Math.max(0, (p[key] ?? 0) - 1) }))
-      setTapError(e instanceof Error ? e.message : 'Tap failed — please try again.')
+      setTapError(e instanceof Error ? e.message : t('failedToSave'))
     } finally {
       setTappingKey(null)
     }
@@ -140,7 +140,7 @@ export default function LogScreen() {
       await api.saleEvents.delete(id)
       void refreshSummary()
     } catch (e: unknown) {
-      setTapError(e instanceof Error ? e.message : 'Undo failed.')
+      setTapError(e instanceof Error ? e.message : t('failedToSave'))
     }
   }
 

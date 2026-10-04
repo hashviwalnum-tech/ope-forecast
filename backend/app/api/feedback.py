@@ -35,7 +35,7 @@ from email.mime.text import MIMEText
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_email, get_current_user
 
 log = logging.getLogger(__name__)
 
@@ -61,6 +61,7 @@ class FeedbackResponse(BaseModel):
 def submit_feedback(
     body: FeedbackCreate,
     _user_id: str = Depends(get_current_user),
+    sender_email: str | None = Depends(get_current_email),
 ) -> FeedbackResponse:
     from_email = os.environ.get("FEEDBACK_FROM_EMAIL", "")
     from_password = os.environ.get("FEEDBACK_FROM_PASSWORD", "")
@@ -78,7 +79,8 @@ def submit_feedback(
     subject = f"Ope Feedback — {body.name} ({body.business_name})"
     text_body = (
         f"Name: {body.name}\n"
-        f"Business: {body.business_name}\n\n"
+        f"Business: {body.business_name}\n"
+        f"Account: {sender_email or 'unknown'}\n\n"
         f"Message:\n{body.message}\n"
     )
 
@@ -86,7 +88,9 @@ def submit_feedback(
     msg["Subject"] = subject
     msg["From"] = from_email
     msg["To"] = FEEDBACK_TO
-    msg["Reply-To"] = from_email
+    # Replying goes to the owner who wrote in. It used to go back to Ope's own
+    # sending address, so no feedback could ever be answered.
+    msg["Reply-To"] = sender_email or from_email
     msg.attach(MIMEText(text_body, "plain", "utf-8"))
 
     host = os.environ.get("FEEDBACK_SMTP_HOST") or DEFAULT_SMTP_HOST

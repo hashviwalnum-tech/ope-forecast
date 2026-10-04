@@ -63,7 +63,7 @@ function NotEnoughData({ message }: { message?: string }) {
 // ── month-over-month comparison card ─────────────────────────────────────────
 
 function MomCard({ current, prev }: { current: MonthSummary; prev: MonthSummary }) {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const change = current.mom_pct_change
   const up = change !== null && change >= 0
 
@@ -82,7 +82,7 @@ function MomCard({ current, prev }: { current: MonthSummary; prev: MonthSummary 
           </p>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t('avgCustomersPerDay')}</p>
           <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-            {prev.total_customers.toLocaleString()} total · {prev.logged_days} days logged
+            {t('trendsTotalLine', { total: prev.total_customers.toLocaleString(lang), days: prev.logged_days })}
           </p>
         </div>
 
@@ -110,7 +110,7 @@ function MomCard({ current, prev }: { current: MonthSummary; prev: MonthSummary 
           </p>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t('avgCustomersPerDay')}</p>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            {current.total_customers.toLocaleString()} total · {current.logged_days} days logged
+            {t('trendsTotalLine', { total: current.total_customers.toLocaleString(lang), days: current.logged_days })}
           </p>
         </div>
 

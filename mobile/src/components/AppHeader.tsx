@@ -41,7 +41,7 @@ export default function AppHeader({ title, subtitle, rightExtra }: AppHeaderProp
           onPress={openSettings}
           style={styles.gearBtn}
           hitSlop={10}
-          accessibilityLabel="Settings"
+          accessibilityLabel={t('settings')}
         >
           <Ionicons name="settings-outline" size={22} color={c.onPrimary} />
         </TouchableOpacity>

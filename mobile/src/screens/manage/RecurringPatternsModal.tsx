@@ -17,9 +17,9 @@ import type { RecurringPatternRead, RecurringPatternCreate } from '../../api/typ
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Theme } from '../../lib/theme'
+import type { TranslationKey } from '../../lib/i18n'
 
-const WD_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const WD_SHORT_HE = ['שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת', 'ראשון']
+const WD_KEYS: TranslationKey[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
 const EFFECTS: Array<{ value: string; labelKey: 'effectHigher' | 'effectLower' | 'effectExpected' }> = [
   { value: 'higher', labelKey: 'effectHigher' },
@@ -46,7 +46,8 @@ export default function RecurringPatternsModal({ onClose }: Props) {
     label: '', weekdays: [], effect: 'higher',
   })
 
-  const wdShort = lang === 'he' ? WD_SHORT_HE : WD_SHORT
+  // Every language, not just Hebrew: the other thirteen used to get English.
+  const wdShort = WD_KEYS.map(k => t(k))
 
   function fmtWeekdays(wds: number[]): string {
     if (wds.length === 7) return t('everyDayLabel')
@@ -107,7 +108,7 @@ export default function RecurringPatternsModal({ onClose }: Props) {
       resetForm()
       void load()
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : 'Could not save')
+      setErr(e instanceof Error ? e.message : t('failedToSave'))
     } finally { setSaving(false) }
   }
 
@@ -170,7 +171,7 @@ export default function RecurringPatternsModal({ onClose }: Props) {
               {/* Weekdays */}
               <Text style={[styles.fieldLabel, { color: c.textSub }]}>{t('whichDaysLabel')}</Text>
               <View style={styles.dayRow}>
-                {WD_SHORT.map((_, idx) => (
+                {WD_KEYS.map((_, idx) => (
                   <TouchableOpacity
                     key={idx}
                     style={[

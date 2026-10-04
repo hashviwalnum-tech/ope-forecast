@@ -238,12 +238,13 @@ people. Your call.
 
     Ope needs roughly two to four weeks of your data before its forecasts are
     worth trusting. It says so on screen, rather than showing you a confident
-    number it has not earned. It tells you how accurate it has been, and it gets
-    better as you use it.
+    number it has not earned. It tells you how accurate it has been, and it
+    usually gets more accurate as it learns your shop.
 
-    Free to use, with everything that affects accuracy included. Paid plans lift
-    limits — more locations, longer history, no adverts — and never make the
-    forecast better. That would be the wrong thing to charge for.
+    Free to use, with everything that affects accuracy included. Premium lifts
+    limits — more than one location, history beyond a year, unlimited ads and
+    events to measure — and never makes the forecast better. That would be the
+    wrong thing to charge for.
 
 About 1,900 characters, well inside the 4,000 limit.
 
@@ -294,8 +295,13 @@ what the code actually does:
 * **deletion** now describes a route rather than "contact us", under a stable
   anchor at `/privacy#delete`, which is the link Play asks for.
 
-One thing the policy claims that the product does not yet deliver: that an
-account can be deleted on request. Honour that by hand until section 8 is built.
+**Updated 2026-10-04 (final audit).** The deletion section now describes the
+in-app route that exists (Settings → Delete my account, web and Android) as well
+as email; it no longer promises an export that did not exist, because export now
+does (Settings → Your data); it discloses the Google Play purchase record and the
+sign-in email attached to feedback. The policy promised "export a copy at any
+time" for months while no export existed anywhere — that is the kind of claim to
+re-check against the code whenever the policy is edited.
 
 ---
 
@@ -312,9 +318,10 @@ clients actually send.
 | Personal info | **Email address** | Yes | No | Required | Account management, authentication |
 | Personal info | **Name** | Yes | No | **Optional** | App functionality — only if the owner uses Regulars, and it is their *customers'* names they type |
 | Personal info | Other info | Yes | No | Optional | App functionality — free-text notes on days and on regulars |
+| App activity | **Other user-generated content** | Yes | No | Optional | Developer communications — the in-app feedback form: the name, business name and message typed, plus the sign-in email so a reply can reach the owner. Sent by email to the developer, not stored in the database |
 | Financial info | **Other financial info** | Yes | No | Optional | App functionality — product prices, per-customer spend, event costs. The owner's own trading figures, never a payment instrument |
-| Financial info | Payment info | **No** | — | — | Nothing takes money yet; the payment provider is a stub |
-| Financial info | Purchase history | **No** | — | — | same |
+| Financial info | Payment info | **No** | — | — | Google Play takes the payment; Ope never sees a card or payment method |
+| Financial info | **Purchase history** | Yes | No | Optional | App functionality — only if the owner buys Premium: the Play purchase token, product id, status and renewal date (`subscriptions` table), kept to confirm the purchase with Google |
 | App activity | **Other actions** | Yes | No | Required | App functionality, and analytics — the sales, customer counts, stock, orders and bookings the owner logs. This is the product |
 | App info & performance | **Crash logs** | Yes | No | Required | Analytics — Sentry, when a DSN is configured for the build. See the note below |
 | App info & performance | Diagnostics | **No** | — | — | No performance or usage telemetry — only crashes |
@@ -352,7 +359,7 @@ costs nothing and it is the truthful framing.
 | Question | Answer | Basis |
 |---|---|---|
 | Is data encrypted in transit? | **Yes** | Every call from both clients is HTTPS; Render and Supabase serve nothing else |
-| Can users request data deletion? | **Yes** | By email, documented at `/privacy#delete` |
+| Can users request data deletion? | **Yes** | In the app (Settings → Delete my account, web and Android) and by email for anyone who has uninstalled; both documented at `/privacy#delete` |
 | Does the app follow the Families policy? | Not applicable | Not aimed at children |
 | Has the app been independently validated against a security standard? | **No** | Nobody has audited it. Say no |
 

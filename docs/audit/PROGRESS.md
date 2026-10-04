@@ -37,3 +37,47 @@ Started 2026-10-04. This file is the working log; the finished report is
 - **RLS — VERIFIED.** `probe_rls`: all 19 tables refused to the anon key; the probe's
   table list matches all 19 `__tablename__`s in `app/models`. PostgREST's schema listing
   is also refused to the anon key.
+
+## Changes so far (commit by commit)
+
+### Batch 1 — `d00f4bb`
+- Server-written sentences (rule errors, nudges, unusual-day prompt, "not enough
+  data" notes) now reach the owner in their language on both apps; errors carry a
+  `code` + `params` beside the English `detail`.
+- Regulars screen named `$`/`₪` regardless of currency; fixed in 15 languages
+  (web) + 11 (mobile); guard test now scans both translation files.
+- Premium history: code says unlimited; one string said 1.5 years. Fixed.
+- Nudge engine had no tests; 8 added.
+
+### Batch 2
+- **Security:** TLS verification was OFF for the Supabase JWKS fetch (forged
+  signing key ⇒ forged logins) and for the account-deletion call that carries the
+  service-role key. Now verified; dev-only escape hatch `OPE_INSECURE_TLS=1`,
+  refused on Render. Tests in `test_tls.py`.
+- **Premium promised three things that don't exist:** "No ads" (there are no ads),
+  "Advanced analytics & self-tuning" (not gated), "Priority support" (no support
+  system). Removed from both apps. Web's empty "AD" placeholder boxes (shown to
+  Premium too) switched off.
+- **Data export never existed** although the privacy policy promised it. Built:
+  `/export/days.csv` (import-compatible) and `/export/all.json` (every table,
+  derived from the delete cascade's table list). Web: Settings → Your data.
+  Phone: Settings → Your data shares the CSV via the Android share sheet.
+- Feedback emails had Reply-To set to Ope's own address and no sender contact —
+  feedback could never be answered. Now carries the sign-in email.
+- Privacy policy: deletion section now describes the in-app route; discloses Play
+  purchase data; feedback email. Play listing no longer promises "no adverts".
+- **Phone app had ~90 hard-coded English strings** (Products, Past days, Orders,
+  Regulars, Telegram, Settings timezone, titles, month/weekday names, validation
+  messages) and **12 garbled characters** (UTF-8 mis-decoded as Windows-1255).
+  All routed through t() in 15 languages; new guard tests on both apps catch
+  multi-line text, text next to `{value}`, English props, and garbled bytes.
+- Phone product form accepted lead time 0, which the server rejects; now asks for 1+.
+- Ads & Events on the phone showed a hard-coded `$`.
+- Removed dead `mobile/src/screens/DashboardScreen.tsx` (imported nowhere).
+
+## Findings not fixed (reported)
+- Phone uses free-text YYYY-MM-DD date fields in Past days / Ads & Events /
+  Bookings; spec requires a calendar picker. Needs a new native dependency.
+- Phone cannot create service products or link supplies (web can).
+- Free 1-year history cap trims the forecast's *training* data, not just what the
+  owner sees — at odds with the "never gate accuracy" iron rule (design issue).

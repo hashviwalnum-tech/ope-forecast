@@ -139,3 +139,22 @@ def test_feedback_requires_a_signed_in_user():
     """An open form is a spam relay pointed at the owner's inbox."""
     app.dependency_overrides.pop(get_current_user, None)
     assert TestClient(app).post("/feedback", json=BODY).status_code == 401
+
+
+def test_a_reply_reaches_the_owner_who_wrote_in(client, monkeypatch, fake_smtp):
+    """Reply-To used to be Ope's own sending address, so feedback could never be
+    answered; the sender's sign-in email was not in the message at all."""
+    from app.api.deps import get_current_email
+    _configure(monkeypatch)
+    app.dependency_overrides[get_current_email] = lambda: "dana@corner.cafe"
+    try:
+        assert client.post("/feedback", json=BODY).status_code == 200
+    finally:
+        app.dependency_overrides.pop(get_current_email, None)
+    parsed = message_from_string(fake_smtp.calls[0]["sent"][2])
+    assert parsed["Reply-To"] == "dana@corner.cafe"
+    text = "".join(
+        part.get_payload(decode=True).decode("utf-8")
+        for part in parsed.walk() if part.get_content_type() == "text/plain"
+    )
+    assert "dana@corner.cafe" in text
