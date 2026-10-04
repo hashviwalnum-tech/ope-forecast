@@ -45,6 +45,8 @@ export default defineConfig({
   retries: 0,
   reporter: [['list']],
   timeout: 30 * 60_000,
+  // No single click or wait may hang a run: a step that never comes is a finding.
+  use: { actionTimeout: 20_000, navigationTimeout: 60_000 },
   expect: { timeout: 20_000 },
   projects: [
     {

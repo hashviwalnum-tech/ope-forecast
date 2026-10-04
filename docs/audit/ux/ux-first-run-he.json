@@ -1,0 +1,167 @@
+[
+ {
+  "what": "welcome / name your business",
+  "taps": 0,
+  "ms": 1070,
+  "text": "ברוכים הבאים ל-Ope! בואו נתחיל. מה שם העסק שלך? בואו נתחיל",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "he",
+   "screen": "setup",
+   "loadMs": 1077,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 0,
+   "smallTargetSamples": [],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 15,
+   "headerPx": 0,
+   "screensTall": 1
+  }
+ },
+ {
+  "what": "wizard 1: hours, days, currency",
+  "taps": 1,
+  "ms": 129,
+  "text": "Ope הקפה של דנה דע מחר, היום. 1 2 3 שלב 1 מתוך 3 🕐 מתי העסק שלך פתוח? בחר רק את הימים שאתה פתוח — ימים שלא בחרת מדולגים לחלוטין בתחזית ולעולם לא נחשבים לאפס. זה גם עוזר ל-Ope להתמקד בשעות הפעילות האמיתיות שלך בשעות העמוסות ובהמלצות הסגל. תוכל לשנות זאת בכל עת בהגדרות. באילו ימים אתה פתוח? שני שלישי רביעי חמישי שישי שבת ראשון מהם שעות הפתיחה שלך? נפתח 12:00 midnight 01:00 02:00 03:00 04:00 05:00 06:00 07:00 08:00 09:00 10:00 11:00 12:00 noon 13:00 14:00 15:00 16:00 17:00 18:00 19:00 20:00 21:00 22:00 23:00 נסגר 12:00 midnight 01:00 02:00 03:00 04:00 05:00 06:00 07:00 08:00 09:00 10:00 11:00 12",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "he",
+   "screen": "wizard-hours",
+   "loadMs": 133,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 7,
+   "smallTargetSamples": [
+    "שני 48×36",
+    "שלישי 67×36",
+    "רביעי 61×36",
+    "חמישי 67×36",
+    "שישי 58×36"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 1.5
+  }
+ },
+ {
+  "what": "wizard 2: products",
+  "taps": 1,
+  "ms": 116,
+  "text": "Ope הקפה של דנה דע מחר, היום. ✓ 2 3 שלב 2 מתוך 3 📦 הוסף את מה שאתה מוכר ברגע שתוסיף מוצר, Ope יעקוב אחרי הביקוש, יגיד לך מתי להזמין ויציג תחזיות לכל מוצר. צריך רק שם ויחידה (למשל \"לחם שאור, יחידה\"). עבור למוצרים שלי ← חזור → אוסיף מוצרים אחר כך בית תחזיות תובנות ניהול",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "he",
+   "screen": "wizard-products",
+   "loadMs": 121,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 2,
+   "smallTargetSamples": [
+    "חזור → 45×22",
+    "אוסיף מוצרים אחר כך 140×22"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 1
+  }
+ },
+ {
+  "what": "wizard 3: how to log",
+  "taps": 1,
+  "ms": 0,
+  "text": "Ope הקפה של דנה דע מחר, היום. ✓ ✓ 3 שלב 3 מתוך 3 ✅ מוכן! הקש \"רשום מכירה\" בכל פעם שאתה משרת לקוח. הקשה אחת למכירה, ללא צורך בהקלדה — הזמן נשמר אוטומטית. 💡 תחזיות צריכות כמה שבועות של נתונים כדי להיות מהימנות. ביום הראשון הן הערכות גסות — המשך לרשום והן ישתפרו מאוד. טיפ: הפעל \"שפה פשוטה\" בהגדרות אם מונח כלשהו נשמע מבלבל. חזור → הבנתי — התחל להשתמש ב-Ope! בית תחזיות תובנות ניהול",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "he",
+   "screen": "wizard-log",
+   "loadMs": 0,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 1,
+   "smallTargetSamples": [
+    "חזור → 41×44"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 1
+  }
+ },
+ {
+  "what": "tour opens",
+  "taps": 0,
+  "ms": 0,
+  "text": "Ope הקפה של דנה דע מחר, היום. רשום מכירה תעד היום רשום לקוח קבוע מה להזמין עכשיו טוען… תחזית ביקוש טוען… שעות עמוסות טוען נתוני שעות… התאם את הדף הראשי בית תחזיות תובנות ניהול English עברית 中文 Español हिन्दी العربية Português Русский Français বাংলা اردو Indonesia Deutsch 日本語 Türkçe ברוכים הבאים ל-Ope!‏ Ope עוזר לך לדעת כמה יהיה עמוס העסק שלך — כדי שתוכל להזמין את המלאי הנכון, לסדר את הסגל המתאים, ולא להיתפס לא מוכן. בוא נסתכל מהר על מה שיש כאן. דלג על הסיור ← הבא",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "he",
+   "screen": "tour",
+   "loadMs": 0,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 1,
+   "smallTargetSamples": [
+    "עבור למוצרים שלי ← 167×38"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 2.4
+  }
+ },
+ {
+  "what": "tour finished after 35 taps on Next",
+  "taps": 35,
+  "ms": 0,
+  "text": ""
+ },
+ {
+  "what": "home, day one",
+  "taps": 0,
+  "ms": 0,
+  "text": "Ope הקפה של דנה הניסיון החינם שלך מסתיים בעוד 29 יום — שדרג כדי לשמור על תכונות הפרמיום. שדרג דע מחר, היום. המשימה הראשונה שלך הוסף את המוצרים שאתה מוכר כדי ש-Ope יוכל לעקוב אחרי הביקוש ולומר לך מתי להזמין. לאחר מכן, אחרי הסגירה הלילה, חזור ורשום את מספרי היום הראשון כדי להתחיל לבנות את התחזית שלך. עבור למוצרים שלי ← רשום מכירה תעד היום רשום לקוח קבוע מה להזמין עכשיו המשך להוסיף ימים — הדפוסים שלך יופיעו כאן לאחר כמה שבועות של תיעוד. תחזית ביקוש תחזית ביקוש לקוחות המשך לרשום ימים כדי לראות את התחזית. שעות עמוסות עדיין אין מספיק נתוני הקשות השתמש ב\"רשום מכירה\" בכל פעם שאתה משרת לקוח. דפוסי שעות",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "he",
+   "screen": "home-day-one",
+   "loadMs": 0,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 1,
+   "smallTargetSamples": [
+    "עבור למוצרים שלי ← 167×38"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 2.5
+  }
+ }
+]

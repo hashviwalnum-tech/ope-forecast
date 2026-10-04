@@ -203,6 +203,11 @@ export default function OnboardingWizard({ bizId, onGoToProducts, onDone }: Prop
           </div>
 
           {saveError && <p className="text-sm text-rose-600 dark:text-rose-400 mb-4">{saveError}</p>}
+          {/* The button below stays disabled until a day is chosen; without this
+              line a new owner saw a greyed-out button and no reason. */}
+          {openDays.length === 0 && (
+            <p role="status" className="text-sm text-slate-600 dark:text-slate-300 mb-3">{t('onboardingPickDaysHint')}</p>
+          )}
 
           <div className="flex items-center justify-between">
             <button

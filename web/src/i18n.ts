@@ -9,6 +9,7 @@ export const RTL_LANGS = new Set<Lang>(['he', 'ar', 'ur'])
 
 export const translations = {
   en: {
+    onboardingPickDaysHint: 'Tap the days you\'re open to continue.',
     trendsTotalLine: '{total} customers in total · {days} days logged',
     exportLabel: 'Your data',
     exportDesc: 'Download a copy whenever you like — free on every plan. The daily figures open in any spreadsheet and can be imported back into Ope.',
@@ -1226,6 +1227,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Nothing has been deleted yet. Your Google Play subscription is still active and we couldn\'t cancel it for you — and deleting your Ope account doesn\'t stop Google from charging you. Please cancel it first: open the Play Store, tap your profile picture, then Payments & subscriptions, then Subscriptions. Then try again.',
   },
   he: {
+    onboardingPickDaysHint: 'הקש על הימים שבהם אתה פתוח כדי להמשיך.',
     trendsTotalLine: '{total} לקוחות בסך הכול · {days} ימים נרשמו',
     exportLabel: 'הנתונים שלך',
     exportDesc: 'אפשר להוריד עותק מתי שרוצים — בחינם בכל תוכנית. הנתונים היומיים נפתחים בכל גיליון אלקטרוני ואפשר לייבא אותם חזרה ל-Ope.',
@@ -2438,6 +2440,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'עדיין לא נמחק דבר. המנוי שלך ב-Google Play עדיין פעיל ולא הצלחנו לבטל אותו בשבילך — ומחיקת חשבון Ope לא עוצרת את החיובים של Google. בטלו אותו קודם: פתחו את חנות Play, הקישו על תמונת הפרופיל, אחר כך "תשלומים ומינויים" ואז "מינויים". לאחר מכן נסו שוב.',
   },
   zh: {
+    onboardingPickDaysHint: '点选您营业的日子即可继续。',
     trendsTotalLine: '共 {total} 位顾客 · 已记录 {days} 天',
     exportLabel: '您的数据',
     exportDesc: '随时下载一份副本——所有方案都免费。每日数据可用任何电子表格打开，也能再导入 Ope。',
@@ -3186,6 +3189,7 @@ export const translations = {
     deleteAccountPlaySubActive: '尚未删除任何内容。您的 Google Play 订阅仍然有效，我们无法替您取消——而删除 Ope 账户并不会让 Google 停止扣费。请先取消订阅：打开 Play 商店，点按您的头像，然后依次选择"付款和订阅"、"订阅"。然后再试一次。',
   },
   es: {
+    onboardingPickDaysHint: 'Toca los días que abres para continuar.',
     trendsTotalLine: '{total} clientes en total · {days} días registrados',
     exportLabel: 'Tus datos',
     exportDesc: 'Descarga una copia cuando quieras, gratis en todos los planes. Las cifras diarias se abren en cualquier hoja de cálculo y se pueden volver a importar en Ope.',
@@ -3984,6 +3988,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Todavía no se ha borrado nada. Tu suscripción de Google Play sigue activa y no pudimos cancelarla por ti, y borrar tu cuenta de Ope no impide que Google te cobre. Cancélala primero: abre Play Store, toca tu foto de perfil, luego "Pagos y suscripciones" y después "Suscripciones". Luego vuelve a intentarlo.',
   },
   hi: {
+    onboardingPickDaysHint: 'आगे बढ़ने के लिए वे दिन चुनें जब आप खुले रहते हैं।',
     trendsTotalLine: 'कुल {total} ग्राहक · {days} दिन दर्ज',
     exportLabel: 'आपका डेटा',
     exportDesc: 'जब चाहें एक कॉपी डाउनलोड करें — हर योजना में मुफ़्त। रोज़ के आँकड़े किसी भी स्प्रेडशीट में खुलते हैं और Ope में वापस इम्पोर्ट हो सकते हैं।',
@@ -4741,6 +4746,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'अभी तक कुछ भी हटाया नहीं गया है। आपकी Google Play सदस्यता अभी भी सक्रिय है और हम इसे आपके लिए रद्द नहीं कर सके — और Ope खाता हटाने से Google का शुल्क लेना बंद नहीं होता। कृपया पहले इसे रद्द करें: Play Store खोलें, अपनी प्रोफ़ाइल तस्वीर पर टैप करें, फिर "भुगतान और सदस्यताएँ", फिर "सदस्यताएँ"। फिर दोबारा कोशिश करें।',
   },
   ar: {
+    onboardingPickDaysHint: 'اضغط على الأيام التي تفتح فيها للمتابعة.',
     trendsTotalLine: '{total} زبونًا إجمالًا · {days} يومًا مسجّلًا',
     exportLabel: 'بياناتك',
     exportDesc: 'نزّل نسخة متى شئت — مجانًا في كل الخطط. تُفتح الأرقام اليومية في أي جدول بيانات ويمكن استيرادها إلى Ope مجددًا.',
@@ -5786,6 +5792,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'لم يُحذف أي شيء بعد. اشتراكك في Google Play لا يزال نشطًا ولم نتمكن من إلغائه نيابةً عنك — وحذف حساب Ope لا يوقف تحصيل Google للرسوم. يُرجى إلغاؤه أولاً: افتح متجر Play، واضغط على صورة ملفك الشخصي، ثم "الدفعات والاشتراكات"، ثم "الاشتراكات". بعد ذلك حاول مرة أخرى.',
   },
   pt: {
+    onboardingPickDaysHint: 'Toque nos dias em que abre para continuar.',
     trendsTotalLine: '{total} clientes no total · {days} dias registados',
     exportLabel: 'Os seus dados',
     exportDesc: 'Descarregue uma cópia quando quiser — grátis em todos os planos. Os números diários abrem em qualquer folha de cálculo e podem ser importados de novo para o Ope.',
@@ -6569,6 +6576,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Nada foi excluído ainda. Sua assinatura do Google Play ainda está ativa e não conseguimos cancelá-la por você — e excluir sua conta do Ope não impede o Google de cobrar. Cancele-a primeiro: abra a Play Store, toque na sua foto de perfil, depois em "Pagamentos e assinaturas" e em "Assinaturas". Depois tente de novo.',
   },
   ru: {
+    onboardingPickDaysHint: 'Отметьте дни, когда вы открыты, чтобы продолжить.',
     trendsTotalLine: 'Всего клиентов: {total} · записано дней: {days}',
     exportLabel: 'Ваши данные',
     exportDesc: 'Скачайте копию в любой момент — бесплатно на любом тарифе. Ежедневные данные открываются в любой таблице и загружаются обратно в Ope.',
@@ -7349,6 +7357,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Пока ничего не удалено. Ваша подписка в Google Play всё ещё активна, и мы не смогли отменить её за вас, а удаление аккаунта Ope не останавливает списания Google. Сначала отмените её: откройте Play Маркет, нажмите на фото профиля, затем «Платежи и подписки» и «Подписки». Затем попробуйте снова.',
   },
   fr: {
+    onboardingPickDaysHint: 'Touchez les jours où vous êtes ouvert pour continuer.',
     trendsTotalLine: '{total} clients au total · {days} jours saisis',
     exportLabel: 'Vos données',
     exportDesc: 'Téléchargez une copie quand vous voulez — gratuit avec toutes les offres. Les chiffres du jour s\'ouvrent dans n\'importe quel tableur et peuvent être réimportés dans Ope.',
@@ -8560,6 +8569,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Rien n’a encore été supprimé. Votre abonnement Google Play est toujours actif et nous n’avons pas pu le résilier pour vous — et supprimer votre compte Ope n’empêche pas Google de vous facturer. Résiliez-le d’abord : ouvrez le Play Store, touchez votre photo de profil, puis « Paiements et abonnements », puis « Abonnements ». Réessayez ensuite.',
   },
   bn: {
+    onboardingPickDaysHint: 'চালিয়ে যেতে যে দিনগুলো খোলা থাকেন সেগুলো চাপুন।',
     trendsTotalLine: 'মোট {total} জন ক্রেতা · {days} দিন লেখা হয়েছে',
     exportLabel: 'আপনার ডেটা',
     exportDesc: 'যখন খুশি একটি কপি ডাউনলোড করুন — সব প্ল্যানে বিনামূল্যে। দৈনিক হিসাব যেকোনো স্প্রেডশিটে খোলে এবং আবার Ope-এ ইমপোর্ট করা যায়।',
@@ -9771,6 +9781,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'এখনও কিছুই মোছা হয়নি। আপনার Google Play সাবস্ক্রিপশন এখনও চালু আছে এবং আমরা আপনার হয়ে সেটি বাতিল করতে পারিনি — আর Ope অ্যাকাউন্ট মুছলে Google চার্জ নেওয়া বন্ধ করে না। অনুগ্রহ করে আগে সেটি বাতিল করুন: Play Store খুলুন, আপনার প্রোফাইল ছবিতে ট্যাপ করুন, তারপর "পেমেন্ট ও সাবস্ক্রিপশন", তারপর "সাবস্ক্রিপশন"। তারপর আবার চেষ্টা করুন।',
   },
   ur: {
+    onboardingPickDaysHint: 'آگے بڑھنے کے لیے وہ دن منتخب کریں جب آپ کھلے ہوتے ہیں۔',
     trendsTotalLine: 'کل {total} گاہک · {days} دن درج',
     exportLabel: 'آپ کا ڈیٹا',
     exportDesc: 'جب چاہیں ایک کاپی ڈاؤن لوڈ کریں — ہر پلان میں مفت۔ روزانہ کے اعداد کسی بھی اسپریڈشیٹ میں کھلتے ہیں اور دوبارہ Ope میں درآمد ہو سکتے ہیں۔',
@@ -10982,6 +10993,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'ابھی تک کچھ بھی حذف نہیں ہوا۔ آپ کی Google Play رکنیت ابھی فعال ہے اور ہم اسے آپ کے لیے منسوخ نہیں کر سکے — اور Ope اکاؤنٹ حذف کرنے سے Google کی وصولی بند نہیں ہوتی۔ براہ کرم پہلے اسے منسوخ کریں: Play Store کھولیں، اپنی پروفائل تصویر پر ٹیپ کریں، پھر "ادائیگیاں اور رکنیتیں"، پھر "رکنیتیں"۔ اس کے بعد دوبارہ کوشش کریں۔',
   },
   id: {
+    onboardingPickDaysHint: 'Ketuk hari-hari Anda buka untuk melanjutkan.',
     trendsTotalLine: 'Total {total} pelanggan · {days} hari tercatat',
     exportLabel: 'Data Anda',
     exportDesc: 'Unduh salinan kapan saja — gratis di semua paket. Angka harian terbuka di spreadsheet apa pun dan bisa diimpor kembali ke Ope.',
@@ -12193,6 +12205,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Belum ada yang dihapus. Langganan Google Play Anda masih aktif dan kami tidak dapat membatalkannya untuk Anda — dan menghapus akun Ope tidak menghentikan tagihan Google. Batalkan dulu: buka Play Store, ketuk foto profil Anda, lalu "Pembayaran & langganan", lalu "Langganan". Setelah itu coba lagi.',
   },
   de: {
+    onboardingPickDaysHint: 'Tippen Sie die Tage an, an denen Sie geöffnet haben, um fortzufahren.',
     trendsTotalLine: '{total} Kunden insgesamt · {days} Tage erfasst',
     exportLabel: 'Ihre Daten',
     exportDesc: 'Laden Sie jederzeit eine Kopie herunter — in jedem Tarif kostenlos. Die Tageswerte öffnen sich in jeder Tabellenkalkulation und lassen sich wieder in Ope importieren.',
@@ -13404,6 +13417,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'Es wurde noch nichts gelöscht. Ihr Google-Play-Abo ist noch aktiv und wir konnten es nicht für Sie kündigen – und das Löschen Ihres Ope-Kontos hält Google nicht vom Abbuchen ab. Bitte kündigen Sie es zuerst: Öffnen Sie den Play Store, tippen Sie auf Ihr Profilbild, dann auf „Zahlungen und Abos“ und auf „Abos“. Versuchen Sie es danach erneut.',
   },
   ja: {
+    onboardingPickDaysHint: '続けるには、営業している曜日をタップしてください。',
     trendsTotalLine: '合計 {total} 人 · 記録 {days} 日',
     exportLabel: 'あなたのデータ',
     exportDesc: 'いつでもコピーをダウンロードできます（すべてのプランで無料）。日ごとの数字はどの表計算ソフトでも開け、Ope に読み込み直すこともできます。',
@@ -14615,6 +14629,7 @@ export const translations = {
     deleteAccountPlaySubActive: 'まだ何も削除されていません。Google Play のサブスクリプションは有効なままで、こちらで解約できませんでした。Ope のアカウントを削除しても Google からの請求は止まりません。先に解約してください：Play ストアを開き、プロフィール写真をタップし、「お支払いと定期購入」、「定期購入」の順に進みます。その後、もう一度お試しください。',
   },
   tr: {
+    onboardingPickDaysHint: 'Devam etmek için açık olduğunuz günlere dokunun.',
     trendsTotalLine: 'Toplam {total} müşteri · {days} gün kayıtlı',
     exportLabel: 'Verileriniz',
     exportDesc: 'İstediğiniz zaman bir kopya indirin — her planda ücretsiz. Günlük rakamlar her tablo programında açılır ve Ope\'ye geri aktarılabilir.',

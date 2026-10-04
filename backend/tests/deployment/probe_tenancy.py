@@ -118,6 +118,9 @@ class Tenant:
         self.label = label
         self.email = f"ope-livecheck-{label}-{secrets.token_hex(4)}@example.com"
         self.password = "Lv" + secrets.token_urlsafe(16) + "9!"
+        # Made by this probe, so this probe may delete it. Accounts passed in
+        # with --confirmed-accounts are someone else's and are never deleted.
+        self.throwaway = True
         self.supabase = supabase
         self.key = key
         self.token: str | None = None
@@ -244,6 +247,7 @@ def main() -> int:
             return 2
         for t, (email, password) in zip((a, b), pairs):
             t.email, t.password = email.strip(), password.strip()
+            t.throwaway = False
             status, _ = t.log_in()
             if not r.check(status == 200 and bool(t.token),
                            f"tenant {t.label}: signed in as {t.email}", str(status)):
@@ -438,14 +442,22 @@ def cleanup(r: Report, api: str, *tenants: Tenant) -> None:
                 r.check(bid != t.business_id,
                         f"tenant {t.label}: the business holding data was deleted",
                         f"business {bid} could not be removed ({status})")
-    if left_behind:
+    if left_behind and not all(getattr(t, "throwaway", False) for t in tenants):
         ids = ", ".join(str(i) for i in left_behind)
         r.note(f"Empty placeholder business(es) {ids} remain — the API will not "
                f"delete an account's last location. For the SQL that removes "
                f"them: python -m tests.deployment.find_business_orphans "
                f"--purge-businesses {','.join(str(i) for i in left_behind)}")
-    r.note("The throwaway Supabase users remain (deleting a user needs the "
-           "service-role key). They own no data.")
+    # The account-deletion endpoint removes whatever is left, sign-in included,
+    # so a run no longer leaves debris — and the deletion Play requires is
+    # exercised against production every time this probe runs.
+    for t in tenants:
+        if not getattr(t, "throwaway", False):
+            continue
+        status, body = request(f"{api}/account", "DELETE", headers=t.headers())
+        gone = status == 200 and isinstance(body, dict) and body.get("login_deleted")
+        r.check(bool(gone), f"tenant {t.label}: throwaway account deleted, sign-in included",
+                f"{status} {body}")
 
 
 if __name__ == "__main__":

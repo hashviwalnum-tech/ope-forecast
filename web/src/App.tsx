@@ -637,6 +637,10 @@ function AppInner() {
         subInfo.subscription_status !== 'active' &&
         subInfo.trial_days_remaining !== null &&
         subInfo.trial_days_remaining > 0 &&
+        // Only in the trial's last week. From day one it was the brightest thing
+        // on the home screen, asking for an upgrade before the owner had seen a
+        // single forecast — and on the web it cannot sell anything anyway.
+        subInfo.trial_days_remaining <= 7 &&
         tab !== 'premium' && (
         <div className="bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-700 px-6 py-2.5
                         flex flex-wrap items-center justify-between gap-2">

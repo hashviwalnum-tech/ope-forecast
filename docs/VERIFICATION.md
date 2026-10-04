@@ -5,7 +5,8 @@ row says what was checked, by what, and — where it matters — what would stil
 wrong. Nothing here is aspirational: if something has not been exercised, it says
 so plainly rather than being left to inference.
 
-Last checked against the live deployment on **2026-09-12**.
+Last checked against the live deployment on **2026-10-04** (final pre-launch audit —
+see `docs/audit/FINAL_AUDIT.md`; sections below dated 09-12 are kept for history).
 
 Two words are used strictly:
 
@@ -23,20 +24,20 @@ strangers. **Blocks Play** means Google will not accept the app until it is done
 
 | Gap | Status | Blocks |
 |---|---|---|
-| The backend can take 15+ minutes to wake, and sometimes refuses to | **Flaky** | **A pilot** |
-| Vercel is serving a months-old build that calls the retired backend | **Broken now** | **A pilot** |
-| Email confirmation is still off, and Supabase cannot send mail at all | **Broken now** | **A launch** |
-| Three Render variables still unset — Telegram bot, bot service key, admin key | **Partly fixed** | A launch |
-| No in-app account deletion | **Built**; needs `SUPABASE_SERVICE_ROLE_KEY` on Render to remove the sign-in too | Nothing, once the key is set |
-| No crash reporting on mobile | **Built**; needs `EXPO_PUBLIC_SENTRY_DSN` in the build | Nothing, once the DSN is set |
-| Password reset | Built; the link itself cannot be tested until mail works | **A launch** |
+| Vercel production domains still serve a months-old build calling the retired backend; `/privacy` serves the app | **Broken now** (re-checked 10-04). Builds succeed; production is not promoted — see FINAL_AUDIT §2 | **A pilot, and Play** |
+| Backend cold start | 75 s measured 10-04. Keep-awake ping added (GitHub Actions, business hours) — not yet observed firing | A pilot until observed |
+| Email confirmation off; Supabase cannot send mail | **Broken now** (`mailer_autoconfirm: true`, 10-04) | A launch |
+| Telegram bot | Not in this repository; token unset. Apps now hide/explain it | Nothing |
+| In-app account deletion | **VERIFIED live 10-04** — data and sign-in removed; `probe_tenancy` now exercises it on every run | Nothing |
+| Data export | **Built 10-04** (was promised, never existed) | Nothing |
+| Supabase TLS verification | **Was off; fixed 10-04**, verified live by `probe_tenancy` | Nothing |
+| Release AAB | Builds, API 36, 2 normal permissions (10-04). Local build is debug-signed — upload via EAS | Play (EAS credentials UNVERIFIED) |
 | Real-device mobile behaviour | Unverified | A launch |
 | Real screen-reader behaviour | Unverified | A launch |
-| ~6,500 machine-translated strings, no native review | Unverified | A launch |
-| The guided tour in the other 13 languages | Unverified | A launch |
+| ~6,500 machine-translated strings, plus ≈2,400 translation lines added or rewritten on 10-04, none reviewed by a native speaker | Unverified | A launch |
+| Offline taps on the phone | No queue — a tap without signal is lost after retries | A pilot (or pilot logs end-of-day totals) |
 | Load and concurrency | Unverified | A launch |
-| Billing and payments | Google Play only. Backend built and tested against a fake Google (verify, notifications, grants, deletion). Never run against real Google — needs the Play payments profile, the subscription product and a service account. Phone purchase screen not built | A launch with paid Premium |
-
+| Billing and payments | Backend tested against a fake Google only; phone purchase screen not built | A launch with paid Premium |
 ---
 
 ## Broken right now

@@ -95,5 +95,10 @@ Phase 1 = MVP, **no login / no billing / single local user**. Prove the forecast
   (`JAVA_HOME=~/.jdks/jbr-21.0.11`) — Gradle 8.14 cannot build under the JDK 25
   Android Studio bundles, and fails with "Unsupported class file major version 69"
   only after `gradlew --version` has reported everything as fine.
+  `prebuild --clean` deletes `android/local.properties`, so also set
+  `ANDROID_HOME` (e.g. `~/AppData/Local/Android/Sdk`) or Gradle fails with "SDK
+  location not found". A local release bundle is signed with the **debug** key and
+  Play will refuse it — the bundle to upload comes from
+  `eas build --platform android --profile production`.
 - `mobile/android/` is generated from `app.json` and is not committed. Change the
   config, not the generated project.

@@ -1,0 +1,168 @@
+[
+ {
+  "what": "welcome / name your business",
+  "taps": 0,
+  "ms": 1067,
+  "text": "Welcome to Ope! Let's get started. What's your business called? Get started",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "en",
+   "screen": "setup",
+   "loadMs": 1075,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 0,
+   "smallTargetSamples": [],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 15,
+   "headerPx": 0,
+   "screensTall": 1
+  }
+ },
+ {
+  "what": "wizard 1: hours, days, currency",
+  "taps": 1,
+  "ms": 146,
+  "text": "Ope Corner Cafe Know tomorrow, today. 1 2 3 Step 1 of 3 🕐 When are you open? Select only the days you're actually open — days you don't pick are completely skipped by the forecast and never counted as zero. This also helps Ope focus your busy-hours view and staffing advice on your real trading hours. You can change this any time in Settings. WHICH DAYS ARE YOU OPEN? Mon Tue Wed Thu Fri Sat Sun WHAT ARE YOUR OPENING HOURS? Opens 12:00 midnight 1:00 am 2:00 am 3:00 am 4:00 am 5:00 am 6:00 am 7:00 am 8:00 am 9:00 am 10:00 am 11:00 am 12:00 noon 1:00 pm 2:00 pm 3:00 pm 4:00 pm 5:00 pm 6:00 pm 7:0",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "en",
+   "screen": "wizard-hours",
+   "loadMs": 149,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 7,
+   "smallTargetSamples": [
+    "Mon 58×36",
+    "Tue 50×36",
+    "Wed 57×36",
+    "Thu 52×36",
+    "Fri 43×36"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 1.5
+  }
+ },
+ {
+  "what": "wizard 2: products",
+  "taps": 1,
+  "ms": 147,
+  "text": "Ope Corner Cafe Know tomorrow, today. ✓ 2 3 Step 2 of 3 📦 Add what you sell Once you add a product, Ope tracks demand, tells you when to reorder, and shows per-product forecasts. It only takes a name and a unit (e.g. \"Sourdough loaf, each\"). Go to My Products → ← Back I'll add products later Home Predictions Insights Manage",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "en",
+   "screen": "wizard-products",
+   "loadMs": 151,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 2,
+   "smallTargetSamples": [
+    "← Back 48×22",
+    "I'll add products later 140×22"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 1
+  }
+ },
+ {
+  "what": "wizard 3: how to log",
+  "taps": 1,
+  "ms": 0,
+  "text": "Ope Corner Cafe Know tomorrow, today. ✓ ✓ 3 Step 3 of 3 ✅ You're ready! Tap \"Record a Sale\" each time you serve a customer. One tap per sale, no typing needed — the time is saved automatically. 💡 Forecasts need a couple of weeks of data to become reliable. On day one they're rough estimates — keep logging and they'll get much more accurate. Tip: turn on \"Simple language\" in Settings if any terms feel confusing. ← Back Got it — start using Ope! Home Predictions Insights Manage",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "en",
+   "screen": "wizard-log",
+   "loadMs": 0,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 2,
+   "smallTargetSamples": [
+    "← Back 48×22",
+    "Got it — start using Ope! 219×42"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 1
+  }
+ },
+ {
+  "what": "tour opens",
+  "taps": 0,
+  "ms": 0,
+  "text": "Ope Corner Cafe Know tomorrow, today. Record a Sale Log Today Record a Regular What to order now Loading… Demand forecast Loading… BUSY HOURS Loading hourly data… Customize home Home Predictions Insights Manage English עברית 中文 Español हिन्दी العربية Português Русский Français বাংলা اردو Indonesia Deutsch 日本語 Türkçe Welcome to Ope! Ope helps you know how busy your business will be — so you can order the right stock, schedule the right staff, and never be caught off guard. Let's take a quick look at what's here. Skip tour Next →",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "en",
+   "screen": "tour",
+   "loadMs": 0,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 1,
+   "smallTargetSamples": [
+    "Go to My Products → 177×38"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 2.4
+  }
+ },
+ {
+  "what": "tour finished after 35 taps on Next",
+  "taps": 35,
+  "ms": 0,
+  "text": ""
+ },
+ {
+  "what": "home, day one",
+  "taps": 0,
+  "ms": 0,
+  "text": "Ope Corner Cafe Your free trial ends in 29 days — upgrade to keep premium features. Upgrade Know tomorrow, today. Your first task Add the products you sell so Ope can track demand and tell you when to reorder. Then, after you close tonight, come back and log today's numbers to start building your forecast. Go to My Products → Record a Sale Log Today Record a Regular What to order now No products defined yet. Add products via POST /products. Demand forecast Demand forecast Customers Need at least 2 logged days before Ope can estimate anything (0 so far). Keep logging. BUSY HOURS Not enough tap ",
+  "m": {
+   "account": "fresh",
+   "viewport": "phone",
+   "theme": "light",
+   "lang": "en",
+   "screen": "home-day-one",
+   "loadMs": 0,
+   "contrastFails": 0,
+   "otherAxeFails": 0,
+   "otherAxeRules": [],
+   "smallTargets": 1,
+   "smallTargetSamples": [
+    "Go to My Products → 177×38"
+   ],
+   "overflowX": 0,
+   "tinyText": 0,
+   "smallestFontPx": 14,
+   "headerPx": 62,
+   "screensTall": 2.5
+  }
+ }
+]
