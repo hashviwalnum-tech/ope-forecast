@@ -40,6 +40,15 @@ function hostsFor(pattern: RegExp, text: string): string[] {
 const API_URL = /EXPO_PUBLIC_API_BASE_URL["']?\s*[:=]\s*["']?(https:\/\/[^"'\s,}]+)/
 const WEB_URL = /EXPO_PUBLIC_WEB_APP_URL["']?\s*[:=]\s*["']?(https:\/\/[^"'\s,}]+)/
 
+/**
+ * `.env` is not committed, so a fresh clone or CI has none. When it is there it
+ * must agree with everything else, exactly as before; when it is not, the
+ * committed files are still checked — the test used to crash instead.
+ */
+function readEnv(): string | null {
+  try { return read('.env') } catch { return null }
+}
+
 const apiHosts = (text: string) => hostsFor(API_URL, text)
 const webHosts = (text: string) => hostsFor(WEB_URL, text)
 
@@ -50,12 +59,13 @@ test('.env, eas.json and the client fallback all name one backend', () => {
   assert.ok(fallback, 'client.ts has no https fallback URL to check')
 
   const found = [
-    ...apiHosts(read('.env')),
+    ...apiHosts(readEnv() ?? ''),
     ...apiHosts(read('eas.json')),
     fallback[1].replace(/\/$/, ''),
   ]
 
-  assert.ok(found.length >= 4, `expected .env, both eas profiles and the fallback, got ${found.length}`)
+  const expected = readEnv() === null ? 3 : 4   // both eas profiles + the fallback (+ .env)
+  assert.ok(found.length >= expected, `expected .env (if present), both eas profiles and the fallback, got ${found.length}`)
   assert.equal(new Set(found).size, 1, `these disagree about the backend: ${[...new Set(found)].join(' vs ')}`)
 })
 
@@ -69,12 +79,13 @@ test('.env, eas.json and the urls fallback agree on the web app', () => {
   assert.ok(fallback, 'urls.ts has no https fallback URL to check')
 
   const found = [
-    ...webHosts(read('.env')),
+    ...webHosts(readEnv() ?? ''),
     ...webHosts(read('eas.json')),
     fallback[1].replace(/\/$/, ''),
   ]
 
-  assert.ok(found.length >= 4, `expected .env, both eas profiles and the fallback, got ${found.length}`)
+  const expected = readEnv() === null ? 3 : 4   // both eas profiles + the fallback (+ .env)
+  assert.ok(found.length >= expected, `expected .env (if present), both eas profiles and the fallback, got ${found.length}`)
   assert.equal(new Set(found).size, 1, `these disagree about the web app: ${[...new Set(found)].join(' vs ')}`)
 })
 
