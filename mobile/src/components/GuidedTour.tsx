@@ -41,7 +41,7 @@ interface MobileTourStep {
   // Highlight the bottom-tab bar at this index (0=Log 1=Forecast 2=Analytics 3=Manage)
   tabIndex?:      0 | 1 | 2 | 3
   // Show an inline interactive toggle inside the tour card
-  preferenceType?: 'darkMode' | 'simpleMode'
+  preferenceType?: 'darkMode' | 'simpleMode' | 'comfort'
 }
 
 interface MobileTourSection {
@@ -50,7 +50,7 @@ interface MobileTourSection {
   steps:   MobileTourStep[]
 }
 
-const SECTIONS: MobileTourSection[] = [
+const FULL_SECTIONS: MobileTourSection[] = [
   {
     nameKey: null,
     steps: [
@@ -110,6 +110,24 @@ const SECTIONS: MobileTourSection[] = [
   },
 ]
 
+/**
+ * What a new owner sees first: five steps, not the full ~30. What to do today,
+ * where tomorrow's forecast is, and a way to make the app comfortable. The
+ * rest waits in the full tour, one tap away in Settings.
+ */
+const SHORT_SECTIONS: MobileTourSection[] = [
+  {
+    nameKey: null,
+    steps: [
+      { titleKey: 'tourWelcomeTitle',  bodyKey: 'tourWelcomeBody',   icon: 'hand-right-outline' },
+      { titleKey: 'tourComfortTitle',  bodyKey: 'tourComfortBody',   icon: 'contrast-outline', preferenceType: 'comfort' },
+      { titleKey: 'tourLogTitle',      bodyKey: 'tourLogBody',       icon: 'add-circle-outline', tabIndex: 0 },
+      { titleKey: 'tourForecastTitle', bodyKey: 'tourForecastBody',  icon: 'calendar-outline',   tabIndex: 1 },
+      { titleKey: 'tourDoneTitle',     bodyKey: 'tourShortDoneBody', icon: 'checkmark-circle-outline' },
+    ],
+  },
+]
+
 const TAB_LABELS: IoniconName[] = [
   'add-circle-outline', 'calendar-outline', 'bar-chart-outline', 'grid-outline',
 ]
@@ -118,12 +136,15 @@ const TAB_LABELS: IoniconName[] = [
 
 interface Props {
   bizId:  number
+  /** The full walkthrough, from Settings. A new owner gets the short one. */
+  full?:  boolean
   onDone: () => void
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function GuidedTour({ bizId, onDone }: Props) {
+export default function GuidedTour({ bizId, full = false, onDone }: Props) {
+  const SECTIONS = full ? FULL_SECTIONS : SHORT_SECTIONS
   const c      = useTheme()
   const { isDark, setPreference } = useAppTheme()
   const { t, dir, simpleMode, setSimpleMode } = useLanguage()
@@ -286,7 +307,7 @@ export default function GuidedTour({ bizId, onDone }: Props) {
         </View>
 
         {/* Inline preference toggle (darkMode / simpleMode steps) */}
-        {step.preferenceType === 'darkMode' && (
+        {(step.preferenceType === 'darkMode' || step.preferenceType === 'comfort') && (
           <TouchableOpacity
             style={[
               styles.prefToggle,
@@ -305,7 +326,7 @@ export default function GuidedTour({ bizId, onDone }: Props) {
             </Text>
           </TouchableOpacity>
         )}
-        {step.preferenceType === 'simpleMode' && (
+        {(step.preferenceType === 'simpleMode' || step.preferenceType === 'comfort') && (
           <TouchableOpacity
             style={[
               styles.prefToggle,
@@ -487,6 +508,8 @@ function makeStyles(c: Theme) {
       paddingVertical: 12,
       borderRadius: 14,
       borderWidth: 1.5,
+      minHeight: 48,
+      marginBottom: 10,   // the comfort step stacks two of these
     },
     prefToggleText: { fontSize: 14, fontWeight: '600' },
   })

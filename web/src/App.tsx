@@ -67,6 +67,8 @@ function AppInner() {
   const [waking, setWaking]                   = useState(false)
   const [onboardingDone, setOnboardingDone]   = useState(false)
   const [showTour, setShowTour]               = useState(false)
+  // Settings starts the full walkthrough; a new owner gets the short one.
+  const [fullTour, setFullTour]               = useState(false)
   const [subInfo, setSubInfo]                 = useState<SubscriptionRead | null>(null)
 
   useEffect(() => api.onWakingUp(setWaking), [])
@@ -712,6 +714,7 @@ function AppInner() {
           {tab === 'settings'         && <BusinessSettings
             onReplayTour={() => {
               clearTourDone(activeBusiness.id)
+              setFullTour(true)
               setShowTour(true)
               setTab('home')
             }}
@@ -789,7 +792,8 @@ function AppInner() {
       {showTour && activeBusiness && (
         <GuidedTour
           bizId={activeBusiness.id}
-          onDone={() => setShowTour(false)}
+          full={fullTour}
+          onDone={() => { setShowTour(false); setFullTour(false) }}
           onNavigate={(tab) => setTab(tab as Tab)}
         />
       )}

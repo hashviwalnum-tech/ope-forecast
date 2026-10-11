@@ -467,7 +467,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
             {onReplayTour && (
               <View style={{ marginTop: 8 }}>
                 <Text style={[styles.sectionLabel, { color: c.text }]}>{t('tourReplayLabel')}</Text>
-                <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('tourReplayDesc')}</Text>
+                <Text style={[styles.fieldHint, { color: c.textMuted }]}>{t('tourFullDesc')}</Text>
                 <TouchableOpacity
                   style={[
                     styles.tourBtn,
@@ -476,7 +476,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
                   onPress={onReplayTour}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.tourBtnText, { color: c.primary }]}>{t('tourReplayBtn')}</Text>
+                  <Text style={[styles.tourBtnText, { color: c.primary }]}>{t('tourFullBtn')}</Text>
                 </TouchableOpacity>
               </View>
             )}

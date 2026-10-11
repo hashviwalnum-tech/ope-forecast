@@ -18,7 +18,7 @@ interface TourSection {
   steps:   TourStep[]
 }
 
-const SECTIONS: TourSection[] = [
+const FULL_SECTIONS: TourSection[] = [
   {
     nameKey: null,
     steps: [
@@ -101,6 +101,25 @@ const SECTIONS: TourSection[] = [
   },
 ]
 
+/**
+ * What a new owner sees first: five steps, not the full ~35. A nervous
+ * first-day owner needs what to do today, where tomorrow's forecast is, and a
+ * way to make the app comfortable. Everything else waits in the full tour,
+ * one tap away in Settings.
+ */
+const SHORT_SECTIONS: TourSection[] = [
+  {
+    nameKey: null,
+    steps: [
+      { titleKey: 'tourWelcomeTitle',      bodyKey: 'tourWelcomeBody',      navigateTo: 'home' },
+      { titleKey: 'tourComfortTitle',      bodyKey: 'tourComfortBody',      navigateTo: 'home', target: '[data-tour="dark-mode-toggle"]', interactive: true },
+      { titleKey: 'tourQuickActionsTitle', bodyKey: 'tourQuickActionsBody', navigateTo: 'home', target: '[data-tour="quick-actions"]' },
+      { titleKey: 'tourForecastTitle',     bodyKey: 'tourForecastBody',     navigateTo: 'home', target: '[data-tour="forecast-chart"]' },
+      { titleKey: 'tourDoneTitle',         bodyKey: 'tourShortDoneBody',    navigateTo: 'home', target: '[data-tour="settings-gear"]' },
+    ],
+  },
+]
+
 // ── Persistence ─────────────────────────────────────────────────────────────
 
 const PADDING = 10
@@ -112,6 +131,8 @@ const POP_MARGIN = 10
 
 interface Props {
   bizId:      number
+  /** The full walkthrough, from Settings. A new owner gets the short one. */
+  full?:      boolean
   onDone:     () => void
   onNavigate?: (tab: string) => void
 }
@@ -126,7 +147,8 @@ export function clearTourDone(bizId: number): void {
 
 // ── Component ───────────────────────────────────────────────────────────────
 
-export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
+export default function GuidedTour({ bizId, full = false, onDone, onNavigate }: Props) {
+  const SECTIONS = full ? FULL_SECTIONS : SHORT_SECTIONS
   const { t, lang, setLang, dir } = useLanguage()
 
   const [sectionIdx, setSectionIdx] = useState(0)
@@ -146,10 +168,10 @@ export default function GuidedTour({ bizId, onDone, onNavigate }: Props) {
   const totalSections = SECTIONS.length
 
   const totalSteps = useMemo(() =>
-    SECTIONS.reduce((sum, s) => sum + s.steps.length, 0), [])
+    SECTIONS.reduce((sum, s) => sum + s.steps.length, 0), [SECTIONS])
   const flatIdx = useMemo(() =>
     SECTIONS.slice(0, sectionIdx).reduce((sum, s) => sum + s.steps.length, 0) + stepIdx,
-    [sectionIdx, stepIdx])
+    [SECTIONS, sectionIdx, stepIdx])
 
   // ── Target tracking ───────────────────────────────────────────────────────
 

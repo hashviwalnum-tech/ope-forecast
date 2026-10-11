@@ -617,7 +617,7 @@ export default function BusinessSettings({ onReplayTour }: Props) {
       {onReplayTour && (
         <div className="border-t border-slate-100 dark:border-slate-700 pt-6">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">{t('tourReplayLabel')}</p>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{t('tourReplayDesc')}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{t('tourFullDesc')}</p>
           <button
             type="button"
             onClick={onReplayTour}
@@ -625,7 +625,7 @@ export default function BusinessSettings({ onReplayTour }: Props) {
                        text-teal-700 dark:text-teal-300 text-sm font-medium
                        hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
           >
-            {t('tourReplayBtn')}
+            {t('tourFullBtn')}
           </button>
         </div>
       )}

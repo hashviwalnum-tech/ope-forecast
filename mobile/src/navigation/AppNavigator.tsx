@@ -32,6 +32,8 @@ export default function AppNavigator() {
   const { business, loading, noBusiness, setBusiness, reload } = useBusiness()
   const { t } = useLanguage()
   const [showTour, setShowTour] = useState(false)
+  // Settings starts the full walkthrough; a new owner gets the short one.
+  const [fullTour, setFullTour] = useState(false)
 
   // Check tour status whenever we first have a business
   useEffect(() => {
@@ -96,6 +98,7 @@ export default function AppNavigator() {
           onReplayTour={() => {
             closeSettings()
             if (business) {
+              setFullTour(true)
               clearTourDone(business.id).then(() => setShowTour(true)).catch(() => setShowTour(true))
             }
           }}
@@ -104,7 +107,11 @@ export default function AppNavigator() {
 
       {/* Guided product tour */}
       {showTour && business !== null && (
-        <GuidedTour bizId={business.id} onDone={() => setShowTour(false)} />
+        <GuidedTour
+          bizId={business.id}
+          full={fullTour}
+          onDone={() => { setShowTour(false); setFullTour(false) }}
+        />
       )}
     </NavigationContainer>
   )
