@@ -49,6 +49,7 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   events_limit: 'errEventsLimit',
   locations_limit: 'errLocationsLimit',
   invalid_input: 'errInvalidInput',
+  business_not_found: 'errBusinessNotFound',
 }
 
 /** The owner's-language version of a coded server refusal, or null if unknown. */

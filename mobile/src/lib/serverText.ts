@@ -50,6 +50,7 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   events_limit: 'errEventsLimit',
   locations_limit: 'errLocationsLimit',
   invalid_input: 'errInvalidInput',
+  business_not_found: 'errBusinessNotFound',
   tap_too_old: 'errTapTooOld',
 }
 

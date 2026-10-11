@@ -376,14 +376,17 @@ def run_checks(r: Report, api: str, a: Tenant, b: Tenant) -> int:
     status, body = request(f"{api}/day-records", headers=b.headers(a.business_id))
     rows = body if isinstance(body, list) else []
     foreign = [row for row in rows if row.get("business_id") == a.business_id]
-    r.check(status == 200 and not foreign,
-            "tenant b cannot read A's day records via the business-id header",
+    # Refused outright since 2026-10-11: naming a business that is not yours
+    # used to quietly hand back your own instead (still no leak, but it also
+    # sent writes to the wrong business). Now it is a 404.
+    r.check(status == 404 and not foreign,
+            "tenant b naming A's business id is refused, and sees none of A's day records",
             f"{len(rows)} row(s) returned, {len(foreign)} of them A's")
 
     status, body = request(f"{api}/products", headers=b.headers(a.business_id))
     rows = body if isinstance(body, list) else []
-    r.check(status == 200 and not rows,
-            "tenant b cannot read A's products via the business-id header",
+    r.check(status == 404 and not rows,
+            "tenant b naming A's business id is refused, and sees none of A's products",
             f"{len(rows)} row(s) returned")
 
     # -- B tries to destroy A's business ------------------------------------

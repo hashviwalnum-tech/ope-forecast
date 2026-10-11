@@ -36,7 +36,7 @@ test('every limit code has a sentence, with no placeholder left unfilled', () =>
     ['ads_limit', { limit: 5 }],
     ['events_limit', { limit: 10 }],
     ['locations_limit', { limit: 1 }],
-    ['invalid_input', {}],
+    ['invalid_input', {}], ['business_not_found', {}],
   ]
   for (const lang of ['en', 'he', 'ar', 'de', 'ja'] as Lang[]) {
     for (const [code, params] of cases) {

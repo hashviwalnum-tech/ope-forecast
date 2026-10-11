@@ -7,6 +7,7 @@ from jwt import PyJWKClient
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from app.api.errors import CodedHTTPException
 from app.db import get_db
 from app.tls import supabase_ssl_context
 from app.engine.limits import FREE, Tier
@@ -129,12 +130,24 @@ def get_business(
     query = db.query(Business).filter(Business.user_id == user_id)
     biz_id_header = request.headers.get("X-Business-Id")
     if biz_id_header is not None:
+        # A named business that is not this account's is refused, never
+        # swapped for another one. It used to fall back silently to the
+        # account's first business — so a tap queued on the phone for a
+        # business deleted since, or a stale tab, wrote into a different
+        # business than the one the owner was looking at.
         try:
-            biz = query.filter(Business.id == int(biz_id_header)).first()
-            if biz:
-                return biz
+            wanted = int(biz_id_header)
         except ValueError:
-            pass
+            raise HTTPException(status_code=400, detail="X-Business-Id must be a number")
+        biz = query.filter(Business.id == wanted).first()
+        if biz is None:
+            raise CodedHTTPException(
+                404,
+                "That business is not on your account any more. Close and reopen "
+                "Ope to load your businesses.",
+                "business_not_found",
+            )
+        return biz
     biz = query.order_by(Business.id).first()
     if not biz:
         raise HTTPException(status_code=404, detail="No business yet. Create one to get started.")

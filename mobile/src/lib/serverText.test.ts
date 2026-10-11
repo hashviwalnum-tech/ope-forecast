@@ -23,7 +23,7 @@ test('every limit code has a sentence in every language, placeholders filled', (
     ['still_open', { closing_hour: 17 }],
     ['closed_day', { date: '2026-10-04' }],
     ['ads_limit', { limit: 5 }], ['events_limit', { limit: 10 }],
-    ['locations_limit', { limit: 1 }], ['invalid_input', {}],
+    ['locations_limit', { limit: 1 }], ['invalid_input', {}], ['business_not_found', {}],
     ['tap_too_old', { date: '2026-09-01' }],
   ]
   const langs: Lang[] = ['en', 'he', 'zh', 'es', 'hi', 'ar', 'pt', 'ru', 'fr', 'bn', 'ur', 'id', 'de', 'ja', 'tr']
