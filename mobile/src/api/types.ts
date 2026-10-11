@@ -51,13 +51,21 @@ export interface ForecastDay {
   booked_count: number | null
 }
 
+/** Something Ope will show once enough of the right data is logged. */
+export interface LearningMilestone {
+  key: 'rough_range' | 'product_demand' | 'busy_hours' | 'full_forecast' | string
+  needed: number
+  have: number
+}
+
 export interface ForecastResponse {
   // 'ok' | 'learning' (early, deliberately wide range) | 'not_enough_data'
   status: string
   message?: string
   days: ForecastDay[]
-  days_logged?: number   // only while status === 'learning'
+  days_logged?: number   // while the forecast is not ready yet
   days_needed?: number
+  milestones?: LearningMilestone[]   // ditto: what the owner gets, and when
 }
 
 export interface AccuracyResponse {

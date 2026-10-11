@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as api from '../api/client'
 import type {
   ForecastDay,
+  LearningMilestone,
   OrderingResponse,
   OrderingRow,
   WeekdayHourlyResponse,
@@ -113,6 +114,14 @@ function tomorrowWeekdayIdx(businessToday: string): number {
   return weekdayMon0(shiftIso(businessToday, 1))
 }
 
+/** Each milestone the server sends, in the owner's words. */
+const MILESTONE_LABELS: Record<string, TranslationKey> = {
+  rough_range: 'msRoughRange',
+  product_demand: 'msProductDemand',
+  busy_hours: 'msBusyHours',
+  full_forecast: 'msFullForecast',
+}
+
 export default function ForecastScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
@@ -122,7 +131,10 @@ export default function ForecastScreen() {
   const styles = useMemo(() => makeStyles(c), [c])
 
   const [forecast, setForecast] = useState<ForecastDay[]>([])
-  const [learning, setLearning] = useState<{ logged: number; needed: number } | null>(null)
+  // The first fortnight: what Ope will show, and how close each piece is.
+  const [learning, setLearning] = useState<
+    { logged: number; needed: number; milestones: LearningMilestone[] } | null
+  >(null)
   const [ordering, setOrdering] = useState<OrderingResponse | null>(null)
   const [hourly, setHourly] = useState<WeekdayHourlyResponse | null>(null)
   const [productForecasts, setProductForecasts] = useState<ProductForecastItem[]>([])
@@ -153,8 +165,8 @@ export default function ForecastScreen() {
         // 'learning' is the honest first-fortnight forecast: real days, wide bands.
         const usable = fr.status === 'ok' || fr.status === 'learning'
         setForecast(usable ? fr.days : [])
-        setLearning(fr.status === 'learning'
-          ? { logged: fr.days_logged ?? 0, needed: fr.days_needed ?? 14 }
+        setLearning(fr.milestones && fr.milestones.length > 0
+          ? { logged: fr.days_logged ?? 0, needed: fr.days_needed ?? 14, milestones: fr.milestones }
           : null)
       }
       if (orderingRes.status === 'fulfilled') {
@@ -332,15 +344,44 @@ export default function ForecastScreen() {
         {/* Still-learning notice — the first fortnight shows ranges, not confident numbers */}
         {viewMode === 'customers' && learning !== null && (
           <View style={[styles.learningBox, { backgroundColor: c.card, borderColor: c.border }]}>
-            <Text style={[styles.learningTitle, { color: c.text }]}>{t('learningTitle')}</Text>
+            <Text style={[styles.learningTitle, { color: c.text }]}>{t('milestonesTitle')}</Text>
             <Text style={[styles.learningNote, { color: c.textSub }]}>
-              {t('learningNote', { n: learning.logged, needed: learning.needed })}
+              {t('milestonesDays', { n: learning.logged, needed: learning.needed })}
+            </Text>
+            <View
+              style={[styles.progressTrack, { backgroundColor: c.border }]}
+              accessibilityRole="progressbar"
+              accessibilityValue={{ min: 0, max: learning.needed, now: learning.logged }}
+            >
+              <View style={[styles.progressFill, {
+                backgroundColor: c.primary,
+                width: `${Math.min(100, Math.round((learning.logged / Math.max(1, learning.needed)) * 100))}%`,
+              }]} />
+            </View>
+            {learning.milestones.filter(m => MILESTONE_LABELS[m.key]).map(m => {
+              const ready = m.have >= m.needed
+              return (
+                <View key={m.key} style={styles.milestoneRow}>
+                  <Ionicons
+                    name={ready ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={20}
+                    color={ready ? c.primary : c.textMuted}
+                  />
+                  <Text style={[styles.milestoneText, { color: c.text }]}>{t(MILESTONE_LABELS[m.key])}</Text>
+                  <Text style={[styles.milestoneCount, { color: ready ? c.primaryDark : c.textSub }]}>
+                    {ready ? t('msReady') : t('msProgress', { have: m.have, needed: m.needed })}
+                  </Text>
+                </View>
+              )
+            })}
+            <Text style={[styles.learningNote, { color: c.textSub, marginTop: 8 }]}>
+              {t('milestonesImportHint')}
             </Text>
           </View>
         )}
 
         {/* Customers view */}
-        {viewMode === 'customers' && (
+        {viewMode === 'customers' && !(forecast.length === 0 && learning !== null) && (
           forecast.length === 0 ? (
             <View style={[styles.emptyBox, { backgroundColor: c.card, borderColor: c.border }]}>
               <Ionicons name="calendar-outline" size={28} color={c.textMuted} />
@@ -827,6 +868,11 @@ function makeStyles(c: Theme) {
     },
     learningTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
     learningNote: { fontSize: 13, lineHeight: 18 },
+    progressTrack: { height: 6, borderRadius: 3, overflow: 'hidden', marginTop: 8, marginBottom: 6 },
+    progressFill: { height: 6, borderRadius: 3 },
+    milestoneRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 36 },
+    milestoneText: { flex: 1, fontSize: 14, lineHeight: 19 },
+    milestoneCount: { fontSize: 12, fontWeight: '600' },
     // Week forecast rows
     forecastRow: {
       backgroundColor: c.card, borderRadius: 14, padding: 14, marginBottom: 8,

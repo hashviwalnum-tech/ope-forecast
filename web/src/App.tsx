@@ -693,7 +693,7 @@ function AppInner() {
               }}
             />
           ) : (
-            <HomeScreen refreshKey={refreshKey} onSaved={refresh} onGoToProducts={() => setTab('products')} />
+            <HomeScreen refreshKey={refreshKey} onSaved={refresh} onGoToProducts={() => setTab('products')} onGoToImport={() => setTab('import')} />
           ))}
           {tab === 'predictions_home' && <PredictionsScreen refreshKey={refreshKey} />}
           {tab === 'insights'         && <InsightsView />}

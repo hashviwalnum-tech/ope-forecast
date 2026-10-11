@@ -33,6 +33,18 @@ class ForecastDay(BaseModel):
     booked_count: Optional[int] = None  # owner-recorded booked appointments, when appointment_based is on
 
 
+class LearningMilestone(BaseModel):
+    """Something Ope will show once enough of the right data is logged.
+
+    `key` names it for the client's own sentence: 'rough_range',
+    'product_demand', 'busy_hours', 'full_forecast'. `have` is counted exactly
+    the way that feature counts it, so a tick here means it really appears.
+    """
+    key: str
+    needed: int
+    have: int
+
+
 class ForecastResponse(BaseModel):
     # 'ok' | 'learning' (early, wide range shown) | 'not_enough_data'
     status: str
@@ -43,6 +55,8 @@ class ForecastResponse(BaseModel):
     # ("day 6 of 14") instead of a bare "still learning" label.
     days_logged: Optional[int] = None
     days_needed: Optional[int] = None
+    # While the forecast is not ready yet: what the owner gets, and when.
+    milestones: list[LearningMilestone] = []
 
 
 class AccuracyResponse(BaseModel):

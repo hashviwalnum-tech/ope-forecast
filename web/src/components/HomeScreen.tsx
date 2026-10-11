@@ -159,9 +159,10 @@ interface Props {
   refreshKey: number
   onSaved: () => void
   onGoToProducts?: () => void
+  onGoToImport?: () => void
 }
 
-export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Props) {
+export default function HomeScreen({ refreshKey, onSaved, onGoToProducts, onGoToImport }: Props) {
   const { t, lang, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
   const { today: localToday, hour: bizHour } = useBusinessTime()
   const [showSell, setShowSell]       = useState(false)
@@ -294,7 +295,7 @@ export default function HomeScreen({ refreshKey, onSaved, onGoToProducts }: Prop
       case 'forecast':
         return (
           <div key="forecast" data-tour="forecast-chart">
-            <MergedForecastPanel refreshKey={refreshKey} />
+            <MergedForecastPanel refreshKey={refreshKey} onGoToImport={onGoToImport} />
           </div>
         )
       case 'hours':

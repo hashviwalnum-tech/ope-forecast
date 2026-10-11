@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, useId } from 'react'
+import LearningMilestones from './LearningMilestones'
 import {
   Bar,
   BarChart,
@@ -296,9 +297,9 @@ function Chip({
 
 // ── main component ────────────────────────────────────────────────────────────
 
-interface Props { refreshKey?: number }
+interface Props { refreshKey?: number; onGoToImport?: () => void }
 
-export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
+export default function MergedForecastPanel({ refreshKey = 0, onGoToImport }: Props) {
   const { t, lang } = useLanguage()
   const { isDark } = useTheme()
   const [forecast, setForecast]   = useState<ForecastResponse | null>(null)
@@ -386,6 +387,7 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
     : (activeProduct?.name ?? t('demandForecast'))
 
   const noData = chartData.length === 0
+  const showMilestones = selected === 'customers' && (forecast?.milestones?.length ?? 0) > 0
   const noDataMsg = selected === 'customers'
     ? (serverSentence(forecast?.message, lang) ?? t('keepLoggingForecast'))
     : (serverSentence(activeProduct?.message, lang) ?? t('logMoreProductSales', { name: activeProduct?.name ?? '' }))
@@ -457,21 +459,18 @@ export default function MergedForecastPanel({ refreshKey = 0 }: Props) {
         })}
       </div>
 
-      {/* Still-learning notice — the first fortnight shows ranges, not confident numbers */}
-      {selected === 'customers' && learning && (
-        <div className="mb-4 rounded-xl bg-amber-50/60 dark:bg-amber-900/15 border border-amber-100 dark:border-amber-900/40 px-4 py-3">
-          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t('learningTitle')}</p>
-          <p className="mt-0.5 text-xs leading-relaxed text-amber-700/90 dark:text-amber-200/80">
-            {t('learningNote', {
-              n: String(forecast?.days_logged ?? 0),
-              needed: String(forecast?.days_needed ?? 14),
-            })}
-          </p>
-        </div>
+      {/* The first fortnight: what Ope will show, and how close each piece is */}
+      {showMilestones && (
+        <LearningMilestones
+          milestones={forecast?.milestones ?? []}
+          daysLogged={forecast?.days_logged ?? 0}
+          daysNeeded={forecast?.days_needed ?? 14}
+          onGoToImport={onGoToImport}
+        />
       )}
 
       {/* Chart */}
-      {noData ? (
+      {noData && showMilestones ? null : noData ? (
         <div className="flex flex-col items-center justify-center py-10">
           <p className="text-sm text-center max-w-xs leading-relaxed text-slate-600 dark:text-slate-400">{noDataMsg}</p>
         </div>

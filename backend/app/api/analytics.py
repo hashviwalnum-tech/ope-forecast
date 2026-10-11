@@ -83,6 +83,7 @@ from app.models.service_consumable import ServiceConsumable
 from app.models.order_record import OrderRecord
 from app.models.stock_batch import StockBatch
 from app.schemas.analytics import (
+    LearningMilestone,
     AccuracyResponse,
     ForecastDay,
     ForecastHistoryPoint,
@@ -927,6 +928,45 @@ def get_outliers(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
 # ── /forecast ─────────────────────────────────────────────────────────────
 
+def _learning_milestones(db: Session, biz: Business, records: list[DayRecord]) -> list[LearningMilestone]:
+    """What a new owner gets, and when — each counted the way its feature counts.
+
+    The first fortnight used to say only "day 6 of 14", which tells an owner
+    how long to wait but not what for, nor that some of it comes sooner. Busy
+    hours count days with taps (owners who only type end-of-day totals never
+    get them, and should be able to see why); product demand counts the best
+    product's days of recorded sales; the rest count logged days.
+    """
+    tz_name: str = (biz.settings or {}).get("timezone", "UTC")
+    tap_days: set[date] = set()
+    prod_tap_days: dict[int, set[date]] = {}
+    for ts, pid in db.query(SaleEvent.timestamp, SaleEvent.product_id).filter_by(business_id=biz.id).all():
+        d = utc_to_local_dt(ts, tz_name).date()
+        tap_days.add(d)
+        if pid is not None:
+            prod_tap_days.setdefault(pid, set()).add(d)
+
+    # Product demand is built over the clean days only, from typed sales or taps.
+    clean = {r.id: r.date for r in records}
+    prod_days: dict[int, set[date]] = {pid: ds & set(clean.values()) for pid, ds in prod_tap_days.items()}
+    if clean:
+        for pid, rid in (
+            db.query(SaleRecord.product_id, SaleRecord.day_record_id)
+            .filter(SaleRecord.day_record_id.in_(clean.keys()), SaleRecord.units_sold > 0)
+            .all()
+        ):
+            prod_days.setdefault(pid, set()).add(clean[rid])
+    best_product = max((len(v) for v in prod_days.values()), default=0)
+
+    n = len(records)
+    return [
+        LearningMilestone(key="rough_range", needed=MIN_EARLY_OBSERVATIONS, have=n),
+        LearningMilestone(key="product_demand", needed=MIN_PRODUCT_RECORDS, have=best_product),
+        LearningMilestone(key="busy_hours", needed=MIN_HOURLY_DAYS, have=len(tap_days)),
+        LearningMilestone(key="full_forecast", needed=MIN_RECORDS, have=n),
+    ]
+
+
 def _learning_forecast(db: Session, biz: Business, records: list[DayRecord]) -> ForecastResponse:
     """The first-fortnight forecast: honest, wide, and clearly still learning.
 
@@ -968,6 +1008,9 @@ def _learning_forecast(db: Session, biz: Business, records: list[DayRecord]) -> 
             message=f"Need at least {MIN_EARLY_OBSERVATIONS} logged days before "
                     f"Ope can estimate anything ({len(records)} so far). Keep logging.",
             days=[],
+            days_logged=len(records),
+            days_needed=MIN_RECORDS,
+            milestones=_learning_milestones(db, biz, records),
         )
 
     return ForecastResponse(
@@ -978,6 +1021,7 @@ def _learning_forecast(db: Session, biz: Business, records: list[DayRecord]) -> 
         days=days,
         days_logged=len(records),
         days_needed=MIN_RECORDS,
+        milestones=_learning_milestones(db, biz, records),
     )
 
 
