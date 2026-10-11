@@ -48,6 +48,8 @@ export default function LogScreen() {
   // The business's today, not the device's — see BusinessTimeContext.
   const { today: businessToday, timeZone } = useBusinessTime()
   const queue = useTapQueue()
+  // Staff (team access) tap sales and undo their last one — nothing else here.
+  const isStaff = business?.role === 'staff'
   const { symbol, amount } = useCurrency()
   const navigation = useNavigation()
   const { width: screenWidth } = useWindowDimensions()
@@ -83,11 +85,14 @@ export default function LogScreen() {
     if (!business) return
     const started = Date.now()
     try {
+      const skip = Promise.reject(new Error('owner only'))
+      skip.catch(() => {})
       const [prods, tod, regs, outlierRes] = await Promise.allSettled([
         api.products.list(),
         api.saleEvents.today(),
-        api.regulars.list(),
-        api.outliers.list(),
+        // Owner only — the server would refuse a staff phone anyway.
+        isStaff ? skip : api.regulars.list(),
+        isStaff ? skip : api.outliers.list(),
       ])
       if (prods.status === 'fulfilled') setProducts(prods.value)
       if (tod.status === 'fulfilled' && started >= lastSentAt.current) setSummary(tod.value)
@@ -105,7 +110,7 @@ export default function LogScreen() {
     } finally {
       setInitialLoading(false)
     }
-  }, [business])
+  }, [business, isStaff])
 
   useFocusEffect(
     useCallback(() => {
@@ -340,7 +345,7 @@ export default function LogScreen() {
         )}
 
         {/* ── Outlier / fluke prompt ── */}
-        {outlierFlags.length > 0 && (
+        {!isStaff && outlierFlags.length > 0 && (
           <View style={styles.outlierSection}>
             <TouchableOpacity
               style={styles.outlierToggle}
@@ -462,6 +467,7 @@ export default function LogScreen() {
             <Text style={[styles.noProductsText, { color: c.textSub }]}>
               {t('noProductsYet')}
             </Text>
+            {!isStaff && (
             <TouchableOpacity
               style={[styles.goToProductsBtn, { backgroundColor: c.primary }]}
               onPress={() => navigation.navigate('Manage' as never)}
@@ -471,18 +477,22 @@ export default function LogScreen() {
                 {t('goToProducts')}
               </Text>
             </TouchableOpacity>
+            )}
           </View>
         )}
 
         {/* ── End-of-day totals ── the other way to log, for owners who count at
             closing rather than tapping. It used to live only under Manage → Past
             days, a history screen, five taps from here. */}
+        {!isStaff && (
         <TouchableOpacity style={[styles.undoRow, { minHeight: 44 }]} onPress={() => setLoggingTotals(true)} accessibilityRole="button">
           <Ionicons name="create-outline" size={16} color={c.primary} />
           <Text style={[styles.undoText, { color: c.primary }]}>{t('logToday')}</Text>
         </TouchableOpacity>
+        )}
 
         {/* ── Record a Regular ── */}
+        {!isStaff && (
         <TouchableOpacity
           style={[styles.regularsToggle, { backgroundColor: c.primaryBg, borderColor: c.primary }]}
           onPress={() => setRegularsExpanded(e => !e)}
@@ -503,7 +513,9 @@ export default function LogScreen() {
           />
         </TouchableOpacity>
 
-        {regularsExpanded && (
+        )}
+
+        {!isStaff && regularsExpanded && (
           <View style={[styles.regularsPanel, { backgroundColor: c.card, borderColor: c.border }]}>
             {/* Inline visit form */}
             {visitRegId !== null && visitingReg != null ? (

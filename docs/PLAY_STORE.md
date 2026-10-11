@@ -315,7 +315,7 @@ clients actually send.
 
 | Play category | Type | Collected | Shared | Optional? | Purpose |
 |---|---|---|---|---|---|
-| Personal info | **Email address** | Yes | No | Required | Account management, authentication |
+| Personal info | **Email address** | Yes | No | Required | Account management, authentication. Also: a staff member's sign-in email is shown to the owner of a team they join (team access, 2026-10-11) — within the app, not a third party, so not "shared" |
 | Personal info | **Name** | Yes | No | **Optional** | App functionality — only if the owner uses Regulars, and it is their *customers'* names they type |
 | Personal info | Other info | Yes | No | Optional | App functionality — free-text notes on days and on regulars |
 | App activity | **Other user-generated content** | Yes | No | Optional | Developer communications — the in-app feedback form: the name, business name and message typed, plus the sign-in email so a reply can reach the owner. Sent by email to the developer, not stored in the database |

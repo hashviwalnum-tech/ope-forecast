@@ -19,6 +19,9 @@ import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
 import type { BusinessRead } from '../../api/types'
 import CurrencyPicker from '../../components/CurrencyPicker'
+import TeamSection from '../../components/TeamSection'
+import { useBusiness } from '../../contexts/BusinessContext'
+import { sayHour } from '../../lib/serverText'
 import { useTheme, useAppTheme } from '../../contexts/ThemeContext'
 import { WEB_APP_URL } from '../../lib/urls'
 import { supabase } from '../../lib/supabase'
@@ -46,6 +49,10 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
   const styles = useMemo(() => makeStyles(c), [c])
 
   const s = business.settings
+  // Staff see only what is theirs: language, look, their team, their account.
+  // The server refuses them everything else anyway; this keeps it off screen.
+  const isStaff = business.role === 'staff'
+  const { reload } = useBusiness()
 
   // Deleting the account is two deliberate taps rather than a typed magic
   // word: plenty of owners are nervous with a keyboard, and a second button
@@ -210,16 +217,18 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
             <Text style={[styles.backLabel, { color: c.onPrimary }]}>{t('manage')}</Text>
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: c.onPrimary }]}>{t('settings')}</Text>
-          <TouchableOpacity
-            onPress={() => void save()}
-            style={styles.saveBtn}
-            disabled={saving}
-            hitSlop={8}
-          >
-            {saving
-              ? <ActivityIndicator size="small" color={c.onPrimary} />
-              : <Text style={[styles.saveBtnText, { color: c.onPrimary }]}>{t('save')}</Text>}
-          </TouchableOpacity>
+          {isStaff ? <View style={styles.saveBtn} /> : (
+            <TouchableOpacity
+              onPress={() => void save()}
+              style={styles.saveBtn}
+              disabled={saving}
+              hitSlop={8}
+            >
+              {saving
+                ? <ActivityIndicator size="small" color={c.onPrimary} />
+                : <Text style={[styles.saveBtnText, { color: c.onPrimary }]}>{t('save')}</Text>}
+            </TouchableOpacity>
+          )}
         </View>
 
         <KeyboardAvoidingView
@@ -309,6 +318,10 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
               ))}
             </View>
 
+            <TeamSection business={business} onLeft={() => { onClose(); void reload() }} />
+
+            {!isStaff && (
+            <>
             {/* ── Opening days ── */}
             <Text style={[styles.sectionLabel, { color: c.text }]}>{t('openingDays')}</Text>
             <View style={styles.daysRow}>
@@ -341,6 +354,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
             <Text style={[styles.sectionLabel, { color: c.text }]}>{t('openingHours')}</Text>
             <View style={[styles.hoursRow, { backgroundColor: c.card, borderColor: c.border }]}>
               <HourStepper
+                lang={lang}
                 label={t('opens')}
                 value={openHour}
                 onDecrement={() => stepHour(setOpenHour, -1, 0, 23)}
@@ -349,6 +363,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
               />
               <Text style={[styles.hoursDash, { color: c.textMuted }]}>–</Text>
               <HourStepper
+                lang={lang}
                 label={t('closes')}
                 value={closeHour}
                 onDecrement={() => stepHour(setCloseHour, -1, 0, 23)}
@@ -498,6 +513,9 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
               {exportError && <Text style={[styles.fieldHint, { color: c.danger }]}>{exportError}</Text>}
             </View>
 
+            </>
+            )}
+
             {/* ── Delete account ──
                 Play requires deletion from inside the app. Last thing on the
                 page, closed by default: findable when wanted, never in the way. */}
@@ -514,7 +532,7 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
               ) : (
                 <View style={[styles.deleteBox, { borderColor: c.danger, backgroundColor: c.dangerBg }]}>
                   <Text style={[styles.deleteBoxText, { color: c.text }]}>
-                    {t('deleteAccountDesc')}
+                    {isStaff ? t('deleteAccountDescStaff', { name: business.name }) : t('deleteAccountDesc')}
                   </Text>
                   {deleteError && (
                     <Text
@@ -566,20 +584,17 @@ export default function SettingsModal({ business, onClose, onSaved, onReplayTour
 }
 
 function HourStepper({
-  label, value, onDecrement, onIncrement, c,
+  label, value, onDecrement, onIncrement, c, lang,
 }: {
   label: string
   value: number
   onDecrement: () => void
   onIncrement: () => void
   c: Theme
+  lang: Lang
 }) {
-  const fmt = (h: number) => {
-    if (h === 0) return '12am'
-    if (h < 12) return `${h}am`
-    if (h === 12) return '12pm'
-    return `${h - 12}pm`
-  }
+  // The owner's language writes hours its own way: "9 AM", "09:00", "上午9:00".
+  const fmt = (h: number) => sayHour(h, lang)
   return (
     <View style={{ alignItems: 'center', flex: 1 }}>
       <Text style={{ fontSize: 11, color: c.textMuted, marginBottom: 6 }}>{label}</Text>

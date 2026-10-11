@@ -167,3 +167,46 @@ run is real. Keep it as a backup, not the fix.
 2. **Render Starter** (about $7 a month): never sleeps; no pinger needed.
 
 Either needs the owner's own account; nothing in the repository can do it.
+
+## Team access (slice 1, 2026-10-11)
+
+Staff log sales on their own phones for a business they do not own.
+
+- **Owner:** phone → Settings (gear) → Team → *Make a join code*. The code
+  (e.g. `KX7P-M3QD`) works for 24 hours, for any number of people; making a
+  new one cancels the old. Remove someone from the same screen — it takes
+  effect on their next tap.
+- **Staff:** install Ope, create a sign-in with their own email, and on the
+  first setup screen tap *Join its team with a code*. They see only the Log
+  screen: tap sales, undo a tap from the last hour. No money, no settings, no
+  forecasts. Settings shows only language, appearance, *Leave this team* and
+  account deletion (which removes only their sign-in).
+- **It needs Premium on the OWNER's account.** If the owner's Premium ends,
+  staff are refused with a plain message and the business drops off their list.
+- **How it is enforced:** every server route is owner-only unless it asks for
+  `get_business_staff_ok` by name (`app/api/deps.py`). Four routes do: record a
+  tap, today's count, undo a tap, the product list (prices removed).
+  `tests/test_team_access.py` reads every route the server has and fails if any
+  other route lets staff in. Opening a new one to staff means changing that
+  test on purpose.
+- Not recorded yet: **who** made each tap (would need a new column on the live
+  `sale_events` table — deliberately left out of slice 1).
+
+## Granting Premium by hand (pilot businesses)
+
+Team access, and nothing changing when the 30-day trial ends, both need the
+pilot owner on Premium. There is no purchase screen yet, so grant it:
+
+1. Supabase dashboard → Authentication → Users → find the owner's email →
+   copy their **User UID**.
+2. Run (with the `ADMIN_KEY` set on Render):
+
+   ```bash
+   curl -X POST https://ope-forecast-dj78.onrender.com/admin/grants \
+     -H "X-Admin-Key: <ADMIN_KEY>" -H "Content-Type: application/json" \
+     -d '{"user_id": "<User UID>", "ends_at": null}'
+   ```
+
+   `ends_at: null` means no end date; or give a date like
+   `"2027-01-31T00:00:00Z"`. Undo with
+   `curl -X DELETE .../admin/grants/<User UID> -H "X-Admin-Key: <ADMIN_KEY>"`.

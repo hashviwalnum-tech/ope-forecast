@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from app import clock
 from app.api.deps import get_business, get_tier
+from app.api.deps import get_business_staff_ok
 from app.db import get_db
 from app.engine.limits import Tier
 from app.main import app
@@ -23,6 +24,7 @@ def client(db, biz):
         yield db
     app.dependency_overrides[get_db] = _db
     app.dependency_overrides[get_business] = lambda: biz
+    app.dependency_overrides[get_business_staff_ok] = lambda: biz
     app.dependency_overrides[get_tier] = lambda: Tier('free')
     with TestClient(app) as c:
         yield c

@@ -7,17 +7,17 @@ DELETE /sale-events/{id}   — undo a specific tap
 """
 from __future__ import annotations
 
-from datetime import date as date_type, datetime, timezone
+from datetime import date as date_type, datetime, timedelta, timezone
 from typing import Optional
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app import clock
 from app.api.day_records import _apply_reconciliation
-from app.api.deps import get_business
-from app.api.errors import rule_http
+from app.api.deps import get_business, get_business_staff_ok, is_staff
+from app.api.errors import CodedHTTPException, rule_http
 from app.db import get_db
 from app.engine.limits import RuleError
 from app.engine.live_sales import local_day_utc_bounds, rollup_by_hour, utc_to_local_date, utc_to_local_hour
@@ -38,6 +38,10 @@ from app.schemas.sale_event import (
 
 router = APIRouter(prefix="/sale-events", tags=["Sale Events"])
 
+# How far back a staff member can undo a tap. Long enough for a tap queued
+# offline to reach the server and still be undone; short of editing the day.
+STAFF_UNDO_WINDOW = timedelta(hours=1)
+
 
 def _get_or_404(db: Session, event_id: int, biz_id: int) -> SaleEvent:
     row = db.get(SaleEvent, event_id)
@@ -47,7 +51,8 @@ def _get_or_404(db: Session, event_id: int, biz_id: int) -> SaleEvent:
 
 
 @router.post("", response_model=SaleEventRead, status_code=201)
-def create_sale_event(body: SaleEventCreate, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+def create_sale_event(body: SaleEventCreate, db: Session = Depends(get_db),
+                      biz: Business = Depends(get_business_staff_ok)):
     if body.product_id is not None:
         p = db.get(Product, body.product_id)
         if not p or p.business_id != biz.id:
@@ -250,7 +255,7 @@ def backfill_preview(
 
 
 @router.get("/today", response_model=TodaySummaryResponse)
-def get_today_summary(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+def get_today_summary(db: Session = Depends(get_db), biz: Business = Depends(get_business_staff_ok)):
     settings = biz.settings or {}
     tz_name: str = settings.get("timezone", "UTC")
     today = clock.today_local(settings)
@@ -335,7 +340,15 @@ def get_today_summary(db: Session = Depends(get_db), biz: Business = Depends(get
 
 
 @router.delete("/{event_id}", status_code=204)
-def delete_sale_event(event_id: int, db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+def delete_sale_event(event_id: int, request: Request, db: Session = Depends(get_db),
+                      biz: Business = Depends(get_business_staff_ok)):
     row = _get_or_404(db, event_id, biz.id)
+    # Staff undo a mistake they just made; they do not edit the day's history.
+    # (Who made each tap is not recorded yet, so "recent" is the rule.)
+    if is_staff(request) and clock.now_naive_utc() - row.timestamp > STAFF_UNDO_WINDOW:
+        raise CodedHTTPException(
+            403, "Only a recent tap can be undone from a staff phone. Ask the owner to fix older ones.",
+            "staff_undo_too_old",
+        )
     db.delete(row)
     db.commit()

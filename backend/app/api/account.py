@@ -47,6 +47,7 @@ from app.billing.entitlement import RENEWING_STATUSES
 from app.billing.google_play import PROVIDER, PlayClient, PlayError, get_play_client, sync_from_google
 from app.db import get_db
 from app.models import Business
+from app.models.team import TeamMember
 from app.models.subscription import Subscription
 
 log = logging.getLogger(__name__)
@@ -148,6 +149,10 @@ def delete_account(
         delete_business_data(db, biz.id)
         db.delete(biz)
     db.query(Subscription).filter(Subscription.user_id == user_id).delete(
+        synchronize_session=False
+    )
+    # Teams this person was staff on: their membership goes, the business stays.
+    db.query(TeamMember).filter(TeamMember.user_id == user_id).delete(
         synchronize_session=False
     )
     db.commit()

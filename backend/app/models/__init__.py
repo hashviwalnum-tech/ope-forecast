@@ -15,6 +15,7 @@ from app.models.service_booked_count import ServiceBookedCount
 from app.models.service_consumable import ServiceConsumable
 from app.models.stock_batch import StockBatch
 from app.models.subscription import Subscription
+from app.models.team import TeamInvite, TeamMember
 from app.models.telegram_link import TelegramLink
 from app.models.tuner_state import TunerLog, TunerState
 
@@ -36,6 +37,8 @@ __all__ = [
     "ServiceConsumable",
     "StockBatch",
     "Subscription",
+    "TeamInvite",
+    "TeamMember",
     "TelegramLink",
     "TunerLog",
     "TunerState",

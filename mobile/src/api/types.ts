@@ -19,7 +19,20 @@ export interface BusinessRead {
   name: string
   settings: Record<string, unknown>
   tier: string
+  /** 'staff' for a business this person logs sales for but does not own. */
+  role?: 'owner' | 'staff'
 }
+
+// ── Team access ──────────────────────────────────────────────────────────────
+export interface TeamInviteRead { code: string; expires_at: string }
+export interface TeamMemberRead { id: number; email: string | null; joined_at: string }
+export interface TeamRead {
+  members: TeamMemberRead[]
+  invite_expires_at: string | null
+  /** The owner's plan includes team access. */
+  available: boolean
+}
+export interface TeamJoinedRead { business_id: number; business_name: string }
 
 export interface SubscriptionRead {
   user_id: string

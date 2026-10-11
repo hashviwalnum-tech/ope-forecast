@@ -13,6 +13,7 @@ from app.db import get_db
 # The child models this file used to delete by hand now live behind
 # business_cascade; only these two are still referenced directly.
 from app.models import Business, Product
+from app.models.team import TeamMember
 from app import clock
 
 from app.api.errors import CodedHTTPException  # noqa: E402
@@ -61,12 +62,27 @@ class BusinessRead(BaseModel):
     # Resolved from the subscription at request time and set explicitly — it is
     # NOT read off the model, which no longer has a `.tier` at all.
     tier: str
+    # 'owner', or 'staff' for a business this person logs sales for.
+    role: str = "owner"
     model_config = {"from_attributes": True}
 
 
 def _read(biz: Business, tier: Tier) -> BusinessRead:
     """Serialise a business with an explicitly resolved tier."""
     return BusinessRead(id=biz.id, name=biz.name, settings=biz.settings or {}, tier=str(tier))
+
+
+# All a staff member's phone needs to log sales on the business's own clock.
+# Nothing else in settings is theirs to see.
+_STAFF_SETTINGS = ("timezone", "opening_days", "opening_hour", "closing_hour")
+
+
+def _read_as_staff(biz: Business, owner_tier: Tier) -> BusinessRead:
+    s = biz.settings or {}
+    return BusinessRead(
+        id=biz.id, name=biz.name, tier=str(owner_tier), role="staff",
+        settings={k: s[k] for k in _STAFF_SETTINGS if k in s},
+    )
 
 
 class TierUpdate(BaseModel):
@@ -120,7 +136,17 @@ def list_businesses(
 ):
     tier = resolve_tier(db, user_id)
     rows = db.query(Business).filter(Business.user_id == user_id).order_by(Business.id).all()
-    return [_read(b, tier) for b in rows]
+    out = [_read(b, tier) for b in rows]
+    # Businesses this person logs sales for as staff — while the owner's plan
+    # still includes team access, so an ended one simply drops off the list.
+    for m in db.query(TeamMember).filter_by(user_id=user_id).order_by(TeamMember.id).all():
+        biz = db.get(Business, m.business_id)
+        if biz is None:
+            continue
+        owner_tier = resolve_tier(db, biz.user_id)
+        if owner_tier.is_premium:
+            out.append(_read_as_staff(biz, owner_tier))
+    return out
 
 
 @router.get("/me", response_model=BusinessRead)

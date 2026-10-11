@@ -28,6 +28,7 @@ from app.api.business_cascade import (
 from app.api.deps import get_current_user
 from app.db import get_db
 from app.main import app
+from app.models.team import TeamInvite, TeamMember
 from app.models import (
     Base,
     BookedCount,
@@ -162,6 +163,8 @@ def _fill(db, biz: Business) -> None:
         BookedCount(business_id=biz.id, date=today, booked_count=8),
         ServiceBookedCount(business_id=biz.id, product_id=product.id, date=today, booked_count=3),
         TelegramLink(business_id=biz.id, chat_id="12345"),
+        TeamMember(business_id=biz.id, user_id="a-barista", email="b@example.com"),
+        TeamInvite(business_id=biz.id, code_hash=f"{biz.id:064d}", expires_at=NOW),
         TunerState(business_id=biz.id, champion_config=[], updated_at=NOW),
         TunerLog(business_id=biz.id, logged_at=NOW, event="no_change"),
     ])

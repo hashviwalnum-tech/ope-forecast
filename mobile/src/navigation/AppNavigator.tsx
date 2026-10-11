@@ -35,9 +35,12 @@ export default function AppNavigator() {
   // Settings starts the full walkthrough; a new owner gets the short one.
   const [fullTour, setFullTour] = useState(false)
 
+  // Staff log sales and nothing else: one tab, no tour of screens they never see.
+  const isStaff = business?.role === 'staff'
+
   // Check tour status whenever we first have a business
   useEffect(() => {
-    if (business) {
+    if (business && business.role !== 'staff') {
       isTourDone(business.id).then(done => { if (!done) setShowTour(true) }).catch(() => {})
     }
   }, [business?.id])
@@ -68,7 +71,8 @@ export default function AppNavigator() {
         initialRouteName="Log"
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarStyle: {
+          // A bar with one tab is just clutter: staff have only Log.
+          tabBarStyle: isStaff ? { display: 'none' } : {
             backgroundColor: c.tabBg,
             borderTopColor: c.tabBorder,
             borderTopWidth: 1,
@@ -84,9 +88,13 @@ export default function AppNavigator() {
         })}
       >
         <Tab.Screen name="Log" component={LogScreen} options={{ tabBarLabel: t('log') }} />
-        <Tab.Screen name="Forecast" component={ForecastScreen} options={{ tabBarLabel: t('forecast') }} />
-        <Tab.Screen name="Analytics" component={AnalyticsScreen} options={{ tabBarLabel: t('analytics') }} />
-        <Tab.Screen name="Manage" component={ManageScreen} options={{ tabBarLabel: t('manage') }} />
+        {!isStaff && (
+          <>
+            <Tab.Screen name="Forecast" component={ForecastScreen} options={{ tabBarLabel: t('forecast') }} />
+            <Tab.Screen name="Analytics" component={AnalyticsScreen} options={{ tabBarLabel: t('analytics') }} />
+            <Tab.Screen name="Manage" component={ManageScreen} options={{ tabBarLabel: t('manage') }} />
+          </>
+        )}
       </Tab.Navigator>
 
       {/* Global settings sheet — opened by the gear icon in any screen's header */}
@@ -95,7 +103,7 @@ export default function AppNavigator() {
           business={business}
           onClose={closeSettings}
           onSaved={async () => { await reload() }}
-          onReplayTour={() => {
+          onReplayTour={isStaff ? undefined : () => {
             closeSettings()
             if (business) {
               setFullTour(true)
@@ -106,7 +114,7 @@ export default function AppNavigator() {
       )}
 
       {/* Guided product tour */}
-      {showTour && business !== null && (
+      {showTour && business !== null && !isStaff && (
         <GuidedTour
           bizId={business.id}
           full={fullTour}

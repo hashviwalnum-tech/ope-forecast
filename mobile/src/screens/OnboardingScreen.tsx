@@ -73,6 +73,28 @@ export default function OnboardingScreen({ onComplete }: Props) {
   const [savingHours, setSavingHours] = useState(false)
   const [hoursError, setHoursError] = useState<string | null>(null)
 
+  // Staff joining someone else's business instead of creating their own.
+  const [joining, setJoining] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
+  const [joinBusy, setJoinBusy] = useState(false)
+  const [joinError, setJoinError] = useState<string | null>(null)
+
+  const joinTeam = async () => {
+    if (!joinCode.trim()) return
+    setJoinBusy(true)
+    setJoinError(null)
+    try {
+      const joined = await api.team.join(joinCode)
+      const list = await api.businesses.list()
+      const biz = list.find(b => b.id === joined.business_id)
+      if (biz) onComplete(biz)
+    } catch (e: unknown) {
+      setJoinError(e instanceof Error ? e.message : t('failedToSave'))
+    } finally {
+      setJoinBusy(false)
+    }
+  }
+
   const toggleDay = (d: number) => {
     setOpenDays(prev =>
       prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d].sort((a, b) => a - b)
@@ -217,6 +239,50 @@ export default function OnboardingScreen({ onComplete }: Props) {
                   </Text>}
             </TouchableOpacity>
           </View>
+        )}
+
+        {/* ── Or: join a business that already uses Ope, as staff ── */}
+        {step === 1 && (
+          joining ? (
+            <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border, marginTop: 14 }]}>
+              <Text style={[styles.cardTitle, { color: c.text }]}>{t('teamJoinTitle')}</Text>
+              <Text style={{ color: c.textSub, fontSize: 13, lineHeight: 19, marginBottom: 10 }}>
+                {t('teamJoinHint')}
+              </Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: c.bg, borderColor: c.border, color: c.text,
+                  letterSpacing: 2, fontSize: 18 }]}
+                value={joinCode}
+                onChangeText={v => { setJoinCode(v.toUpperCase()); setJoinError(null) }}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                accessibilityLabel={t('teamJoinTitle')}
+                returnKeyType="go"
+                onSubmitEditing={() => void joinTeam()}
+              />
+              {joinError && <Text style={[styles.errorText, { color: c.danger }]}>{joinError}</Text>}
+              <TouchableOpacity
+                style={[styles.primaryBtn, { backgroundColor: c.primary }, joinBusy && { opacity: 0.6 }]}
+                onPress={() => void joinTeam()}
+                disabled={joinBusy}
+                activeOpacity={0.8}
+              >
+                {joinBusy
+                  ? <ActivityIndicator size="small" color={c.onPrimary} />
+                  : <Text style={[styles.primaryBtnText, { color: c.onPrimary }]}>{t('teamJoinBtn')}</Text>}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => setJoining(true)}
+              style={{ minHeight: 48, justifyContent: 'center', marginTop: 14, paddingHorizontal: 4 }}
+              accessibilityRole="button"
+            >
+              <Text style={{ color: c.primary, fontSize: 14, fontWeight: '600', textAlign: 'center' }}>
+                {t('teamJoinLink')}
+              </Text>
+            </TouchableOpacity>
+          )
         )}
 
         {/* ── Step 2: Opening hours ── */}

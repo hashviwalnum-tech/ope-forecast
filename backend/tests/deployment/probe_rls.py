@@ -37,7 +37,7 @@ TABLES = [
     "regulars", "regular_daily_spends", "periods", "recurring_patterns",
     "forecast_runs", "order_records", "stock_batches", "service_consumables",
     "booked_counts", "service_booked_counts", "subscriptions", "telegram_links",
-    "tuner_state", "tuner_log",
+    "tuner_state", "tuner_log", "team_members", "team_invites",
 ]
 
 RLS_BLOCKED = "42501"

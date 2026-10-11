@@ -51,6 +51,11 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   locations_limit: 'errLocationsLimit',
   invalid_input: 'errInvalidInput',
   business_not_found: 'errBusinessNotFound',
+  team_access_ended: 'errTeamAccessEnded',
+  team_code_invalid: 'errTeamCodeInvalid',
+  team_own_business: 'errTeamOwnBusiness',
+  team_needs_premium: 'errTeamNeedsPremium',
+  staff_undo_too_old: 'errStaffUndoTooOld',
   tap_too_old: 'errTapTooOld',
 }
 

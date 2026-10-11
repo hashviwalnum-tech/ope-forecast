@@ -7,6 +7,9 @@ import type {
   BusinessRead,
   CurrencyListResponse,
   SubscriptionRead,
+  TeamInviteRead,
+  TeamJoinedRead,
+  TeamRead,
   DayRecordCreate,
   DayRecordRead,
   DayRecordUpdate,
@@ -354,6 +357,15 @@ export const bookedCounts = {
   delete: (date: string, productId?: number) =>
     DEL(`/booked-counts/${date}${productId != null ? `?product_id=${productId}` : ''}`),
   model: () => GET<BookingModelRead>('/booked-counts/model'),
+}
+
+/** Staff who log sales on their own phones. Owner side and staff side. */
+export const team = {
+  get: () => GET<TeamRead>('/team'),
+  makeInvite: () => POST<TeamInviteRead>('/team/invite', {}),
+  removeMember: (memberId: number) => DEL(`/team/members/${memberId}`),
+  join: (code: string) => POST<TeamJoinedRead>('/team/join', { code }),
+  leave: (businessId: number) => DEL(`/team/membership/${businessId}`),
 }
 
 export const subscription = {

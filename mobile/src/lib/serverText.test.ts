@@ -24,6 +24,8 @@ test('every limit code has a sentence in every language, placeholders filled', (
     ['closed_day', { date: '2026-10-04' }],
     ['ads_limit', { limit: 5 }], ['events_limit', { limit: 10 }],
     ['locations_limit', { limit: 1 }], ['invalid_input', {}], ['business_not_found', {}],
+    ['team_access_ended', {}], ['team_code_invalid', {}], ['team_own_business', {}],
+    ['team_needs_premium', {}], ['staff_undo_too_old', {}],
     ['tap_too_old', { date: '2026-09-01' }],
   ]
   const langs: Lang[] = ['en', 'he', 'zh', 'es', 'hi', 'ar', 'pt', 'ru', 'fr', 'bn', 'ur', 'id', 'de', 'ja', 'tr']

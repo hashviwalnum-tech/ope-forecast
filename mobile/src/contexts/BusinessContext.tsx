@@ -52,7 +52,8 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
       // the evening's numbers as "you're still open" and buckets a post-midnight
       // tap onto the wrong day. Businesses created on the web never had a zone
       // set; on a phone the device zone is the right answer, so adopt it once.
-      if (!(biz.settings as Record<string, unknown> | undefined)?.timezone) {
+      // Staff cannot change the business's settings; the owner's phone will.
+      if (biz.role !== 'staff' && !(biz.settings as Record<string, unknown> | undefined)?.timezone) {
         try {
           const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
           if (tz) {

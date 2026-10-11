@@ -1,10 +1,10 @@
 from datetime import date as _date
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app import clock
-from app.api.deps import get_business
+from app.api.deps import get_business, get_business_staff_ok, is_staff
 from app.db import get_db
 from app.models import Business, Product, SaleRecord, SaleEvent, ServiceBookedCount
 from app.models.service_consumable import ServiceConsumable
@@ -23,8 +23,18 @@ def _get_or_404(db: Session, product_id: int, biz_id: int) -> Product:
 
 
 @router.get("", response_model=list[ProductRead])
-def list_products(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
-    return db.query(Product).filter_by(business_id=biz.id).all()
+def list_products(request: Request, db: Session = Depends(get_db),
+                  biz: Business = Depends(get_business_staff_ok)):
+    rows = db.query(Product).filter_by(business_id=biz.id).all()
+    if not is_staff(request):
+        return rows
+    # Staff see the buttons to tap, never what things cost.
+    out = []
+    for p in rows:
+        r = ProductRead.model_validate(p)
+        r.price = None
+        out.append(r)
+    return out
 
 
 def _create_initial_batch(

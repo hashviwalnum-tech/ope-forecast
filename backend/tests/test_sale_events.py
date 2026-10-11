@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api.deps import get_business, get_tier
+from app.api.deps import get_business_staff_ok
 from app.engine.limits import Tier
 from app.db import get_db
 from app.main import app
@@ -24,6 +25,7 @@ def sale_client(db, biz):
 
     app.dependency_overrides[get_db] = _db
     app.dependency_overrides[get_business] = _biz
+    app.dependency_overrides[get_business_staff_ok] = _biz
     app.dependency_overrides[get_tier] = lambda: Tier('free')
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c

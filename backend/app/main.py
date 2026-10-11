@@ -43,6 +43,7 @@ from app.api import export as export_api
 from app.billing.grants import migrate_admin_overrides_to_grants
 from app.api import currencies as currencies_api
 from app.api import planning as planning_api
+from app.api import team as team_api
 
 
 def _migrate_sqlite_products(eng) -> None:
@@ -318,6 +319,7 @@ app.include_router(booked_counts.router)
 app.include_router(currencies_api.router)
 app.include_router(planning_api.router)
 app.include_router(account_api.router)
+app.include_router(team_api.router)
 
 
 @app.get("/health", tags=["Health"])

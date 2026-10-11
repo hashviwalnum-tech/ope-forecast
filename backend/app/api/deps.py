@@ -152,3 +152,69 @@ def get_business(
     if not biz:
         raise HTTPException(status_code=404, detail="No business yet. Create one to get started.")
     return biz
+
+
+# ── Team access ──────────────────────────────────────────────────────────────
+#
+# `get_business` above is OWNER-ONLY, and every route uses it unless it says
+# otherwise. Staff get in only through `get_business_staff_ok`, which a route
+# must ask for by name — so a route nobody thought about is closed to staff,
+# never open. tests/test_team_access.py walks every route to prove it.
+
+def is_staff(request: Request) -> bool:
+    """True when this request reached its business as a staff member."""
+    return getattr(request.state, "ope_role", "owner") == "staff"
+
+
+def get_business_staff_ok(
+    request: Request,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user),
+) -> Business:
+    """The business for a route open to staff as well as the owner.
+
+    The owner gets exactly what `get_business` gives. Anyone else gets a
+    business they are a team member of — and only while its owner's plan
+    includes team access, read live from the owner's subscription.
+    """
+    from app.models.team import TeamMember  # local: keeps model imports light here
+
+    request.state.ope_role = "owner"
+    header = request.headers.get("X-Business-Id")
+    owned = db.query(Business).filter(Business.user_id == user_id)
+    if header is not None:
+        try:
+            wanted = int(header)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="X-Business-Id must be a number")
+        biz = owned.filter(Business.id == wanted).first()
+        if biz is not None:
+            return biz
+        member = db.query(TeamMember).filter_by(business_id=wanted, user_id=user_id).first()
+    else:
+        biz = owned.order_by(Business.id).first()
+        if biz is not None:
+            return biz
+        member = (db.query(TeamMember).filter_by(user_id=user_id)
+                  .order_by(TeamMember.id).first())
+
+    if member is None:
+        if header is not None:
+            raise CodedHTTPException(
+                404,
+                "That business is not on your account any more. Close and reopen "
+                "Ope to load your businesses.",
+                "business_not_found",
+            )
+        raise HTTPException(status_code=404, detail="No business yet. Create one to get started.")
+
+    biz = db.get(Business, member.business_id)
+    if biz is None or not resolve_tier(db, biz.user_id).is_premium:
+        raise CodedHTTPException(
+            403,
+            "Team access for this business has ended. Ask the owner if you "
+            "should still be logging sales.",
+            "team_access_ended",
+        )
+    request.state.ope_role = "staff"
+    return biz
