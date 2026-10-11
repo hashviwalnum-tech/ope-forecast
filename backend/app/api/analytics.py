@@ -364,13 +364,19 @@ def _open_days(biz: Business) -> set[int] | None:
     return set(od) if od is not None else None
 
 
-def _clean_records(db: Session, biz: Business, tier: Tier) -> list[DayRecord]:
+def _clean_records(db: Session, biz: Business) -> list[DayRecord]:
     """Return DayRecords, sorted by date, with these categories removed:
     - Dates inside a tagged event/ad Period (normal baseline exclusion).
     - Records the user resolved as 'excluded' (fluke) or 'event'.
     - Records whose weekday is a configured closed day (spec: closed days
       are excluded from forecasting entirely, not treated as zero).
-    - Records older than the tier's history cap (free: 365 days).
+    Every plan learns from ALL of the business's history. The free plan's
+    one-year limit is on what the owner sees and edits (``_history_records``,
+    Past days, forecast history) — never on what the forecast learns from,
+    because nothing that affects forecast accuracy is ever gated (spec §10).
+    Before this, a free business past its first year had its year-ago
+    comparison cut off at exactly the point it became useful.
+
     Records with outlier_status='flagged' (unreviewed) ARE included; their
     values are down-weighted by _effective_obs() rather than discarded.
     Un-logged open days are simply absent — never filled with zero.
@@ -379,7 +385,6 @@ def _clean_records(db: Session, biz: Business, tier: Tier) -> list[DayRecord]:
     rollup_tap_days(db, biz)
 
     open_days = _open_days(biz)
-    cutoff = history_cutoff(tier, clock.today_local(biz.settings))
 
     periods = db.query(Period).filter_by(business_id=biz.id).all()
     blocked: set[date] = set()
@@ -390,8 +395,6 @@ def _clean_records(db: Session, biz: Business, tier: Tier) -> list[DayRecord]:
             d += timedelta(days=1)
 
     query = db.query(DayRecord).filter_by(business_id=biz.id)
-    if cutoff is not None:
-        query = query.filter(DayRecord.date >= cutoff)
 
     return [
         r
@@ -980,7 +983,7 @@ def _learning_forecast(db: Session, biz: Business, records: list[DayRecord]) -> 
 
 @router.get("/forecast", response_model=ForecastResponse)
 def get_forecast(db: Session = Depends(get_db), biz: Business = Depends(get_business), tier: Tier = Depends(get_tier)):
-    records = _clean_records(db, biz, tier)
+    records = _clean_records(db, biz)
 
     if len(records) < MIN_RECORDS:
         return _learning_forecast(db, biz, records)
@@ -1292,7 +1295,7 @@ def _peak_and_quiet_hour(
 
 @router.get("/accuracy", response_model=AccuracyResponse)
 def get_accuracy(db: Session = Depends(get_db), biz: Business = Depends(get_business), tier: Tier = Depends(get_tier)):
-    records = _clean_records(db, biz, tier)
+    records = _clean_records(db, biz)
 
     if len(records) < MIN_RECORDS:
         return AccuracyResponse(
@@ -1476,7 +1479,7 @@ def get_lift(db: Session = Depends(get_db), biz: Business = Depends(get_business
 
 @router.get("/weekday-averages", response_model=WeekdayAvgResponse)
 def get_weekday_averages(db: Session = Depends(get_db), biz: Business = Depends(get_business), tier: Tier = Depends(get_tier)):
-    records = _clean_records(db, biz, tier)
+    records = _clean_records(db, biz)
     if len(records) < 7:
         return WeekdayAvgResponse(
             status="not_enough_data",
@@ -1525,7 +1528,7 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 
     # Use the same clean-record backbone as the forecast engine:
     # period-excluded, tier-capped, outlier-resolved, closed-days removed.
-    all_records = _clean_records(db, biz, tier)
+    all_records = _clean_records(db, biz)
     if len(all_records) < MIN_RECORDS:
         return OrderingResponse(
             status="not_enough_data",
@@ -1692,8 +1695,11 @@ def get_ordering(db: Session = Depends(get_db), biz: Business = Depends(get_busi
 # ── /forecast-history ─────────────────────────────────────────────────────────
 
 @router.get("/forecast-history", response_model=ForecastHistoryResponse)
-def get_forecast_history(db: Session = Depends(get_db), biz: Business = Depends(get_business)):
+def get_forecast_history(db: Session = Depends(get_db), biz: Business = Depends(get_business),
+                         tier: Tier = Depends(get_tier)):
     today = clock.today_local(biz.settings)
+    # Shows the owner's own days, so the plan's history limit applies.
+    cutoff = history_cutoff(tier, today)
 
     past_runs = (
         db.query(ForecastRun)
@@ -1715,7 +1721,7 @@ def get_forecast_history(db: Session = Depends(get_db), biz: Business = Depends(
             continue
         seen.add(fr.target_date)
         actual = actual_map.get(fr.target_date)
-        if actual is None:
+        if actual is None or (cutoff is not None and fr.target_date < cutoff):
             continue
         history.append(ForecastHistoryPoint(
             date=fr.target_date,
@@ -1960,7 +1966,7 @@ def get_product_forecast(
         return ProductForecastResponse(status="no_products", message=msg, products=[])
 
     # Clean-record backbone (period-excluded, tier-filtered, outlier-handled)
-    clean_records = _clean_records(db, biz, tier)
+    clean_records = _clean_records(db, biz)
 
     # Aggregate tap (SaleEvent) data by (product_id, date) — fallback when no
     # manual SaleRecord exists for a day
@@ -2429,7 +2435,7 @@ def get_insights(db: Session = Depends(get_db), biz: Business = Depends(get_busi
     first_date = all_records[0].date
     last_date = all_records[-1].date
 
-    clean_records = _clean_records(db, biz, tier)
+    clean_records = _clean_records(db, biz)
     n_clean = len(clean_records)
 
     # ── Day-of-week context (demoted — no longer a headline card) ────────────
