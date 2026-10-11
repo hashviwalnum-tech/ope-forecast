@@ -131,7 +131,8 @@ export interface ProductRead {
   unit_mode: 'whole' | 'decimal'
   price: number | null
   current_stock: number | null
-  lead_time_days: number
+  /** Null for a service: performed, not held, so nothing is ever delivered. */
+  lead_time_days: number | null
   service_time_minutes: number | null
   storage_capacity: number | null
   shelf_life_days: number | null
@@ -140,9 +141,11 @@ export interface ProductRead {
 export interface ProductCreate {
   name: string
   unit: string
+  product_type?: 'stocked' | 'service'
   unit_mode?: 'whole' | 'decimal'
   price?: number
-  lead_time_days: number
+  /** Required for a stocked product; must be null for a service. */
+  lead_time_days: number | null
   current_stock?: number
   service_time_minutes?: number
   storage_capacity?: number
@@ -152,13 +155,29 @@ export interface ProductCreate {
 export interface ProductUpdate {
   name?: string
   unit?: string
+  product_type?: 'stocked' | 'service'
   unit_mode?: 'whole' | 'decimal'
   price?: number | null
-  lead_time_days?: number
+  lead_time_days?: number | null
   current_stock?: number | null
   service_time_minutes?: number | null
   storage_capacity?: number | null
   shelf_life_days?: number | null
+}
+
+/** A stocked product a service uses up each time it is performed (e.g. massage oil). */
+export interface ServiceConsumableRead {
+  id: number
+  service_product_id: number
+  consumable_product_id: number
+  qty_per_performance: number
+  consumable_name: string
+  consumable_unit: string
+}
+
+export interface ServiceConsumableCreate {
+  consumable_product_id: number
+  qty_per_performance: number
 }
 
 export interface SaleEventCreate {

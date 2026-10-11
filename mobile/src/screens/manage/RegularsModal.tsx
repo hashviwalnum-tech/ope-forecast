@@ -472,7 +472,7 @@ export default function RegularsModal({ onClose }: Props) {
                                       {t(MONTH_KEYS[mv.month - 1])} {mv.year}
                                     </Text>
                                     <Text style={styles.mvVisits}>
-                                      {mv.visits} visit{mv.visits !== 1 ? 's' : ''}
+                                      {t('visitCount', { n: mv.visits, s: mv.visits !== 1 ? 's' : '' })}
                                     </Text>
                                     <Text style={styles.mvSpend}>
                                       {money(mv.total_spend)}

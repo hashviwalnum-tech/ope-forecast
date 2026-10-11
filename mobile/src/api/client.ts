@@ -37,6 +37,8 @@ import type {
   SaleEventRead,
   SaleRead,
   SaleUpdate,
+  ServiceConsumableCreate,
+  ServiceConsumableRead,
   TelegramLinkCodeResponse,
   TelegramLinkStatus,
   TodaySummaryResponse,
@@ -233,6 +235,11 @@ export const products = {
   create: (body: ProductCreate) => POST<ProductRead>('/products', body),
   update: (id: number, body: ProductUpdate) => PUT<ProductRead>(`/products/${id}`, body),
   delete: (id: number) => DEL(`/products/${id}`),
+  /** Supplies a service uses up — each one is itself a stocked product. */
+  listConsumables: (id: number) => GET<ServiceConsumableRead[]>(`/products/${id}/consumables`),
+  addConsumable: (id: number, body: ServiceConsumableCreate) =>
+    POST<ServiceConsumableRead>(`/products/${id}/consumables`, body),
+  deleteConsumable: (id: number, linkId: number) => DEL(`/products/${id}/consumables/${linkId}`),
 }
 
 export const saleEvents = {

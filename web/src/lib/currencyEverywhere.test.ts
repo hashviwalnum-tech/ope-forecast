@@ -151,7 +151,13 @@ test('no screen formats money with a hardcoded currency', () => {
   // The regulars screen used to hardcode US dollars and the planning toolbox a
   // euro sign, which is how one owner saw two different currencies. Money now
   // goes through useCurrency() everywhere, and this stops the next one.
-  const root = join(import.meta.dirname, '..')
+  // Both apps: the phone's product list showed "$" for every business until
+  // this scanned more than the web.
+  const roots = [
+    join(import.meta.dirname, '..'),
+    join(import.meta.dirname, '..', '..', '..', 'mobile', 'src'),
+  ]
+  let root = roots[0]
   const offenders: string[] = []
 
   const walk = (dir: string) => {
@@ -163,21 +169,27 @@ test('no screen formats money with a hardcoded currency', () => {
       // money.ts is the one place allowed to name a currency: it is the
       // fallback for a business that has not chosen yet.
       if (full.endsWith(join('lib', 'money.ts'))) continue
+      if (full.includes(join('node_modules'))) continue
 
-      const src = readFileSync(full, 'utf8')
+      // Block comments blanked, newlines kept so line numbers stay right.
+      const src = readFileSync(full, 'utf8').replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, ' '))
       src.split('\n').forEach((line, i) => {
         if (line.trimStart().startsWith('//') || line.trimStart().startsWith('*')) return
         // A currency code passed to Intl as a literal, or a bare currency
         // mark sitting in JSX text. `${...}` is template interpolation, not a
         // dollar sign, so the JSX check requires a real text node.
+        // Also a mark glued to a value - `$${price}` - or one on its own as a
+        // string, '$' + price; neither is template syntax.
         if (/currency:\s*['"][A-Z]{3}['"]/.test(line)
-            || />\s*[$€₪£¥]\s*</.test(line)) {
+            || />\s*[$€₪£¥]\s*</.test(line)
+            || /[$€₪£¥]\$\{/.test(line)
+            || /(^|[^\\])['"`][$€₪£¥]['"`]/.test(line)) {
           offenders.push(`${full.slice(root.length + 1)}:${i + 1}  ${line.trim()}`)
         }
       })
     }
   }
-  walk(root)
+  for (const r of roots) { root = r; walk(r) }
 
   assert.deepEqual(offenders, [],
     'these format money without the business currency:\n' + offenders.join('\n'))

@@ -588,12 +588,12 @@ export default function PastDaysModal({ onClose, startAdding = false }: Props) {
                 {csvRows.length > 0 && (
                   <View style={styles.previewBox}>
                     <Text style={styles.previewTitle}>
-                      {csvRows.length} day{csvRows.length !== 1 ? 's' : ''} ready to import
-                      {csvSkipped > 0 ? ` (${csvSkipped} rows skipped — couldn't parse)` : ''}
+                      {t('csvReadyN', { n: csvRows.length })}
+                      {csvSkipped > 0 ? `\n${t('csvSkippedN', { n: csvSkipped })}` : ''}
                     </Text>
                     {csvRows.slice(0, 5).map(row => (
                       <Text key={row.date} style={styles.previewRow}>
-                        {row.date} — {row.customers} customers
+                        {row.date} — {t('customersColon', { n: row.customers })}
                         {Object.entries(row.products).length > 0
                           ? ' · ' + Object.entries(row.products).map(([n, u]) => `${u} ${n}`).join(', ')
                           : ''}
@@ -663,7 +663,7 @@ export default function PastDaysModal({ onClose, startAdding = false }: Props) {
                         <View style={styles.recordInfo}>
                           <Text style={styles.recordDate}>{r.date}</Text>
                           <Text style={styles.recordCustomers}>
-                            {r.customers} customer{r.customers !== 1 ? 's' : ''}
+                            {t('customersColon', { n: r.customers })}
                           </Text>
                           {r.outlier_status === 'flagged' && (
                             <Text style={styles.outlierBadge}>{t('pdFlagged')}</Text>

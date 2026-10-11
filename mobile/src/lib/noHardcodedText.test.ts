@@ -23,10 +23,12 @@ const ALLOWED = new Set(['Ope', 'Telegram', 'OPe', '/link'])  // '/link' is the 
 /** An example an owner types literally, in any language. */
 const ALLOWED_PROPS = new Set(['you@example.com'])
 
-const LOOKS_LIKE_CODE = /[=<>&|?;`$]|\.\w|\(\)|\{|\}|^[(),\]]|:\s*\w+\)|\b(return|export|const|function|interface|import|from|if|case|else)\b/
+const LOOKS_LIKE_CODE = /[=<>&|?;`$]|\.\w|\(\)|\{|\}|^[(),\]]|:\s*\w+\)|\w\(|^(of|as)\s+\w+[),]|\b(return|export|const|function|interface|import|from|if|case|else|try|catch|finally|await|async|throw|new)\b/
 
 /** Text between tags, or between a tag/expression and the next tag/expression. */
-const JSX_TEXT = /(?:(?<![=-])>|\}(?=[^<>{}]*[A-Za-z]{2}[^<>{}]*<))([^<>{}]*[A-Za-z]{2}[^<>{}]*)(?=[<{])/g
+// Includes words between two values - `{n} lead {days}d` - which the first
+// version missed, so the phone's product list said "lead 3d" in every language.
+const JSX_TEXT = /(?:(?<![=-])>|\}(?=[^<>{}]*[A-Za-z]{2}[^<>{}]*[<{]))([^<>{}]*[A-Za-z]{2}[^<>{}]*)(?=[<{])/g
 const TEXT_PROPS = /\b(placeholder|title|accessibilityLabel|accessibilityHint|alt|label)="([^"]*[A-Za-z]{2}[^"]*)"/g
 
 function tsxFiles(dir: string): string[] {
