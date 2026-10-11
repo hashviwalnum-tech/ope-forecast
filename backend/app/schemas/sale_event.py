@@ -10,6 +10,19 @@ class SaleEventCreate(BaseModel):
     product_id: Optional[int] = None
     quantity: float = Field(1.0, ge=0.01)
     unit_price: Optional[float] = Field(None, ge=0)
+    # Sent by the phone, which queues taps while it has no signal: when the tap
+    # was made and when it was sent, both on the phone's own clock. Left out,
+    # the tap happened now. See engine/offline_taps.py.
+    tapped_at: Optional[datetime] = None
+    sent_at: Optional[datetime] = None
+
+    @field_validator("tapped_at", "sent_at")
+    @classmethod
+    def _naive_utc(cls, ts: Optional[datetime]) -> Optional[datetime]:
+        """Stored times are naive UTC; a time with an offset is converted to it."""
+        if ts is not None and ts.tzinfo is not None:
+            return ts.astimezone(timezone.utc).replace(tzinfo=None)
+        return ts
 
 
 class SaleEventRead(BaseModel):

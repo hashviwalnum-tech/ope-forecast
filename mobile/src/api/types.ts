@@ -157,6 +157,9 @@ export interface SaleEventCreate {
   product_id?: number | null
   quantity?: number
   unit_price?: number
+  /** A tap queued on the phone: when it was made, and when it was sent (ISO UTC). */
+  tapped_at?: string
+  sent_at?: string
 }
 
 export interface SaleEventRead {

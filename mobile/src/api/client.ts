@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { isRetryableStatus, type QueuedTap, type SendResult } from '../lib/tapQueue'
 import type {
   AccuracyResponse,
   BookedCountRead,
@@ -98,7 +99,7 @@ export function setActiveBusinessId(id: number | null): void {
   _activeBusinessId = id
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
+async function authHeaders(businessId: number | null = _activeBusinessId): Promise<Record<string, string>> {
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -106,8 +107,8 @@ async function authHeaders(): Promise<Record<string, string>> {
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`
   }
-  if (_activeBusinessId !== null) {
-    headers['X-Business-Id'] = String(_activeBusinessId)
+  if (businessId !== null) {
+    headers['X-Business-Id'] = String(businessId)
   }
   return headers
 }
@@ -236,6 +237,34 @@ export const products = {
 
 export const saleEvents = {
   create: (body: SaleEventCreate) => POST<SaleEventRead>('/sale-events', body),
+  /**
+   * One attempt to send a tap saved on the phone — no retrying here; the
+   * queue tries again later. Goes to the business the tap was made for, which
+   * may not be the one on screen now. Never throws.
+   */
+  sendQueued: async (tap: QueuedTap, sentAt: string): Promise<SendResult> => {
+    let res: Response
+    try {
+      res = await fetch(`${BASE}/sale-events`, {
+        method: 'POST',
+        headers: await authHeaders(tap.businessId),
+        body: JSON.stringify({ product_id: tap.productId, tapped_at: tap.tappedAt, sent_at: sentAt }),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      })
+    } catch {
+      return { ok: false, retry: true }
+    }
+    if (res.ok) {
+      try {
+        const ev = (await res.json()) as SaleEventRead
+        return { ok: true, eventId: ev.id }
+      } catch {
+        return { ok: false, retry: true }   // saved, reply garbled: a re-send is recognised as the same tap
+      }
+    }
+    if (isRetryableStatus(res.status)) return { ok: false, retry: true }
+    return { ok: false, retry: false, message: await extractError(res) }
+  },
   today: () => GET<TodaySummaryResponse>('/sale-events/today'),
   delete: (id: number) => DEL(`/sale-events/${id}`),
 }

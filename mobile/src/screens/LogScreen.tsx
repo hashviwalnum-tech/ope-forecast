@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   View,
   Text,
@@ -21,21 +21,33 @@ import { useTheme } from '../contexts/ThemeContext'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useBusinessTime } from '../contexts/BusinessTimeContext'
+import { useTapQueue } from '../contexts/TapQueueContext'
+import { isoDateIn } from '../lib/businessTime'
 import type { Theme } from '../lib/theme'
 import { outlierText } from '../lib/serverText'
 import AppHeader from '../components/AppHeader'
 import PastDaysModal from './manage/PastDaysModal'
 
-const KEY_CUSTOMER = 'customer'
-const tapKey = (productId: number | null) =>
-  productId === null ? KEY_CUSTOMER : String(productId)
+/** One more tap of `productId` in today's summary, before the server's own count catches up. */
+function withOneMore(s: TodaySummaryResponse | null, productId: number | null): TodaySummaryResponse | null {
+  if (!s) return s
+  const has = s.product_totals.some(p => p.product_id === productId)
+  return {
+    ...s,
+    total_taps: s.total_taps + 1,
+    product_totals: has
+      ? s.product_totals.map(p => p.product_id === productId ? { ...p, units: p.units + 1 } : p)
+      : [...s.product_totals, { product_id: productId, product_name: null, units: 1 }],
+  }
+}
 
 export default function LogScreen() {
   const { business, loading: bizLoading, error: bizError } = useBusiness()
   const c = useTheme()
   const { t, lang, simpleMode, setSimpleMode, simpleModeNeverSet } = useLanguage()
   // The business's today, not the device's — see BusinessTimeContext.
-  const { today: businessToday } = useBusinessTime()
+  const { today: businessToday, timeZone } = useBusinessTime()
+  const queue = useTapQueue()
   const { symbol, amount } = useCurrency()
   const navigation = useNavigation()
   const { width: screenWidth } = useWindowDimensions()
@@ -48,11 +60,12 @@ export default function LogScreen() {
   const [initialLoading, setInitialLoading] = useState(true)
   const [dataError, setDataError] = useState<string | null>(null)
 
-  const [pending, setPending] = useState<Record<string, number>>({})
-  const [lastTapId, setLastTapId] = useState<number | null>(null)
-  const [lastTapLabel, setLastTapLabel] = useState('')
-  const [tappingKey, setTappingKey] = useState<string | null>(null)
+  // The last tap, for Undo: `eventId` is filled in once the server has it.
+  const [lastTap, setLastTap] = useState<{ key: string; eventId: number | null; label: string } | null>(null)
   const [tapError, setTapError] = useState<string | null>(null)
+  // A summary fetched before a tap was confirmed would undo that tap's count
+  // on screen; such a reply is ignored. See onSent below.
+  const lastSentAt = useRef(0)
 
   // Outlier / fluke prompt
   const [outlierFlags, setOutlierFlags] = useState<OutlierFlag[]>([])
@@ -68,6 +81,7 @@ export default function LogScreen() {
 
   const loadData = useCallback(async () => {
     if (!business) return
+    const started = Date.now()
     try {
       const [prods, tod, regs, outlierRes] = await Promise.allSettled([
         api.products.list(),
@@ -76,7 +90,7 @@ export default function LogScreen() {
         api.outliers.list(),
       ])
       if (prods.status === 'fulfilled') setProducts(prods.value)
-      if (tod.status === 'fulfilled') setSummary(tod.value)
+      if (tod.status === 'fulfilled' && started >= lastSentAt.current) setSummary(tod.value)
       if (regs.status === 'fulfilled') setRegulars(regs.value)
       if (outlierRes.status === 'fulfilled') setOutlierFlags(outlierRes.value.flags)
       if (
@@ -102,44 +116,50 @@ export default function LogScreen() {
   )
 
   const refreshSummary = useCallback(async () => {
+    const started = Date.now()
     try {
       const tod = await api.saleEvents.today()
-      setSummary(tod)
+      if (started >= lastSentAt.current) setSummary(tod)
     } catch {
       // silent — optimistic count is still correct
     }
   }, [])
 
-  const tap = async (productId: number | null) => {
-    const key = tapKey(productId)
-    setTappingKey(key)
-    setPending(p => ({ ...p, [key]: (p[key] ?? 0) + 1 }))
-    setTapError(null)
-    try {
-      const event = await api.saleEvents.create({ product_id: productId })
-      setLastTapId(event.id)
-      setLastTapLabel(
-        productId === null
-          ? t('customer')
-          : products.find(p => p.id === productId)?.name ?? 'tap'
-      )
-      setPending(p => ({ ...p, [key]: Math.max(0, (p[key] ?? 0) - 1) }))
-      void refreshSummary()
-    } catch (e: unknown) {
-      setPending(p => ({ ...p, [key]: Math.max(0, (p[key] ?? 0) - 1) }))
-      setTapError(e instanceof Error ? e.message : t('failedToSave'))
-    } finally {
-      setTappingKey(null)
+  // A tap confirmed by the server moves from "waiting" into today's count.
+  const { onSent } = queue
+  useEffect(() => onSent((sent, eventId) => {
+    if (sent.businessId !== business?.id) return
+    lastSentAt.current = Date.now()
+    if (isoDateIn(new Date(sent.tappedAt), timeZone) === businessToday) {
+      setSummary(s => withOneMore(s, sent.productId))
     }
+    setLastTap(l => (l && l.key === sent.key ? { ...l, eventId } : l))
+    void refreshSummary()
+  }), [onSent, business?.id, timeZone, businessToday, refreshSummary])
+
+  // Saved on the phone at once, then sent, so a tap is never lost to a
+  // dropped connection. The count goes up straight away either way.
+  const tap = (productId: number | null) => {
+    setTapError(null)
+    const saved = queue.add(productId)
+    if (!saved) return
+    setLastTap({
+      key: saved.key,
+      eventId: null,
+      label: productId === null
+        ? t('customer')
+        : products.find(p => p.id === productId)?.name ?? t('customer'),
+    })
   }
 
   const undoLast = async () => {
-    if (!lastTapId) return
-    const id = lastTapId
-    setLastTapId(null)
-    setLastTapLabel('')
+    if (!lastTap) return
+    const { key, eventId } = lastTap
+    setLastTap(null)
+    if (queue.takeBack(key)) return      // never left the phone
+    if (eventId === null) return
     try {
-      await api.saleEvents.delete(id)
+      await api.saleEvents.delete(eventId)
       void refreshSummary()
     } catch (e: unknown) {
       setTapError(e instanceof Error ? e.message : t('failedToSave'))
@@ -182,14 +202,12 @@ export default function LogScreen() {
   }
 
   const displayCount = (productId: number | null): number => {
-    const key = tapKey(productId)
     const serverEntry = summary?.product_totals.find(t => t.product_id === productId)
     const serverCount = serverEntry ? Math.round(serverEntry.units) : 0
-    return serverCount + (pending[key] ?? 0)
+    return serverCount + (queue.waiting.get(productId) ?? 0)
   }
 
-  const headerTotal =
-    (summary?.total_taps ?? 0) + Object.values(pending).reduce((s, v) => s + v, 0)
+  const headerTotal = (summary?.total_taps ?? 0) + queue.waitingTotal
 
   // The business's own today, built at midday so no timezone offset can shift
   // the date when the label is formatted.
@@ -292,6 +310,35 @@ export default function LogScreen() {
           </TouchableOpacity>
         )}
 
+        {/* ── Taps waiting for a connection: calm, because nothing is lost ── */}
+        {queue.waitingTotal > 0 && (
+          <View
+            style={[styles.waitingBanner, { backgroundColor: c.card, borderColor: c.border }]}
+            accessibilityLiveRegion="polite"
+          >
+            <Ionicons name="cloud-upload-outline" size={18} color={c.textSub} />
+            <Text style={[styles.waitingText, { color: c.textSub }]}>
+              {t('tapsWaiting', { n: queue.waitingTotal })}
+            </Text>
+          </View>
+        )}
+
+        {/* ── Saved taps the server would not take, with its reason ── */}
+        {queue.refused.length > 0 && (
+          <TouchableOpacity
+            style={[styles.errorBanner, { backgroundColor: c.dangerBg }]}
+            onPress={queue.clearRefused}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.errorBannerText, { color: c.danger }]}>
+              {t('tapsRefused', { n: queue.refused.length }) + ' ' +
+                Array.from(new Set(queue.refused.map(r => r.message))).join(' ')}
+            </Text>
+            <Ionicons name="close-circle" size={18} color={c.danger} />
+          </TouchableOpacity>
+        )}
+
         {/* ── Outlier / fluke prompt ── */}
         {outlierFlags.length > 0 && (
           <View style={styles.outlierSection}>
@@ -356,9 +403,8 @@ export default function LogScreen() {
           style={[
             styles.customerBtn,
             { backgroundColor: c.primary },
-            tappingKey === KEY_CUSTOMER && styles.customerBtnPressed,
           ]}
-          onPress={() => void tap(null)}
+          onPress={() => tap(null)}
           activeOpacity={0.75}
         >
           <View style={styles.customerBtnLeft}>
@@ -372,10 +418,10 @@ export default function LogScreen() {
         </TouchableOpacity>
 
         {/* ── Undo ── */}
-        {lastTapId !== null && (
+        {lastTap !== null && (
           <TouchableOpacity style={styles.undoRow} onPress={() => void undoLast()}>
             <Ionicons name="arrow-undo-circle-outline" size={18} color={c.textSub} />
-            <Text style={[styles.undoText, { color: c.textSub }]}>{t('undoLabel')}: {lastTapLabel}</Text>
+            <Text style={[styles.undoText, { color: c.textSub }]}>{t('undoLabel')}: {lastTap.label}</Text>
           </TouchableOpacity>
         )}
 
@@ -387,7 +433,6 @@ export default function LogScreen() {
             </Text>
             <View style={styles.productGrid}>
               {products.map(product => {
-                const key = tapKey(product.id)
                 const count = displayCount(product.id)
                 return (
                   <TouchableOpacity
@@ -395,9 +440,8 @@ export default function LogScreen() {
                     style={[
                       styles.productBtn,
                       { width: productBtnWidth, backgroundColor: c.card, borderColor: c.border },
-                      tappingKey === key && { borderColor: c.primary, opacity: 0.82 },
                     ]}
-                    onPress={() => void tap(product.id)}
+                    onPress={() => tap(product.id)}
                     activeOpacity={0.75}
                   >
                     <Text style={[styles.productBtnName, { color: c.text }]} numberOfLines={2}>
@@ -571,6 +615,11 @@ function makeStyles(c: Theme) {
       justifyContent: 'space-between', alignItems: 'center', marginBottom: 14,
     },
     errorBannerText: { fontSize: 13, flex: 1, marginRight: 8 },
+    waitingBanner: {
+      borderRadius: 10, borderWidth: 1, padding: 12, flexDirection: 'row',
+      alignItems: 'center', gap: 8, marginBottom: 14,
+    },
+    waitingText: { fontSize: 13, flex: 1, lineHeight: 19 },
 
     headerRight: { alignItems: 'flex-end' },
     headerTotalNum: { fontSize: 30, fontWeight: '700', lineHeight: 34 },
@@ -588,7 +637,6 @@ function makeStyles(c: Theme) {
       minHeight: 96, shadowColor: '#000', shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.18, shadowRadius: 8, elevation: 5,
     },
-    customerBtnPressed: { opacity: 0.82 },
     customerBtnLeft: { alignItems: 'flex-start', gap: 6 },
     customerBtnLabel: { fontSize: 22, fontWeight: '700' },
     customerBtnRight: { alignItems: 'flex-end' },

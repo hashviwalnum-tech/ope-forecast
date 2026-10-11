@@ -36,6 +36,7 @@ import { ThemeProvider, useTheme } from './src/contexts/ThemeContext'
 import { SettingsProvider } from './src/contexts/SettingsContext'
 import { CurrencyProvider } from './src/contexts/CurrencyContext'
 import { BusinessTimeProvider } from './src/contexts/BusinessTimeContext'
+import { TapQueueProvider } from './src/contexts/TapQueueContext'
 
 function AppRoot() {
   const c = useTheme()
@@ -72,7 +73,10 @@ function AppRoot() {
           <CurrencyProvider>
             <BusinessTimeProvider>
               <SettingsProvider>
-                <AppNavigator />
+                {/* Taps are saved on the phone first, so none is lost without signal. */}
+                <TapQueueProvider userId={session.user.id}>
+                  <AppNavigator />
+                </TapQueueProvider>
               </SettingsProvider>
             </BusinessTimeProvider>
           </CurrencyProvider>

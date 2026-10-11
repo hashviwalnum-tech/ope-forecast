@@ -50,6 +50,7 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   events_limit: 'errEventsLimit',
   locations_limit: 'errLocationsLimit',
   invalid_input: 'errInvalidInput',
+  tap_too_old: 'errTapTooOld',
 }
 
 /** The owner's-language version of a coded server refusal, or null if unknown. */

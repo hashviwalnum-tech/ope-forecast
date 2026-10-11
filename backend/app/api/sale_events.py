@@ -15,10 +15,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app import clock
+from app.api.day_records import _apply_reconciliation
 from app.api.deps import get_business
+from app.api.errors import rule_http
 from app.db import get_db
+from app.engine.limits import RuleError
 from app.engine.live_sales import local_day_utc_bounds, rollup_by_hour, utc_to_local_date, utc_to_local_hour
-from app.models import Business, Product, SaleEvent
+from app.engine.offline_taps import resolve_tap_time
+from app.models import Business, DayRecord, Product, SaleEvent
 from app.schemas.sale_event import (
     BackfillPreviewProduct,
     BackfillPreviewResponse,
@@ -48,17 +52,66 @@ def create_sale_event(body: SaleEventCreate, db: Session = Depends(get_db), biz:
         p = db.get(Product, body.product_id)
         if not p or p.business_id != biz.id:
             raise HTTPException(404, "Product not found")
+    try:
+        ts = resolve_tap_time(clock.now_naive_utc(), body.tapped_at, body.sent_at)
+    except RuleError as err:
+        raise rule_http(422, err)
+
+    if body.tapped_at is not None:
+        # The phone re-sends a tap whose reply it never got (the signal dropped
+        # after the server saved it). The same tap comes back with the same
+        # time to the millisecond; two real taps never do. Return the one
+        # already stored rather than counting the sale twice.
+        same = (
+            db.query(SaleEvent)
+            .filter(
+                SaleEvent.business_id == biz.id,
+                SaleEvent.product_id.is_(None) if body.product_id is None
+                else SaleEvent.product_id == body.product_id,
+                SaleEvent.timestamp == ts,
+                SaleEvent.quantity == body.quantity,
+            )
+            .first()
+        )
+        if same is not None:
+            return same
+
     row = SaleEvent(
         business_id=biz.id,
         product_id=body.product_id,
-        timestamp=clock.now_naive_utc(),
+        timestamp=ts,
         quantity=body.quantity,
         unit_price=body.unit_price,
     )
     db.add(row)
     db.commit()
     db.refresh(row)
+    if body.product_id is None:
+        _raise_past_total_if_needed(db, biz, ts)
     return row
+
+
+def _raise_past_total_if_needed(db: Session, biz: Business, ts: datetime) -> None:
+    """A customer tap that reaches the server after its day was closed.
+
+    Tap-only days become a day record once the day is over, counting the taps
+    there were then. A tap queued on a phone without signal can arrive after
+    that, and would otherwise sit in the hourly figures but not the day's
+    total. Apply the usual rule — when the hours add up to more than the day's
+    total, the hours win — so the total catches up. It only ever rises: a total
+    the owner typed that is already higher is left alone.
+    """
+    settings = biz.settings or {}
+    day = utc_to_local_date(ts, settings.get("timezone", "UTC"))
+    if day >= clock.today_local(settings):
+        return
+    rec = db.query(DayRecord).filter_by(business_id=biz.id, date=day).first()
+    if rec is None:
+        return      # the roll-up will create it, counting this tap
+    reconciled = _apply_reconciliation(db, biz, day, rec.customers)
+    if reconciled > rec.customers:
+        rec.customers = reconciled
+        db.commit()
 
 
 @router.post("/backfill-hourly", response_model=HourlyBackfillResponse, status_code=201)
