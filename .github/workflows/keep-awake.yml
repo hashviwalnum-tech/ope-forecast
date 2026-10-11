@@ -13,6 +13,10 @@
 # scheduled run by several minutes, and switches schedules off after 60 days
 # without a commit - a paid Render instance (no sleep) is the only fix that
 # does not depend on either.
+#
+# Measured 2026-10-04 to 10-11: GitHub ran this 3-5 times a day, not ~120, so
+# on its own it does NOT keep the backend awake. A run now fails (red) when the
+# backend does not answer, so a green tick means it really did.
 name: keep-awake
 
 on:
@@ -33,4 +37,5 @@ jobs:
             [ "$code" = "200" ] && exit 0
             sleep 10
           done
-          echo "::warning::backend did not answer /health with 200"
+          echo "::error::backend did not answer /health with 200"
+          exit 1
