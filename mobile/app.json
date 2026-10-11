@@ -30,6 +30,9 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
-    }
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
   }
 }

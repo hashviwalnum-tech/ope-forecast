@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
+import DateField from '../../components/DateField'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import * as api from '../../api/client'
@@ -238,16 +239,7 @@ export default function BookedCountsModal({ onClose }: Props) {
               )}
 
               <Text style={styles.fieldLabel}>{t('dateLabel')}</Text>
-              <TextInput
-                style={styles.input}
-                value={date}
-                onChangeText={setDate}
-                placeholder="2026-01-15"
-                placeholderTextColor={c.textMuted}
-                keyboardType="numbers-and-punctuation"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <DateField value={date} onChange={setDate} label={t('dateLabel')} />
 
               <Text style={styles.fieldLabel}>{t('bookedCountLabel')}</Text>
               <TextInput

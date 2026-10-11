@@ -19,6 +19,7 @@ import type { DayRecordRead, ProductRead, SaleRead } from '../../api/types'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useBusinessTime } from '../../contexts/BusinessTimeContext'
+import DateField from '../../components/DateField'
 import type { Theme } from '../../lib/theme'
 
 interface Props {
@@ -494,18 +495,9 @@ export default function PastDaysModal({ onClose, startAdding = false }: Props) {
               )}
 
               <Text style={styles.fieldLabel}>{t('dateLabel')} *</Text>
-              <TextInput
-                style={styles.input}
-                value={date}
-                onChangeText={setDate}
-                placeholder={t('pdDatePh')}
-                placeholderTextColor={c.textMuted}
-                keyboardType="numbers-and-punctuation"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <DateField value={date} onChange={setDate} label={t('dateLabel')} maximum={todayStr} />
               <Text style={styles.fieldHint}>
-                {t('pdDateHint')}
+                {t('pdDatePickHint')}
               </Text>
 
               <Text style={styles.fieldLabel}>{t('customers')} *</Text>

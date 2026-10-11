@@ -20,6 +20,7 @@ import { useCurrency } from '../../contexts/CurrencyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useBusinessTime } from '../../contexts/BusinessTimeContext'
+import DateField from '../../components/DateField'
 import type { Theme } from '../../lib/theme'
 
 interface Props { onClose: () => void }
@@ -221,28 +222,10 @@ export default function PeriodsModal({ onClose }: Props) {
               </View>
 
               <Text style={styles.fieldLabel}>{t('startDate')} *</Text>
-              <TextInput
-                style={styles.input}
-                value={startDate}
-                onChangeText={setStartDate}
-                placeholder="2026-01-15"
-                placeholderTextColor={c.textMuted}
-                keyboardType="numbers-and-punctuation"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <DateField value={startDate} onChange={setStartDate} label={t('startDate')} />
 
               <Text style={styles.fieldLabel}>{t('endDate')} *</Text>
-              <TextInput
-                style={styles.input}
-                value={endDate}
-                onChangeText={setEndDate}
-                placeholder="2026-01-15"
-                placeholderTextColor={c.textMuted}
-                keyboardType="numbers-and-punctuation"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <DateField value={endDate} onChange={setEndDate} label={t('endDate')} minimum={startDate || undefined} />
 
               <Text style={styles.fieldLabel}>{t('costOptional')} ({symbol})</Text>
               <TextInput
