@@ -410,3 +410,77 @@ would have embarrassed it with a Hebrew-speaking owner. What stops a pilot today
 
 Fix the three blockers above and run one week with one friendly café on the phone,
 logging end-of-day totals, before anything else.
+
+---
+
+## 11. Follow-up, 2026-10-11
+
+### Re-checked live, a week on
+- **Keep-awake ping: does not work.** GitHub ran it 3–5 times a day, not ~120;
+  `/health` took **92 s** at 2 pm Israel time. It also reported success when
+  the backend never answered. Now fails red; the real fix is in OPERATIONS
+  ("Keeping the backend awake") and needs the owner's account.
+- **Vercel still serves the stale build**, `/privacy` still the app shell.
+- **Email confirmation still off.**
+
+### Changes (all committed and pushed)
+- **Offline taps (phone).** Every tap is saved on the phone first and sent when
+  it can — at once, every 20 s while anything waits, and when the app returns
+  to the front. A calm note shows how many are waiting. The server keeps the
+  time the tap was made (correcting a phone clock that is badly off), treats an
+  exact re-send as the same tap, refuses one older than 30 days in the owner's
+  language, and lets a late customer tap raise an already-closed day's total.
+  No database change.
+- **Free history limit** now applies only to what the owner sees and edits
+  (Past days, monthly history, forecast history — which had no limit at all).
+  The forecast learns from everything. The simulation scores byte-identically
+  (it runs one year on Premium, so this was expected).
+- **Guided tour**: five steps for a new owner (welcome; comfort — dark mode and
+  simple language; how to log; the forecast; where the rest lives). The full
+  tour starts from Settings. Checked in a browser, English and Hebrew.
+- **First two weeks**: a "getting to know your business" card with days logged
+  and four milestones, each counted the way its feature counts it, plus a
+  pointer to importing past records. Chosen over sample data, which is easy to
+  mistake for real numbers.
+- **Phone**: calendar date picker (Past days, Ads & Events, Bookings); create
+  services and link the supplies they use; editing a web-made service no
+  longer fails.
+- **Found and fixed**: English and a hard-coded "$" on four phone screens that
+  the previous audit's checks missed; both checks strengthened (the currency
+  check now scans the phone too). Remaining known gap: the phone text check
+  treats any text containing "=" as code.
+- Deleted the stray `backend/ux_fresh.db`.
+
+### Still unverified
+Every phone change above has passed type checks and tests only. The offline
+queue in particular must be tried on a real phone with Wi-Fi switched off
+mid-rush before a pilot relies on it.
+
+### What Premium should be — recommendation (not built)
+Today's Premium (more locations, history older than a year, more ads/events)
+is worth ₪30 a month to almost no single-location café. Taking away the
+false perks was right; it left little.
+
+What a small owner pays for is **time saved and money not lost**, delivered
+without them having to open the app. In order:
+
+1. **Team access.** Staff log sales on their own phones under the owner's
+   business, without the owner's password and without seeing money or
+   settings. Every busy café needs it, it is the clearest "this is a business
+   tool" line, and it is how the incumbents charge (per seat).
+2. **Ope comes to you.** The heads-ups that exist today ("tomorrow looks busy",
+   "you'll run out of milk by Thursday", "a regular has gone quiet") delivered
+   as phone notifications and a short weekly plan. Free owners still see every
+   one inside the app — Premium is the delivery, not the information.
+3. **Sales arrive by themselves** — register (POS) import. The biggest adoption
+   cost Ope has is manual logging; removing it is worth paying for. Large to
+   build; the headline once it exists.
+4. **Keep**: multiple locations, full history.
+
+**Never Premium** (the iron rule, and trust): anything that makes forecasts
+better — weather, holidays, year-ago comparison, recurring patterns — the
+decisions themselves, and data export.
+
+**Before charging anyone**: run the pilot free. Turn billing on once at least
+team access or notifications exist; until then, a paywall sells limits and
+will mostly convert nobody while costing goodwill.

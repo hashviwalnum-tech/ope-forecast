@@ -144,3 +144,26 @@ figure in the picker is only the device's guess; the busy-hours card says the
 hours may be shifted and where to fix it. Both are driven by
 `BusinessTime.isConfigured`, which distinguishes "the business has a zone" from
 "we fell back to this device's".
+
+## Keeping the backend awake (Render free tier)
+
+Render's free instance sleeps after ~15 idle minutes and takes 75–92 seconds
+to wake (measured 2026-10-04 and 10-11) — long enough for an owner to think
+Ope is broken.
+
+**What does not work:** `.github/workflows/keep-awake.yml` pings `/health`
+every 10 minutes in business hours, but GitHub ran it only **3–5 times a day**
+in its first week (scheduled workflows are best-effort and heavily delayed on
+free runners). It now fails red when the backend does not answer, so a green
+run is real. Keep it as a backup, not the fix.
+
+**What does (pick one):**
+1. **cron-job.org** (free): create a job for
+   `https://ope-forecast-dj78.onrender.com/health`, every 10 minutes, active
+   04:00–00:59 Israel time. Overnight it is left to sleep so the backend stays
+   inside Render's 750 free hours a month. (UptimeRobot's free plan works too,
+   but pings around the clock: 720–744 of the 750 hours, leaving nothing
+   spare for anything else on the account.)
+2. **Render Starter** (about $7 a month): never sleeps; no pinger needed.
+
+Either needs the owner's own account; nothing in the repository can do it.

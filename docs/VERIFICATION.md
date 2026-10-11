@@ -24,9 +24,9 @@ strangers. **Blocks Play** means Google will not accept the app until it is done
 
 | Gap | Status | Blocks |
 |---|---|---|
-| Vercel production domains still serve a months-old build calling the retired backend; `/privacy` serves the app | **Broken now** (re-checked 10-04). Builds succeed; production is not promoted — see FINAL_AUDIT §2 | **A pilot, and Play** |
-| Backend cold start | 75 s measured 10-04. Keep-awake ping added (GitHub Actions, business hours) — not yet observed firing | A pilot until observed |
-| Email confirmation off; Supabase cannot send mail | **Broken now** (`mailer_autoconfirm: true`, 10-04) | A launch |
+| Vercel production domains still serve a months-old build calling the retired backend; `/privacy` serves the app | **Broken now** (re-checked 10-11, same stale `index-Cq5jOFYB.js`). Builds succeed; production is not promoted — see FINAL_AUDIT §2 | **A pilot, and Play** |
+| Backend cold start | 75 s measured 10-04; **92 s at 2 pm Israel time on 10-11**. The GitHub keep-awake ping **does not work**: GitHub ran it 3–5 times a day instead of ~120 (10-04 to 10-11). It now fails red when the backend does not answer. Fix needs an outside pinger (cron-job.org / UptimeRobot, free, owner sign-up) or Render's paid plan — see OPERATIONS | **A pilot** |
+| Email confirmation off; Supabase cannot send mail | **Broken now** (`mailer_autoconfirm: true`, re-checked 10-11) | A launch |
 | Telegram bot | Not in this repository; token unset. Apps now hide/explain it | Nothing |
 | In-app account deletion | **VERIFIED live 10-04** — data and sign-in removed; `probe_tenancy` now exercises it on every run | Nothing |
 | Data export | **Built 10-04** (was promised, never existed) | Nothing |
@@ -35,7 +35,8 @@ strangers. **Blocks Play** means Google will not accept the app until it is done
 | Real-device mobile behaviour | Unverified | A launch |
 | Real screen-reader behaviour | Unverified | A launch |
 | ~6,500 machine-translated strings, plus ≈2,400 translation lines added or rewritten on 10-04, none reviewed by a native speaker | Unverified | A launch |
-| Offline taps on the phone | No queue — a tap without signal is lost after retries | A pilot (or pilot logs end-of-day totals) |
+| Offline taps on the phone | **Built 10-11**: every tap is saved on the phone first and sent when possible, keeping the time it was made; a re-send is never counted twice. Tested in code (12 queue tests, 8 server tests); **UNVERIFIED on a real phone with the signal actually cut** | A pilot, until tried on a phone |
+| Phone date fields | **Calendar picker since 10-11** (native module) — needs a rebuilt app, not a reload; UNVERIFIED on a device | Nothing |
 | Load and concurrency | Unverified | A launch |
 | Billing and payments | Backend tested against a fake Google only; phone purchase screen not built | A launch with paid Premium |
 ---
