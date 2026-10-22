@@ -11,4 +11,4 @@
  * the login screen says exactly that, so nobody is left wondering.
  */
 export const WEB_APP_URL =
-  process.env.EXPO_PUBLIC_WEB_APP_URL ?? 'https://ope-forecast-bngx.vercel.app'
+  process.env.EXPO_PUBLIC_WEB_APP_URL ?? 'https://www.opeforecast.com'
