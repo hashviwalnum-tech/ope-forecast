@@ -80,13 +80,27 @@ function isTimeout(err: unknown): boolean {
   return name === 'TimeoutError' || name === 'AbortError'
 }
 
+/**
+ * fetch, abandoned after REQUEST_TIMEOUT_MS.
+ *
+ * Not `AbortSignal.timeout`: React Native swaps the global AbortSignal for the
+ * `abort-controller` polyfill, which has no `timeout`. Calling it threw before
+ * any request left the phone, so every screen spun for ever.
+ */
+async function fetchWithTimeout(input: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    return await fetch(input, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 async function fetchWithRetry(input: string, init: RequestInit): Promise<Response> {
   for (let attempt = 0; attempt <= RETRY_MAX; attempt++) {
     try {
-      return await fetch(input, {
-        ...init,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      })
+      return await fetchWithTimeout(input, init)
     } catch (err) {
       if (!isNetworkError(err) || attempt === RETRY_MAX) {
         // "Network request failed" is React Native talking to a developer.
@@ -255,11 +269,10 @@ export const saleEvents = {
   sendQueued: async (tap: QueuedTap, sentAt: string): Promise<SendResult> => {
     let res: Response
     try {
-      res = await fetch(`${BASE}/sale-events`, {
+      res = await fetchWithTimeout(`${BASE}/sale-events`, {
         method: 'POST',
         headers: await authHeaders(tap.businessId),
         body: JSON.stringify({ product_id: tap.productId, tapped_at: tap.tappedAt, sent_at: sentAt }),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       })
     } catch {
       return { ok: false, retry: true }
