@@ -97,8 +97,14 @@ Phase 1 = MVP, **no login / no billing / single local user**. Prove the forecast
   only after `gradlew --version` has reported everything as fine.
   `prebuild --clean` deletes `android/local.properties`, so also set
   `ANDROID_HOME` (e.g. `~/AppData/Local/Android/Sdk`) or Gradle fails with "SDK
-  location not found". A local release bundle is signed with the **debug** key and
-  Play will refuse it — the bundle to upload comes from
-  `eas build --platform android --profile production`.
+  location not found". **The bundle for Play is built locally (decided
+  2026-10-22, not EAS)** and signed with the Play upload key in
+  `C:\Users\hashvi\ope-signing\` (outside the repo; `README.txt` there). Its
+  path and passwords are in `~/.gradle/gradle.properties` as `OPE_UPLOAD_*`.
+  `prebuild --clean` regenerates `android/app/build.gradle`, so re-add the
+  `signingConfigs.release` block that reads those properties, or Gradle falls
+  back to the debug key and Play refuses the bundle. Export the `production`
+  env from `eas.json` before building — Gradle does not read `eas.json`, and
+  `.env` has no Sentry DSN. Bump `versionCode` in `app.json` for every upload.
 - `mobile/android/` is generated from `app.json` and is not committed. Change the
   config, not the generated project.
