@@ -259,7 +259,7 @@ more trust than the time it saves. This belongs with `REVIEW_TRANSLATIONS.md`.
 
 **The URL to give Play:**
 
-    https://ope-forecast-bngx.vercel.app/privacy
+    https://www.opeforecast.com/privacy
 
 **It did not work before today.** `vercel.json` has rewritten `/privacy` to
 `/privacy-policy.html` for months, but the file lived at the repository root,

@@ -22,7 +22,7 @@
 **Honest risk note:** hosting and cloud auth are materially harder to debug than local work because the app no longer runs on a machine the owner controls. Corporate networks may also block unfamiliar sites — whether the work computer can reach the hosted app is a "try it and see." Keep local-run working as a fallback throughout.
 
 **Live URLs:**
-- Frontend: `https://ope-forecast-bngx.vercel.app`
+- Frontend: `https://www.opeforecast.com` (Vercel project `walnum/ope-forecast`; the old `ope-forecast-bngx.vercel.app` is not attached to it and serves a stale build)
 - Backend health: `https://ope-forecast-dj78.onrender.com/health`
 
 `/health` reports more than liveness: whether the test-only simulated clock is

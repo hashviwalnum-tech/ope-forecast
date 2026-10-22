@@ -20,7 +20,10 @@ from fastapi.responses import JSONResponse
 # The deployed frontend is in the default so that recreating the backend
 # service — which is how the allow-list was lost once already — cannot silently
 # cut the live site off from its API. ALLOWED_ORIGINS still overrides it.
-DEFAULT_ORIGINS = "http://localhost:5173,https://ope-forecast-bngx.vercel.app"
+DEFAULT_ORIGINS = (
+    "http://localhost:5173,https://ope-forecast-bngx.vercel.app,"
+    "https://www.opeforecast.com,https://opeforecast.com,https://ope-forecast-chi.vercel.app"
+)
 _origins = os.environ.get("ALLOWED_ORIGINS", DEFAULT_ORIGINS)
 ALLOWED_ORIGINS = [o.strip() for o in _origins.split(",") if o.strip()]
 
